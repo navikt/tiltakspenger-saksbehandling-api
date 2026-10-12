@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
@@ -92,20 +93,45 @@ private suspend fun Sak.startRevurderingStans(
         saksnummer = this.saksnummer,
         fnr = this.fnr,
         saksbehandler = saksbehandler,
-        saksopplysninger = hentSaksopplysninger(
-            fnr,
-            correlationId,
-            this.tiltaksdeltakelserDetErSøktTiltakspengerFor,
-            // TODO jah: På sikt er det mer presist at saksbehandler velger denne når hen starter en stans.
-            //  Vi kan begrense denne litt mer ved å fjerne de tiltaksdeltakelsene det ikke er innvilget for, men vi kan utsette det til etter satsingsperioden.
-            this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.tiltaksdeltakerId }.distinct(),
-            false,
-            id,
-        ),
+        saksopplysninger = hentSaksopplysningerForStans(hentSaksopplysninger, correlationId),
         opprettet = opprettet,
         automatiskOpprettetGrunn = automatiskOpprettetGrunn,
     )
 }
+
+/**
+ * Starter en stans som behandles av den automatiske saksbehandleren, se [Revurdering.opprettAutomatiskStans].
+ */
+suspend fun Sak.startAutomatiskStans(
+    automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn,
+    correlationId: CorrelationId,
+    clock: Clock,
+    hentSaksopplysninger: HentSaksopplysninger,
+): Pair<Sak, Revurdering> {
+    val revurdering = Revurdering.opprettAutomatiskStans(
+        sakId = this.id,
+        saksnummer = this.saksnummer,
+        fnr = this.fnr,
+        saksopplysninger = hentSaksopplysningerForStans(hentSaksopplysninger, correlationId),
+        opprettet = nå(clock),
+        automatiskOpprettetGrunn = automatiskOpprettetGrunn,
+    )
+    return Pair(this.leggTilRevurdering(revurdering), revurdering)
+}
+
+private suspend fun Sak.hentSaksopplysningerForStans(
+    hentSaksopplysninger: HentSaksopplysninger,
+    correlationId: CorrelationId,
+): Saksopplysninger = hentSaksopplysninger(
+    fnr,
+    correlationId,
+    this.tiltaksdeltakelserDetErSøktTiltakspengerFor,
+    // TODO jah: På sikt er det mer presist at saksbehandler velger denne når hen starter en stans.
+    //  Vi kan begrense denne litt mer ved å fjerne de tiltaksdeltakelsene det ikke er innvilget for, men vi kan utsette det til etter satsingsperioden.
+    this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.tiltaksdeltakerId }.distinct(),
+    false,
+    id,
+)
 
 // TODO forlengelse jah: Konverter til forlengelse.
 private suspend fun Sak.startRevurderingInnvilgelse(

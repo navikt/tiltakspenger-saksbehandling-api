@@ -191,6 +191,13 @@ private fun tiltaksdeltakerJobber(
             TaskResultat.Ferdig
         },
     ),
+    Task(
+        navn = "saksbehandling-jobb-behandle-automatiske-stanser",
+        utfør = { _ ->
+            applicationContext.delautomatiskStansJobb.automatiskBehandleStanser()
+            TaskResultat.Ferdig
+        },
+    ),
 )
 
 private fun naisJobber(

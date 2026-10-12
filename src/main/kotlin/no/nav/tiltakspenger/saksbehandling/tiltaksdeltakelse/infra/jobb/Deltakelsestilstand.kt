@@ -9,6 +9,9 @@ import java.time.LocalDate
 
 /**
  * Feltene endringsvurderingen sammenligner, likt for kjent tilstand og nå-tilstanden fra tiltakshistorikk.
+ *
+ * @param deltakelseProsent Deltakelsens egen deltakelsesprosent.
+ * Mangler den, brukes deltidsprosenten på gjennomføringen, som ifølge kilden gjelder alle deltakelser på tiltaket som ikke har sin egen.
  */
 data class Deltakelsestilstand(
     val deltakelseFraOgMed: LocalDate?,
@@ -22,7 +25,7 @@ fun TiltaksdeltakelseIntern.tilDeltakelsestilstand() = Deltakelsestilstand(
     deltakelseFraOgMed = deltakelseFraOgMed,
     deltakelseTilOgMed = deltakelseTilOgMed,
     deltakelseStatus = deltakelseStatus,
-    deltakelseProsent = deltakelseProsent,
+    deltakelseProsent = deltakelseProsent ?: deltidsprosentGjennomforing?.toFloat(),
     antallDagerPerUke = antallDagerPerUke,
 )
 
@@ -30,9 +33,12 @@ fun Tiltaksdeltakelse.GirRett.tilDeltakelsestilstand(clock: Clock) = Deltakelses
     deltakelseFraOgMed = fraOgMed,
     deltakelseTilOgMed = tilOgMed,
     deltakelseStatus = tiltakDeltakerstatus(clock),
-    deltakelseProsent = omfang.deltakelsesprosent,
+    deltakelseProsent = omfang.deltakelsesprosent ?: omfang.deltidsprosentPåGjennomføring,
     antallDagerPerUke = omfang.dagerPerUke,
 )
+
+private const val FULLTID_PROSENT = 100F
+private const val FULLTID_DAGER_PER_UKE = 5F
 
 /**
  * Tolker endringene mellom nå-tilstanden fra tiltakshistorikk og en kjent tilstand for deltakelsen, for eksempel fra en åpen behandling.
@@ -79,9 +85,31 @@ fun Deltakelsestilstand.harSammeStatus(oppdatertDeltakelse: Deltakelsestilstand)
     return deltakelseStatus == oppdatertDeltakelse.deltakelseStatus
 }
 
+/**
+ * Deltakelsesmengden er den samme dersom alle verdiene er like, der null og 0 regnes som like.
+ * Fulltid er i tillegg samme deltakelsesmengde uansett hvilke av verdiene den er angitt med, så 5 dager per uke er det samme som 100 prosent.
+ * Er verdiene innbyrdes motstridende, for eksempel 100 prosent og 3 dager per uke, regnes enhver ulikhet i verdiene som en endring.
+ * Andre deltakelsesprosenter og antall dager regnes ikke som likeverdige, siden for eksempel 50 prosent ikke sier hvor mange dager deltakelsen er fordelt på.
+ */
 fun Deltakelsestilstand.harSammeDeltakelsesmengde(oppdatertDeltakelse: Deltakelsestilstand): Boolean {
+    return harLikeVerdierForDeltakelsesmengde(oppdatertDeltakelse) || (erFulltid() && oppdatertDeltakelse.erFulltid())
+}
+
+private fun Deltakelsestilstand.harLikeVerdierForDeltakelsesmengde(oppdatertDeltakelse: Deltakelsestilstand): Boolean {
     return compareValues(deltakelseProsent ?: 0F, oppdatertDeltakelse.deltakelseProsent ?: 0F) == 0 &&
         compareValues(antallDagerPerUke ?: 0F, oppdatertDeltakelse.antallDagerPerUke ?: 0F) == 0
+}
+
+/**
+ * Fulltid krever at minst én av verdiene er angitt, og at alle som er angitt betyr fulltid.
+ * En verdi på 0 regnes som ikke angitt, på samme måte som i sammenligningen av verdiene.
+ */
+private fun Deltakelsestilstand.erFulltid(): Boolean {
+    val angitteVerdierErFulltid = listOfNotNull(
+        deltakelseProsent?.takeIf { it != 0F }?.let { it == FULLTID_PROSENT },
+        antallDagerPerUke?.takeIf { it != 0F }?.let { it == FULLTID_DAGER_PER_UKE },
+    )
+    return angitteVerdierErFulltid.isNotEmpty() && angitteVerdierErFulltid.all { it }
 }
 
 private fun Deltakelsestilstand.erUendret(oppdatertDeltakelse: Deltakelsestilstand): Boolean {

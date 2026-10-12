@@ -31,6 +31,9 @@ sealed interface VurdertTiltaksdeltakerEndring {
 sealed interface AutomatiskRevurderingAvEndring {
     val type: StartRevurderingType
 
+    /**
+     * Stansen opprettes under automatisk behandling, og verdiene for å fylle den ut utledes når den behandles.
+     */
     data object Stans : AutomatiskRevurderingAvEndring {
         override val type = StartRevurderingType.STANS
     }

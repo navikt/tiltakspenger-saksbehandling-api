@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
@@ -25,6 +26,7 @@ import java.time.LocalDate
  * Åpne manuelle behandlinger med deltakelsen tas med som kjent tilstand, se [deltakelseISisteÅpneManuelleBehandling].
  * Kjenner den nyeste av dem allerede nå-tilstanden, er endringen fanget opp der, og det gis [VurdertTiltaksdeltakerEndring.IngenEndring].
  * Er deltakelsen ikke innvilget i noe gjeldende vedtak, sammenlignes nå-tilstanden med den åpne behandlingen i stedet, og endringen må følges opp manuelt.
+ * Har endringen allerede gitt en automatisk revurdering som ennå ikke er behandlet, gis [VurdertTiltaksdeltakerEndring.IngenEndring], se [harUbehandletAutomatiskRevurdering].
  *
  * Gir [VurdertTiltaksdeltakerEndring.IngenEndring] dersom deltakelsen verken er innvilget i noe gjeldende vedtak eller er med i en åpen manuell behandling, eller dersom ingenting relevant er endret.
  * Det gjelder også når deltakelsen har vært innvilget, men er stanset, opphørt eller erstattet av en annen deltakelse i alle periodene.
@@ -35,18 +37,24 @@ fun Sak.finnEndringerForDeltakelse(
     clock: Clock,
 ): VurdertTiltaksdeltakerEndring {
     val iDag = LocalDate.now(clock)
-    val nåtilstand = oppdatertDeltakelse.tilDeltakelsestilstand(clock)
+    val oppdatertTilstand = oppdatertDeltakelse.tilDeltakelsestilstand(clock)
+
+    if (harUbehandletAutomatiskRevurdering(tiltaksdeltakerId)) {
+        return IngenEndring
+    }
 
     val endringMotÅpenBehandling = deltakelseISisteÅpneManuelleBehandling(tiltaksdeltakerId)
         ?.let {
-            it.tilDeltakelsestilstand().finnEndringer(nåtilstand, clock)
+            it.tilDeltakelsestilstand().finnEndringer(oppdatertTilstand, clock)
                 ?: return IngenEndring
         }
 
-    val gjeldendeInnvilgelse = gjeldendeVedtakForDeltakelse(tiltaksdeltakerId).tilGjeldendeInnvilgelse(iDag)
+    val gjeldendeVedtak = gjeldendeVedtakForDeltakelse(tiltaksdeltakerId)
+
+    val gjeldendeInnvilgelse = gjeldendeVedtak.tilGjeldendeInnvilgelse(iDag)
         ?: return endringMotÅpenBehandling?.let { Endret(endring = it, automatiskRevurdering = null) } ?: IngenEndring
 
-    val endring = gjeldendeInnvilgelse.finnEndringer(nåtilstand, iDag)
+    val endring = gjeldendeInnvilgelse.finnEndringer(oppdatertTilstand, iDag)
         ?: endringMotÅpenBehandling
         ?: return IngenEndring
 
@@ -55,12 +63,22 @@ fun Sak.finnEndringerForDeltakelse(
         automatiskRevurdering = vurderAutomatiskRevurdering(
             tiltaksdeltakerId,
             endring,
-            nåtilstand,
+            oppdatertTilstand,
             gjeldendeInnvilgelse,
             iDag,
         ),
     )
 }
+
+/**
+ * Om saken har en revurdering under automatisk behandling som er opprettet automatisk for en endring i deltakelsen.
+ * Revurderingen henter nå-tilstanden på nytt når den behandles, og fanger da opp senere endringer selv.
+ * Uten dette ville endringen blitt sammenlignet med gjeldende vedtak på nytt og gitt en oppgave i tillegg til revurderingen.
+ */
+private fun Sak.harUbehandletAutomatiskRevurdering(tiltaksdeltakerId: TiltaksdeltakerId): Boolean =
+    rammebehandlinger.åpneBehandlinger.any {
+        it is Revurdering && it.erUnderAutomatiskBehandling && it.automatiskOpprettetGrunn?.tiltaksdeltakerId == tiltaksdeltakerId
+    }
 
 /**
  * Tilstanden deltakelsen har i den sist endrede åpne behandlingen som har den med i saksopplysningene.
@@ -255,6 +273,7 @@ private fun GjeldendeInnvilgelse.finnEndringer(
  *
  * - Avbrudd gir stans, så lenge deltakelsen er innvilget fra og med i dag og ingen andre deltakelser er innvilget etter avbruddet.
  * Er andre deltakelser innvilget etter avbruddet, vurderes omgjøring i stedet, siden en stans også ville stanset dem.
+ * Stansen behandles automatisk etter at den er opprettet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.utledAutomatiskStans].
  * - Forlengelse gir innvilgelse dersom ny sluttdato er etter siste dag med rett på saken.
  * Ellers vurderes omgjøring dersom deltakelsesmengden er endret samtidig.
  * - Endret startdato, sluttdato eller deltakelsesmengde gir omgjøring.
@@ -266,7 +285,7 @@ private fun GjeldendeInnvilgelse.finnEndringer(
 private fun Sak.vurderAutomatiskRevurdering(
     tiltaksdeltakerId: TiltaksdeltakerId,
     endring: TiltaksdeltakerEndring,
-    nåtilstand: Deltakelsestilstand,
+    oppdatertTilstand: Deltakelsestilstand,
     gjeldendeInnvilgelse: GjeldendeInnvilgelse,
     iDag: LocalDate,
 ): AutomatiskRevurderingAvEndring? {
@@ -277,7 +296,7 @@ private fun Sak.vurderAutomatiskRevurdering(
     return when (endring) {
         is TiltaksdeltakerEndring.AvbruttDeltakelse -> vurderRevurderingForAvbrudd(
             tiltaksdeltakerId,
-            nåtilstand,
+            oppdatertTilstand,
             gjeldendeInnvilgelse,
             iDag,
         )
@@ -305,7 +324,7 @@ private fun Sak.vurderAutomatiskRevurdering(
  */
 private fun Sak.vurderRevurderingForAvbrudd(
     tiltaksdeltakerId: TiltaksdeltakerId,
-    nåtilstand: Deltakelsestilstand,
+    oppdatertTilstand: Deltakelsestilstand,
     gjeldendeInnvilgelse: GjeldendeInnvilgelse,
     iDag: LocalDate,
 ): AutomatiskRevurderingAvEndring? {
@@ -313,7 +332,7 @@ private fun Sak.vurderRevurderingForAvbrudd(
         return null
     }
 
-    val nySluttdato = nåtilstand.deltakelseTilOgMed
+    val nySluttdato = oppdatertTilstand.deltakelseTilOgMed
     val avbruttFraOgMed = if (nySluttdato != null && nySluttdato.isBefore(gjeldendeInnvilgelse.sisteInnvilgedeDag)) {
         maxOf(nySluttdato.plusDays(1), gjeldendeInnvilgelse.førsteInnvilgedeDag)
     } else {

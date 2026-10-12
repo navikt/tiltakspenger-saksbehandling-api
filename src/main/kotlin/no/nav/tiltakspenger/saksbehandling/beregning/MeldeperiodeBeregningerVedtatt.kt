@@ -9,6 +9,7 @@ import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
+import java.time.LocalDate
 
 /**
  *  Denne skal kun omfatte beregninger som er en del av et vedtak
@@ -30,6 +31,17 @@ data class MeldeperiodeBeregningerVedtatt private constructor(
 
     val gjeldendeBeregninger: List<MeldeperiodeBeregning> by lazy {
         gjeldendeBeregningPerKjede.values.toList()
+    }
+
+    /**
+     * Siste dag med et beløp (ordinært eller barnetillegg) i de gjeldende beregningene, eller null dersom ingen dager har beløp.
+     * Endres en slik dag i ettertid, f.eks. ved stans eller opphør, blir det en feilutbetaling.
+     */
+    val sisteDagMedUtbetaling: LocalDate? by lazy {
+        gjeldendeBeregninger
+            .flatMap { it.dager }
+            .filter { it.totalBeløp > 0 }
+            .maxOfOrNull { it.dato }
     }
 
     fun hentSisteForKjedeId(kjedeId: MeldeperiodeKjedeId): MeldeperiodeBeregning? {

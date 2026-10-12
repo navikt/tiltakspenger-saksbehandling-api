@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
+import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
@@ -58,6 +59,7 @@ data class Revurdering(
     override val skalSendeVedtaksbrev: Boolean,
     override val skalJournalføreNotat: Boolean,
     val automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
+    val manueltBehandlesGrunner: List<ManueltBehandlesGrunn> = emptyList(),
 ) : Rammebehandling {
 
     override val vedtaksperiode: Periode? = resultat.vedtaksperiode
@@ -123,6 +125,24 @@ data class Revurdering(
         )
     }
 
+    /**
+     * Overlater en automatisk opprettet revurdering til en saksbehandler, med [manueltBehandlesGrunner] som forklaring på hvorfor den ikke kunne behandles automatisk.
+     */
+    fun tilManuellBehandling(
+        manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,
+        clock: Clock,
+    ): Revurdering {
+        check(status == UNDER_AUTOMATISK_BEHANDLING) {
+            "Behandlingen må være under automatisk behandling. Behandlingsstatus: ${this.status}."
+        }
+        return this.copy(
+            status = KLAR_TIL_BEHANDLING,
+            sistEndret = nå(clock),
+            saksbehandler = null,
+            manueltBehandlesGrunner = manueltBehandlesGrunner,
+        )
+    }
+
     override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling {
         require(this.klagebehandling!!.id == klagebehandling.id)
         return this.copy(klagebehandling = klagebehandling)
@@ -145,6 +165,34 @@ data class Revurdering(
                 saksnummer = saksnummer,
                 fnr = fnr,
                 saksbehandler = saksbehandler,
+                saksopplysninger = saksopplysninger,
+                opprettet = opprettet,
+                resultat = Stans.empty,
+                klagebehandling = null,
+                automatiskOpprettetGrunn = automatiskOpprettetGrunn,
+            )
+        }
+
+        /**
+         * En stans som opprettes av systemet og behandles av den automatiske saksbehandleren.
+         * Behandlingen er [UNDER_AUTOMATISK_BEHANDLING] og tildelt [AUTOMATISK_SAKSBEHANDLER_ID] til den enten sendes til beslutning eller overlates til en saksbehandler.
+         */
+        fun opprettAutomatiskStans(
+            sakId: SakId,
+            revurderingId: RammebehandlingId = RammebehandlingId.random(),
+            saksnummer: Saksnummer,
+            fnr: Fnr,
+            saksopplysninger: Saksopplysninger,
+            opprettet: LocalDateTime,
+            automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn,
+        ): Revurdering {
+            return opprett(
+                revurderingId = revurderingId,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                status = UNDER_AUTOMATISK_BEHANDLING,
+                saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID,
                 saksopplysninger = saksopplysninger,
                 opprettet = opprettet,
                 resultat = Stans.empty,
@@ -217,14 +265,40 @@ data class Revurdering(
             resultat: Revurderingsresultat,
             klagebehandling: Klagebehandling?,
             automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
+        ): Revurdering = opprett(
+            sakId = sakId,
+            revurderingId = revurderingId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            status = if (saksbehandler != null) UNDER_BEHANDLING else KLAR_TIL_BEHANDLING,
+            saksbehandler = saksbehandler?.navIdent,
+            saksopplysninger = saksopplysninger,
+            opprettet = opprettet,
+            resultat = resultat,
+            klagebehandling = klagebehandling,
+            automatiskOpprettetGrunn = automatiskOpprettetGrunn,
+        )
+
+        private fun opprett(
+            sakId: SakId,
+            revurderingId: RammebehandlingId,
+            saksnummer: Saksnummer,
+            fnr: Fnr,
+            status: Rammebehandlingsstatus,
+            saksbehandler: String?,
+            saksopplysninger: Saksopplysninger,
+            opprettet: LocalDateTime,
+            resultat: Revurderingsresultat,
+            klagebehandling: Klagebehandling?,
+            automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
         ): Revurdering {
             return Revurdering(
                 id = revurderingId,
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
-                status = if (saksbehandler != null) UNDER_BEHANDLING else KLAR_TIL_BEHANDLING,
-                saksbehandler = saksbehandler?.navIdent,
+                status = status,
+                saksbehandler = saksbehandler,
                 saksopplysninger = saksopplysninger,
                 opprettet = opprettet,
                 sistEndret = opprettet,

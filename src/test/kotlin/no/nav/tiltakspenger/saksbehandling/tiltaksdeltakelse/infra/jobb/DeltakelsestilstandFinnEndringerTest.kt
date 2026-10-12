@@ -126,6 +126,96 @@ class DeltakelsestilstandFinnEndringerTest {
         finnEndringer(kjent, nåtilstand) shouldBe AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(nyProsent, nyeDager))
     }
 
+    @ParameterizedTest
+    @CsvSource(
+        "null, 5, null, 100, null, null",
+        "100, null, null, null, 5, null",
+        "100, 5, null, null, 5, null",
+        "100, 5, null, 100, null, null",
+        "null, 5, null, null, null, 100",
+        "null, null, 100, 100, 5, null",
+        "null, null, 100, null, 5, null",
+        "100, 0, null, 0, 5, null",
+        "100, null, 50, null, 5, null",
+        nullValues = ["null"],
+    )
+    fun `fulltid er samme deltakelsesmengde uansett hvilke verdier den er angitt med`(
+        gammelProsent: Float?,
+        gamleDager: Float?,
+        gammelDeltidsprosent: Double?,
+        nyProsent: Float?,
+        nyeDager: Float?,
+        nyDeltidsprosent: Double?,
+    ) {
+        val kjent = kjentTilstand.copy(
+            deltakelseProsent = gammelProsent,
+            antallDagerPerUke = gamleDager,
+            deltidsprosentGjennomforing = gammelDeltidsprosent,
+        )
+        val nåtilstand = kjent.copy(
+            deltakelseProsent = nyProsent,
+            antallDagerPerUke = nyeDager,
+            deltidsprosentGjennomforing = nyDeltidsprosent,
+        )
+
+        finnEndringer(kjent, nåtilstand).shouldBeNull()
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "100, 3, null, 3, null, 3",
+        "100, 3, 100, 5, 100, 5",
+        "100, 3, 100, null, 100, null",
+        "50, 5, 50, null, 50, null",
+        "50, 5, 100, 5, 100, 5",
+        "100, 5, 100, 3, 100, 3",
+        "100, 5, 50, 5, 50, 5",
+        "null, 5, 60, 3, 60, 3",
+        "60, 3, 100, null, 100, null",
+        nullValues = ["null"],
+    )
+    fun `motstridende eller ulike verdier for deltakelsesmengden gir endret deltakelsesmengde`(
+        gammelProsent: Float?,
+        gamleDager: Float?,
+        nyProsent: Float?,
+        nyeDager: Float?,
+        forventetProsent: Float?,
+        forventedeDager: Float?,
+    ) {
+        val kjent = kjentTilstand.copy(deltakelseProsent = gammelProsent, antallDagerPerUke = gamleDager)
+        val nåtilstand = kjent.copy(deltakelseProsent = nyProsent, antallDagerPerUke = nyeDager)
+
+        finnEndringer(kjent, nåtilstand) shouldBe
+            AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(forventetProsent, forventedeDager))
+    }
+
+    @Test
+    fun `motstridende verdier som er uendret gir ingen endringer`() {
+        val kjent = kjentTilstand.copy(deltakelseProsent = 100F, antallDagerPerUke = 3F)
+
+        finnEndringer(kjent, kjent).shouldBeNull()
+    }
+
+    @Test
+    fun `deltidsprosenten på gjennomføringen brukes som deltakelsesprosent når deltakelsen mangler sin egen`() {
+        val kjent = kjentTilstand.copy(deltakelseProsent = null, deltidsprosentGjennomforing = 50.0)
+
+        finnEndringer(kjent, kjent.copy(deltakelseProsent = 50F, deltidsprosentGjennomforing = null)).shouldBeNull()
+        finnEndringer(kjent, kjent.copy(deltidsprosentGjennomforing = 60.0)) shouldBe
+            AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 2F))
+        finnEndringer(kjent, kjent.copy(deltidsprosentGjennomforing = null)) shouldBe
+            AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(null, 2F))
+    }
+
+    @Test
+    fun `deltidsprosenten på gjennomføringen overstyrer ikke deltakelsens egen prosent`() {
+        val kjent = kjentTilstand.copy(deltakelseProsent = 50F, deltidsprosentGjennomforing = 100.0)
+
+        finnEndringer(kjent, kjent.copy(deltidsprosentGjennomforing = 80.0)).shouldBeNull()
+        finnEndringer(kjent, kjent.copy(deltakelseProsent = null)) shouldBe
+            AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(100F, 2F))
+    }
+
     @Test
     fun `senere sluttdato med samme startdato er en forlengelse`() {
         val nySluttdato = kjentTilstand.deltakelseTilOgMed!!.plusDays(1)
