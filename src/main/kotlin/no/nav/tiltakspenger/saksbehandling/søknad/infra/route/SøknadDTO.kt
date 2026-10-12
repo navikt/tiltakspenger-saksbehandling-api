@@ -26,7 +26,6 @@ data class SøknadDTO(
     val barnetillegg: List<BarnetilleggFraSøknadDTO>,
     val opprettet: LocalDateTime,
     val mottatt: LocalDateTime,
-    val tidsstempelHosOss: LocalDateTime, // TODO - fjerne denne når frontend er oppdatert
     val antallVedlegg: Int,
     val avbrutt: List<SøknadshendelseDTO>,
     val kanInnvilges: Boolean,
@@ -111,7 +110,6 @@ fun InnvilgbarSøknad.toSøknadDTO(): SøknadDTO {
         søknadstype = this.søknadstype.toDTO(),
         opprettet = this.opprettet,
         mottatt = this.mottatt,
-        tidsstempelHosOss = this.mottatt,
         antallVedlegg = this.vedlegg,
         avbrutt = this.avbrutt.toSøknadshendelserDTO(),
         kanInnvilges = this.kanInnvilges(),
@@ -145,7 +143,6 @@ fun IkkeInnvilgbarSøknad.toSøknadDTO(): SøknadDTO {
         søknadstype = this.søknadstype.toDTO(),
         opprettet = this.opprettet,
         mottatt = this.mottatt,
-        tidsstempelHosOss = this.mottatt,
         antallVedlegg = this.vedlegg,
         avbrutt = this.avbrutt.toSøknadshendelserDTO(),
         kanInnvilges = this.kanInnvilges(),

@@ -377,7 +377,6 @@ fun String.shouldBeSøknadsbehandlingDTO(
             "behandlingsarsak": null,
             "kanInnvilges": true,
             "mottatt": "2023-01-01T00:00:00",
-            "tidsstempelHosOss": "2023-01-01T00:00:00",
             "id": "$søknadId",
             "journalpostId": "$journalpostId"
         },
