@@ -37,7 +37,9 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.logg
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
@@ -193,20 +195,20 @@ class DelautomatiskStansService(
             clock = clock,
         ).getOrElse {
             log.warn { "Kunne ikke fylle ut automatisk stans: $it - ${revurdering.loggkontekst(correlationId)}" }
-            return ManueltBehandlesGrunn.STANS_KAN_IKKE_SENDES_TIL_BESLUTNING.left()
+            return ManueltBehandlesGrunn.STANS_KAN_IKKE_FYLLES_UT.left()
         }.oppdaterUtbetalingskontroll(
             oppdatertKontroll = simulertUtbetaling?.utbetalingskontroll,
             clock = clock,
         )
 
         utfylt.validerKanIverksetteUtbetaling().onLeft {
-            log.info { "Utbetalingen på automatisk stans kan ikke iverksettes: ${it::class.simpleName} - ${revurdering.loggkontekst(correlationId)}" }
-            return ManueltBehandlesGrunn.STANS_UTBETALING_KAN_IKKE_IVERKSETTES.left()
+            it.logg(log) { "Utbetalingen på automatisk stans kan ikke iverksettes - ${revurdering.loggkontekst(correlationId)}" }
+            return it.tilManueltBehandlesGrunn().left()
         }
 
         if (!oppdaterRammebehandling(utfylt).meldeperioderErGyldigeForHelg(utfylt.id, clock)) {
             log.warn { "Automatisk stans gir ugyldige meldeperioder for helg - ${revurdering.loggkontekst(correlationId)}" }
-            return ManueltBehandlesGrunn.STANS_KAN_IKKE_SENDES_TIL_BESLUTNING.left()
+            return ManueltBehandlesGrunn.STANS_UGYLDIGE_MELDEPERIODER_FOR_HELG.left()
         }
 
         val sendtTilBeslutning = utfylt.tilBeslutning(
@@ -223,6 +225,18 @@ class DelautomatiskStansService(
         } as Revurdering
 
         return (sendtTilBeslutning to simulertUtbetaling?.simuleringMedMetadata).right()
+    }
+
+    private fun KanIkkeIverksetteUtbetaling.tilManueltBehandlesGrunn(): ManueltBehandlesGrunn = when (this) {
+        KanIkkeIverksetteUtbetaling.SimuleringMangler -> ManueltBehandlesGrunn.STANS_UTBETALING_SIMULERING_MANGLER
+
+        KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeFeilutbetaling -> ManueltBehandlesGrunn.STANS_UTBETALING_STOTTER_IKKE_FEILUTBETALING
+
+        KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeJustering,
+        is KanIkkeIverksetteUtbetaling.JusteringStøttesIkke,
+        -> ManueltBehandlesGrunn.STANS_UTBETALING_STOTTER_IKKE_JUSTERING
+
+        is KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer -> ManueltBehandlesGrunn.STANS_UTBETALING_KONTROLLSIMULERING_HAR_ENDRINGER
     }
 
     /**

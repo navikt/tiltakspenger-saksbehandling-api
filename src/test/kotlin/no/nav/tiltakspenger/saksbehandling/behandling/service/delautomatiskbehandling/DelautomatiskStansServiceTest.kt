@@ -5,8 +5,10 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.april
@@ -20,12 +22,17 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortDagStatusDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortbehandlingDTO.OppdaterMeldekortdagDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortbehandlingDTO.OppdatertMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
@@ -111,6 +118,90 @@ class DelautomatiskStansServiceTest {
                 stans.harValgtStansFraFørsteDagSomGirRett shouldBe false
                 stans.stansperiode shouldBe (21.april(2025) til 5.mai(2025))
             }
+        }
+    }
+
+    /**
+     * Stans støtter ikke feilutbetaling, så dager som allerede er utbetalt etter sluttdatoen skal ikke stanses.
+     */
+    @Test
+    fun `utbetalt etter sluttdato - stanses fra dagen etter siste dag med utbetaling`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(6.januar(2025) til 5.mai(2025))
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+            )
+            val (sakMedUtbetaling) = opprettOgIverksettMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+            )!!
+            sakMedUtbetaling.meldeperiodeBeregninger.sisteDagMedUtbetaling shouldBe 17.januar(2025)
+            val revurdering = tac.opprettAutomatiskStans(
+                sak = sak,
+                tiltaksdeltakelse = deltakelse,
+                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 7.januar(2025)),
+            )
+
+            tac.delautomatiskStansJobb.automatiskBehandleStanser()
+
+            tac.hentRevurdering(sak, revurdering).also {
+                it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+                it.manueltBehandlesGrunner.shouldBeEmpty()
+                it.resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>().stansperiode shouldBe (18.januar(2025) til 5.mai(2025))
+                it.begrunnelseVilkårsvurdering!!.verdi shouldContain "Det er allerede utbetalt tiltakspenger til og med"
+            }
+        }
+    }
+
+    /**
+     * Stansen opprettes mens innvilgelsen fortsatt løper, men meldekortet behandles før stansen behandles automatisk.
+     */
+    @Test
+    fun `alle innvilgede dager etter sluttdato er utbetalt - overlates til saksbehandler`() {
+        withTestApplicationContextAndPostgres(clock = TikkendeKlokke(fixedClockAt(8.januar(2025)))) { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(6.januar(2025) til 9.januar(2025))
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+            )
+            val revurdering = tac.opprettAutomatiskStans(
+                sak = sak,
+                tiltaksdeltakelse = deltakelse,
+                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 7.januar(2025)),
+            )
+
+            tac.clock.spolTil(1.mai(2025).atStartOfDay())
+            val meldeperiode = sak.meldeperiodeKjeder.first().siste
+            val (sakMedUtbetaling) = opprettOgIverksettMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = meldeperiode.kjedeId,
+                meldeperioder = listOf(
+                    OppdatertMeldeperiodeDTO(
+                        kjedeId = meldeperiode.kjedeId.verdi,
+                        dager = meldeperiode.periode.tilDager().map {
+                            OppdaterMeldekortdagDTO(
+                                dato = it,
+                                status = if (deltakelse.periode!!.inneholder(it)) {
+                                    MeldekortDagStatusDTO.DELTATT_UTEN_LØNN_I_TILTAKET
+                                } else {
+                                    MeldekortDagStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
+                                },
+                            )
+                        },
+                    ),
+                ),
+            )!!
+            sakMedUtbetaling.meldeperiodeBeregninger.sisteDagMedUtbetaling shouldBe 9.januar(2025)
+
+            tac.delautomatiskStansJobb.automatiskBehandleStanser()
+
+            tac.hentRevurdering(sak, revurdering)
+                .skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SISTE_UTBETALING)
         }
     }
 

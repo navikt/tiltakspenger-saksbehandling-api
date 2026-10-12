@@ -39,6 +39,8 @@ private val avsluttedeDeltakerstatuser = setOf(
  * Deltakelsen må ha en avsluttet status og en sluttdato som er passert, siden en sluttdato i fremtiden fortsatt kan endres.
  * Stansen gjelder fra første innvilgede dag for deltakelsen etter sluttdatoen, slik at den ikke starter i en periode som allerede er stanset eller opphørt.
  * Er det ingen innvilgede dager etter sluttdatoen, er det ingenting å stanse.
+ * Stansen gjelder tidligst fra dagen etter siste dag med utbetaling på saken, siden stans ikke støtter feilutbetaling.
+ * Er alle innvilgede dager etter sluttdatoen allerede utbetalt, overlates stansen til saksbehandler.
  * Er andre deltakelser innvilget fra stansdatoen, vil stansen berøre mer enn denne deltakelsen.
  *
  * @param nåtilstand Deltakelsen slik den er registrert nå, typisk fra saksopplysningene til revurderingen.
@@ -62,12 +64,20 @@ fun Sak.utledAutomatiskStans(
     }
 
     val innvilgedePerioder = rammevedtaksliste.valgteTiltaksdeltakelser.perioderMedVerdi
+    val innvilgedePerioderForDeltakelsen = innvilgedePerioder.filter { it.verdi.internDeltakelseId == tiltaksdeltakerId }
     val dagenEtterSluttdato = sluttdato.plusDays(1)
-    val stansFraOgMed = innvilgedePerioder
-        .filter { it.verdi.internDeltakelseId == tiltaksdeltakerId }
-        .firstOrNull { !it.periode.tilOgMed.isBefore(dagenEtterSluttdato) }
-        ?.let { maxOf(it.periode.fraOgMed, dagenEtterSluttdato) }
-        ?: return ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SLUTTDATO.left()
+    if (innvilgedePerioderForDeltakelsen.all { it.periode.tilOgMed.isBefore(dagenEtterSluttdato) }) {
+        return ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SLUTTDATO.left()
+    }
+
+    // TODO: Kanskje utlede denne fra simuleringen isteden, slik at utbetalinger som ikke er fullført i OS/UR fortsatt kan stanses.
+    // Det blir en "hastesak" å få besluttet den isåfall... :thinking:
+    val utbetaltEtterSluttdatoTilOgMed = meldeperiodeBeregninger.sisteDagMedUtbetaling?.takeIf { it.isAfter(sluttdato) }
+    val tidligsteStansdato = utbetaltEtterSluttdatoTilOgMed?.plusDays(1) ?: dagenEtterSluttdato
+    val stansFraOgMed = innvilgedePerioderForDeltakelsen
+        .firstOrNull { !it.periode.tilOgMed.isBefore(tidligsteStansdato) }
+        ?.let { maxOf(it.periode.fraOgMed, tidligsteStansdato) }
+        ?: return ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SISTE_UTBETALING.left()
 
     val harAndreDeltakelserInnvilgetEtterStans = innvilgedePerioder.any {
         !it.periode.tilOgMed.isBefore(stansFraOgMed) && it.verdi.internDeltakelseId != tiltaksdeltakerId
@@ -84,9 +94,14 @@ fun Sak.utledAutomatiskStans(
             ValgtStansFraOgMed.StansFraOgMed(stansFraOgMed)
         },
         begrunnelse = Begrunnelse.create(
-            "Automatisk behandlet. Tiltaksdeltakelsen er registrert med status $status " +
-                "og sluttdato ${sluttdato.format(norskDatoFormatter)}. " +
-                "Tiltakspengene stanses fra og med ${stansFraOgMed.format(norskDatoFormatter)} fordi bruker ikke lenger deltar på arbeidsmarkedstiltak.",
+            buildString {
+                append("Automatisk behandlet. Tiltaksdeltakelsen er registrert med status $status ")
+                append("og sluttdato ${sluttdato.format(norskDatoFormatter)}. ")
+                if (utbetaltEtterSluttdatoTilOgMed != null) {
+                    append("Det er allerede utbetalt tiltakspenger til og med ${utbetaltEtterSluttdatoTilOgMed.format(norskDatoFormatter)}, så stansen gjelder tidligst fra dagen etter. ")
+                }
+                append("Tiltakspengene stanses fra og med ${stansFraOgMed.format(norskDatoFormatter)} fordi bruker ikke lenger deltar på arbeidsmarkedstiltak.")
+            },
         )!!,
     ).right()
 }
