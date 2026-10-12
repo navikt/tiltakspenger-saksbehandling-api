@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO.toSøkn
 /**
  * Oppslag mot søknadstabellene som kun testlaget trenger.
  * Prodkoden leser søknader gjennom sak-aggregatet; dette oppslaget finnes for testinfra som slår opp på fnr uten en sak i hånda.
- * Session-telleren skrus av fordi søknadsfallbacken i [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient] kalles med en åpen sesjon i lokal kjøring.
+ * Session-telleren skrus av fordi søknadsoppslaget i [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeLokalKlient] kalles med en åpen sesjon i lokal kjøring.
  *
  * Mappingen gjenbrukes fra [SøknadDAO] — den brukes av prodspørringene og skal ikke dupliseres her.
  */

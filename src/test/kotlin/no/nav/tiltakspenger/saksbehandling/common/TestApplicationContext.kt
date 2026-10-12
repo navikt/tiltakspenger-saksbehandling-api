@@ -77,7 +77,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.Tilbakekre
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeTestKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
@@ -164,8 +164,8 @@ sealed class TestApplicationContext(
     protected open val meldekortApiFakeKlient by lazy { MeldekortApiFakeKlient() }
     protected open val fellesFakeSkjermingsklient by lazy { FellesFakeSkjermingsklient() }
     protected open val fakeNavIdentClient by lazy { FakeNavIdentClient() }
-    protected open val tiltaksdeltakelseFakeKlient: TiltaksdeltakelseFakeKlient by lazy {
-        TiltaksdeltakelseFakeKlient()
+    protected open val tiltaksdeltakelseFakeKlient: TiltaksdeltakelseFakeTestKlient by lazy {
+        TiltaksdeltakelseFakeTestKlient()
     }
     protected open val safJournalpostFakeClient by lazy { SafJournalpostFakeClient(clock) }
     open val datadelingFakeKlient by lazy { DatadelingFakeKlient() }
@@ -502,7 +502,7 @@ sealed class TestApplicationContext(
     /**
      * Registrerer en person i alle nødvendige fake-klienter for at en test skal kunne behandle vedkommende:
      * - Personopplysninger ([PersonFakeKlient])
-     * - Tiltaksdeltakelse ([TiltaksdeltakelseFakeKlient])
+     * - Tiltaksdeltakelse ([TiltaksdeltakelseFakeTestKlient])
      * - Tilgangsvurdering (godkjent) ([TilgangsmaskinFakeTestClient])
      * - Tiltaksdeltaker-repo (idempotent — gjør ingenting hvis allerede registrert)
      */
@@ -532,7 +532,7 @@ sealed class TestApplicationContext(
         (texasClient as TexasClientFake).leggTilBruker(token, bruker)
     }
 
-    /** Oppdaterer (eller fjerner med `null`) tiltaksdeltakelsen registrert i [TiltaksdeltakelseFakeKlient]. */
+    /** Oppdaterer (eller fjerner med `null`) tiltaksdeltakelsen registrert i [TiltaksdeltakelseFakeTestKlient]. */
     fun oppdaterTiltaksdeltakelse(fnr: Fnr, tiltaksdeltakelse: TiltaksdeltakelseIntern?) {
         tiltaksdeltakelseFakeKlient.lagre(fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse)
     }

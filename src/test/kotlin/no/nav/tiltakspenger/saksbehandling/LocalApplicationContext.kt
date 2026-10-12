@@ -75,7 +75,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.hentSøknaderForFn
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingFakeProducer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeLokalKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt.UtbetalingsoversiktFakeKlient
@@ -216,12 +216,12 @@ class LocalApplicationContext(
     }
 
     private val tiltaksdeltakelseFakeKlient by lazy {
-        // TODO: Søknadsfallbacken lar faken utlede tiltaksdeltakelser fra søknaden.
-        // Dette er en skjør snarvei som forutsetter at søknaden allerede er persistert og at internDeltakelseId bevares (se TiltaksdeltakelseFakeKlient.hentTiltaksdeltakelseFraSøknad).
+        // TODO: Faken utleder tiltaksdeltakelser fra søknaden.
+        // Dette er en skjør snarvei som forutsetter at søknaden allerede er persistert og at internDeltakelseId bevares (se TiltaksdeltakelseFakeLokalKlient.hentTiltaksdeltakelserFraSøknader).
         // Den slår feil for manuelt registrerte (papir) søknader, der saksopplysningene beregnes før søknaden lagres.
         // Vurder å seede tiltaksdeltakelser eksplisitt per fnr ved oppretting av søknad i stedet.
-        TiltaksdeltakelseFakeKlient(
-            søknadFallback = { fnr ->
+        TiltaksdeltakelseFakeLokalKlient(
+            hentSøknader = { fnr ->
                 (sessionFactory as PostgresSessionFactory).hentSøknaderForFnr(
                     fnr,
                 )
