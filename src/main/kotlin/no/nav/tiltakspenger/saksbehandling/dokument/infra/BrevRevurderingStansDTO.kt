@@ -23,7 +23,7 @@ private data class BrevRevurderingStansDTO(
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
     val stansFraOgMedDato: String,
-    val valgtHjemmelTekst: List<String>?,
+    val valgtHjemmelTekst: List<String>,
     val stansgrunner: List<GrunnBrevDto>,
     val barnetillegg: Boolean,
 ) : BrevRammevedtakBaseDTO

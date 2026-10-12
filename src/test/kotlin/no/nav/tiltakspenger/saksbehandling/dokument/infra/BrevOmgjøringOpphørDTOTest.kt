@@ -5,7 +5,6 @@ import arrow.core.nonEmptySetOf
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.withClue
-import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -156,7 +155,7 @@ class BrevOmgjøringOpphørDTOTest {
                         valgteHjemler = nonEmptySetOf(hjemmel),
                         harOpphørtBarnetillegg = false,
                         tilleggstekst = FritekstTilVedtaksbrev.create("Begrunnelsen skrives av saksbehandler."),
-                    ).shouldBeNull()
+                    ) shouldBe emptyList()
                 }
             }
         }
@@ -210,7 +209,7 @@ class BrevOmgjøringOpphørDTOTest {
         harOpphørtBarnetillegg: Boolean,
         tilleggstekst: FritekstTilVedtaksbrev?,
         felt: String = "valgtHjemmelTekst",
-    ): List<String>? {
+    ): List<String> {
         val brevJson = genererOpphørBrev(
             hentBrukersNavn = { _ -> Navn("Fornavn", null, "Etternavn") },
             hentSaksbehandlersNavn = { _ -> "Saksbehandlernavn" },
@@ -226,7 +225,7 @@ class BrevOmgjøringOpphørDTOTest {
             harOpphørtBarnetillegg = harOpphørtBarnetillegg,
         )
         val node = lesTre(brevJson).get(felt)
-        return if (node.isNull) null else node.toList().map { it.asString() }
+        return node.toList().map { it.asString() }
     }
 
     /**

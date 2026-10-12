@@ -60,6 +60,7 @@ class BrevSøknadAvslagDTOTest {
                   ],
                   "harSøktMedBarn":true,
                   "hjemlerTekst":null,
+                  "hjemler":[{"rettskilde":"TILTAKSPENGEFORSKRIFTEN","paragraf":"3","ledd":null},{"rettskilde":"TILTAKSPENGEFORSKRIFTEN","paragraf":"3","ledd":null}],
                   "forhandsvisning":true,
                   "avslagFraOgMed":"1. januar 2023",
                   "avslagTilOgMed":"31. mars 2023",
@@ -99,6 +100,7 @@ class BrevSøknadAvslagDTOTest {
                   ],
                   "harSøktMedBarn":false,
                   "hjemlerTekst":null,
+                  "hjemler":[{"rettskilde":"TILTAKSPENGEFORSKRIFTEN","paragraf":"3","ledd":null}],
                   "forhandsvisning":false,
                   "avslagFraOgMed":"1. januar 2023",
                   "avslagTilOgMed":"31. mars 2023",
@@ -119,6 +121,7 @@ class BrevSøknadAvslagDTOTest {
                         val brev = genererBrevJson(nonEmptySetOf(grunn), barnetillegg)
                         brev.valgtHjemmelTekst() shouldBe listOf(grunn.forventetTekst(barnetillegg))
                         brev.get("hjemlerTekst").isNull shouldBe true
+                        brev.get("hjemler").isEmpty shouldBe false
                     }
                 }
             }
@@ -152,7 +155,19 @@ class BrevSøknadAvslagDTOTest {
                 "Du mottar en annen pengestøtte til livsopphold.\nDeltakere som har rett til andre pengestøtter til livsopphold har ikke samtidig rett til å få tiltakspenger og barnetillegg.",
             )
             brev.get("hjemlerTekst").asString() shouldBe
-                "Dette kommer frem av arbeidsmarkedsloven § 13 første ledd, og tiltakspengeforskriften §§ 2, 3, 7 første ledd."
+                "Dette kommer frem av arbeidsmarkedsloven § 13 første ledd, og tiltakspengeforskriften §§ 2, 3 og 7 første ledd."
+            brev.get("hjemler").toString().shouldEqualJson(
+                //language=json
+                """
+                [
+                  {"rettskilde":"TILTAKSPENGEFORSKRIFTEN","paragraf":"2","ledd":null},
+                  {"rettskilde":"ARBEIDSMARKEDSLOVEN","paragraf":"13","ledd":null},
+                  {"rettskilde":"TILTAKSPENGEFORSKRIFTEN","paragraf":"7","ledd":1},
+                  {"rettskilde":"ARBEIDSMARKEDSLOVEN","paragraf":"13","ledd":1},
+                  {"rettskilde":"TILTAKSPENGEFORSKRIFTEN","paragraf":"3","ledd":null}
+                ]
+                """.trimIndent(),
+            )
         }
     }
 
@@ -334,7 +349,7 @@ class BrevSøknadAvslagDTOTest {
         fun `lager forskrifter med bare tiltakspengeforskrifter`() {
             val actual = setOf(Avslagsgrunnlag.Kvalifiseringsprogrammet).createBrevForskrifter(true)
             val expected = """
-                Dette kommer frem av tiltakspengeforskriften §§ 3, 7 tredje ledd.
+                Dette kommer frem av tiltakspengeforskriften §§ 3 og 7 tredje ledd.
             """.trimIndent()
 
             actual shouldBe expected
@@ -344,7 +359,7 @@ class BrevSøknadAvslagDTOTest {
         fun `skal ikke gjenta samme paragraf 2 ganger`() {
             val actual = setOf(Avslagsgrunnlag.Kvalifiseringsprogrammet, Avslagsgrunnlag.Introduksjonsprogrammet).createBrevForskrifter(true)
             val expected = """
-                Dette kommer frem av tiltakspengeforskriften §§ 3, 7 tredje ledd.
+                Dette kommer frem av tiltakspengeforskriften §§ 3 og 7 tredje ledd.
             """.trimIndent()
 
             actual shouldBe expected
@@ -354,7 +369,27 @@ class BrevSøknadAvslagDTOTest {
         fun `lager forskrifter med tiltakspengerforskrifter og arbeidsmarkedsloven`() {
             val actual = setOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak).createBrevForskrifter(true)
             val expected = """
-                Dette kommer frem av arbeidsmarkedsloven § 13, og tiltakspengeforskriften §§ 2, 3.
+                Dette kommer frem av arbeidsmarkedsloven § 13, og tiltakspengeforskriften §§ 2 og 3.
+            """.trimIndent()
+
+            actual shouldBe expected
+        }
+
+        @Test
+        fun `sorterer paragrafene som tall`() {
+            val actual = setOf(Avslagsgrunnlag.FremmetForSent, Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak).createBrevForskrifter(false)
+            val expected = """
+                Dette kommer frem av arbeidsmarkedsloven §§ 13 og 15, og tiltakspengeforskriften §§ 2 og 11.
+            """.trimIndent()
+
+            actual shouldBe expected
+        }
+
+        @Test
+        fun `binder flere enn to paragrafer med og foran den siste`() {
+            val actual = setOf(Avslagsgrunnlag.FremmetForSent, Avslagsgrunnlag.LønnFraTiltaksarrangør, Avslagsgrunnlag.Institusjonsopphold).createBrevForskrifter(true)
+            val expected = """
+                Dette kommer frem av arbeidsmarkedsloven § 15, og tiltakspengeforskriften §§ 3, 8, 9 og 11.
             """.trimIndent()
 
             actual shouldBe expected

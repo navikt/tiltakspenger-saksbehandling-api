@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import arrow.core.NonEmptySet
-import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
@@ -24,7 +23,11 @@ private data class BrevOmgjøringOpphørDTO(
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
     val vedtaksperiode: BrevPeriodeDTO,
-    val valgtHjemmelTekst: List<String>?,
+    /**
+     * Standardteksten for hver valgt grunn som har en, i samme rekkefølge som `opphørsgrunner`.
+     * Tom når ingen av de valgte grunnene har standardtekst; da står begrunnelsen i tilleggsteksten.
+     */
+    val valgtHjemmelTekst: List<String>,
     val opphørsgrunner: List<GrunnBrevDto>,
     val barnetillegg: Boolean,
 ) : BrevRammevedtakBaseDTO
@@ -77,9 +80,9 @@ suspend fun genererOpphørBrev(
         } else {
             it.tilTekst(harOpphørtBarnetillegg)
         }
-    }.toNonEmptyListOrNull()
+    }
 
-    require(valgteHjemlerTekst != null || tilleggstekst != null) {
+    require(valgteHjemlerTekst.isNotEmpty() || tilleggstekst != null) {
         "For opphørsbrev må det være enten valgte hjemler med tekst eller en tilleggstekst - hjemler: $valgteHjemler"
     }
 

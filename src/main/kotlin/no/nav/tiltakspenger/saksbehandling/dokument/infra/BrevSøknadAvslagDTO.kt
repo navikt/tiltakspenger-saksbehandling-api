@@ -29,6 +29,11 @@ private data class BrevSøknadAvslagDTO(
     val valgtHjemmelTekst: List<String>,
     val harSøktMedBarn: Boolean,
     val hjemlerTekst: String?,
+    /**
+     * Hjemlene avslaget bygger på, også når det bare har én grunn.
+     * pdfgenrs bruker dem til å lage setningen med de samlede hjemlene når avslaget har flere grunner og `hjemlerTekst` mangler.
+     */
+    val hjemler: List<HjemmelBrevDto>,
     val avslagFraOgMed: String,
     val avslagTilOgMed: String,
 ) : BrevRammevedtakBaseDTO
@@ -63,6 +68,7 @@ suspend fun genererAvslagSøknadsbrev(
         avslagsgrunner = avslagsgrunner.map { it.tilGrunnBrevDto() },
         valgtHjemmelTekst = avslagsgrunner.tilValgtHjemmelTekst(harSøktBarnetillegg),
         hjemlerTekst = if (avslagsgrunner.size > 1) avslagsgrunner.createBrevForskrifter(harSøktBarnetillegg) else null,
+        hjemler = avslagsgrunner.hjemlerForBrev(harSøktBarnetillegg).map { it.tilHjemmelBrevDto() },
         harSøktMedBarn = harSøktBarnetillegg,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
@@ -251,55 +257,64 @@ private fun Avslagsgrunnlag.tilPunkttekst(medBarnetillegg: Boolean): String {
     }.trimIndent()
 }
 
+/**
+ * Hjemlene brevet viser til ved flere avslagsgrunner: alle hjemlene til grunnene, pluss § 3 i tiltakspengeforskriften når det er søkt om barnetillegg.
+ * Både `hjemlerTekst` og `hjemler` bygger på denne, så de ikke kan skille lag.
+ */
+private fun Set<Avslagsgrunnlag>.hjemlerForBrev(harSøktBarnetillegg: Boolean): List<Hjemmel> =
+    this.flatMap { it.hjemler } +
+        if (harSøktBarnetillegg) listOf(Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_3) else emptyList()
+
 fun Set<Avslagsgrunnlag>.createBrevForskrifter(harSøktBarnetillegg: Boolean): String {
-    val hjemler = this.flatMap { it.hjemler }
+    val hjemler = this.hjemlerForBrev(harSøktBarnetillegg)
 
     val tiltakspengeHjemler = hjemler.filter { it.rettskilde == Rettskilde.Tiltakspengeforskriften }
-        .let {
-            if (harSøktBarnetillegg) {
-                it + Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_3
-            } else {
-                it
-            }
-        }
         .groupBy { it.paragraf.verdi }
         .map { e -> Pair(e.key, e.value.distinct().mapNotNull { it.ledd }.sortedBy { it.nummer }) }
-        .sortedBy { it.first }
+        .sortedWith(paragrafrekkefølge)
 
     val arbeidsmarkedlovenHjemler = hjemler.filter { it.rettskilde == Rettskilde.Arbeidsmarkedsloven }
         .groupBy { it.paragraf.verdi }
         .map { e -> Pair(e.key, e.value.distinct().mapNotNull { it.ledd }.sortedBy { it.nummer }) }
-        .sortedBy { it.first }
+        .sortedWith(paragrafrekkefølge)
 
     return when {
         arbeidsmarkedlovenHjemler.isNotEmpty() && tiltakspengeHjemler.isEmpty() -> {
             val paragraf = if (arbeidsmarkedlovenHjemler.size == 1) "§" else "§§"
-            "Dette kommer frem av arbeidsmarkedsloven $paragraf " + arbeidsmarkedlovenHjemler.joinToString {
+            "Dette kommer frem av arbeidsmarkedsloven $paragraf " + arbeidsmarkedlovenHjemler.map {
                 "${it.first}" + if (it.second.isEmpty()) "" else " ${it.second.toLeddTekst()}"
-            } + "."
+            }.joinMedKonjunksjon() + "."
         }
 
         arbeidsmarkedlovenHjemler.isEmpty() && tiltakspengeHjemler.isNotEmpty() -> {
             val paragraf = if (tiltakspengeHjemler.size == 1) "§" else "§§"
-            "Dette kommer frem av tiltakspengeforskriften $paragraf " + tiltakspengeHjemler.joinToString {
+            "Dette kommer frem av tiltakspengeforskriften $paragraf " + tiltakspengeHjemler.map {
                 "${it.first}" + if (it.second.isEmpty()) "" else " ${it.second.toLeddTekst()}"
-            } + "."
+            }.joinMedKonjunksjon() + "."
         }
 
         arbeidsmarkedlovenHjemler.isNotEmpty() && tiltakspengeHjemler.isNotEmpty() -> {
             val paragrafArbeidsmarkedloven = if (arbeidsmarkedlovenHjemler.size == 1) "§" else "§§"
             val paragrafTiltakspenger = if (tiltakspengeHjemler.size == 1) "§" else "§§"
-            "Dette kommer frem av arbeidsmarkedsloven $paragrafArbeidsmarkedloven " + arbeidsmarkedlovenHjemler.joinToString {
+            "Dette kommer frem av arbeidsmarkedsloven $paragrafArbeidsmarkedloven " + arbeidsmarkedlovenHjemler.map {
                 "${it.first}" + if (it.second.isEmpty()) "" else " ${it.second.toLeddTekst()}"
-            } +
-                ", og tiltakspengeforskriften $paragrafTiltakspenger " + tiltakspengeHjemler.joinToString {
+            }.joinMedKonjunksjon() +
+                ", og tiltakspengeforskriften $paragrafTiltakspenger " + tiltakspengeHjemler.map {
                     "${it.first}" + if (it.second.isEmpty()) "" else " ${it.second.toLeddTekst()}"
-                } + "."
+                }.joinMedKonjunksjon() + "."
         }
 
         else -> throw IllegalStateException("Fant ingen hjemler for avslagsgrunnlag")
     }
 }
+
+/**
+ * Paragrafene sorteres etter tallet de begynner med, slik at § 2 kommer før § 11.
+ * Paragrafer med samme tall, for eksempel «22-15 a.» og «22-15 b.», sorteres som tekst.
+ */
+private val paragrafrekkefølge: Comparator<Pair<String, List<Ledd>>> =
+    compareBy<Pair<String, List<Ledd>>> { it.first.takeWhile { tegn -> tegn.isDigit() }.toIntOrNull() ?: Int.MAX_VALUE }
+        .thenBy { it.first }
 
 private fun Ledd.toLeddTekst(): String = when (this.nummer) {
     1 -> "første"
