@@ -15,7 +15,8 @@ import java.time.LocalDateTime
 
 /**
  * [opprettet] Dette er tidspunktet hvor søknaden er opprettet i saksbehandlingsapiet
- * [mottatt] Dette er tidspunktet hvor søknaden er opprettet i søknadsapiet
+ * [mottatt] For digitale søknder vil dette er tidspunktet hvor søknaden er opprettet i søknadsapiet.
+ *           For manuelt registrerte søknader settes denne av saksbehandler.
  */
 
 sealed interface Søknad {
