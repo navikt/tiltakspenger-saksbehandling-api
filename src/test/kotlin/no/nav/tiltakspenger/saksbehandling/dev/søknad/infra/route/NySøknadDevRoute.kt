@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling
+package no.nav.tiltakspenger.saksbehandling.dev.søknad.infra.route
 
 import io.github.serpro69.kfaker.faker
 import io.ktor.server.response.respondText
@@ -6,29 +6,24 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.ktor.common.respondOk
 import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.soknad.BarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.LocalApplicationContext
+import no.nav.tiltakspenger.saksbehandling.dev.infra.route.DEV_ROUTE
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
-import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
-import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
-import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.GenererLokalKabalHendelseCommand
-import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.LokalHendelseUtfall
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTOMapper.tilDomenePdl
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.nySakMedNySøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.nySøknadForFnr
 
-const val DEV_ROUTE = "/dev"
+private const val PATH = "$DEV_ROUTE/soknad/ny"
 
-fun Route.localDevRoutes(applicationContext: ApplicationContext) {
-    val applicationContext = applicationContext as LocalApplicationContext
+private data class NySøknadBody(
+    val fnr: String?,
+    val deltakelsesperiode: PeriodeDbJson?,
+    val barnetillegg: List<BarnetilleggDTO>,
+)
 
-    data class NySøknadBody(
-        val fnr: String?,
-        val deltakelsesperiode: PeriodeDbJson?,
-        val barnetillegg: List<BarnetilleggDTO>,
-    )
-
+fun Route.nySøknadDevRoute(applicationContext: LocalApplicationContext) {
     val faker = faker {
         fakerConfig {
             randomSeed = Fnr.random().verdi.toLong()
@@ -36,7 +31,7 @@ fun Route.localDevRoutes(applicationContext: ApplicationContext) {
         }
     }
 
-    post("$DEV_ROUTE/soknad/ny") {
+    post(PATH) {
         call.withBody<NySøknadBody> { body ->
             val fnr = body.fnr?.let { Fnr.tryFromString(it) }
             val barnetillegg = body.barnetillegg.map {
@@ -71,25 +66,6 @@ fun Route.localDevRoutes(applicationContext: ApplicationContext) {
                 )
                 call.respondText(saksnummer.verdi)
             }
-        }
-    }
-
-    data class NyKlagehendelseBody(
-        val klagebehandlingId: String,
-        val type: String,
-        val utfall: String,
-    )
-
-    post("$DEV_ROUTE/klage/hendelse") {
-        call.withBody<NyKlagehendelseBody> { body ->
-            applicationContext.lokalKabalHendelseService.genererHendelse(
-                command = GenererLokalKabalHendelseCommand(
-                    type = body.type,
-                    utfall = LokalHendelseUtfall.valueOf(body.utfall),
-                    klagebehandlingId = KlagebehandlingId.fromString(body.klagebehandlingId),
-                ),
-            )
-            call.respondOk()
         }
     }
 }

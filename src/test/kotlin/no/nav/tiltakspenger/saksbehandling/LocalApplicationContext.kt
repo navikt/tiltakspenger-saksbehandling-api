@@ -24,6 +24,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.common.LOKAL_KAFKA_BROKER
 import no.nav.tiltakspenger.saksbehandling.common.LOKAL_SCHEMA_REGISTRY
+import no.nav.tiltakspenger.saksbehandling.dev.infra.repo.lokalFlywayMigrate
+import no.nav.tiltakspenger.saksbehandling.dev.tiltaksdeltakelse.LokalTiltaksdeltakelseService
+import no.nav.tiltakspenger.saksbehandling.dev.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeLokalKlient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonIdGenerator
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevForMeldekortKlient
@@ -71,11 +74,9 @@ import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.hentSøknadForSøknadId
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.hentSøknaderForFnr
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingFakeProducer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeLokalKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt.UtbetalingsoversiktFakeKlient
@@ -215,17 +216,26 @@ class LocalApplicationContext(
         }
     }
 
+    // Ikke som overstyring av dataSource: den leses før subklassens felter er initialisert.
+    init {
+        lokalFlywayMigrate(dataSource)
+    }
+
     private val tiltaksdeltakelseFakeKlient by lazy {
-        // TODO: Faken utleder tiltaksdeltakelser fra søknaden.
+        // TODO: Faken utleder tiltaksdeltakelser fra søknaden når ingen er satt via dev-endepunktet.
         // Dette er en skjør snarvei som forutsetter at søknaden allerede er persistert og at internDeltakelseId bevares (se TiltaksdeltakelseFakeLokalKlient.hentTiltaksdeltakelserFraSøknader).
         // Den slår feil for manuelt registrerte (papir) søknader, der saksopplysningene beregnes før søknaden lagres.
-        // Vurder å seede tiltaksdeltakelser eksplisitt per fnr ved oppretting av søknad i stedet.
-        TiltaksdeltakelseFakeLokalKlient(
-            hentSøknader = { fnr ->
-                (sessionFactory as PostgresSessionFactory).hentSøknaderForFnr(
-                    fnr,
-                )
-            },
+        // Vurder å lagre deltakelsen i lokal.tiltaksdeltakelse ved oppretting av søknad i stedet.
+        TiltaksdeltakelseFakeLokalKlient(sessionFactory as PostgresSessionFactory)
+    }
+
+    val lokalTiltaksdeltakelseService by lazy {
+        LokalTiltaksdeltakelseService(
+            tiltaksdeltakelseKlient = tiltaksdeltakelseFakeKlient,
+            tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
+            sakRepo = sakContext.sakRepo,
+            sessionFactory = sessionFactory as PostgresSessionFactory,
+            clock = clock,
         )
     }
 

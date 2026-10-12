@@ -20,7 +20,7 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse as LibsTilt
 /**
  * Fake for testene.
  * Tiltaksdeltakelsene seedes eksplisitt per fnr via [lagre]; et fnr uten seedede deltakelser har ingen.
- * Lokal kjøring bruker [TiltaksdeltakelseFakeLokalKlient].
+ * Lokal kjøring bruker [no.nav.tiltakspenger.saksbehandling.dev.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeLokalKlient].
  */
 class TiltaksdeltakelseFakeTestKlient : TiltaksdeltakelseKlient {
     private val data = Atomic(mutableMapOf<Fnr, List<LibsTiltaksdeltakelse.GirRett>>())
