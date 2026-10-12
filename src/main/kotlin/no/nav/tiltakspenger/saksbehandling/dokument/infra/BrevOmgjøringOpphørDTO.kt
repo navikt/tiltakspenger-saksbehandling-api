@@ -23,11 +23,6 @@ private data class BrevOmgjøringOpphørDTO(
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
     val vedtaksperiode: BrevPeriodeDTO,
-    /**
-     * Standardteksten for hver valgt grunn som har en, i samme rekkefølge som `opphørsgrunner`.
-     * Tom når ingen av de valgte grunnene har standardtekst; da står begrunnelsen i tilleggsteksten.
-     */
-    val valgtHjemmelTekst: List<String>,
     val opphørsgrunner: List<GrunnBrevDto>,
     val barnetillegg: Boolean,
 ) : BrevRammevedtakBaseDTO
@@ -74,15 +69,7 @@ suspend fun genererOpphørBrev(
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
     val besluttersNavn = beslutterNavIdent?.let { hentSaksbehandlersNavn(it) }
 
-    val valgteHjemlerTekst = valgteHjemler.mapNotNull {
-        if (Omgjøringsresultat.OmgjøringOpphør.hjemlerSomMåHaFritekst.contains(it)) {
-            null
-        } else {
-            it.tilTekst(harOpphørtBarnetillegg)
-        }
-    }
-
-    require(valgteHjemlerTekst.isNotEmpty() || tilleggstekst != null) {
+    require(valgteHjemler.any { it !in Omgjøringsresultat.OmgjøringOpphør.hjemlerSomMåHaFritekst } || tilleggstekst != null) {
         "For opphørsbrev må det være enten valgte hjemler med tekst eller en tilleggstekst - hjemler: $valgteHjemler"
     }
 
@@ -99,90 +86,8 @@ suspend fun genererOpphørBrev(
         // Dette er vår dato, det brukes typisk når bruker klager på vedtaksbrev på dato ...
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
         forhandsvisning = forhåndsvisning,
-        valgtHjemmelTekst = valgteHjemlerTekst,
         opphørsgrunner = valgteHjemler.map { it.tilGrunnBrevDto() },
         tilleggstekst = tilleggstekst?.verdi,
         barnetillegg = harOpphørtBarnetillegg,
     ).let { serialize(it) }
-}
-
-private fun HjemmelForOpphør.tilTekst(medBarnetillegg: Boolean): String? {
-    val tiltakspengerOgKanskjeBarnetillegg = "tiltakspenger${if (medBarnetillegg) " og barnetillegg" else ""}"
-
-    return when (this) {
-        HjemmelForOpphør.DeltarIkkePåArbeidsmarkedstiltak ->
-            """
-                Vilkåret om deltakelse i arbeidsmarkedstiltak er ikke oppfylt i denne perioden.
-                
-                Du må være deltaker i et arbeidsmarkedstiltak for å ha rett til å få $tiltakspengerOgKanskjeBarnetillegg.
-                
-                Dette kommer frem av arbeidsmarkedsloven § 13, tiltakspengeforskriften § 2.
-            """.trimIndent()
-
-        HjemmelForOpphør.Livsoppholdytelser ->
-            """
-                Du har rett til annen pengestøtte til livsopphold i denne perioden.
-                
-                Deltakere som har rett til andre pengestøtter til livsopphold har ikke samtidig rett til å få $tiltakspengerOgKanskjeBarnetillegg.
-                
-                Dette kommer frem av arbeidsmarkedsloven § 13 første ledd, forskrift om tiltakspenger § 7 første ledd.
-            """.trimIndent()
-
-        HjemmelForOpphør.Kvalifiseringsprogrammet ->
-            """
-                Du er deltaker i kvalifiseringsprogram i denne perioden. Deltakere i kvalifiseringsprogram har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
-                
-                Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd.
-            """.trimIndent()
-
-        HjemmelForOpphør.Introduksjonsprogrammet ->
-            """
-                Du er deltaker i introduksjonsprogram i denne perioden. Deltakere i introduksjonsprogram har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
-                
-                Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd.
-            """.trimIndent()
-
-        HjemmelForOpphør.LønnFraTiltaksarrangør ->
-            """
-                Du mottar lønn fra tiltaksarrangøren for tiden i arbeidsmarkedstiltaket for denne perioden.
-                
-                Deltakere som mottar lønn fra tiltaksarrangør for tid i arbeidsmarkedstiltaket har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
-                
-                Dette kommer frem av tiltakspengeforskriften § 8.
-            """.trimIndent()
-
-        HjemmelForOpphør.LønnFraAndre ->
-            """
-                Du mottar i denne perioden lønn for arbeid som er en del av tiltaksdeltakelsen. Du har derfor dekning av utgifter til livsopphold.
-                
-                Deltaker i arbeidsmarkedstiltak som har rett til å få dekket utgifter til livsopphold på annen måte har ikke rett til $tiltakspengerOgKanskjeBarnetillegg. Lønn anses som dekning av utgifter til livsopphold på annen måte, når du får lønnen for arbeid som er en del av tiltaksdeltakelsen.
-                
-                Lønn fra arbeid utenom tiltaksdeltakelsen har ikke betydning for din rett til tiltakspenger.
-                
-                Dette kommer frem av arbeidsmarkedsloven § 13, tiltakspengeforskriften § 8 andre ledd.
-            """.trimIndent()
-
-        HjemmelForOpphør.Institusjonsopphold ->
-            """
-                Du oppholder deg på en institusjon med gratis opphold, mat og drikke i denne perioden.
-                
-                Deltakere som har opphold i institusjon med gratis opphold, mat og drikke under gjennomføringen av arbeidsmarkedstiltaket har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
-                
-                Det er gjort unntak for opphold i barnevernsinstitusjoner. Dette kommer frem av tiltakspengeforskriften § 9.
-            """.trimIndent()
-
-        HjemmelForOpphør.IkkeLovligOpphold ->
-            """
-                I denne perioden har du ikke lovlig opphold i Norge.
-                
-                Du må ha lovlig opphold i Norge, for å ha rett til $tiltakspengerOgKanskjeBarnetillegg.
-                
-                Dette kommer frem av arbeidsmarkedsloven § 2.
-            """.trimIndent()
-
-        // Saksbehandler må bruke fritekst for disse hjemlene
-        HjemmelForOpphør.Alder,
-        HjemmelForOpphør.FremmetForSent,
-        -> null
-    }
 }

@@ -2,9 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import arrow.core.NonEmptySet
 import arrow.core.nonEmptySetOf
+import arrow.core.toNonEmptySetOrThrow
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import org.junit.jupiter.api.Test
+import tools.jackson.databind.JsonNode
 import java.time.LocalDate
 
 class BrevOmgjøringOpphørDTOTest {
@@ -62,9 +63,6 @@ class BrevOmgjøringOpphørDTOTest {
                     "fraOgMed": "1. januar 2026",
                     "tilOgMed": "31. januar 2026"
                   },
-                  "valgtHjemmelTekst": [
-                    "Du er deltaker i introduksjonsprogram i denne perioden. Deltakere i introduksjonsprogram har ikke rett til tiltakspenger.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
-                  ],
                   "opphørsgrunner": ["INTRODUKSJONSPROGRAMMET"],
                   "barnetillegg": false
 
@@ -114,9 +112,6 @@ class BrevOmgjøringOpphørDTOTest {
                     "fraOgMed": "1. januar 2026",
                     "tilOgMed": "31. januar 2026"
                   },
-                  "valgtHjemmelTekst": [
-                        "Du er deltaker i introduksjonsprogram i denne perioden. Deltakere i introduksjonsprogram har ikke rett til tiltakspenger og barnetillegg.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
-                  ],
                   "opphørsgrunner": ["INTRODUKSJONSPROGRAMMET"],
                   "barnetillegg": true
 
@@ -128,60 +123,24 @@ class BrevOmgjøringOpphørDTOTest {
     }
 
     @Test
-    fun `alle hjemler for opphør med forhåndsdefinert tekst har forventet brevtekst, med og uten barnetillegg`() {
+    fun `hjemler som krever fritekst gir brev når tilleggstekst finnes`() {
         runTest {
-            val hjemlerMedTekst = HjemmelForOpphør.entries - Omgjøringsresultat.OmgjøringOpphør.hjemlerSomMåHaFritekst
-
-            hjemlerMedTekst.forEach { hjemmel ->
-                listOf(false, true).forEach { barnetillegg ->
-                    withClue("hjemmel=$hjemmel, barnetillegg=$barnetillegg") {
-                        genererValgtHjemmelTekst(
-                            valgteHjemler = nonEmptySetOf(hjemmel),
-                            harOpphørtBarnetillegg = barnetillegg,
-                            tilleggstekst = null,
-                        ) shouldBe listOf(hjemmel.forventetTekst(barnetillegg))
-                    }
-                }
-            }
+            val valgteHjemler = Omgjøringsresultat.OmgjøringOpphør.hjemlerSomMåHaFritekst.toList()
+            val brev = genererBrevJson(
+                valgteHjemler = valgteHjemler.toNonEmptySetOrThrow(),
+                tilleggstekst = FritekstTilVedtaksbrev.create("Begrunnelsen skrives av saksbehandler."),
+            )
+            brev.koder("opphørsgrunner") shouldBe valgteHjemler.map { it.tilGrunnBrevDto().name }
+            brev.skalIkkeHaHjemmeltekst()
         }
     }
 
     @Test
-    fun `hjemler som krever fritekst gir ingen hjemmelstekst i brevet`() {
-        runTest {
-            Omgjøringsresultat.OmgjøringOpphør.hjemlerSomMåHaFritekst.forEach { hjemmel ->
-                withClue("hjemmel=$hjemmel") {
-                    genererValgtHjemmelTekst(
-                        valgteHjemler = nonEmptySetOf(hjemmel),
-                        harOpphørtBarnetillegg = false,
-                        tilleggstekst = FritekstTilVedtaksbrev.create("Begrunnelsen skrives av saksbehandler."),
-                    ) shouldBe emptyList()
-                }
-            }
-        }
-    }
-
-    @Test
-    fun `hjemler som krever fritekst filtreres bort fra hjemmelstekstene i kombinasjon med andre hjemler`() {
-        runTest {
-            genererValgtHjemmelTekst(
-                valgteHjemler = nonEmptySetOf(
-                    HjemmelForOpphør.Alder,
-                    HjemmelForOpphør.Introduksjonsprogrammet,
-                ),
-                harOpphørtBarnetillegg = false,
-                tilleggstekst = null,
-            ) shouldBe listOf(HjemmelForOpphør.Introduksjonsprogrammet.forventetTekst(medBarnetillegg = false))
-        }
-    }
-
-    @Test
-    fun `kaster om ingen av hjemlene har forhåndsdefinert tekst og fritekst mangler`() {
+    fun `kaster om alle hjemlene krever fritekst og tilleggstekst mangler`() {
         runTest {
             shouldThrow<IllegalArgumentException> {
-                genererValgtHjemmelTekst(
+                genererBrevJson(
                     valgteHjemler = nonEmptySetOf(HjemmelForOpphør.Alder, HjemmelForOpphør.FremmetForSent),
-                    harOpphørtBarnetillegg = false,
                     tilleggstekst = null,
                 )
             }
@@ -189,28 +148,26 @@ class BrevOmgjøringOpphørDTOTest {
     }
 
     @Test
-    fun `opphørsgrunnene tar med alle valgte hjemler, også dem som krever fritekst, i samme rekkefølge`() {
+    fun `én hjemmel med standardtekst holder uten tilleggstekst, og alle valgte hjemler blir opphørsgrunner i samme rekkefølge`() {
         runTest {
-            genererValgtHjemmelTekst(
+            val brev = genererBrevJson(
                 valgteHjemler = nonEmptySetOf(
                     HjemmelForOpphør.FremmetForSent,
                     HjemmelForOpphør.Introduksjonsprogrammet,
                     HjemmelForOpphør.Alder,
                 ),
-                harOpphørtBarnetillegg = false,
                 tilleggstekst = null,
-                felt = "opphørsgrunner",
-            ) shouldBe listOf("FREMMET_FOR_SENT", "INTRODUKSJONSPROGRAMMET", "ALDER")
+            )
+            brev.koder("opphørsgrunner") shouldBe listOf("FREMMET_FOR_SENT", "INTRODUKSJONSPROGRAMMET", "ALDER")
+            brev.skalIkkeHaHjemmeltekst()
         }
     }
 
-    private suspend fun genererValgtHjemmelTekst(
+    private suspend fun genererBrevJson(
         valgteHjemler: NonEmptySet<HjemmelForOpphør>,
-        harOpphørtBarnetillegg: Boolean,
         tilleggstekst: FritekstTilVedtaksbrev?,
-        felt: String = "valgtHjemmelTekst",
-    ): List<String> {
-        val brevJson = genererOpphørBrev(
+    ): JsonNode = lesTre(
+        genererOpphørBrev(
             hentBrukersNavn = { _ -> Navn("Fornavn", null, "Etternavn") },
             hentSaksbehandlersNavn = { _ -> "Saksbehandlernavn" },
             tilleggstekst = tilleggstekst,
@@ -222,93 +179,7 @@ class BrevOmgjøringOpphørDTOTest {
             vedtaksdato = 1.april(2025),
             vedtaksperiode = 1.januar(2026) til 31.januar(2026),
             valgteHjemler = valgteHjemler,
-            harOpphørtBarnetillegg = harOpphørtBarnetillegg,
-        )
-        val node = lesTre(brevJson).get(felt)
-        return node.toList().map { it.asString() }
-    }
-
-    /**
-     * Fasit for brevtekstene som flyter videre til pdfgenrs (feltet `valgtHjemmelTekst`).
-     * Endres en tekst her, må testdataene i tiltakspenger-pdfgenrs (`data/tpts/opphørVedtak.json`/`vedtakOpphør.json`) oppdateres tilsvarende.
-     */
-    private fun HjemmelForOpphør.forventetTekst(medBarnetillegg: Boolean): String {
-        val ytelse = if (medBarnetillegg) "tiltakspenger og barnetillegg" else "tiltakspenger"
-
-        return when (this) {
-            HjemmelForOpphør.DeltarIkkePåArbeidsmarkedstiltak ->
-                """
-                    Vilkåret om deltakelse i arbeidsmarkedstiltak er ikke oppfylt i denne perioden.
-
-                    Du må være deltaker i et arbeidsmarkedstiltak for å ha rett til å få $ytelse.
-
-                    Dette kommer frem av arbeidsmarkedsloven § 13, tiltakspengeforskriften § 2.
-                """.trimIndent()
-
-            HjemmelForOpphør.Livsoppholdytelser ->
-                """
-                    Du har rett til annen pengestøtte til livsopphold i denne perioden.
-
-                    Deltakere som har rett til andre pengestøtter til livsopphold har ikke samtidig rett til å få $ytelse.
-
-                    Dette kommer frem av arbeidsmarkedsloven § 13 første ledd, forskrift om tiltakspenger § 7 første ledd.
-                """.trimIndent()
-
-            HjemmelForOpphør.Kvalifiseringsprogrammet ->
-                """
-                    Du er deltaker i kvalifiseringsprogram i denne perioden. Deltakere i kvalifiseringsprogram har ikke rett til $ytelse.
-
-                    Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd.
-                """.trimIndent()
-
-            HjemmelForOpphør.Introduksjonsprogrammet ->
-                """
-                    Du er deltaker i introduksjonsprogram i denne perioden. Deltakere i introduksjonsprogram har ikke rett til $ytelse.
-
-                    Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd.
-                """.trimIndent()
-
-            HjemmelForOpphør.LønnFraTiltaksarrangør ->
-                """
-                    Du mottar lønn fra tiltaksarrangøren for tiden i arbeidsmarkedstiltaket for denne perioden.
-
-                    Deltakere som mottar lønn fra tiltaksarrangør for tid i arbeidsmarkedstiltaket har ikke rett til $ytelse.
-
-                    Dette kommer frem av tiltakspengeforskriften § 8.
-                """.trimIndent()
-
-            HjemmelForOpphør.LønnFraAndre ->
-                """
-                    Du mottar i denne perioden lønn for arbeid som er en del av tiltaksdeltakelsen. Du har derfor dekning av utgifter til livsopphold.
-
-                    Deltaker i arbeidsmarkedstiltak som har rett til å få dekket utgifter til livsopphold på annen måte har ikke rett til $ytelse. Lønn anses som dekning av utgifter til livsopphold på annen måte, når du får lønnen for arbeid som er en del av tiltaksdeltakelsen.
-
-                    Lønn fra arbeid utenom tiltaksdeltakelsen har ikke betydning for din rett til tiltakspenger.
-
-                    Dette kommer frem av arbeidsmarkedsloven § 13, tiltakspengeforskriften § 8 andre ledd.
-                """.trimIndent()
-
-            HjemmelForOpphør.Institusjonsopphold ->
-                """
-                    Du oppholder deg på en institusjon med gratis opphold, mat og drikke i denne perioden.
-
-                    Deltakere som har opphold i institusjon med gratis opphold, mat og drikke under gjennomføringen av arbeidsmarkedstiltaket har ikke rett til $ytelse.
-
-                    Det er gjort unntak for opphold i barnevernsinstitusjoner. Dette kommer frem av tiltakspengeforskriften § 9.
-                """.trimIndent()
-
-            HjemmelForOpphør.IkkeLovligOpphold ->
-                """
-                    I denne perioden har du ikke lovlig opphold i Norge.
-
-                    Du må ha lovlig opphold i Norge, for å ha rett til $ytelse.
-
-                    Dette kommer frem av arbeidsmarkedsloven § 2.
-                """.trimIndent()
-
-            HjemmelForOpphør.Alder,
-            HjemmelForOpphør.FremmetForSent,
-            -> error("Hjemmel $this har ingen forhåndsdefinert brevtekst — saksbehandler må bruke fritekst")
-        }
-    }
+            harOpphørtBarnetillegg = false,
+        ),
+    )
 }

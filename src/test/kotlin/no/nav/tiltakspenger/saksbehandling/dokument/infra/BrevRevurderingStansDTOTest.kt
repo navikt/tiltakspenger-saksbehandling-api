@@ -1,9 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
-import arrow.core.NonEmptySet
 import arrow.core.nonEmptySetOf
+import arrow.core.toNonEmptySetOrThrow
 import io.kotest.assertions.json.shouldEqualJson
-import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -54,9 +53,6 @@ class BrevRevurderingStansDTOTest {
                   "tilleggstekst": "genererer og serialiserer brevdata for pdf test",
                   "forhandsvisning": true,
                   "stansFraOgMedDato": "1. januar 2023",
-                  "valgtHjemmelTekst": [
-                    "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram har ikke rett til tiltakspenger.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
-                  ],
                   "stansgrunner": ["INTRODUKSJONSPROGRAMMET"],
                   "barnetillegg": false
 
@@ -101,9 +97,6 @@ class BrevRevurderingStansDTOTest {
                   "tilleggstekst": "genererer og serialiserer brevdata for pdf test",
                   "forhandsvisning": true,
                   "stansFraOgMedDato": "1. januar 2023",
-                  "valgtHjemmelTekst": [
-                        "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram har ikke rett til tiltakspenger og barnetillegg.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
-                  ],
                   "stansgrunner": ["INTRODUKSJONSPROGRAMMET"],
                   "barnetillegg": true
 
@@ -115,155 +108,27 @@ class BrevRevurderingStansDTOTest {
     }
 
     @Test
-    fun `alle hjemler for stans har forventet brevtekst, med og uten barnetillegg`() {
+    fun `alle valgte hjemler blir stansgrunner i samme rekkefølge, uten hjemmeltekst`() {
         runTest {
-            HjemmelForStans.entries.forEach { hjemmel ->
-                listOf(false, true).forEach { barnetillegg ->
-                    withClue("hjemmel=$hjemmel, barnetillegg=$barnetillegg") {
-                        genererValgtHjemmelTekst(
-                            valgteHjemler = nonEmptySetOf(hjemmel),
-                            harStansetBarnetillegg = barnetillegg,
-                        ) shouldBe listOf(hjemmel.forventetTekst(barnetillegg))
-                    }
-                }
-            }
-        }
-    }
-
-    @Test
-    fun `flere valgte hjemler gir en brevtekst per hjemmel`() {
-        runTest {
-            genererValgtHjemmelTekst(
-                valgteHjemler = nonEmptySetOf(
-                    HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak,
-                    HjemmelForStans.Alder,
+            val valgteHjemler = HjemmelForStans.entries.reversed()
+            val brev = lesTre(
+                genererStansbrev(
+                    hentBrukersNavn = { _ -> Navn("Fornavn", null, "Etternavn") },
+                    hentSaksbehandlersNavn = { _ -> "Saksbehandlernavn" },
+                    tilleggstekst = null,
+                    fnr = Fnr.random(),
+                    saksbehandlerNavIdent = "SaksbehandlerNavIdent",
+                    beslutterNavIdent = null,
+                    saksnummer = Saksnummer.genererSaknummer(LocalDate.now(fixedClock), "2000"),
+                    forhåndsvisning = true,
+                    vedtaksdato = 1.april(2025),
+                    stansperiode = ObjectMother.vedtaksperiode(),
+                    valgteHjemler = valgteHjemler.toNonEmptySetOrThrow(),
+                    harStansetBarnetillegg = false,
                 ),
-                harStansetBarnetillegg = false,
-            ) shouldBe listOf(
-                HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak.forventetTekst(medBarnetillegg = false),
-                HjemmelForStans.Alder.forventetTekst(medBarnetillegg = false),
             )
-        }
-    }
-
-    @Test
-    fun `flere valgte hjemler gir en stansgrunn per hjemmel i samme rekkefølge`() {
-        runTest {
-            genererValgtHjemmelTekst(
-                valgteHjemler = nonEmptySetOf(
-                    HjemmelForStans.IkkeLovligOpphold,
-                    HjemmelForStans.Alder,
-                ),
-                harStansetBarnetillegg = false,
-                felt = "stansgrunner",
-            ) shouldBe listOf("IKKE_LOVLIG_OPPHOLD", "ALDER")
-        }
-    }
-
-    private suspend fun genererValgtHjemmelTekst(
-        valgteHjemler: NonEmptySet<HjemmelForStans>,
-        harStansetBarnetillegg: Boolean,
-        felt: String = "valgtHjemmelTekst",
-    ): List<String> {
-        val brevJson = genererStansbrev(
-            hentBrukersNavn = { _ -> Navn("Fornavn", null, "Etternavn") },
-            hentSaksbehandlersNavn = { _ -> "Saksbehandlernavn" },
-            tilleggstekst = null,
-            fnr = Fnr.random(),
-            saksbehandlerNavIdent = "SaksbehandlerNavIdent",
-            beslutterNavIdent = null,
-            saksnummer = Saksnummer.genererSaknummer(LocalDate.now(fixedClock), "2000"),
-            forhåndsvisning = true,
-            vedtaksdato = 1.april(2025),
-            stansperiode = ObjectMother.vedtaksperiode(),
-            valgteHjemler = valgteHjemler,
-            harStansetBarnetillegg = harStansetBarnetillegg,
-        )
-        return lesTre(brevJson).get(felt).toList().map { it.asString() }
-    }
-
-    /**
-     * Fasit for brevtekstene som flyter videre til pdfgenrs (feltet `valgtHjemmelTekst`).
-     * Endres en tekst her, må testdataene i tiltakspenger-pdfgenrs (`data/tpts/stansvedtak.json`) oppdateres tilsvarende.
-     */
-    private fun HjemmelForStans.forventetTekst(medBarnetillegg: Boolean): String {
-        val ytelse = if (medBarnetillegg) "tiltakspenger og barnetillegg" else "tiltakspenger"
-
-        return when (this) {
-            HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak ->
-                """
-                    du ikke lenger deltar på arbeidsmarkedstiltak.
-
-                    Du må være deltaker i et arbeidsmarkedstiltak for å ha rett til å få $ytelse.
-
-                    Dette kommer frem av arbeidsmarkedsloven § 13 og tiltakspengeforskriften § 2.
-                """.trimIndent()
-
-            HjemmelForStans.Alder ->
-                """
-                    du ikke har fylt 18 år. Du må ha fylt 18 år for å ha rett til å få $ytelse.
-
-                    Det kommer frem av tiltakspengeforskriften § 3.
-                """.trimIndent()
-
-            HjemmelForStans.Livsoppholdytelser ->
-                """
-                    du mottar en annen pengestøtte til livsopphold. Deltakere som har rett til andre pengestøtter til livsopphold har ikke samtidig rett til å få $ytelse.
-
-                    Dette kommer frem av arbeidsmarkedsloven § 13 første ledd og tiltakspengeforskriften § 7 første ledd.
-                """.trimIndent()
-
-            HjemmelForStans.Kvalifiseringsprogrammet ->
-                """
-                    du deltar på kvalifiseringsprogram. Deltakere i kvalifiseringsprogram har ikke rett til $ytelse.
-
-                    Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd.
-                """.trimIndent()
-
-            HjemmelForStans.Introduksjonsprogrammet ->
-                """
-                    du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram har ikke rett til $ytelse.
-
-                    Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd.
-                """.trimIndent()
-
-            HjemmelForStans.LønnFraTiltaksarrangør ->
-                """
-                    du mottar lønn fra tiltaksarrangør for tiden i arbeidsmarkedstiltaket.
-
-                    Deltakere som mottar lønn fra tiltaksarrangør for tid i arbeidsmarkedstiltaket har ikke rett til $ytelse.
-
-                    Dette kommer frem av tiltakspengeforskriften § 8.
-                """.trimIndent()
-
-            HjemmelForStans.LønnFraAndre ->
-                """
-                    du mottar lønn for arbeid som er en del av tiltaksdeltakelsen og du derfor har dekning av utgifter til livsopphold.
-
-                    Deltaker i arbeidsmarkedstiltak som har rett til å få dekket utgifter til livsopphold på annen måte har ikke rett til $ytelse. Lønn anses som dekning av utgifter til livsopphold på annen måte, når du får lønnen for arbeid som er en del av tiltaksdeltakelsen.
-
-                    Lønn fra arbeid utenom tiltaksdeltakelsen har ikke betydning for din rett til tiltakspenger.
-
-                    Dette kommer frem av arbeidsmarkedsloven § 13 og tiltakspengeforskriften § 8 andre ledd.
-                """.trimIndent()
-
-            HjemmelForStans.Institusjonsopphold ->
-                """
-                    du oppholder deg på en institusjon med gratis opphold, mat og drikke.
-
-                    Deltakere som har opphold i institusjon med gratis opphold, mat og drikke under gjennomføringen av arbeidsmarkedstiltaket har ikke rett til $ytelse.
-
-                    Det er gjort unntak for opphold i barnevernsinstitusjoner. Dette kommer frem av tiltakspengeforskriften § 9.
-                """.trimIndent()
-
-            HjemmelForStans.IkkeLovligOpphold ->
-                """
-                    du i denne perioden ikke har lovlig opphold i Norge.
-
-                    Du må ha lovlig opphold i Norge, for å ha rett til $ytelse.
-
-                    Dette kommer frem av arbeidsmarkedsloven § 2.
-                """.trimIndent()
+            brev.koder("stansgrunner") shouldBe valgteHjemler.map { it.tilGrunnBrevDto().name }
+            brev.skalIkkeHaHjemmeltekst()
         }
     }
 }
