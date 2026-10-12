@@ -24,6 +24,7 @@ private data class BrevRevurderingStansDTO(
     override val forhandsvisning: Boolean,
     val stansFraOgMedDato: String,
     val valgtHjemmelTekst: List<String>?,
+    val stansgrunner: List<GrunnBrevDto>,
     val barnetillegg: Boolean,
 ) : BrevRammevedtakBaseDTO
 
@@ -83,6 +84,7 @@ suspend fun genererStansbrev(
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
         forhandsvisning = forhåndsvisning,
         valgtHjemmelTekst = valgteHjemler.map { it.tilTekst(harStansetBarnetillegg) },
+        stansgrunner = valgteHjemler.map { it.tilGrunnBrevDto() },
         tilleggstekst = tilleggstekst?.verdi,
         barnetillegg = harStansetBarnetillegg,
     ).let { serialize(it) }

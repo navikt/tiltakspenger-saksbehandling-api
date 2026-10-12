@@ -133,6 +133,7 @@ class BrevSøknadAvslagDTOTest {
                 withClue("barnetillegg=$barnetillegg") {
                     val brev = genererBrevJson(alleGrunner, barnetillegg)
                     brev.valgtHjemmelTekst() shouldBe alleGrunner.map { it.forventetPunkttekst(barnetillegg) }
+                    brev.get("avslagsgrunner").toList().map { it.asString() } shouldBe alleGrunner.map { it.tilGrunnBrevDto().name }
                     brev.get("hjemlerTekst").asString() shouldBe alleGrunner.createBrevForskrifter(barnetillegg)
                 }
             }
@@ -368,30 +369,5 @@ class BrevSøknadAvslagDTOTest {
 
             actual shouldBe expected
         }
-    }
-
-    @Test
-    fun `mapper Avslagsgrunnlag til AvslagsgrunnerBrevDto`() {
-        Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak.toAvslagsgrunnerBrevDto() shouldBe AvslagsgrunnerBrevDto.DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK
-        Avslagsgrunnlag.Alder.toAvslagsgrunnerBrevDto() shouldBe AvslagsgrunnerBrevDto.ALDER
-        Avslagsgrunnlag.Livsoppholdytelser.toAvslagsgrunnerBrevDto() shouldBe AvslagsgrunnerBrevDto.LIVSOPPHOLDYTELSE
-        Avslagsgrunnlag.Kvalifiseringsprogrammet.toAvslagsgrunnerBrevDto() shouldBe AvslagsgrunnerBrevDto.KVALIFISERINGSPROGRAMMET
-        Avslagsgrunnlag.Introduksjonsprogrammet.toAvslagsgrunnerBrevDto() shouldBe AvslagsgrunnerBrevDto.INTRODUKSJONSPROGRAMMET
-        Avslagsgrunnlag.LønnFraTiltaksarrangør.toAvslagsgrunnerBrevDto() shouldBe AvslagsgrunnerBrevDto.LØNN_FRA_TILTAKSARRANGØR
-        Avslagsgrunnlag.LønnFraAndre.toAvslagsgrunnerBrevDto() shouldBe AvslagsgrunnerBrevDto.LØNN_FRA_ANDRE
-        Avslagsgrunnlag.Institusjonsopphold.toAvslagsgrunnerBrevDto() shouldBe AvslagsgrunnerBrevDto.INSTITUSJONSOPPHOLD
-        Avslagsgrunnlag.FremmetForSent.toAvslagsgrunnerBrevDto() shouldBe AvslagsgrunnerBrevDto.FREMMET_FOR_SENT
-    }
-
-    @Test
-    fun `mapper liste av Avslagsgrunnlag til AvslagsgrunnerBrevDto`() {
-        setOf(
-            Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak,
-            Avslagsgrunnlag.Alder,
-        ).toAvslagsgrunnerBrevDto() shouldBe
-            listOf(
-                AvslagsgrunnerBrevDto.DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK,
-                AvslagsgrunnerBrevDto.ALDER,
-            )
     }
 }

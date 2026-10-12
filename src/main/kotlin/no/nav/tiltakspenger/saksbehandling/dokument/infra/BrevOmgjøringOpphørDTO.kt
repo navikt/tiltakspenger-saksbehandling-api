@@ -25,6 +25,7 @@ private data class BrevOmgjøringOpphørDTO(
     override val forhandsvisning: Boolean,
     val vedtaksperiode: BrevPeriodeDTO,
     val valgtHjemmelTekst: List<String>?,
+    val opphørsgrunner: List<GrunnBrevDto>,
     val barnetillegg: Boolean,
 ) : BrevRammevedtakBaseDTO
 
@@ -96,6 +97,7 @@ suspend fun genererOpphørBrev(
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
         forhandsvisning = forhåndsvisning,
         valgtHjemmelTekst = valgteHjemlerTekst,
+        opphørsgrunner = valgteHjemler.map { it.tilGrunnBrevDto() },
         tilleggstekst = tilleggstekst?.verdi,
         barnetillegg = harOpphørtBarnetillegg,
     ).let { serialize(it) }

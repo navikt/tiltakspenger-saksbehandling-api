@@ -66,6 +66,7 @@ class BrevOmgjøringOpphørDTOTest {
                   "valgtHjemmelTekst": [
                     "Du er deltaker i introduksjonsprogram i denne perioden. Deltakere i introduksjonsprogram har ikke rett til tiltakspenger.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
                   ],
+                  "opphørsgrunner": ["INTRODUKSJONSPROGRAMMET"],
                   "barnetillegg": false
 
                 }
@@ -117,6 +118,7 @@ class BrevOmgjøringOpphørDTOTest {
                   "valgtHjemmelTekst": [
                         "Du er deltaker i introduksjonsprogram i denne perioden. Deltakere i introduksjonsprogram har ikke rett til tiltakspenger og barnetillegg.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
                   ],
+                  "opphørsgrunner": ["INTRODUKSJONSPROGRAMMET"],
                   "barnetillegg": true
 
                 }
@@ -187,10 +189,27 @@ class BrevOmgjøringOpphørDTOTest {
         }
     }
 
+    @Test
+    fun `opphørsgrunnene tar med alle valgte hjemler, også dem som krever fritekst, i samme rekkefølge`() {
+        runTest {
+            genererValgtHjemmelTekst(
+                valgteHjemler = nonEmptySetOf(
+                    HjemmelForOpphør.FremmetForSent,
+                    HjemmelForOpphør.Introduksjonsprogrammet,
+                    HjemmelForOpphør.Alder,
+                ),
+                harOpphørtBarnetillegg = false,
+                tilleggstekst = null,
+                felt = "opphørsgrunner",
+            ) shouldBe listOf("FREMMET_FOR_SENT", "INTRODUKSJONSPROGRAMMET", "ALDER")
+        }
+    }
+
     private suspend fun genererValgtHjemmelTekst(
         valgteHjemler: NonEmptySet<HjemmelForOpphør>,
         harOpphørtBarnetillegg: Boolean,
         tilleggstekst: FritekstTilVedtaksbrev?,
+        felt: String = "valgtHjemmelTekst",
     ): List<String>? {
         val brevJson = genererOpphørBrev(
             hentBrukersNavn = { _ -> Navn("Fornavn", null, "Etternavn") },
@@ -206,7 +225,7 @@ class BrevOmgjøringOpphørDTOTest {
             valgteHjemler = valgteHjemler,
             harOpphørtBarnetillegg = harOpphørtBarnetillegg,
         )
-        val node = lesTre(brevJson).get("valgtHjemmelTekst")
+        val node = lesTre(brevJson).get(felt)
         return if (node.isNull) null else node.toList().map { it.asString() }
     }
 

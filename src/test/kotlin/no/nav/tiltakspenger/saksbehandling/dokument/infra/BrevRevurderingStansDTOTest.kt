@@ -57,6 +57,7 @@ class BrevRevurderingStansDTOTest {
                   "valgtHjemmelTekst": [
                     "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram har ikke rett til tiltakspenger.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
                   ],
+                  "stansgrunner": ["INTRODUKSJONSPROGRAMMET"],
                   "barnetillegg": false
 
                 }
@@ -103,6 +104,7 @@ class BrevRevurderingStansDTOTest {
                   "valgtHjemmelTekst": [
                         "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram har ikke rett til tiltakspenger og barnetillegg.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
                   ],
+                  "stansgrunner": ["INTRODUKSJONSPROGRAMMET"],
                   "barnetillegg": true
 
                 }
@@ -144,9 +146,24 @@ class BrevRevurderingStansDTOTest {
         }
     }
 
+    @Test
+    fun `flere valgte hjemler gir en stansgrunn per hjemmel i samme rekkefølge`() {
+        runTest {
+            genererValgtHjemmelTekst(
+                valgteHjemler = nonEmptySetOf(
+                    HjemmelForStans.IkkeLovligOpphold,
+                    HjemmelForStans.Alder,
+                ),
+                harStansetBarnetillegg = false,
+                felt = "stansgrunner",
+            ) shouldBe listOf("IKKE_LOVLIG_OPPHOLD", "ALDER")
+        }
+    }
+
     private suspend fun genererValgtHjemmelTekst(
         valgteHjemler: NonEmptySet<HjemmelForStans>,
         harStansetBarnetillegg: Boolean,
+        felt: String = "valgtHjemmelTekst",
     ): List<String> {
         val brevJson = genererStansbrev(
             hentBrukersNavn = { _ -> Navn("Fornavn", null, "Etternavn") },
@@ -162,7 +179,7 @@ class BrevRevurderingStansDTOTest {
             valgteHjemler = valgteHjemler,
             harStansetBarnetillegg = harStansetBarnetillegg,
         )
-        return lesTre(brevJson).get("valgtHjemmelTekst").toList().map { it.asString() }
+        return lesTre(brevJson).get(felt).toList().map { it.asString() }
     }
 
     /**

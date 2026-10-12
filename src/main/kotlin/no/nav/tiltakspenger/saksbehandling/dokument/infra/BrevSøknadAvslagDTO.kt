@@ -25,8 +25,7 @@ private data class BrevSøknadAvslagDTO(
     override val datoForUtsending: String,
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
-    // TODO: Fjern når tiltakspenger-pdfgenrs leser valgtHjemmelTekst i prod; eldre malversjoner forgrener fortsatt på enumen.
-    val avslagsgrunner: List<AvslagsgrunnerBrevDto>,
+    val avslagsgrunner: List<GrunnBrevDto>,
     val valgtHjemmelTekst: List<String>,
     val harSøktMedBarn: Boolean,
     val hjemlerTekst: String?,
@@ -61,7 +60,7 @@ suspend fun genererAvslagSøknadsbrev(
         saksnummer = saksnummer.verdi,
         tilleggstekst = tilleggstekst?.verdi,
         forhandsvisning = forhåndsvisning,
-        avslagsgrunner = avslagsgrunner.toAvslagsgrunnerBrevDto(),
+        avslagsgrunner = avslagsgrunner.map { it.tilGrunnBrevDto() },
         valgtHjemmelTekst = avslagsgrunner.tilValgtHjemmelTekst(harSøktBarnetillegg),
         hjemlerTekst = if (avslagsgrunner.size > 1) avslagsgrunner.createBrevForskrifter(harSøktBarnetillegg) else null,
         harSøktMedBarn = harSøktBarnetillegg,
@@ -252,18 +251,6 @@ private fun Avslagsgrunnlag.tilPunkttekst(medBarnetillegg: Boolean): String {
     }.trimIndent()
 }
 
-enum class AvslagsgrunnerBrevDto {
-    DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK,
-    ALDER,
-    LIVSOPPHOLDYTELSE,
-    KVALIFISERINGSPROGRAMMET,
-    INTRODUKSJONSPROGRAMMET,
-    LØNN_FRA_TILTAKSARRANGØR,
-    LØNN_FRA_ANDRE,
-    INSTITUSJONSOPPHOLD,
-    FREMMET_FOR_SENT,
-}
-
 fun Set<Avslagsgrunnlag>.createBrevForskrifter(harSøktBarnetillegg: Boolean): String {
     val hjemler = this.flatMap { it.hjemler }
 
@@ -334,18 +321,3 @@ private fun List<Ledd>.toLeddTekst(): String = when (this.size) {
         "$alleUnntattSiste, og $siste ledd"
     }
 }
-
-fun Avslagsgrunnlag.toAvslagsgrunnerBrevDto(): AvslagsgrunnerBrevDto = when (this) {
-    Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak -> AvslagsgrunnerBrevDto.DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK
-    Avslagsgrunnlag.Alder -> AvslagsgrunnerBrevDto.ALDER
-    Avslagsgrunnlag.Livsoppholdytelser -> AvslagsgrunnerBrevDto.LIVSOPPHOLDYTELSE
-    Avslagsgrunnlag.Kvalifiseringsprogrammet -> AvslagsgrunnerBrevDto.KVALIFISERINGSPROGRAMMET
-    Avslagsgrunnlag.Introduksjonsprogrammet -> AvslagsgrunnerBrevDto.INTRODUKSJONSPROGRAMMET
-    Avslagsgrunnlag.LønnFraTiltaksarrangør -> AvslagsgrunnerBrevDto.LØNN_FRA_TILTAKSARRANGØR
-    Avslagsgrunnlag.LønnFraAndre -> AvslagsgrunnerBrevDto.LØNN_FRA_ANDRE
-    Avslagsgrunnlag.Institusjonsopphold -> AvslagsgrunnerBrevDto.INSTITUSJONSOPPHOLD
-    Avslagsgrunnlag.FremmetForSent -> AvslagsgrunnerBrevDto.FREMMET_FOR_SENT
-}
-
-fun Set<Avslagsgrunnlag>.toAvslagsgrunnerBrevDto(): List<AvslagsgrunnerBrevDto> =
-    this.map { it.toAvslagsgrunnerBrevDto() }
