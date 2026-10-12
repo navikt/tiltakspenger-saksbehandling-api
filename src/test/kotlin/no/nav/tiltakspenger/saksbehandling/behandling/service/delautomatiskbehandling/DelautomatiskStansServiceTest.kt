@@ -21,13 +21,19 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderin
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.IngenRelevantEndring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet
 import org.junit.jupiter.api.Test
 
@@ -41,6 +47,20 @@ class DelautomatiskStansServiceTest {
         tiltaksdeltakelse: TiltaksdeltakelseIntern,
         nåtilstand: TiltaksdeltakelseIntern,
     ): Revurdering {
+        behandleEndring(sak, tiltaksdeltakelse, nåtilstand).shouldBeInstanceOf<RevurderingOpprettet>()
+
+        return sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>().also {
+            it.resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>()
+            it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+            it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
+        }
+    }
+
+    private suspend fun TestApplicationContextMedPostgres.behandleEndring(
+        sak: Sak,
+        tiltaksdeltakelse: TiltaksdeltakelseIntern,
+        nåtilstand: TiltaksdeltakelseIntern,
+    ): TiltaksdeltakelseEndringBehandlet {
         oppdaterTiltaksdeltakelse(sak.fnr, nåtilstand)
         tiltakContext.tiltaksdeltakerRepo.registrerUbehandletEndring(
             id = tiltaksdeltakelse.internDeltakelseId,
@@ -49,13 +69,7 @@ class DelautomatiskStansServiceTest {
         )
         val deltaker = tiltakContext.tiltaksdeltakerRepo
             .hentTiltaksdeltaker(tiltaksdeltakelse.eksternDeltakelseId).shouldNotBeNull()
-        oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker).getOrFail().shouldBeInstanceOf<RevurderingOpprettet>()
-
-        return sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>().also {
-            it.resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>()
-            it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
-            it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
-        }
+        return oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker).getOrFail()
     }
 
     private fun TestApplicationContextMedPostgres.hentRevurdering(sak: Sak, revurdering: Revurdering): Revurdering =
@@ -140,6 +154,46 @@ class DelautomatiskStansServiceTest {
             tac.delautomatiskStansJobb.automatiskBehandleStanser()
 
             tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.STANS_DELTAKELSEN_ER_IKKE_AVSLUTTET)
+        }
+    }
+
+    /**
+     * Endringer som kommer før stansen er behandlet, fanges opp når stansen henter nå-tilstanden på nytt.
+     * Etterpå sammenlignes de med stansen, først som åpen behandling og så som gjeldende vedtak.
+     * Ingen av dem skal gi nye revurderinger eller oppgaver.
+     */
+    @Test
+    fun `flere endringer før og etter automatisk stans gir verken ny revurdering eller oppgave`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+            )
+            val avbrutt = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 20.april(2025))
+            val revurdering = tac.opprettAutomatiskStans(sak = sak, tiltaksdeltakelse = deltakelse, nåtilstand = avbrutt)
+            val avbruttTidligere = avbrutt.copy(deltakelseTilOgMed = 15.april(2025))
+
+            tac.behandleEndring(sak, deltakelse, avbruttTidligere).shouldBeInstanceOf<IngenRelevantEndring>()
+
+            tac.delautomatiskStansJobb.automatiskBehandleStanser()
+
+            tac.hentRevurdering(sak, revurdering).also {
+                it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+                it.resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>().stansperiode shouldBe (16.april(2025) til 5.mai(2025))
+            }
+            tac.behandleEndring(sak, deltakelse, avbruttTidligere).shouldBeInstanceOf<IngenRelevantEndring>()
+
+            taRammebehandlinger(tac, listOf(sak.id to revurdering.id), saksbehandler = ObjectMother.beslutter()).shouldNotBeNull()
+            iverksettForBehandlingId(tac, sak.id, revurdering.id).shouldNotBeNull()
+
+            tac.behandleEndring(sak, deltakelse, avbruttTidligere).shouldBeInstanceOf<IngenRelevantEndring>()
+            tac.behandleEndring(sak, deltakelse, avbrutt).shouldBeInstanceOf<IngenRelevantEndring>()
+
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe
+                listOf(sak.rammebehandlinger.single().id, revurdering.id)
+            tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>().opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
         }
     }
 

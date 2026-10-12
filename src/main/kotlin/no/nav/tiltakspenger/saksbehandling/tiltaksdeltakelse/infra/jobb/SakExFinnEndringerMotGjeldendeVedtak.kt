@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
@@ -25,6 +26,7 @@ import java.time.LocalDate
  * Åpne manuelle behandlinger med deltakelsen tas med som kjent tilstand, se [deltakelseISisteÅpneManuelleBehandling].
  * Kjenner den nyeste av dem allerede nå-tilstanden, er endringen fanget opp der, og det gis [VurdertTiltaksdeltakerEndring.IngenEndring].
  * Er deltakelsen ikke innvilget i noe gjeldende vedtak, sammenlignes nå-tilstanden med den åpne behandlingen i stedet, og endringen må følges opp manuelt.
+ * Har endringen allerede gitt en automatisk revurdering som ennå ikke er behandlet, gis [VurdertTiltaksdeltakerEndring.IngenEndring], se [harUbehandletAutomatiskRevurdering].
  *
  * Gir [VurdertTiltaksdeltakerEndring.IngenEndring] dersom deltakelsen verken er innvilget i noe gjeldende vedtak eller er med i en åpen manuell behandling, eller dersom ingenting relevant er endret.
  * Det gjelder også når deltakelsen har vært innvilget, men er stanset, opphørt eller erstattet av en annen deltakelse i alle periodene.
@@ -36,6 +38,10 @@ fun Sak.finnEndringerForDeltakelse(
 ): VurdertTiltaksdeltakerEndring {
     val iDag = LocalDate.now(clock)
     val oppdatertTilstand = oppdatertDeltakelse.tilDeltakelsestilstand(clock)
+
+    if (harUbehandletAutomatiskRevurdering(tiltaksdeltakerId)) {
+        return IngenEndring
+    }
 
     val endringMotÅpenBehandling = deltakelseISisteÅpneManuelleBehandling(tiltaksdeltakerId)
         ?.let {
@@ -63,6 +69,16 @@ fun Sak.finnEndringerForDeltakelse(
         ),
     )
 }
+
+/**
+ * Om saken har en revurdering under automatisk behandling som er opprettet automatisk for en endring i deltakelsen.
+ * Revurderingen henter nå-tilstanden på nytt når den behandles, og fanger da opp senere endringer selv.
+ * Uten dette ville endringen blitt sammenlignet med gjeldende vedtak på nytt og gitt en oppgave i tillegg til revurderingen.
+ */
+private fun Sak.harUbehandletAutomatiskRevurdering(tiltaksdeltakerId: TiltaksdeltakerId): Boolean =
+    rammebehandlinger.åpneBehandlinger.any {
+        it is Revurdering && it.erUnderAutomatiskBehandling && it.automatiskOpprettetGrunn?.tiltaksdeltakerId == tiltaksdeltakerId
+    }
 
 /**
  * Tilstanden deltakelsen har i den sist endrede åpne behandlingen som har den med i saksopplysningene.
