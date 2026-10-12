@@ -86,6 +86,28 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
     }
 
     @Test
+    fun `fulltid angitt med andre verdier enn i gjeldende vedtak gir ingen endringer`() {
+        val fulltid = deltakelse.copy(deltakelseProsent = 100F, antallDagerPerUke = 5F)
+        val sak = sakMedInnvilgelse(opprinnelig = fulltid)
+
+        sak.vurderMotGjeldendeVedtak(fulltid.copy(deltakelseProsent = null)) shouldBe IngenEndring
+        sak.vurderMotGjeldendeVedtak(fulltid.copy(antallDagerPerUke = null)) shouldBe IngenEndring
+        sak.vurderMotGjeldendeVedtak(fulltid.copy(deltakelseProsent = null, antallDagerPerUke = null, deltidsprosentGjennomforing = 100.0)) shouldBe
+            IngenEndring
+        sak.finnEndringer(fulltid.copy(antallDagerPerUke = 3F)) shouldBe
+            AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(100F, 3F))
+    }
+
+    @Test
+    fun `deltidsprosenten på gjennomføringen sammenlignes med gjeldende vedtak når deltakelsen mangler egen prosent`() {
+        val sak = sakMedInnvilgelse()
+
+        sak.vurderMotGjeldendeVedtak(deltakelse.copy(deltakelseProsent = null, deltidsprosentGjennomforing = 50.0)) shouldBe IngenEndring
+        sak.finnEndringer(deltakelse.copy(deltakelseProsent = null, deltidsprosentGjennomforing = 60.0)) shouldBe
+            AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 2F))
+    }
+
+    @Test
     fun `forlenget deltakelse gir forlengelse`() {
         val nySluttdato = deltakelse.deltakelseTilOgMed!!.plusMonths(1)
 

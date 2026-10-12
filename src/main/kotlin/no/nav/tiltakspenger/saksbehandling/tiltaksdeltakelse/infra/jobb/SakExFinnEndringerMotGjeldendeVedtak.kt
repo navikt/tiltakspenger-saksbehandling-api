@@ -35,18 +35,20 @@ fun Sak.finnEndringerForDeltakelse(
     clock: Clock,
 ): VurdertTiltaksdeltakerEndring {
     val iDag = LocalDate.now(clock)
-    val nåtilstand = oppdatertDeltakelse.tilDeltakelsestilstand(clock)
+    val oppdatertTilstand = oppdatertDeltakelse.tilDeltakelsestilstand(clock)
 
     val endringMotÅpenBehandling = deltakelseISisteÅpneManuelleBehandling(tiltaksdeltakerId)
         ?.let {
-            it.tilDeltakelsestilstand().finnEndringer(nåtilstand, clock)
+            it.tilDeltakelsestilstand().finnEndringer(oppdatertTilstand, clock)
                 ?: return IngenEndring
         }
 
-    val gjeldendeInnvilgelse = gjeldendeVedtakForDeltakelse(tiltaksdeltakerId).tilGjeldendeInnvilgelse(iDag)
+    val gjeldendeVedtak = gjeldendeVedtakForDeltakelse(tiltaksdeltakerId)
+
+    val gjeldendeInnvilgelse = gjeldendeVedtak.tilGjeldendeInnvilgelse(iDag)
         ?: return endringMotÅpenBehandling?.let { Endret(endring = it, automatiskRevurdering = null) } ?: IngenEndring
 
-    val endring = gjeldendeInnvilgelse.finnEndringer(nåtilstand, iDag)
+    val endring = gjeldendeInnvilgelse.finnEndringer(oppdatertTilstand, iDag)
         ?: endringMotÅpenBehandling
         ?: return IngenEndring
 
@@ -55,7 +57,7 @@ fun Sak.finnEndringerForDeltakelse(
         automatiskRevurdering = vurderAutomatiskRevurdering(
             tiltaksdeltakerId,
             endring,
-            nåtilstand,
+            oppdatertTilstand,
             gjeldendeInnvilgelse,
             iDag,
         ),
@@ -267,7 +269,7 @@ private fun GjeldendeInnvilgelse.finnEndringer(
 private fun Sak.vurderAutomatiskRevurdering(
     tiltaksdeltakerId: TiltaksdeltakerId,
     endring: TiltaksdeltakerEndring,
-    nåtilstand: Deltakelsestilstand,
+    oppdatertTilstand: Deltakelsestilstand,
     gjeldendeInnvilgelse: GjeldendeInnvilgelse,
     iDag: LocalDate,
 ): AutomatiskRevurderingAvEndring? {
@@ -278,7 +280,7 @@ private fun Sak.vurderAutomatiskRevurdering(
     return when (endring) {
         is TiltaksdeltakerEndring.AvbruttDeltakelse -> vurderRevurderingForAvbrudd(
             tiltaksdeltakerId,
-            nåtilstand,
+            oppdatertTilstand,
             gjeldendeInnvilgelse,
             iDag,
         )
@@ -306,7 +308,7 @@ private fun Sak.vurderAutomatiskRevurdering(
  */
 private fun Sak.vurderRevurderingForAvbrudd(
     tiltaksdeltakerId: TiltaksdeltakerId,
-    nåtilstand: Deltakelsestilstand,
+    oppdatertTilstand: Deltakelsestilstand,
     gjeldendeInnvilgelse: GjeldendeInnvilgelse,
     iDag: LocalDate,
 ): AutomatiskRevurderingAvEndring? {
@@ -314,7 +316,7 @@ private fun Sak.vurderRevurderingForAvbrudd(
         return null
     }
 
-    val nySluttdato = nåtilstand.deltakelseTilOgMed
+    val nySluttdato = oppdatertTilstand.deltakelseTilOgMed
     val avbruttFraOgMed = if (nySluttdato != null && nySluttdato.isBefore(gjeldendeInnvilgelse.sisteInnvilgedeDag)) {
         maxOf(nySluttdato.plusDays(1), gjeldendeInnvilgelse.førsteInnvilgedeDag)
     } else {
