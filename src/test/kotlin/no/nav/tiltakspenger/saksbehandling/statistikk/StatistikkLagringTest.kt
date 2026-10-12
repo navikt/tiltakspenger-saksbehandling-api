@@ -44,6 +44,9 @@ class StatistikkLagringTest {
                 it.saksnummer shouldBe saksnummer
                 it.fnr shouldBe fnr
                 it.sakYtelse shouldBe "IND"
+                // Når søknaden kom inn til Nav, ikke når vi registrerte den.
+                // Testklokka og tiltaksstarten gir ulike verdier, så en forveksling med `opprettet` slår ut her.
+                it.mottattTidspunkt shouldBe søknad.mottatt
             }
             saksstatistikk.map { it.behandlingId }.distinct() shouldContainExactly listOf(
                 rammevedtak.rammebehandling.id.toString(),
@@ -58,6 +61,7 @@ class StatistikkLagringTest {
                 it.string("saksnummer") shouldBe saksnummer
                 it.string("vedtak_id") shouldBe rammevedtak.id.toString()
                 it.string("soknad_id") shouldBe søknad.id.toString()
+                it.localDate("soknad_dato") shouldBe søknad.mottatt.toLocalDate()
                 it.localDate("vedtaksperiode_fra_og_med") shouldBe rammevedtak.periode.fraOgMed
                 it.localDate("vedtaksperiode_til_og_med") shouldBe rammevedtak.periode.tilOgMed
                 it.boolean("har_barnetillegg") shouldBe false

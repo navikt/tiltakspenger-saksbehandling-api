@@ -13,6 +13,12 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+/**
+ * [opprettet] Dette er tidspunktet hvor søknaden er opprettet i saksbehandlingsapiet
+ * [mottatt] For digitale søknder vil dette er tidspunktet hvor søknaden er opprettet i søknadsapiet.
+ *           For manuelt registrerte søknader settes denne av saksbehandler.
+ */
+
 sealed interface Søknad {
     val versjon: String
     val id: SøknadId
@@ -21,7 +27,7 @@ sealed interface Søknad {
     val saksnummer: Saksnummer
     val journalpostId: String
     val opprettet: LocalDateTime
-    val tidsstempelHosOss: LocalDateTime
+    val mottatt: LocalDateTime
     val avbrutt: Søknadshendelser
     val fnr: Fnr
     val harSøktPåTiltak: JaNeiSpm
@@ -65,7 +71,7 @@ sealed interface Søknad {
             sak: Sak,
             journalpostId: String,
             opprettet: LocalDateTime,
-            tidsstempelHosOss: LocalDateTime,
+            mottatt: LocalDateTime,
             personopplysninger: Personopplysninger,
             søknadstiltak: Søknadstiltak?,
             barnetillegg: List<BarnetilleggFraSøknad>,
@@ -97,7 +103,7 @@ sealed interface Søknad {
                     tiltak = søknadstiltak,
                     barnetillegg = barnetillegg,
                     opprettet = opprettet,
-                    tidsstempelHosOss = tidsstempelHosOss,
+                    mottatt = mottatt,
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
                     avbrutt = Søknadshendelser.empty(),
@@ -129,7 +135,7 @@ sealed interface Søknad {
                     tiltak = søknadstiltak,
                     barnetillegg = barnetillegg,
                     opprettet = opprettet,
-                    tidsstempelHosOss = tidsstempelHosOss,
+                    mottatt = mottatt,
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
                     avbrutt = Søknadshendelser.empty(),

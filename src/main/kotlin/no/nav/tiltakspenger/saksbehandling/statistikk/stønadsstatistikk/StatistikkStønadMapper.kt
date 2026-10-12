@@ -59,7 +59,7 @@ fun genererStønadsstatistikkForRammevedtak(
             ytelse = "IND",
 
             søknadId = søknad?.id?.toString(),
-            søknadDato = søknad?.opprettet?.toLocalDate(),
+            søknadDato = søknad?.mottatt?.toLocalDate(),
             søknadFraDato = søknad?.tiltak?.deltakelseFom,
             søknadTilDato = søknad?.tiltak?.deltakelseTom,
 

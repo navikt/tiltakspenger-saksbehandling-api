@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.getSystemBrukerMapper
 import no.nav.tiltakspenger.saksbehandling.felles.krevHentEllerOpprettSakRollen
 import no.nav.tiltakspenger.saksbehandling.felles.krevLagreSoknadRollen
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
+import java.time.Clock
 
 private val logger = KotlinLogging.logger {}
 
@@ -26,6 +27,7 @@ fun Route.mottaSøknadRoute(
     søknadService: SøknadService,
     sakService: SakService,
     tiltaksdeltakerRepo: TiltaksdeltakerRepo,
+    clock: Clock,
 ) {
     post(SØKNAD_PATH) {
         logger.debug { "Mottatt ny søknad på '$SØKNAD_PATH' -  Prøver deserialisere og lagre." }
@@ -49,9 +51,9 @@ fun Route.mottaSøknadRoute(
             søknadService.nySøknad(
                 søknad = SøknadDTOMapper.mapDigitalsøknad(
                     dto = søknadDTO,
-                    innhentet = søknadDTO.opprettet,
                     sak = sak,
                     internTiltaksdeltakelsesId = internTiltaksdeltakelsesId,
+                    clock = clock,
                 ),
             )
             call.respondText(text = "OK", status = HttpStatusCode.OK)

@@ -224,7 +224,7 @@ object SøknadDAO {
                     etternavn, 
                     fnr, 
                     opprettet,
-                    tidsstempel_hos_oss,
+                    mottatt,
                     har_sokt_paa_tiltak_type,
                     har_sokt_om_barnetillegg_type,
                     kvp_type,
@@ -274,7 +274,7 @@ object SøknadDAO {
                     :etternavn,
                     :fnr,
                     :opprettet,
-                    :tidsstempel_hos_oss,
+                    :mottatt,
                     :har_sokt_paa_tiltak_type,
                     :har_sokt_om_barnetillegg_type,
                     :kvp_type,
@@ -329,7 +329,7 @@ object SøknadDAO {
                         "journalpost_id" to søknad.journalpostId,
                         "vedlegg" to søknad.vedlegg,
                         "opprettet" to søknad.opprettet,
-                        "tidsstempel_hos_oss" to søknad.tidsstempelHosOss,
+                        "mottatt" to søknad.mottatt,
                         "oppgave_id" to null,
                         "soknadstype" to søknad.søknadstype.toDbValue(),
                         "manuelt_satt_soknadsperiode" to søknad.manueltSattSøknadsperiode?.tilDbPeriode(),
@@ -376,7 +376,7 @@ object SøknadDAO {
         val etternavn = string("etternavn")
         val fnr = Fnr.fromString(string("fnr"))
         val opprettet = localDateTime("opprettet")
-        val tidsstempelHosOss = localDateTime("tidsstempel_hos_oss")
+        val mottatt = localDateTime("mottatt")
         val journalpostId = string("journalpost_id")
         val barnetillegg = BarnetilleggDAO.hentBarnetilleggListe(id, session)
         val søknadstiltak = SøknadTiltakDAO.hentTiltak(id, session)
@@ -416,7 +416,7 @@ object SøknadDAO {
                 tiltak = søknadstiltak,
                 barnetillegg = barnetillegg,
                 opprettet = opprettet,
-                tidsstempelHosOss = tidsstempelHosOss,
+                mottatt = mottatt,
                 vedlegg = vedlegg,
                 harSøktPåTiltak = harSøktPåTiltak,
                 harSøktOmBarnetillegg = harSøktOmBarnetillegg,
@@ -454,7 +454,7 @@ object SøknadDAO {
                 tiltak = søknadstiltak,
                 barnetillegg = barnetillegg,
                 opprettet = opprettet,
-                tidsstempelHosOss = tidsstempelHosOss,
+                mottatt = mottatt,
                 vedlegg = vedlegg,
                 harSøktPåTiltak = harSøktPåTiltak,
                 harSøktOmBarnetillegg = harSøktOmBarnetillegg,

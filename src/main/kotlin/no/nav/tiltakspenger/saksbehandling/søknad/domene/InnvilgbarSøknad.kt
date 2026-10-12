@@ -20,7 +20,7 @@ data class InnvilgbarSøknad(
     override val harSøktOmBarnetillegg: Søknad.JaNeiSpm,
     override val barnetillegg: List<BarnetilleggFraSøknad>,
     override val opprettet: LocalDateTime,
-    override val tidsstempelHosOss: LocalDateTime,
+    override val mottatt: LocalDateTime,
     override val sakId: SakId,
     override val saksnummer: Saksnummer,
     override val avbrutt: Søknadshendelser,
@@ -42,7 +42,7 @@ data class InnvilgbarSøknad(
     override val behandlingsarsak: Behandlingsarsak? = null,
     override val manueltRegistrert: Boolean,
 ) : Søknad {
-    val kravdato: LocalDate = tidsstempelHosOss.toLocalDate()
+    val kravdato: LocalDate = mottatt.toLocalDate()
     override val fnr: Fnr = personopplysninger.fnr
 
     override fun tiltaksdeltakelseperiodeDetErSøktOm(): Periode {

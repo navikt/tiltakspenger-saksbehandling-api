@@ -28,7 +28,9 @@ fun String.shouldBeSøknadDTO(
     kanInnvilges: Boolean = true,
     behandlingsarsak: String? = null,
     opprettet: String = "TIMESTAMP",
-    tidsstempelHosOss: String = "TIMESTAMP",
+    mottatt: String = "TIMESTAMP",
+    /** Speiler [mottatt] til frontenden har sluttet å bruke feltet. */
+    tidsstempelHosOss: String = mottatt,
     svar: String = """
         {
           "harSøktPåTiltak": { "svar": "JA" },
@@ -78,6 +80,7 @@ fun String.shouldBeSøknadDTO(
           "søknadstype": "$søknadstype",
           "barnetillegg": [${barnetillegg.joinToString(",")}],
           "opprettet": "$opprettet",
+          "mottatt": "$mottatt",
           "tidsstempelHosOss": "$tidsstempelHosOss",
           "antallVedlegg": $antallVedlegg,
           "avbrutt": $hendelserJsonEllerUtledet,

@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.route.validerJournalpostRoute
 import no.nav.tiltakspenger.saksbehandling.søknad.service.StartBehandlingAvManueltRegistrertSøknadService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
+import java.time.Clock
 
 fun Route.søknadRoutes(
     auditService: AuditService,
@@ -18,8 +19,9 @@ fun Route.søknadRoutes(
     sakService: SakService,
     validerJournalpostService: ValiderJournalpostService,
     tiltaksdeltakerRepo: TiltaksdeltakerRepo,
+    clock: Clock,
 ) {
-    mottaSøknadRoute(søknadService, sakService, tiltaksdeltakerRepo)
+    mottaSøknadRoute(søknadService, sakService, tiltaksdeltakerRepo, clock)
     startBehandlingAvManueltRegistrertSøknadRoute(
         auditService,
         tilgangskontrollService,

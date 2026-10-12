@@ -58,8 +58,8 @@ class StartBehandlingAvManueltRegistrertSøknadService(
         val manueltRegistrertSøknad = Søknad.opprett(
             sak = sak,
             journalpostId = kommando.journalpostId.toString(),
-            opprettet = journalpostValidering.datoOpprettet,
-            tidsstempelHosOss = nå(clock),
+            opprettet = nå(clock),
+            mottatt = kommando.manueltSattSøknadMottattDato.atStartOfDay(),
             personopplysninger = Søknad.Personopplysninger(
                 fnr = personopplysninger.fnr,
                 fornavn = personopplysninger.fornavn,

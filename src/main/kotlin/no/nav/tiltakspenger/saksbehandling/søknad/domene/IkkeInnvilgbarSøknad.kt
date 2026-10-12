@@ -17,7 +17,7 @@ data class IkkeInnvilgbarSøknad(
     override val harSøktOmBarnetillegg: Søknad.JaNeiSpm,
     override val barnetillegg: List<BarnetilleggFraSøknad>,
     override val opprettet: LocalDateTime,
-    override val tidsstempelHosOss: LocalDateTime,
+    override val mottatt: LocalDateTime,
     override val sakId: SakId,
     override val saksnummer: Saksnummer,
     override val avbrutt: Søknadshendelser,
