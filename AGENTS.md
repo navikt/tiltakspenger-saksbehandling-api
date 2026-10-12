@@ -25,6 +25,11 @@ Les disse først.
   De to pakkene ligger side om side rett under `no.nav.tiltakspenger.saksbehandling`, og `felles` skal verken ha en `infra`-underpakke eller importere infrastruktur.
   Mapping av en felles domenetype er infrastruktur selv om typen den mapper er felles, og hører derfor hjemme under `infra` — ikke ved siden av typen.
   Håndheves av `FellesErDomenepakkeKonsistTest`, som har en whitelist-ratchet for det som gjenstår.
+- **Kode som kun brukes ved lokal kjøring ligger i `lokal`-pakka i testkildene.**
+  Det gjelder `LokalMain`, `LocalApplicationContext`, lokale fakes og dev-endepunktene.
+  Under `lokal` speiles prodstrukturen (`lokal/<domene>/infra/route/` osv.), og hvert dev-endepunkt ligger i sin egen fil.
+  Testene skal ikke bruke noe fra `lokal`; avhengigheten går bare fra `lokal` til testinfrastrukturen.
+  Håndheves av `LokalKodeKonsistTest`.
 
 ## Sladding av personopplysninger
 

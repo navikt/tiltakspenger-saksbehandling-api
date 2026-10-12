@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.journalføring
 
-import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong
 
 interface JournalpostIdGenerator {
@@ -17,11 +16,4 @@ class JournalpostIdGeneratorSerial(
     private val neste = AtomicLong(første)
 
     override fun generer(): JournalpostId = JournalpostId(neste.getAndIncrement().toString())
-}
-
-/**
- * Random id'er for lokal kjøring for å hindre kollisjoner i lokal db
- * */
-class JournalpostIdGeneratorRandom : JournalpostIdGenerator {
-    override fun generer(): JournalpostId = JournalpostId(UUID.randomUUID().toString())
 }
