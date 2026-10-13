@@ -1,9 +1,17 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSaksopplysninger
 
+import io.kotest.assertions.json.shouldContainJsonKeyValue
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.juni
+import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakstype
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
@@ -18,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class OppdaterRammebehandlingSaksopplysningerTest {
     @Test
@@ -56,6 +65,32 @@ class OppdaterRammebehandlingSaksopplysningerTest {
             oppdatertBehandling.saksopplysninger.fødselsdato shouldBe 2.januar(2001)
         }
     }
+
+    @Test
+    fun `søknadsbehandling - lønnstilskudd som overlapper saksopplysningsperioden vises, men gir ikke rett`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+            behandling.saksopplysninger.tiltaksdeltakelserSomIkkeGirRett.shouldBeEmpty()
+            tac.leggTilLønnstilskudd(sak.fnr, lønnstilskudd(id = "TA1", fraOgMed = 1.februar(2023), tilOgMed = 30.juni(2023)))
+            tac.leggTilLønnstilskudd(sak.fnr, lønnstilskudd(id = "TA2", fraOgMed = 1.mai(2023), tilOgMed = 30.juni(2023)))
+
+            val (_, oppdatertBehandling, body) = oppdaterSaksopplysningerForBehandlingId(tac, sak.id, behandling.id)
+
+            oppdatertBehandling.saksopplysninger.tiltaksdeltakelser shouldBe behandling.saksopplysninger.tiltaksdeltakelser
+            oppdatertBehandling.saksopplysninger.tiltaksdeltakelserSomIkkeGirRett.map { it.eksternDeltakelseId } shouldBe listOf("TA1")
+            body.shouldContainJsonKeyValue("$.saksopplysninger.tiltaksdeltakelserSomIkkeGirRett.length()", 1)
+            body.shouldContainJsonKeyValue("$.saksopplysninger.tiltaksdeltakelserSomIkkeGirRett[0].eksternDeltakelseId", "TA1")
+            body.shouldContainJsonKeyValue("$.saksopplysninger.tiltaksdeltakelserSomIkkeGirRett[0].tiltakskodeFraKilden", "MIDLONTIL")
+            body.shouldContainJsonKeyValue("$.saksopplysninger.tiltaksdeltakelserSomIkkeGirRett[0].deltakelseStatus", "Deltar")
+        }
+    }
+
+    private fun lønnstilskudd(id: String, fraOgMed: LocalDate, tilOgMed: LocalDate) = testdeltakelse(
+        id = id,
+        tiltakstype = Tiltakstype.SomIkkeGirRett(tiltakskodeFraKilden = "MIDLONTIL"),
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
+    ) as Tiltaksdeltakelse.GirIkkeRett
 
     @Test
     fun `revurdering til omgjøring - kan oppdatere saksopplysninger`() {

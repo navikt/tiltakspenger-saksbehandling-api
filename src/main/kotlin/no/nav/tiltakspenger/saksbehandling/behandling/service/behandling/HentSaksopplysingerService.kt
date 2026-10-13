@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.ÅpenPeriode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.overlapper
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
@@ -27,8 +28,10 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.loggFeil
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.lønnstilskudd
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilTiltaksdeltakelseIntern
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilTiltaksdeltakelseSomIkkeGirRett
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
 import java.time.Clock
 import java.time.LocalDate
@@ -69,7 +72,7 @@ class HentSaksopplysingerService(
     ): Saksopplysninger {
         val oppslagstidspunkt = nå(clock)
 
-        val aktuelleTiltaksdeltakelser = hentAktuelleTiltaksdeltakelser(
+        val (aktuelleTiltaksdeltakelser, lønnstilskudd) = hentAktuelleTiltaksdeltakelser(
             fnr = fnr,
             correlationId = correlationId,
             tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
@@ -93,6 +96,13 @@ class HentSaksopplysingerService(
             fødselsdato = hentPersonopplysninger(fnr).fødselsdato,
             // Vi tar foreløpig med de periodene
             tiltaksdeltakelser = aktuelleTiltaksdeltakelser,
+            tiltaksdeltakelserSomIkkeGirRett = saksopplysningsperiode
+                ?.let { periode ->
+                    lønnstilskudd
+                        .filter { it.overlapper(periode) != Overlapp.Nei }
+                        .map { it.tilTiltaksdeltakelseSomIkkeGirRett(clock) }
+                }
+                ?: emptyList(),
             ytelser = saksopplysningsperiode
                 ?.let {
                     hentYtelser(
@@ -121,6 +131,10 @@ class HentSaksopplysingerService(
         )
     }
 
+    /**
+     * Gir de aktuelle tiltaksdeltakelsene som kan gi rett, og alle lønnstilskuddene i tiltakshistorikken.
+     * Lønnstilskuddene avgrenses av kalleren, siden saksopplysningsperioden først er kjent når de aktuelle tiltaksdeltakelsene er det.
+     */
     private suspend fun hentAktuelleTiltaksdeltakelser(
         fnr: Fnr,
         correlationId: CorrelationId,
@@ -130,8 +144,8 @@ class HentSaksopplysingerService(
         sakId: SakId,
         sessionContext: SessionContext? = null,
         loggkontekst: String,
-    ): Tiltaksdeltakelser {
-        val tiltaksdeltakelserSomKanGiRettTilTiltakspenger: List<Tiltaksdeltakelse.GirRett> = tiltaksdeltakelseKlient.hentTiltaksdeltakelser(
+    ): Pair<Tiltaksdeltakelser, List<Tiltaksdeltakelse.GirIkkeRett>> {
+        val fraTiltakshistorikk = tiltaksdeltakelseKlient.hentTiltaksdeltakelser(
             fnr = fnr,
             tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
             correlationId = correlationId,
@@ -140,7 +154,8 @@ class HentSaksopplysingerService(
             // Kontrakten videre oppover er fortsatt throw-basert.
             feil.loggFeil(logger, "henting av tiltaksdeltakelser fra tiltakshistorikk", loggkontekst)
             throw IllegalStateException("Kunne ikke hente tiltaksdeltakelser fra tiltakshistorikk. $loggkontekst")
-        }.girRett
+        }
+        val tiltaksdeltakelserSomKanGiRettTilTiltakspenger: List<Tiltaksdeltakelse.GirRett> = fraTiltakshistorikk.girRett
         val oppdaterteEksterneIderDetErSoktFor = tiltaksdeltakelserDetErSøktTiltakspengerFor.ider.map {
             tiltaksdeltakerRepo.hentEksternId(id = it, sessionContext = sessionContext)
         }
@@ -168,7 +183,7 @@ class HentSaksopplysingerService(
             )
             it.tilTiltaksdeltakelseIntern(internDeltakelseId, clock)
         }
-        return Tiltaksdeltakelser(tiltaksdeltakelser)
+        return Tiltaksdeltakelser(tiltaksdeltakelser) to fraTiltakshistorikk.lønnstilskudd
     }
 
     /**

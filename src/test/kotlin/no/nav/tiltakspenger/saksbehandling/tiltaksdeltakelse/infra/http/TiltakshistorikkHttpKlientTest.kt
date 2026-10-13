@@ -102,11 +102,12 @@ class TiltakshistorikkHttpKlientTest {
     }
 
     @Test
-    fun `hentTiltaksdeltakelser - mapper svaret og filtrerer vekk tiltak uten rett og tiltak uten datoer`() {
+    fun `hentTiltaksdeltakelser - mapper svaret, tar med lønnstilskudd og filtrerer vekk andre tiltak uten rett og tiltak uten datoer`() {
         val (pdlTransport, historikkTransport) = transports(
             arenaRadJson(arenaId = 142536),
             arenaRadJson(arenaId = 2, tiltakskode = "LONNTIL"),
             arenaRadJson(arenaId = 3, status = "SOKT_INN", startDato = null, sluttDato = null),
+            arenaRadJson(arenaId = 4, tiltakskode = "MENTOR"),
         )
         val correlationId = CorrelationId.generate()
 
@@ -118,7 +119,8 @@ class TiltakshistorikkHttpKlientTest {
             ).getOrNull().shouldNotBeNull()
 
             // Arena-deltakelsen bærer kildens TA-id, ikke kontraktens uuid.
-            tiltaksdeltakelser.deltakelser.map { it.id.verdi } shouldBe listOf("TA142536")
+            tiltaksdeltakelser.deltakelser.map { it.id.verdi } shouldBe listOf("TA142536", "TA2")
+            tiltaksdeltakelser.lønnstilskudd.single().tiltakskodeFraKilden shouldBe "LONNTIL"
             val deltakelse = tiltaksdeltakelser.girRett.single()
             // fixedClock er 1. januar 2025, så GJENNOMFORES med start i 2024 er i gang.
             deltakelse.tiltakDeltakerstatus(fixedClock) shouldBe TiltakDeltakerstatus.Deltar

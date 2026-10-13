@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Overlapp
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseSomIkkeGirRett
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
 import java.time.LocalDate
@@ -19,10 +20,14 @@ import java.time.LocalDateTime
  * @param periode perioden det er hentet saksopplysninger for.
  * Bør henge sammen med tiltaksdeltakelsesperioden.
  * Er null dersom tiltaksdeltakelsesperioden er null.
+ * @param tiltaksdeltakelserSomIkkeGirRett tiltaksdeltakelser som ikke gir rett til tiltakspenger, men som vises til saksbehandler (per nå lønnstilskudd).
+ * Inneholder de som overlapper med [periode], inkludert tvilstilfellene der manglende datoer gjør at vi ikke kan si sikkert.
+ * Påvirker ikke behandlingen.
  */
 data class Saksopplysninger(
     val fødselsdato: LocalDate,
     val tiltaksdeltakelser: Tiltaksdeltakelser,
+    val tiltaksdeltakelserSomIkkeGirRett: List<TiltaksdeltakelseSomIkkeGirRett>,
     val ytelser: Ytelser,
     val tiltakspengevedtakFraArena: TiltakspengevedtakFraArena,
     val oppslagstidspunkt: LocalDateTime,

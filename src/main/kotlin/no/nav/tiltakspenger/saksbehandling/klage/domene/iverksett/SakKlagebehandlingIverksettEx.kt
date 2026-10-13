@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.leggTilKlagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppdaterKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehandling.genererSaksstatistikk
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehandling.genererAvvistSaksstatistikk
 import java.time.Clock
 
 /**
@@ -26,7 +26,7 @@ fun Sak.iverksettAvvistKlagebehandling(
                 clock = clock,
                 klagebehandling = oppdatertKlagebehandling,
             )
-            val klagestatistikk = Statistikkhendelser(klagevedtak.genererSaksstatistikk())
+            val klagestatistikk = Statistikkhendelser(klagevedtak.genererAvvistSaksstatistikk())
             val oppdatertSak = this.oppdaterKlagebehandling(oppdatertKlagebehandling).leggTilKlagevedtak(klagevedtak)
             Triple(oppdatertSak, klagevedtak, klagestatistikk)
         }

@@ -11,9 +11,10 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMe
 
 interface TiltaksdeltakelseKlient {
     /**
-     * Inneholder kun [Tiltaksdeltakelse.GirRett] med kjent kildestatus, se [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilRelevanteTiltaksdeltakelser].
-     * Filtrerer vekk tiltaksdeltakelser som ikke gir rett til tiltakspenger.
-     * Filtrer vekk tiltaksdeltakelser som mangler både fraOgMed og tilOgMed samtidig som den ikke venter på oppstart.
+     * Inneholder kun [Tiltaksdeltakelse.GirRett] og lønnstilskudd ([Tiltaksdeltakelse.GirIkkeRett]) med kjent kildestatus, se [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilRelevanteTiltaksdeltakelser].
+     * Lønnstilskudd gir ikke rett til tiltakspenger, men tas med for å vises til saksbehandler.
+     * Filtrerer vekk andre tiltaksdeltakelser som ikke gir rett til tiltakspenger.
+     * Filtrer vekk tiltaksdeltakelser som gir rett, men mangler både fraOgMed og tilOgMed samtidig som den ikke venter på oppstart.
      * Tiltak som det er søkt om tiltakspenger for skal ikke filtreres bort så lenge tiltakstypen gir rett på tiltakspenger.
      */
     suspend fun hentTiltaksdeltakelser(

@@ -24,21 +24,25 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus.Vurderes
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseSomIkkeGirRett
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import java.time.Clock
 import java.time.LocalDate
 
 /**
- * Filtrerer til deltakelser som kan gi rett til tiltakspenger.
+ * Filtrerer til deltakelser som kan gi rett til tiltakspenger, pluss lønnstilskudd.
  * Deltakelser det er søkt tiltakspenger for skal ikke filtreres bort.
  *
- * Utvalgs- og statusreglene viderefører semantikken fra den tidligere integrasjonen:
- * kun tiltakstyper som gir rett ([Tiltaksdeltakelser.girRett]), og kun deltakelser som er søkt for, har datoer, eller venter på oppstart.
- * Resultatet inneholder derfor kun [Tiltaksdeltakelse.GirRett] med kjent kildestatus, og [tiltakDeltakerstatus] kan tolkes for alle.
+ * Utvalgs- og statusreglene for tiltakstyper som gir rett ([Tiltaksdeltakelser.girRett]) viderefører semantikken fra den tidligere integrasjonen:
+ * kun deltakelser som er søkt for, har datoer, eller venter på oppstart.
+ * Lønnstilskudd ([Tiltaksdeltakelser.lønnstilskudd]) gir ikke rett, men skal vises til saksbehandler.
+ * De tas med uavhengig av datoer, siden det er saksbehandler som må vurdere tvilstilfellene.
+ * Andre tiltakstyper som ikke gir rett utelates.
+ * Resultatet inneholder derfor kun [Tiltaksdeltakelse.GirRett] og lønnstilskudd ([Tiltaksdeltakelse.GirIkkeRett]) med kjent kildestatus, og [tiltakDeltakerstatus] kan tolkes for alle.
  *
  * Et bevisst avvik fra tidligere oppførsel: en tiltakskode vi ikke kjenner felte før hele oppslaget ([IllegalStateException] i mappingen).
- * Nå blir slike rader [Tiltaksdeltakelse.UkjentTiltakstype] i libs-domenet og faller utenfor `girRett` — de varsles av klienten i stedet for å krasje.
+ * Nå blir slike rader [Tiltaksdeltakelse.UkjentTiltakstype] i libs-domenet og utelates — de varsles av klienten i stedet for å krasje.
  * Det samme gjelder rader med ukjent kildestatus: de kan ikke tolkes til [TiltakDeltakerstatus] og utelates fra uttrekket.
  */
 fun Tiltakshistorikk.tilRelevanteTiltaksdeltakelser(
@@ -47,11 +51,7 @@ fun Tiltakshistorikk.tilRelevanteTiltaksdeltakelser(
 ): Tiltaksdeltakelser {
     val søktFor = tiltaksdeltakelserDetErSøktTiltakspengerFor.eksterneIder.toSet()
     return Tiltaksdeltakelser(
-        deltakelser.girRett.filter { deltakelse ->
-            val status = deltakelse.kildestatus.tilTiltakDeltakerstatus(deltakelse.fraOgMed, clock)
-                ?: return@filter false
-            erRelevant(deltakelse, status, søktFor)
-        },
+        deltakelser.deltakelser.filter { it.erIUttrekket(søktFor, clock) },
     )
 }
 
@@ -79,7 +79,7 @@ fun Tiltaksdeltakelse.tilLesbarNåtilstand(clock: Clock): Tiltaksdeltakelse.GirR
  * Kildens status tolket til vår egen statusmodell.
  * Kaster dersom kildestatusen er ukjent; uttrekkene ([tilRelevanteTiltaksdeltakelser] og [tilLesbarNåtilstand]) slipper aldri slike gjennom.
  */
-fun Tiltaksdeltakelse.GirRett.tiltakDeltakerstatus(clock: Clock): TiltakDeltakerstatus =
+fun Tiltaksdeltakelse.tiltakDeltakerstatus(clock: Clock): TiltakDeltakerstatus =
     checkNotNull(kildestatus.tilTiltakDeltakerstatus(fraOgMed, clock)) {
         "Kan ikke tolke ukjent kildestatus ${kildestatus.kodeIKontrakten} fra ${kildestatus.kilde} for deltakelse ${id.verdi}"
     }
@@ -104,8 +104,22 @@ fun Tiltaksdeltakelse.GirRett.tilTiltaksdeltakelseIntern(
         internDeltakelseId = internDeltakelseId,
     )
 
+fun Tiltaksdeltakelse.GirIkkeRett.tilTiltaksdeltakelseSomIkkeGirRett(clock: Clock): TiltaksdeltakelseSomIkkeGirRett =
+    TiltaksdeltakelseSomIkkeGirRett(
+        eksternDeltakelseId = id.verdi,
+        typeNavn = tiltakstypenavn,
+        tiltakskodeFraKilden = tiltakskodeFraKilden,
+        deltakelseFraOgMed = fraOgMed,
+        deltakelseTilOgMed = tilOgMed,
+        deltakelseStatus = tiltakDeltakerstatus(clock),
+        deltakelseProsent = omfang.deltakelsesprosent,
+        antallDagerPerUke = omfang.dagerPerUke,
+        kilde = kildestatus.kilde.tilLokalKilde(),
+    )
+
 /**
  * Samme utvalg som [tilRelevanteTiltaksdeltakelser], men med visningsnavn i stedet for full saksopplysning.
+ * Lønnstilskudd er med, men har ingen [TiltaksdeltakelseMedArrangørnavn.typeKode], siden de ikke gir rett og ikke kan velges.
  * Visningsnavnet ([Tiltaksdeltakelse.tittel]) inneholder arrangøren, og er derfor stedsinformasjon — ved adressebeskyttelse vises kun tiltakstypenavnet.
  * Faller tilbake på tiltakstypenavnet også når kilden ikke ga noen tittel.
  */
@@ -113,14 +127,12 @@ fun Tiltakshistorikk.tilTiltaksdeltakelserMedArrangørnavn(
     harAdressebeskyttelse: Boolean,
     clock: Clock,
 ): List<TiltaksdeltakelseMedArrangørnavn> {
-    return deltakelser.girRett.mapNotNull { deltakelse ->
-        val status = deltakelse.kildestatus.tilTiltakDeltakerstatus(deltakelse.fraOgMed, clock)
-            ?: return@mapNotNull null
-        if (!erRelevant(deltakelse, status, emptySet())) return@mapNotNull null
+    return deltakelser.deltakelser.mapNotNull { deltakelse ->
+        if (!deltakelse.erIUttrekket(emptySet(), clock)) return@mapNotNull null
         TiltaksdeltakelseMedArrangørnavn(
             eksternDeltakelseId = deltakelse.id.verdi,
             typeNavn = deltakelse.tiltakstypenavn,
-            typeKode = deltakelse.tiltakstype.tilDTO(),
+            typeKode = (deltakelse as? Tiltaksdeltakelse.GirRett)?.tiltakstype?.tilDTO(),
             deltakelseFraOgMed = deltakelse.fraOgMed,
             deltakelseTilOgMed = deltakelse.tilOgMed,
             visningsnavn = if (harAdressebeskyttelse) {
@@ -128,8 +140,26 @@ fun Tiltakshistorikk.tilTiltaksdeltakelserMedArrangørnavn(
             } else {
                 deltakelse.tittel?.verdi ?: deltakelse.tiltakstypenavn
             },
-            status = status,
+            status = deltakelse.tiltakDeltakerstatus(clock),
         )
+    }
+}
+
+/**
+ * Felles utvalgsregel for uttrekkene.
+ * Deltakelser med ukjent kildestatus kan ikke tolkes og er aldri med.
+ * Tiltakstyper som gir rett følger [erRelevant], lønnstilskudd er alltid med, og alt annet utelates.
+ */
+private fun Tiltaksdeltakelse.erIUttrekket(
+    søktFor: Set<String>,
+    clock: Clock,
+): Boolean {
+    val status = kildestatus.tilTiltakDeltakerstatus(fraOgMed, clock) ?: return false
+    return when (this) {
+        is Tiltaksdeltakelse.GirRett -> erRelevant(this, status, søktFor)
+        is Tiltaksdeltakelse.GirIkkeRett -> erLønnstilskudd
+        is Tiltaksdeltakelse.UkjentTiltakstype -> false
+        is Tiltaksdeltakelse.Ugyldig -> false
     }
 }
 

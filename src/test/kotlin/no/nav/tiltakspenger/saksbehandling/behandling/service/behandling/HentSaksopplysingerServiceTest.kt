@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 import arrow.core.Either
 import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldBeNull
 import kotlinx.coroutines.runBlocking
@@ -13,11 +14,14 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakstype
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testdeltakelse
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelseDetErSøktTiltakspengerFor
@@ -26,18 +30,26 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseSomIkkeGirRett
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerFakeRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
 import org.junit.jupiter.api.Test
 import java.time.Clock
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse as LibsTiltaksdeltakelse
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelser as LibsTiltaksdeltakelser
 
 class HentSaksopplysingerServiceTest {
@@ -834,5 +846,120 @@ class HentSaksopplysingerServiceTest {
                 oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
             )
         }
+    }
+
+    @Test
+    fun `lønnstilskudd som overlapper saksopplysningsperioden tas med, inkludert tvilstilfellene`() {
+        runBlocking {
+            val periode: Periode = 2.januar(2023) til 30.januar(2023)
+            val tiltak = ObjectMother.tiltakOgSøknadstiltak(søknadFraOgMed = periode.fraOgMed, søknadTilOgMed = periode.tilOgMed)
+            val overlapper = lønnstilskudd("TA1", 1.januar(2023), 31.januar(2023))
+            val overlapperIkke = lønnstilskudd("TA2", 1.mars(2023), 31.mars(2023))
+            val utenDatoer = lønnstilskudd("TA3", null, null)
+            val starterEtter = lønnstilskudd("TA4", 1.mars(2023), null)
+            val service = serviceMedTiltakshistorikk(tiltak.first, overlapper, overlapperIkke, utenDatoer, starterEtter)
+
+            val result = service.hentSaksopplysningerFraRegistre(
+                fnr = Fnr.random(),
+                correlationId = CorrelationId.generate(),
+                tiltaksdeltakelserDetErSøktTiltakspengerFor = TiltaksdeltakelserDetErSøktTiltakspengerFor(tiltak.second, periode.fraOgMed.atStartOfDay()),
+                aktuelleTiltaksdeltakelserForBehandlingen = listOf(tiltak.first.internDeltakelseId),
+                sakId = SakId.random(),
+                inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = false,
+            )
+
+            result.tiltaksdeltakelser shouldBeEqual Tiltaksdeltakelser(tiltak.first)
+            result.tiltaksdeltakelserSomIkkeGirRett.map { it.eksternDeltakelseId } shouldBeEqual listOf("TA1", "TA3")
+            result.tiltaksdeltakelserSomIkkeGirRett.first() shouldBeEqual TiltaksdeltakelseSomIkkeGirRett(
+                eksternDeltakelseId = "TA1",
+                typeNavn = "Oppfølging",
+                tiltakskodeFraKilden = "MIDLONTIL",
+                deltakelseFraOgMed = 1.januar(2023),
+                deltakelseTilOgMed = 31.januar(2023),
+                deltakelseStatus = TiltakDeltakerstatus.Deltar,
+                deltakelseProsent = 60f,
+                antallDagerPerUke = 3f,
+                kilde = Tiltakskilde.Komet,
+            )
+        }
+    }
+
+    @Test
+    fun `ingen lønnstilskudd når det ikke finnes noen saksopplysningsperiode`() {
+        runBlocking {
+            val tiltak = ObjectMother.tiltakOgSøknadstiltak()
+            val service = serviceMedTiltakshistorikk(tiltak.first, lønnstilskudd("TA1", null, null))
+
+            val result = service.hentSaksopplysningerFraRegistre(
+                fnr = Fnr.random(),
+                correlationId = CorrelationId.generate(),
+                tiltaksdeltakelserDetErSøktTiltakspengerFor = TiltaksdeltakelserDetErSøktTiltakspengerFor.empty(),
+                aktuelleTiltaksdeltakelserForBehandlingen = emptyList(),
+                sakId = SakId.random(),
+                inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = false,
+            )
+
+            result.periode.shouldBeNull()
+            result.tiltaksdeltakelserSomIkkeGirRett.shouldBeEmpty()
+        }
+    }
+
+    private fun lønnstilskudd(id: String, fraOgMed: LocalDate?, tilOgMed: LocalDate?) = testdeltakelse(
+        id = id,
+        tiltakstype = Tiltakstype.SomIkkeGirRett(tiltakskodeFraKilden = "MIDLONTIL"),
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
+    )
+
+    private fun serviceMedTiltakshistorikk(
+        tiltak: TiltaksdeltakelseIntern,
+        vararg andreDeltakelser: LibsTiltaksdeltakelse,
+    ): HentSaksopplysingerService {
+        val tiltaksdeltakerRepo = TiltaksdeltakerFakeRepo().apply {
+            lagre(
+                id = tiltak.internDeltakelseId,
+                eksternId = tiltak.eksternDeltakelseId,
+                tiltakstype = tiltak.typeKode.tilTiltakstype(),
+                sakId = SakId.random(),
+            )
+        }
+        return HentSaksopplysingerService(
+            hentPersonopplysninger = { ObjectMother.personopplysningKjedeligFyr(fnr = it) },
+            tiltaksdeltakelseKlient = object : TiltaksdeltakelseKlient {
+                override suspend fun hentTiltaksdeltakelser(
+                    fnr: Fnr,
+                    tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
+                    correlationId: CorrelationId,
+                ) = LibsTiltaksdeltakelser(listOf(tiltak.tilLibsDeltakelse()) + andreDeltakelser).right()
+
+                override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
+                    fnr: Fnr,
+                    harAdressebeskyttelse: Boolean,
+                    correlationId: CorrelationId,
+                ): Either<KunneIkkeHenteTiltakshistorikk, List<TiltaksdeltakelseMedArrangørnavn>> = emptyList<TiltaksdeltakelseMedArrangørnavn>().right()
+
+                override suspend fun hentTiltaksdeltakelse(
+                    fnr: Fnr,
+                    eksternDeltakerId: String,
+                    correlationId: CorrelationId,
+                ): Either<KunneIkkeHenteTiltakshistorikk, LibsTiltaksdeltakelse?> = null.right()
+            },
+            sokosUtbetaldataClient = object : SokosUtbetaldataClient {
+                override suspend fun hentYtelserFraUtbetaldata(
+                    fnr: Fnr,
+                    periode: Periode,
+                    correlationId: CorrelationId,
+                ) = emptyList<Ytelse>().right()
+            },
+            tiltakspengerArenaClient = object : TiltakspengerArenaClient {
+                override suspend fun hentTiltakspengevedtakFraArena(
+                    fnr: Fnr,
+                    periode: Periode,
+                    correlationId: CorrelationId,
+                ) = emptyList<ArenaTPVedtak>().right()
+            },
+            clock = Clock.fixed(1.februar(2023).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC),
+            tiltaksdeltakerRepo = tiltaksdeltakerRepo,
+        )
     }
 }

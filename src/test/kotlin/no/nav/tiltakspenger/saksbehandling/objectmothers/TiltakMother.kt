@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus.Deltar
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseSomIkkeGirRett
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde.Komet
@@ -174,7 +175,7 @@ interface TiltakMother {
 
     fun tiltaksdeltakelseMedArrangørnavn(
         eksternTiltaksdeltakelseId: String = UUID.randomUUID().toString(),
-        typeKode: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+        typeKode: TiltakstypeSomGirRettDTO? = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
         typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
         arrangørnavn: String? = "Testarrangør med geolokaliserende navn",
         fom: LocalDate? = 1.januar(2023),
@@ -191,6 +192,30 @@ interface TiltakMother {
             deltakelseTilOgMed = tom,
             visningsnavn = visningsnavn,
             status = status,
+        )
+    }
+
+    fun tiltaksdeltakelseSomIkkeGirRett(
+        eksternDeltakelseId: String = "TA${(1000000..9999999).random()}",
+        typeNavn: String = "Midlertidig lønnstilskudd",
+        tiltakskodeFraKilden: String = "MIDLONTIL",
+        fom: LocalDate? = 1.januar(2023),
+        tom: LocalDate? = 31.mars(2023),
+        status: TiltakDeltakerstatus = Deltar,
+        deltakelseProsent: Float? = 100f,
+        antallDagerPerUke: Float? = 5f,
+        kilde: Tiltakskilde = Tiltakskilde.Arena,
+    ): TiltaksdeltakelseSomIkkeGirRett {
+        return TiltaksdeltakelseSomIkkeGirRett(
+            eksternDeltakelseId = eksternDeltakelseId,
+            typeNavn = typeNavn,
+            tiltakskodeFraKilden = tiltakskodeFraKilden,
+            deltakelseFraOgMed = fom,
+            deltakelseTilOgMed = tom,
+            deltakelseStatus = status,
+            deltakelseProsent = deltakelseProsent,
+            antallDagerPerUke = antallDagerPerUke,
+            kilde = kilde,
         )
     }
 }
