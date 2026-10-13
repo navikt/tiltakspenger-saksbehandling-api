@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Oppholdssted
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelser
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
@@ -45,6 +46,7 @@ interface SøknadMother {
 
     fun barnetilleggMedIdent(
         oppholderSegIEØS: Søknad.JaNeiSpm = Søknad.JaNeiSpm.Ja,
+        oppholdssted: Oppholdssted? = null,
         fornavn: String = "Fornavn Barn",
         mellomnavn: String? = "Mellomnavn Barn",
         etternavn: String = "Etternavn Barn",
@@ -54,6 +56,7 @@ interface SøknadMother {
     ): BarnetilleggFraSøknad =
         BarnetilleggFraSøknad.FraPdl(
             oppholderSegIEØS = oppholderSegIEØS,
+            oppholdssted = oppholdssted,
             fornavn = fornavn,
             mellomnavn = mellomnavn,
             etternavn = etternavn,
@@ -63,6 +66,7 @@ interface SøknadMother {
 
     fun barnetilleggUtenIdent(
         oppholderSegIEØS: Søknad.JaNeiSpm = Søknad.JaNeiSpm.Ja,
+        oppholdssted: Oppholdssted? = null,
         fornavn: String = "Fornavn Barn",
         mellomnavn: String? = "Mellomnavn Barn",
         etternavn: String = "Etternavn Barn",
@@ -70,6 +74,7 @@ interface SøknadMother {
     ): BarnetilleggFraSøknad =
         BarnetilleggFraSøknad.Manuell(
             oppholderSegIEØS = oppholderSegIEØS,
+            oppholdssted = oppholdssted,
             fornavn = fornavn,
             mellomnavn = mellomnavn,
             etternavn = etternavn,

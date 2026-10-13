@@ -52,6 +52,7 @@ object BarnetilleggDAO {
                         "mellomnavn" to barnetillegg.mellomnavn,
                         "etternavn" to barnetillegg.etternavn,
                         "opphold_i_eos_type" to lagreJaNeiSpmType(barnetillegg.oppholderSegIEØS),
+                        "oppholdssted" to barnetillegg.oppholdssted?.toDbValue(),
                         "fnr" to barnetillegg.fnr?.verdi,
                     )
 
@@ -65,6 +66,7 @@ object BarnetilleggDAO {
                         "mellomnavn" to barnetillegg.mellomnavn,
                         "etternavn" to barnetillegg.etternavn,
                         "opphold_i_eos_type" to lagreJaNeiSpmType(barnetillegg.oppholderSegIEØS),
+                        "oppholdssted" to barnetillegg.oppholdssted?.toDbValue(),
                         "fnr" to null,
                     )
             }
@@ -89,10 +91,12 @@ object BarnetilleggDAO {
         val mellomnavn = stringOrNull("mellomnavn")
         val etternavn = stringOrNull("etternavn")
         val oppholderSegIEØS = jaNeiSpm("opphold_i_eos")
+        val oppholdssted = stringOrNull("oppholdssted")?.toOppholdssted()
         val fnr = stringOrNull("fnr")
         return if (type == "PDL") {
             BarnetilleggFraSøknad.FraPdl(
                 oppholderSegIEØS = oppholderSegIEØS,
+                oppholdssted = oppholdssted,
                 fornavn = fornavn,
                 mellomnavn = mellomnavn,
                 etternavn = etternavn,
@@ -104,6 +108,7 @@ object BarnetilleggDAO {
             checkNotNull(etternavn) { "Etternavn kan ikke være null for barnetillegg, manuelle barn " }
             BarnetilleggFraSøknad.Manuell(
                 oppholderSegIEØS = oppholderSegIEØS,
+                oppholdssted = oppholdssted,
                 fornavn = fornavn,
                 mellomnavn = mellomnavn,
                 etternavn = etternavn,
@@ -124,6 +129,7 @@ object BarnetilleggDAO {
             mellomnavn,
             etternavn,
             opphold_i_eos_type,
+            oppholdssted,
             fnr
         ) values (
             :id,
@@ -134,6 +140,7 @@ object BarnetilleggDAO {
             :mellomnavn,
             :etternavn,
             :opphold_i_eos_type,
+            :oppholdssted,
             :fnr
         )
         """.trimIndent()

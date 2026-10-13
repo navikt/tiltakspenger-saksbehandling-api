@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.hentSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Oppholdssted
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import org.junit.jupiter.api.Test
@@ -58,7 +59,7 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
                       "fornavn": "Barn",
                       "mellomnavn": null,
                       "etternavn": "Barnesen",
-                      "oppholdInnenforEøs": {"svar": "JA"},
+                      "oppholdssted": {"svar": "ANNET_EØS_LAND"},
                       "fnr": "${barnFnr.verdi}"
                     }]
                 """.trimIndent(),
@@ -97,6 +98,7 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
             søknad.barnetillegg shouldBe listOf(
                 BarnetilleggFraSøknad.FraPdl(
                     oppholderSegIEØS = Søknad.JaNeiSpm.Ja,
+                    oppholdssted = Oppholdssted.ANNET_EØS_LAND,
                     fornavn = "Barn",
                     mellomnavn = null,
                     etternavn = "Barnesen",
@@ -105,6 +107,7 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
                 ),
                 BarnetilleggFraSøknad.Manuell(
                     oppholderSegIEØS = Søknad.JaNeiSpm.Nei,
+                    oppholdssted = null,
                     fornavn = "Manuelt",
                     mellomnavn = "Registrert",
                     etternavn = "Barnesen",

@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Oppholdssted
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad.FraOgMedDatoSpm
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad.JaNeiSpm
@@ -40,8 +41,12 @@ data class SøknadDTO(
         val typeNavn: String,
     )
 
+    /**
+     * @param oppholdssted null for søknader fra før søknaden spurte om oppholdssted; da finnes bare [oppholderSegIEØSSpm].
+     */
     data class BarnetilleggFraSøknadDTO(
         val oppholderSegIEØSSpm: JaNeiSpmDTO,
+        val oppholdssted: OppholdsstedDTO?,
         val fornavn: SladdbarVerdi<String?>,
         val mellomnavn: SladdbarVerdi<String?>,
         val etternavn: SladdbarVerdi<String?>,
@@ -49,6 +54,12 @@ data class SøknadDTO(
         val kilde: BarnetilleggFraSøknadKilde,
         val fnr: SladdbarVerdi<String?>,
     )
+
+    enum class OppholdsstedDTO {
+        NORGE,
+        ANNET_EØS_LAND,
+        IKKE_EØS_LAND,
+    }
 
     enum class BarnetilleggFraSøknadKilde {
         PDL,
@@ -180,6 +191,13 @@ fun JaNeiSpm.toDTO(): SøknadDTO.JaNeiSpmDTO {
     )
 }
 
+fun Oppholdssted.toDTO(): SøknadDTO.OppholdsstedDTO =
+    when (this) {
+        Oppholdssted.NORGE -> SøknadDTO.OppholdsstedDTO.NORGE
+        Oppholdssted.ANNET_EØS_LAND -> SøknadDTO.OppholdsstedDTO.ANNET_EØS_LAND
+        Oppholdssted.IKKE_EØS_LAND -> SøknadDTO.OppholdsstedDTO.IKKE_EØS_LAND
+    }
+
 fun FraOgMedDatoSpm.toDTO(): SøknadDTO.FraOgMedDatoSpmDTO {
     val svar = when (this) {
         is FraOgMedDatoSpm.IkkeBesvart -> SøknadDTO.JaNeiSvar.IKKE_BESVART
@@ -227,6 +245,7 @@ fun Søknadstiltak.toDTO(): SøknadDTO.TiltaksdeltagelseFraSøknadDTO {
 fun List<BarnetilleggFraSøknad>.toDTO(): List<SøknadDTO.BarnetilleggFraSøknadDTO> = this.map {
     SøknadDTO.BarnetilleggFraSøknadDTO(
         oppholderSegIEØSSpm = it.oppholderSegIEØS.toDTO(),
+        oppholdssted = it.oppholdssted?.toDTO(),
         fornavn = it.fornavn.ikkeSladdet(),
         mellomnavn = it.mellomnavn.ikkeSladdet(),
         etternavn = it.etternavn.ikkeSladdet(),

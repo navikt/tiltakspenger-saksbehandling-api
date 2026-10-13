@@ -8,12 +8,14 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.soknad.BarnetilleggDTO
 import no.nav.tiltakspenger.libs.soknad.FraOgMedDatoSpmDTO
 import no.nav.tiltakspenger.libs.soknad.JaNeiSpmDTO
+import no.nav.tiltakspenger.libs.soknad.OppholdsstedDTO
 import no.nav.tiltakspenger.libs.soknad.PeriodeSpmDTO
 import no.nav.tiltakspenger.libs.soknad.PersonopplysningerDTO
 import no.nav.tiltakspenger.libs.soknad.SpmSvarDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadsTiltakDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Oppholdssted
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTOMapper
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -105,6 +107,88 @@ class SøknadDTOMapperTest {
         assertEquals(søknad.saksnummer, sak.saksnummer)
     }
 
+    @Test
+    fun `oppholdssted på barna mappes, og mangler for søknader fra før det ble spurt om`() {
+        val sak = ObjectMother.nySak()
+
+        fun barn(oppholderSegIEØS: SpmSvarDTO, oppholdssted: OppholdsstedDTO?) = BarnetilleggDTO(
+            fnr = null,
+            fødselsdato = LocalDate.of(2015, 5, 4),
+            fornavn = "Barn",
+            mellomnavn = null,
+            etternavn = "Barnesen",
+            oppholderSegIEØS = JaNeiSpmDTO(oppholderSegIEØS),
+            oppholdssted = oppholdssted,
+        )
+        val søknadDTO = søknadDTO(
+            barnetilleggPdl = listOf(
+                barn(SpmSvarDTO.Ja, OppholdsstedDTO.NORGE),
+                barn(SpmSvarDTO.Ja, OppholdsstedDTO.ANNET_EØS_LAND),
+                barn(SpmSvarDTO.Nei, OppholdsstedDTO.IKKE_EØS_LAND),
+            ),
+            barnetilleggManuelle = listOf(
+                barn(SpmSvarDTO.Ja, null),
+            ),
+            saksnummer = sak.saksnummer,
+        )
+
+        val søknad = SøknadDTOMapper.mapDigitalsøknad(
+            dto = søknadDTO,
+            sak = sak,
+            internTiltaksdeltakelsesId = internTiltaksdeltakerId,
+            clock = clock,
+        )
+
+        assertEquals(
+            listOf(Oppholdssted.NORGE, Oppholdssted.ANNET_EØS_LAND, Oppholdssted.IKKE_EØS_LAND, null),
+            søknad.barnetillegg.map { it.oppholdssted },
+        )
+        assertEquals(
+            listOf(Søknad.JaNeiSpm.Ja, Søknad.JaNeiSpm.Ja, Søknad.JaNeiSpm.Nei, Søknad.JaNeiSpm.Ja),
+            søknad.barnetillegg.map { it.oppholderSegIEØS },
+        )
+    }
+
+    @Test
+    fun `har søkt om barnetillegg tas fra svaret i søknaden, og utledes fra barna når svaret mangler`() {
+        val sak = ObjectMother.nySak()
+        val barn = BarnetilleggDTO(
+            fnr = null,
+            fødselsdato = LocalDate.of(2015, 5, 4),
+            fornavn = "Barn",
+            mellomnavn = null,
+            etternavn = "Barnesen",
+            oppholderSegIEØS = JaNeiSpmDTO(SpmSvarDTO.Ja),
+            oppholdssted = OppholdsstedDTO.NORGE,
+        )
+
+        fun harSøktOmBarnetillegg(
+            svar: JaNeiSpmDTO?,
+            barnetilleggPdl: List<BarnetilleggDTO>,
+            barnetilleggManuelle: List<BarnetilleggDTO> = emptyList(),
+        ) =
+            SøknadDTOMapper.mapDigitalsøknad(
+                dto = søknadDTO(
+                    harSøktOmBarnetillegg = svar,
+                    barnetilleggPdl = barnetilleggPdl,
+                    barnetilleggManuelle = barnetilleggManuelle,
+                    saksnummer = sak.saksnummer,
+                ),
+                sak = sak,
+                internTiltaksdeltakelsesId = internTiltaksdeltakerId,
+                clock = clock,
+            ).harSøktOmBarnetillegg
+
+        assertEquals(Søknad.JaNeiSpm.Ja, harSøktOmBarnetillegg(JaNeiSpmDTO(SpmSvarDTO.Ja), listOf(barn)))
+        assertEquals(Søknad.JaNeiSpm.Nei, harSøktOmBarnetillegg(JaNeiSpmDTO(SpmSvarDTO.Nei), emptyList()))
+        assertEquals(Søknad.JaNeiSpm.Ja, harSøktOmBarnetillegg(null, listOf(barn)))
+        assertEquals(Søknad.JaNeiSpm.Nei, harSøktOmBarnetillegg(null, emptyList()))
+        assertEquals(Søknad.JaNeiSpm.Ja, harSøktOmBarnetillegg(null, emptyList(), barnetilleggManuelle = listOf(barn)))
+        // Det eksplisitte svaret går foran barnelistene.
+        // Søknad-api avviser denne kombinasjonen, men mapperen skal ikke gjette når svaret finnes.
+        assertEquals(Søknad.JaNeiSpm.Nei, harSøktOmBarnetillegg(JaNeiSpmDTO(SpmSvarDTO.Nei), listOf(barn)))
+    }
+
     private fun søknadDTO(
         fra: LocalDate = LocalDate.of(2023, 1, 1),
         til: LocalDate = LocalDate.of(2023, 12, 31),
@@ -142,8 +226,10 @@ class SøknadDTOMapperTest {
         sykepenger: PeriodeSpmDTO = PeriodeSpmDTO(svar = SpmSvarDTO.Nei, fom = null, tom = null),
         trygdOgPensjon: PeriodeSpmDTO = PeriodeSpmDTO(svar = SpmSvarDTO.Nei, fom = null, tom = null),
         vedlegg: Int = 0,
+        harSøktOmBarnetillegg: JaNeiSpmDTO? = null,
         saksnummer: Saksnummer,
     ) = SøknadDTO(
+        harSøktOmBarnetillegg = harSøktOmBarnetillegg,
         versjon = versjon,
         søknadId = søknadId,
         journalpostId = journalpostId,
