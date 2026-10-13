@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.Statistikkh
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.maskerHvisStrengtFortrolig
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.maskerHvisStrengtFortroligStrict
 
-fun Klagevedtak.genererSaksstatistikk(): GenererSaksstatistikk {
+fun Klagevedtak.genererAvvistSaksstatistikk(): GenererSaksstatistikk {
     return GenererSaksstatistikk { gjelderKode6, versjon, clock ->
         val gjelderKode6 = gjelderKode6(this.fnr)
         SaksstatistikkDTO(

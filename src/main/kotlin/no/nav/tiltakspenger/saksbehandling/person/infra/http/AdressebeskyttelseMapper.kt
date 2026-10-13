@@ -2,12 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.person.infra.http
 
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.libs.personklient.pdl.dto.AdressebeskyttelseGradering
-import no.nav.tiltakspenger.libs.personklient.pdl.dto.PdlPersonBolkCode
-import no.nav.tiltakspenger.libs.personklient.pdl.dto.avklarGradering
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.AdressebeskyttelseGradering
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.PdlPersonBolkCode
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.avklarGradering
 import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import tools.jackson.module.kotlin.readValue
-import no.nav.tiltakspenger.libs.personklient.pdl.dto.Adressebeskyttelse as PdlAdressebeskyttelse
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.Adressebeskyttelse as PdlAdressebeskyttelse
 
 /** Svaret på bolkoppslaget som bare spør etter adressebeskyttelsen. */
 private data class PdlHentAdressebeskyttelseBolkResponse(

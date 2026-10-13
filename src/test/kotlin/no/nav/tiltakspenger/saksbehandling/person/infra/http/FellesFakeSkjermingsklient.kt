@@ -9,8 +9,8 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
+import no.nav.tiltakspenger.libs.personklient.infra.skjerming.FellesSkjermingsklient
 import no.nav.tiltakspenger.libs.personklient.pdl.FellesSkjermingError
-import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.felles.uventetStatus
 
 class FellesFakeSkjermingsklient : FellesSkjermingsklient {

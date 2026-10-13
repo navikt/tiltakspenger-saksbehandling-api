@@ -14,6 +14,8 @@ import java.time.LocalDate
  * Dette er tiltaksdeltakelseIDen og vil kun være forskjellig avhengig om den kommer fra Arena (TA1234567), Komet (UUID) eller team Tiltak (UUID).
  * Kalles ekstern_id i databasen.
  * @param typeNavn Navn på tiltakstypen, f.eks. "Arbeidsforberedende trening"
+ * @param typeKode null dersom tiltakstypen fratar rett til tiltakspenger (i første omgang lønnstilskudd).
+ * Slike deltakelser vises til saksbehandler, men kan ikke velges.
  * @param deltakelseFraOgMed startdato for deltakelsen.
  * Kan mangle, særlig når deltaker venter på oppstart
  * @param deltakelseTilOgMed sluttdato for deltakelsen.
@@ -22,12 +24,14 @@ import java.time.LocalDate
 data class TiltaksdeltakelseMedArrangørnavn(
     val eksternDeltakelseId: String,
     val typeNavn: String,
-    val typeKode: TiltakstypeSomGirRettDTO,
+    val typeKode: TiltakstypeSomGirRettDTO?,
     val deltakelseFraOgMed: LocalDate?,
     val deltakelseTilOgMed: LocalDate?,
     val visningsnavn: String,
     val status: TiltakDeltakerstatus,
 ) {
+    val fratarRett: Boolean get() = typeKode == null
+
     val periode: Periode? by lazy {
         if (deltakelseFraOgMed != null && deltakelseTilOgMed != null) {
             Periode(deltakelseFraOgMed, deltakelseTilOgMed)

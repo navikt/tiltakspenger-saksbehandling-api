@@ -86,7 +86,7 @@ class FellesErDomenepakkeKonsistTest {
      * True når minst ett punktum-separert segment navngir infrastruktur.
      *
      * `infra` er segmentet vi bruker selv.
-     * `infrastruktur` tas med fordi libs bruker det (`libs.persistering.infrastruktur`), og et slikt importbehov i `felles` er like mye et brudd.
+     * `infrastruktur` tas med fordi libs bruker det (`libs.persistering.infra`), og et slikt importbehov i `felles` er like mye et brudd.
      */
     private fun String.harInfrasegment(): Boolean = split('.').any { it in INFRASEGMENTER }
 

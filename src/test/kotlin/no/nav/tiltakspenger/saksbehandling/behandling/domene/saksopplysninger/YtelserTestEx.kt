@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger
 
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 
 /**
  * Leser `ytelser`-objektet ut av jsonb-kolonnen `behandling.saksopplysninger` med egen SQL.

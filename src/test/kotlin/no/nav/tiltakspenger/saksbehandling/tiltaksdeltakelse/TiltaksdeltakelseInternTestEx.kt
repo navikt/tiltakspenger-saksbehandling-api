@@ -62,8 +62,13 @@ fun TiltaksdeltakelseIntern.tilLibsDeltakelse(): Tiltaksdeltakelse.GirRett {
     }
 }
 
-private fun TiltaksdeltakelseIntern.tilKildestatus(): Kildestatus {
-    val status = deltakelseStatus
+private fun TiltaksdeltakelseIntern.tilKildestatus(): Kildestatus = tilKildestatus(kilde, deltakelseStatus)
+
+/**
+ * Kildestatusen som tolkes til [status] uavhengig av dato.
+ * Kaster dersom kilden ikke har noen slik status.
+ */
+fun tilKildestatus(kilde: Tiltakskilde, status: TiltakDeltakerstatus): Kildestatus {
     val ukjentHosKilden = { throw IllegalArgumentException("$kilde har ingen status som tolkes til $status") }
     return when (kilde) {
         Tiltakskilde.Komet -> Kometstatus.Kjent(status.tilKometstatusType(), årsak = null, opprettet = testStatusOpprettet)

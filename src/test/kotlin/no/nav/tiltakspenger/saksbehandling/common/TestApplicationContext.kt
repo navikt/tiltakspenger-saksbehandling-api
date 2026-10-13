@@ -87,6 +87,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsover
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFakeClient
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse as LibsTiltaksdeltakelse
 
 /**
  * Felles basisklasse for [TestApplicationContextMedInMemoryDb] og [TestApplicationContextMedPostgres].
@@ -535,6 +536,11 @@ sealed class TestApplicationContext(
     /** Oppdaterer (eller fjerner med `null`) tiltaksdeltakelsen registrert i [TiltaksdeltakelseFakeTestKlient]. */
     fun oppdaterTiltaksdeltakelse(fnr: Fnr, tiltaksdeltakelse: TiltaksdeltakelseIntern?) {
         tiltaksdeltakelseFakeKlient.lagre(fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse)
+    }
+
+    /** Registrerer en deltakelse som fratar rett i [TiltaksdeltakelseFakeTestKlient], i tillegg til tiltaksdeltakelsene som gir rett. */
+    fun leggTilTiltaksdeltakelseSomFratarRett(fnr: Fnr, deltakelse: LibsTiltaksdeltakelse.FratarRett) {
+        tiltaksdeltakelseFakeKlient.lagreTiltaksdeltakelseSomFratarRett(fnr = fnr, deltakelse = deltakelse)
     }
 
     /** Registrerer en journalpost i [SafJournalpostFakeClient] knyttet til gitt [fnr]. */

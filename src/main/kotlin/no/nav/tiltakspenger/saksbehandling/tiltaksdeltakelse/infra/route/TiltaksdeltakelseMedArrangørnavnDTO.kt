@@ -7,7 +7,8 @@ import java.time.LocalDate
 
 data class TiltaksdeltakelseMedArrangørnavnDTO(
     val eksternDeltakelseId: String,
-    val typeKode: String,
+    val typeKode: String?,
+    val fratarRett: Boolean,
     val typeNavn: String,
     val deltakelseFraOgMed: LocalDate?,
     val deltakelseTilOgMed: LocalDate?,
@@ -19,7 +20,8 @@ fun TiltaksdeltakelseMedArrangørnavn.toDTO(): TiltaksdeltakelseMedArrangørnavn
     return TiltaksdeltakelseMedArrangørnavnDTO(
         eksternDeltakelseId = this.eksternDeltakelseId,
         typeNavn = this.typeNavn,
-        typeKode = this.typeKode.name,
+        typeKode = this.typeKode?.name,
+        fratarRett = this.fratarRett,
         deltakelseFraOgMed = this.deltakelseFraOgMed,
         deltakelseTilOgMed = this.deltakelseTilOgMed,
         visningsnavn = this.visningsnavn.ikkeSladdet(),

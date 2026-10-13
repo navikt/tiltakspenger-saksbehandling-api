@@ -13,8 +13,8 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjonRolle
-import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.ForelderBarnRelasjonRolle
+import no.nav.tiltakspenger.libs.personklient.infra.skjerming.FellesSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson

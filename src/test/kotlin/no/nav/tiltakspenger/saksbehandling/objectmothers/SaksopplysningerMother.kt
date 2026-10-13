@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseSomFratarRett
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -19,6 +20,7 @@ interface SaksopplysningerMother {
         tom: LocalDate = 31.mars(2023),
         fødselsdato: LocalDate = ObjectMother.fødselsdato(),
         tiltaksdeltakelse: List<TiltaksdeltakelseIntern> = listOf(ObjectMother.tiltaksdeltakelse(fom = fom, tom = tom)),
+        tiltaksdeltakelserSomFratarRett: List<TiltaksdeltakelseSomFratarRett> = emptyList(),
         oppslagsperiode: Periode = Periode(fom, tom),
         clock: Clock = ObjectMother.clock,
         oppslagstidspunkt: LocalDateTime = nå(clock),
@@ -32,6 +34,7 @@ interface SaksopplysningerMother {
         return Saksopplysninger(
             fødselsdato = fødselsdato,
             tiltaksdeltakelser = Tiltaksdeltakelser(tiltaksdeltakelse),
+            tiltaksdeltakelserSomFratarRett = tiltaksdeltakelserSomFratarRett,
             ytelser = ytelser,
             tiltakspengevedtakFraArena = tiltakspengevedtakFraArena,
             oppslagstidspunkt = oppslagstidspunkt,

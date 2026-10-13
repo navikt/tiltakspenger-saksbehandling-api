@@ -2,18 +2,18 @@ package no.nav.tiltakspenger.saksbehandling.person.infra.http
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
-import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError
-import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.AdressebeskyttelseKunneIkkeAvklares
-import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.DeserializationException
-import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.FantIkkePerson
-import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.FødselKunneIkkeAvklares
-import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.Ikke2xx
-import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.IngenNavnFunnet
-import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.Kallfeil
-import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.NavnKunneIkkeAvklares
-import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.NetworkError
-import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.ResponsManglerData
-import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.UkjentFeil
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.FellesPersonklientError
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.FellesPersonklientError.AdressebeskyttelseKunneIkkeAvklares
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.FellesPersonklientError.DeserializationException
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.FellesPersonklientError.FantIkkePerson
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.FellesPersonklientError.FødselKunneIkkeAvklares
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.FellesPersonklientError.Ikke2xx
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.FellesPersonklientError.IngenNavnFunnet
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.FellesPersonklientError.Kallfeil
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.FellesPersonklientError.NavnKunneIkkeAvklares
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.FellesPersonklientError.NetworkError
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.FellesPersonklientError.ResponsManglerData
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.FellesPersonklientError.UkjentFeil
 
 private val logger = KotlinLogging.logger {}
 

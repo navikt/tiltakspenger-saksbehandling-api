@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.internoppgave.infra.repo
 import kotliquery.Row
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.internoppgave.domene.Dialoginnlegg
 import no.nav.tiltakspenger.saksbehandling.internoppgave.domene.InternOppgave
 import no.nav.tiltakspenger.saksbehandling.internoppgave.domene.InternOppgaveId

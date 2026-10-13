@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.person
 
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
-import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjon
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.ForelderBarnRelasjon
 
 interface PersonKlient {
     suspend fun hentEnkelPerson(fnr: Fnr): EnkelPerson
