@@ -103,6 +103,7 @@ interface SakMother : MotherOfAllMothers {
         saksopplysninger: Saksopplysninger = Saksopplysninger(
             fødselsdato = fødselsdato,
             tiltaksdeltakelser = registrerteTiltak,
+            tiltaksdeltakelserSomFratarRett = emptyList(),
             ytelser = Ytelser.fromList(emptyList(), registrerteTiltak.totalPeriode!!, iDag.atStartOfDay()),
             tiltakspengevedtakFraArena = TiltakspengevedtakFraArena.fromList(
                 emptyList(),
@@ -218,6 +219,7 @@ interface SakMother : MotherOfAllMothers {
         saksopplysninger: Saksopplysninger = Saksopplysninger(
             fødselsdato = fødselsdato,
             tiltaksdeltakelser = registrerteTiltak,
+            tiltaksdeltakelserSomFratarRett = emptyList(),
             ytelser = Ytelser.fromList(emptyList(), registrerteTiltak.totalPeriode!!, iDag.atStartOfDay()),
             tiltakspengevedtakFraArena = TiltakspengevedtakFraArena.fromList(
                 emptyList(),

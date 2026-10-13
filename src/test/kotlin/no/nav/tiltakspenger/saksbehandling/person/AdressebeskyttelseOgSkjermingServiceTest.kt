@@ -13,9 +13,9 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.ForelderBarnRelasjon
+import no.nav.tiltakspenger.libs.personklient.infra.skjerming.FellesSkjermingsklient
 import no.nav.tiltakspenger.libs.personklient.pdl.FellesSkjermingError
-import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjon
-import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.felles.Loggkontekst
 import no.nav.tiltakspenger.saksbehandling.felles.uventetStatus
 import org.junit.jupiter.api.Test

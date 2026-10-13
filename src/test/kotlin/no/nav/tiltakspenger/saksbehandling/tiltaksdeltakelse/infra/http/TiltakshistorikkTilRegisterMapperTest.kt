@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Arenastatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Deltakelsesomfang
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.GjennomføringId
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kildestatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kometstatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TeamTiltakstatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
@@ -18,6 +19,8 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelser
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakshistorikk
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakstype
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.UkjenteDeltakelsesformer
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testSlutt
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testStart
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testStatusOpprettet
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
@@ -25,9 +28,12 @@ import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseSomFratarRett
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class TiltakshistorikkTilRegisterMapperTest {
 
@@ -41,15 +47,59 @@ class TiltakshistorikkTilRegisterMapperTest {
 
     private fun kometstatus(type: Kometstatus.Type) = Kometstatus.Kjent(type, årsak = null, opprettet = testStatusOpprettet)
 
-    @Test
-    fun `kun deltakelser som gir rett er med i uttrekket`() {
-        val girRett = testdeltakelse(id = "TA1")
-        val girIkkeRett = testdeltakelse(id = "TA2", tiltakstype = Tiltakstype.SomIkkeGirRett(tiltakskodeFraKilden = "LONNTIL"))
-        val ukjentType = testdeltakelse(id = "TA3", tiltakstype = Tiltakstype.Ukjent(tiltakskodeFraKilden = "NOE_NYTT"))
+    private fun fratarRett(
+        id: String,
+        tiltakskode: String = "LONNTIL",
+        kildestatus: Kildestatus = kometstatus(Kometstatus.Type.DELTAR),
+        fraOgMed: LocalDate? = testStart,
+        tilOgMed: LocalDate? = testSlutt,
+    ) = testdeltakelse(
+        id = id,
+        tiltakstype = Tiltakstype.SomFratarRett(tiltakskodeFraKilden = tiltakskode),
+        kildestatus = kildestatus,
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
+    ) as Tiltaksdeltakelse.FratarRett
 
-        val resultat = historikk(girRett, girIkkeRett, ukjentType).tilRelevanteTiltaksdeltakelser(ingenSøktFor, fixedClock)
+    @Test
+    fun `deltakelser som gir eller fratar rett er med i uttrekket - andre som ikke gir rett utelates`() {
+        val girRett = testdeltakelse(id = "TA1")
+        val fratarRett = fratarRett(id = "TA2")
+        val girIkkeRett = testdeltakelse(id = "TA3", tiltakstype = Tiltakstype.SomIkkeGirRett(tiltakskodeFraKilden = "MENTOR"))
+        val ukjentType = testdeltakelse(id = "TA4", tiltakstype = Tiltakstype.Ukjent(tiltakskodeFraKilden = "NOE_NYTT"))
+
+        val resultat = historikk(girRett, fratarRett, girIkkeRett, ukjentType).tilRelevanteTiltaksdeltakelser(ingenSøktFor, fixedClock)
+
+        resultat.deltakelser.map { it.id.verdi } shouldBe listOf("TA1", "TA2")
+        resultat.girRett.map { it.id.verdi } shouldBe listOf("TA1")
+        resultat.fratarRett.map { it.id.verdi } shouldBe listOf("TA2")
+    }
+
+    @Test
+    fun `deltakelser som fratar rett er med uavhengig av datoer, men ikke med ukjent kildestatus`() {
+        val utenDatoer = fratarRett(id = "TA1", fraOgMed = null, tilOgMed = null)
+        val ukjentStatus = fratarRett(id = "TA2", kildestatus = Arenastatus.Ukjent("HELT_NY_STATUS"))
+
+        val resultat = historikk(utenDatoer, ukjentStatus).tilRelevanteTiltaksdeltakelser(ingenSøktFor, fixedClock)
 
         resultat.deltakelser.map { it.id.verdi } shouldBe listOf("TA1")
+    }
+
+    @Test
+    fun `feltene mappes fra libs-domenet til deltakelse som fratar rett`() {
+        val deltakelse = fratarRett(id = "TA123", tiltakskode = "MIDLONTIL")
+
+        deltakelse.tilTiltaksdeltakelseSomFratarRett(fixedClock) shouldBe TiltaksdeltakelseSomFratarRett(
+            eksternDeltakelseId = "TA123",
+            typeNavn = "Oppfølging",
+            tiltakskodeFraKilden = "MIDLONTIL",
+            deltakelseFraOgMed = testStart,
+            deltakelseTilOgMed = testSlutt,
+            deltakelseStatus = TiltakDeltakerstatus.Deltar,
+            deltakelseProsent = 60f,
+            antallDagerPerUke = 3f,
+            kilde = Tiltakskilde.Komet,
+        )
     }
 
     @Test
@@ -126,11 +176,13 @@ class TiltakshistorikkTilRegisterMapperTest {
     @Test
     fun `lesbar nå-tilstand - kun deltakelser som gir rett og har kjent kildestatus`() {
         val girRett = testdeltakelse(id = "TA1")
-        val girIkkeRett = testdeltakelse(id = "TA2", tiltakstype = Tiltakstype.SomIkkeGirRett(tiltakskodeFraKilden = "LONNTIL"))
+        val girIkkeRett = testdeltakelse(id = "TA2", tiltakstype = Tiltakstype.SomIkkeGirRett(tiltakskodeFraKilden = "MENTOR"))
         val ukjentStatus = testdeltakelse(id = "TA3", kildestatus = Arenastatus.Ukjent("HELT_NY_STATUS"))
+        val fratarRett = fratarRett(id = "TA4")
 
         girRett.tilLesbarNåtilstand(fixedClock) shouldBe girRett
         girIkkeRett.tilLesbarNåtilstand(fixedClock).shouldBeNull()
+        fratarRett.tilLesbarNåtilstand(fixedClock).shouldBeNull()
         ukjentStatus.tilLesbarNåtilstand(fixedClock).shouldBeNull()
     }
 
@@ -264,11 +316,55 @@ class TiltakshistorikkTilRegisterMapperTest {
 
     @Test
     fun `MedArrangørnavn - samme utvalgsregler som registeruttrekket`() {
-        val girIkkeRett = testdeltakelse(id = "TA1", tiltakstype = Tiltakstype.SomIkkeGirRett(tiltakskodeFraKilden = "LONNTIL"))
+        val girIkkeRett = testdeltakelse(id = "TA1", tiltakstype = Tiltakstype.SomIkkeGirRett(tiltakskodeFraKilden = "MENTOR"))
         val deltarUtenDatoer = testdeltakelse(id = "TA2", kildestatus = kometstatus(Kometstatus.Type.DELTAR), fraOgMed = null, tilOgMed = null)
+        val fratarRettMedUkjentStatus = fratarRett(id = "TA3", kildestatus = Arenastatus.Ukjent("HELT_NY_STATUS"))
 
-        val resultat = historikk(girIkkeRett, deltarUtenDatoer).tilTiltaksdeltakelserMedArrangørnavn(harAdressebeskyttelse = false, clock = fixedClock)
+        val resultat = historikk(girIkkeRett, deltarUtenDatoer, fratarRettMedUkjentStatus)
+            .tilTiltaksdeltakelserMedArrangørnavn(harAdressebeskyttelse = false, clock = fixedClock)
 
         resultat.shouldBeEmpty()
+    }
+
+    @Test
+    fun `MedArrangørnavn - deltakelser som fratar rett er med, men uten typekode`() {
+        val girRett = testdeltakelse(id = "TA1")
+        val fratarRett = fratarRett(id = "TA2")
+
+        val resultat = historikk(girRett, fratarRett).tilTiltaksdeltakelserMedArrangørnavn(harAdressebeskyttelse = false, clock = fixedClock)
+
+        resultat.map { Triple(it.eksternDeltakelseId, it.typeKode, it.fratarRett) } shouldBe listOf(
+            Triple("TA1", TiltakstypeSomGirRettDTO.OPPFØLGING, false),
+            Triple("TA2", null, true),
+        )
+        resultat[1].status shouldBe TiltakDeltakerstatus.Deltar
+        resultat[1].visningsnavn shouldBe "Oppfølging hos Arrangør AS"
+    }
+
+    @Test
+    fun `libs-deltakelsen testene lager av en deltakelse som fratar rett mappes tilbake til det samme`() {
+        val medDatoer = TiltaksdeltakelseSomFratarRett(
+            eksternDeltakelseId = "TA1",
+            typeNavn = "Midlertidig lønnstilskudd",
+            tiltakskodeFraKilden = "MIDLONTIL",
+            deltakelseFraOgMed = 1.januar(2024),
+            deltakelseTilOgMed = 31.mars(2024),
+            deltakelseStatus = TiltakDeltakerstatus.Deltar,
+            deltakelseProsent = 50f,
+            antallDagerPerUke = 2.5f,
+            kilde = Tiltakskilde.Arena,
+        )
+        val utenDatoer = medDatoer.copy(
+            eksternDeltakelseId = "8d6a2b1e-7c0e-4f4b-9a8e-0f6c7f1a2b3c",
+            tiltakskodeFraKilden = "VARIG_LONNSTILSKUDD",
+            deltakelseFraOgMed = null,
+            deltakelseTilOgMed = null,
+            deltakelseStatus = TiltakDeltakerstatus.HarSluttet,
+            kilde = Tiltakskilde.TeamTiltak,
+        )
+
+        listOf(medDatoer, utenDatoer).forEach {
+            it.tilLibsDeltakelse().tilTiltaksdeltakelseSomFratarRett(fixedClock) shouldBe it
+        }
     }
 }

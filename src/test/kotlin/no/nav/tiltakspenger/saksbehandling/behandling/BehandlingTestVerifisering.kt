@@ -173,6 +173,7 @@ fun String.shouldBeRevurderingDTO(
                 "deltakelseProsent": $deltakelseProsent
               }
             ],
+            "tiltaksdeltakelserSomFratarRett": [],
             "fødselsdato": ${ikkeSladdetTekst("2001-01-01")},
             "ytelser": [],
             "tiltakspengevedtakFraArena": [],
@@ -282,6 +283,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
                 "deltakelseProsent": $deltakelseProsent
               }
             ],
+            "tiltaksdeltakelserSomFratarRett": [],
             "fødselsdato": ${ikkeSladdetTekst("2001-01-01")},
             "ytelser": [],
             "tiltakspengevedtakFraArena": [],

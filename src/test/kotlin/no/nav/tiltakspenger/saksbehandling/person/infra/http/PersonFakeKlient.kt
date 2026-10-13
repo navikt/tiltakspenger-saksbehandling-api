@@ -9,9 +9,9 @@ import io.github.serpro69.kfaker.faker
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.personklient.pdl.dto.EndringsMetadata
-import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjon
-import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjonRolle
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.EndringsMetadata
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.ForelderBarnRelasjon
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.ForelderBarnRelasjonRolle
 import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.KunneIkkeHenteAdressebeskyttelseEllerSkjerming

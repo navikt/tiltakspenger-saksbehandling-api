@@ -20,10 +20,12 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse as LibsTilt
 /**
  * Fake for testene.
  * Tiltaksdeltakelsene seedes eksplisitt per fnr via [lagre]; et fnr uten seedede deltakelser har ingen.
+ * Deltakelser som fratar rett seedes separat via [lagreTiltaksdeltakelseSomFratarRett], siden de ikke kan uttrykkes som [TiltaksdeltakelseIntern].
  * Lokal kjøring bruker [no.nav.tiltakspenger.saksbehandling.lokal.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeLokalKlient].
  */
 class TiltaksdeltakelseFakeTestKlient : TiltaksdeltakelseKlient {
     private val data = Atomic(mutableMapOf<Fnr, List<LibsTiltaksdeltakelse.GirRett>>())
+    private val fratarRett = Atomic(mutableMapOf<Fnr, List<LibsTiltaksdeltakelse.FratarRett>>())
 
     /** Registrerer kall til [hentTiltaksdeltakelse] som (fnr, eksternDeltakerId), slik at tester kan verifisere at jobben slo opp nå-tilstanden. */
     val hentTiltaksdeltakelseKall = Atomic(mutableListOf<Pair<Fnr, String>>())
@@ -33,7 +35,7 @@ class TiltaksdeltakelseFakeTestKlient : TiltaksdeltakelseKlient {
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
         correlationId: CorrelationId,
     ): Either<KunneIkkeHenteTiltakshistorikk, Tiltaksdeltakelser> {
-        return Tiltaksdeltakelser(data.get()[fnr] ?: emptyList()).right()
+        return Tiltaksdeltakelser((data.get()[fnr] ?: emptyList()) + (fratarRett.get()[fnr] ?: emptyList())).right()
     }
 
     override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
@@ -41,7 +43,17 @@ class TiltaksdeltakelseFakeTestKlient : TiltaksdeltakelseKlient {
         harAdressebeskyttelse: Boolean,
         correlationId: CorrelationId,
     ): Either<KunneIkkeHenteTiltakshistorikk, List<TiltaksdeltakelseMedArrangørnavn>> {
-        return listOf(ObjectMother.tiltaksdeltakelseMedArrangørnavn()).right()
+        val fratarRettMedArrangørnavn = (fratarRett.get()[fnr] ?: emptyList()).map {
+            ObjectMother.tiltaksdeltakelseMedArrangørnavn(
+                eksternTiltaksdeltakelseId = it.id.verdi,
+                typeKode = null,
+                typeNavn = it.tiltakstypenavn,
+                fom = it.fraOgMed,
+                tom = it.tilOgMed,
+                harAdressebeskyttelse = harAdressebeskyttelse,
+            )
+        }
+        return (listOf(ObjectMother.tiltaksdeltakelseMedArrangørnavn()) + fratarRettMedArrangørnavn).right()
     }
 
     override suspend fun hentTiltaksdeltakelse(
@@ -51,6 +63,13 @@ class TiltaksdeltakelseFakeTestKlient : TiltaksdeltakelseKlient {
     ): Either<KunneIkkeHenteTiltakshistorikk, LibsTiltaksdeltakelse?> {
         hentTiltaksdeltakelseKall.get().add(fnr to eksternDeltakerId)
         return data.get()[fnr]?.find { it.id.verdi == eksternDeltakerId }.right()
+    }
+
+    fun lagreTiltaksdeltakelseSomFratarRett(
+        fnr: Fnr,
+        deltakelse: LibsTiltaksdeltakelse.FratarRett,
+    ) {
+        fratarRett.get()[fnr] = (fratarRett.get()[fnr] ?: emptyList()) + deltakelse
     }
 
     fun lagre(

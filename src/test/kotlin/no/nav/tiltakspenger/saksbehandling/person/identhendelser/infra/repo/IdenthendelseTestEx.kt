@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.person.identhendelser.infra.repo
 
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 
 /**
  * Oppslag mot `identhendelse` som kun testene trenger.

@@ -8,11 +8,11 @@ import kotlinx.coroutines.withContext
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklient
-import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError
-import no.nav.tiltakspenger.libs.personklient.pdl.GraphqlBolkQuery
-import no.nav.tiltakspenger.libs.personklient.pdl.GraphqlQuery
-import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjon
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.FellesPersonklient
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.FellesPersonklientError
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.GraphqlBolkQuery
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.GraphqlQuery
+import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.ForelderBarnRelasjon
 import no.nav.tiltakspenger.saksbehandling.felles.Loggkontekst
 import no.nav.tiltakspenger.saksbehandling.felles.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerloggkontekst

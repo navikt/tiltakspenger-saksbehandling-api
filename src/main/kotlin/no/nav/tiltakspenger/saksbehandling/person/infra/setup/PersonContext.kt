@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.person.infra.setup
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.libs.personklient.skjerming.FellesHttpSkjermingsklient
-import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
+import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.personklient.infra.skjerming.FellesHttpSkjermingsklient
+import no.nav.tiltakspenger.libs.personklient.infra.skjerming.FellesSkjermingsklient
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
