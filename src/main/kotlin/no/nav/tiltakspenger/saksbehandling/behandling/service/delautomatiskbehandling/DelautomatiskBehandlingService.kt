@@ -123,6 +123,7 @@ class DelautomatiskBehandlingService(
                 kommando = SettRammebehandlingPåVentKommando(
                     sakId = behandling.sakId,
                     rammebehandlingId = behandling.id,
+                    oppdaterPåVent = false,
                     begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
                     saksbehandler = AUTOMATISK_SAKSBEHANDLER,
                     venterTil = venterTil,

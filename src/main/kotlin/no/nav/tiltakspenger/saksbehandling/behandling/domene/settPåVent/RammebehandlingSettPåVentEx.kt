@@ -29,73 +29,75 @@ fun Rammebehandling.settPåVent(
     clock: Clock,
 ): Either<KanIkkeSetteRammebehandlingPåVent, Pair<Rammebehandling, Statistikkhendelser>> {
     val endretAv = kommando.saksbehandler
-    kanSettePåVent(endretAv).onLeft { return it.left() }
-    when (status) {
-        UNDER_AUTOMATISK_BEHANDLING,
+
+    if (kommando.oppdaterPåVent) {
+        kanOppdaterePåVent(endretAv).onLeft { return it.left() }
+    } else {
+        kanSettePåVent(endretAv).onLeft { return it.left() }
+    }
+
+    val (oppdatertSaksbehandler, oppdatertStatus) = when (status) {
         UNDER_BEHANDLING,
-        UNDER_BESLUTNING,
-        -> {
-            val oppdatertSaksbehandler = if (status == UNDER_AUTOMATISK_BEHANDLING || status == UNDER_BESLUTNING) {
-                saksbehandler
-            } else {
-                null
-            }
-
-            val oppdatertStatus = when (status) {
-                UNDER_BESLUTNING -> KLAR_TIL_BESLUTNING
-                UNDER_BEHANDLING -> KLAR_TIL_BEHANDLING
-                else -> UNDER_AUTOMATISK_BEHANDLING
-            }
-            val nå = nå(clock)
-            val oppdatertVentestatus = ventestatus.settPåVent(
-                tidspunktSattPåVent = nå,
-                endretAv = endretAv.navIdent,
-                begrunnelse = kommando.begrunnelse,
-                status = status.toString(),
-                frist = kommando.frist,
-            )
-            val (oppdatertKlagebehandling, klagestatistikk) = oppdaterKlagebehandling(kommando, clock).getOrElse {
-                return it.left()
-            }
-            val oppdatertRammebehandling = when (this) {
-                is Søknadsbehandling -> {
-                    this.copy(
-                        ventestatus = oppdatertVentestatus,
-                        saksbehandler = oppdatertSaksbehandler,
-                        beslutter = null,
-                        status = oppdatertStatus,
-                        venterTil = kommando.venterTil,
-                        sistEndret = nå,
-                        klagebehandling = oppdatertKlagebehandling,
-                    )
-                }
-
-                is Revurdering -> {
-                    this.copy(
-                        ventestatus = oppdatertVentestatus,
-                        saksbehandler = oppdatertSaksbehandler,
-                        beslutter = null,
-                        status = oppdatertStatus,
-                        venterTil = kommando.venterTil,
-                        sistEndret = nå,
-                        klagebehandling = oppdatertKlagebehandling,
-                    )
-                }
-            }
-            val statistikkhendelser = klagestatistikk.leggTil(
-                oppdatertRammebehandling.genererSaksstatistikk(
-                    hendelse = StatistikkhendelseType.BEHANDLING_SATT_PA_VENT,
-                ),
-            )
-            return (oppdatertRammebehandling to statistikkhendelser).right()
-        }
-
         KLAR_TIL_BEHANDLING,
+        -> null to KLAR_TIL_BEHANDLING
+
+        UNDER_BESLUTNING,
         KLAR_TIL_BESLUTNING,
+        -> saksbehandler to KLAR_TIL_BESLUTNING
+
+        UNDER_AUTOMATISK_BEHANDLING -> saksbehandler to UNDER_AUTOMATISK_BEHANDLING
+
         VEDTATT,
         AVBRUTT,
         -> return KanIkkeSetteRammebehandlingPåVent.UgyldigStatus(status).left()
     }
+
+    val nå = nå(clock)
+
+    val oppdatertVentestatus = ventestatus.settPåVent(
+        tidspunktSattPåVent = nå,
+        endretAv = endretAv.navIdent,
+        begrunnelse = kommando.begrunnelse,
+        status = status.toString(),
+        frist = kommando.frist,
+    )
+
+    val (oppdatertKlagebehandling, klagestatistikk) = oppdaterKlagebehandling(kommando, clock).getOrElse {
+        return it.left()
+    }
+
+    val oppdatertRammebehandling = when (this) {
+        is Søknadsbehandling -> {
+            this.copy(
+                ventestatus = oppdatertVentestatus,
+                saksbehandler = oppdatertSaksbehandler,
+                beslutter = null,
+                status = oppdatertStatus,
+                venterTil = kommando.venterTil,
+                sistEndret = nå,
+                klagebehandling = oppdatertKlagebehandling,
+            )
+        }
+
+        is Revurdering ->
+            this.copy(
+                ventestatus = oppdatertVentestatus,
+                saksbehandler = oppdatertSaksbehandler,
+                beslutter = null,
+                status = oppdatertStatus,
+                venterTil = kommando.venterTil,
+                sistEndret = nå,
+                klagebehandling = oppdatertKlagebehandling,
+            )
+    }
+
+    val statistikkhendelser = klagestatistikk.leggTil(
+        oppdatertRammebehandling.genererSaksstatistikk(
+            hendelse = StatistikkhendelseType.BEHANDLING_SATT_PA_VENT,
+        ),
+    )
+
+    return (oppdatertRammebehandling to statistikkhendelser).right()
 }
 
 private fun Rammebehandling.oppdaterKlagebehandling(
@@ -157,6 +159,49 @@ fun Rammebehandling.kanSettePåVent(
 
         KLAR_TIL_BEHANDLING,
         KLAR_TIL_BESLUTNING,
+        VEDTATT,
+        AVBRUTT,
+        -> KanIkkeSetteRammebehandlingPåVent.UgyldigStatus(status).left()
+    }
+}
+
+/**
+ * Avgjør om [saksbehandler] kan oppdatere begrunnelse og frist på en rammebehandling som allerede er satt på vent.
+ *
+ * Tilgangen er rollebasert, siden en behandling på vent ikke er tildelt noen i den fasen den venter i:
+ *  - behandlingen må være satt på vent
+ *  - [KLAR_TIL_BEHANDLING]: kan oppdateres av en saksbehandler
+ *  - [KLAR_TIL_BESLUTNING]: kan oppdateres av en beslutter
+ *  - [UNDER_AUTOMATISK_BEHANDLING]: kan oppdateres uten rollekrav
+ */
+fun Rammebehandling.kanOppdaterePåVent(
+    saksbehandler: Saksbehandler,
+): Either<KanIkkeSetteRammebehandlingPåVent, Unit> {
+    if (!ventestatus.erSattPåVent) {
+        return KanIkkeSetteRammebehandlingPåVent.BehandlingMåVæreSattPåVentForÅKunneOppdateres.left()
+    }
+
+    return when (status) {
+        UNDER_AUTOMATISK_BEHANDLING -> Unit.right()
+
+        KLAR_TIL_BEHANDLING -> {
+            if (!saksbehandler.erSaksbehandler) {
+                KanIkkeSetteRammebehandlingPåVent.MåVæreSaksbehandler.left()
+            } else {
+                Unit.right()
+            }
+        }
+
+        KLAR_TIL_BESLUTNING -> {
+            if (!saksbehandler.erBeslutter) {
+                KanIkkeSetteRammebehandlingPåVent.MåVæreBeslutter.left()
+            } else {
+                Unit.right()
+            }
+        }
+
+        UNDER_BEHANDLING,
+        UNDER_BESLUTNING,
         VEDTATT,
         AVBRUTT,
         -> KanIkkeSetteRammebehandlingPåVent.UgyldigStatus(status).left()

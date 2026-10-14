@@ -34,6 +34,8 @@ private const val SETT_BEHANDLING_PÅ_VENT_PATH = "/sak/{sakId}/behandling/{beha
 private data class SettPåVentBody(
     val begrunnelse: String,
     val frist: LocalDate?,
+    // TODO: Fjern standardverdien når frontend sender flagget.
+    val oppdaterSattPåVent: Boolean = false,
 ) {
     fun toKommando(
         sakId: SakId,
@@ -42,6 +44,7 @@ private data class SettPåVentBody(
     ) = SettRammebehandlingPåVentKommando(
         sakId = sakId,
         rammebehandlingId = behandlingId,
+        oppdaterPåVent = oppdaterSattPåVent,
         begrunnelse = begrunnelse,
         frist = frist,
         saksbehandler = saksbehandler,
@@ -98,42 +101,47 @@ fun Route.settRammebehandlingPåVentRoute(
 
 private fun KanIkkeSetteRammebehandlingPåVent.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
     KanIkkeSetteRammebehandlingPåVent.BehandlingenErIkkeLengerUnderBeslutning -> HttpStatusCode.Conflict to ErrorJson(
-        "Behandlingen er ikke lenger under beslutning. Saksbehandler kan ha angret sendingen til beslutning.",
-        "behandlingen_er_ikke_under_beslutning",
+        melding = "Behandlingen er ikke lenger under beslutning. Saksbehandler kan ha angret sendingen til beslutning.",
+        kode = "behandlingen_er_ikke_under_beslutning",
     )
 
     KanIkkeSetteRammebehandlingPåVent.BehandlingenErAlleredePåVent -> HttpStatusCode.BadRequest to ErrorJson(
-        "Behandlingen er allerede satt på vent.",
-        "behandlingen_er_allerede_paa_vent",
+        melding = "Behandlingen er allerede satt på vent.",
+        kode = "behandlingen_er_allerede_paa_vent",
     )
 
     KanIkkeSetteRammebehandlingPåVent.MåVæreSaksbehandler -> HttpStatusCode.Forbidden to ErrorJson(
-        "Du må være saksbehandler for å sette denne behandlingen på vent.",
-        "maa_vaere_saksbehandler",
+        melding = "Du må være saksbehandler for å sette denne behandlingen på vent.",
+        kode = "maa_vaere_saksbehandler",
     )
 
     KanIkkeSetteRammebehandlingPåVent.MåVæreSaksbehandlerForBehandlingen -> HttpStatusCode.Forbidden to ErrorJson(
-        "Du må være saksbehandleren som er tildelt behandlingen for å sette den på vent.",
-        "maa_vaere_saksbehandler_for_behandlingen",
+        melding = "Du må være saksbehandleren som er tildelt behandlingen for å sette den på vent.",
+        kode = "maa_vaere_saksbehandler_for_behandlingen",
     )
 
     KanIkkeSetteRammebehandlingPåVent.MåVæreBeslutter -> HttpStatusCode.Forbidden to ErrorJson(
-        "Du må være beslutter for å sette denne behandlingen på vent.",
-        "maa_vaere_beslutter",
+        melding = "Du må være beslutter for å sette denne behandlingen på vent.",
+        kode = "maa_vaere_beslutter",
     )
 
     KanIkkeSetteRammebehandlingPåVent.MåVæreBeslutterForBehandlingen -> HttpStatusCode.Forbidden to ErrorJson(
-        "Du må være beslutteren som er tildelt behandlingen for å sette den på vent.",
-        "maa_vaere_beslutter_for_behandlingen",
+        melding = "Du må være beslutteren som er tildelt behandlingen for å sette den på vent.",
+        kode = "maa_vaere_beslutter_for_behandlingen",
     )
 
     is KanIkkeSetteRammebehandlingPåVent.UgyldigStatus -> HttpStatusCode.BadRequest to ErrorJson(
-        "Kan ikke sette behandling med status $status på vent.",
-        "ugyldig_status_for_sett_paa_vent",
+        melding = "Kan ikke sette behandling med status $status på vent.",
+        kode = "ugyldig_status_for_sett_paa_vent",
     )
 
     is KanIkkeSetteRammebehandlingPåVent.KunneIkkeSetteKlagebehandlingenPåVent -> HttpStatusCode.BadRequest to ErrorJson(
-        "Klagebehandlingen som henger på behandlingen kunne ikke settes på vent.",
-        "kunne_ikke_sette_klagebehandlingen_paa_vent",
+        melding = "Klagebehandlingen som henger på behandlingen kunne ikke settes på vent.",
+        kode = "kunne_ikke_sette_klagebehandlingen_paa_vent",
+    )
+
+    KanIkkeSetteRammebehandlingPåVent.BehandlingMåVæreSattPåVentForÅKunneOppdateres -> HttpStatusCode.BadRequest to ErrorJson(
+        melding = "Behandlingen må være satt på vent for å kunne oppdateres.",
+        kode = "må_være_satt_på_vent",
     )
 }

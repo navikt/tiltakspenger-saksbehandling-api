@@ -14,6 +14,7 @@ enum class SaksbehandlerBehandlingKommando {
     LeggTilbakeSaksbehandler,
     LeggTilbakeBeslutter,
     SettPåVent,
+    OppdaterSettPåVent,
     Gjenoppta,
     Avbryt,
     Gjenåpne,
@@ -28,6 +29,7 @@ enum class SaksbehandlerBehandlingKommando {
             LeggTilbakeSaksbehandler -> SaksbehandlerBehandlingKommandoDTO.LeggTilbakeSaksbehandler
             LeggTilbakeBeslutter -> SaksbehandlerBehandlingKommandoDTO.LeggTilbakeBeslutter
             SettPåVent -> SaksbehandlerBehandlingKommandoDTO.SettPåVent
+            OppdaterSettPåVent -> SaksbehandlerBehandlingKommandoDTO.OppdatereSettPåVent
             Gjenoppta -> SaksbehandlerBehandlingKommandoDTO.Gjenoppta
             Avbryt -> SaksbehandlerBehandlingKommandoDTO.Avbryt
             Gjenåpne -> SaksbehandlerBehandlingKommandoDTO.Gjenåpne
@@ -45,6 +47,7 @@ enum class SaksbehandlerBehandlingKommandoDTO {
     LeggTilbakeSaksbehandler,
     LeggTilbakeBeslutter,
     SettPåVent,
+    OppdatereSettPåVent,
     Gjenoppta,
     Avbryt,
     Gjenåpne,

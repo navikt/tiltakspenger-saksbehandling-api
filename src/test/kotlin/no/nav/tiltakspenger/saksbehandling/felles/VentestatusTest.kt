@@ -105,38 +105,37 @@ class VentestatusTest {
                     ),
                 ),
             )
-        }.message shouldBe "erSattPåVent må alternere, og første hendelse må være sattPåVent=true"
+        }.message shouldBe "Første ventestatus må være satt på vent"
     }
 
     @Test
-    fun `hendelser må alternere - kan ikke sette på vent to ganger på rad`() {
+    fun `kan sette på vent to ganger på rad, og siste hendelse gir gjeldende begrunnelse og frist`() {
         val clock = TikkendeKlokke()
-        shouldThrow<IllegalArgumentException> {
-            Ventestatus(
-                ventestatusHendelser = listOf(
-                    VentestatusHendelse(
-                        tidspunkt = nå(clock),
-                        endretAv = "saksbehandler",
-                        begrunnelse = "Begrunnelse 1",
-                        frist = null,
-                        erSattPåVent = true,
-                        status = "UNDER_BEHANDLING",
-                    ),
-                    VentestatusHendelse(
-                        tidspunkt = nå(clock),
-                        endretAv = "saksbehandler",
-                        begrunnelse = "Begrunnelse 2",
-                        frist = null,
-                        erSattPåVent = true,
-                        status = "UNDER_BEHANDLING",
-                    ),
-                ),
+        val oppdatertFrist = LocalDate.now(clock).plusWeeks(2)
+        val ventestatus = Ventestatus()
+            .settPåVent(
+                tidspunktSattPåVent = nå(clock),
+                endretAv = "saksbehandler",
+                begrunnelse = "Begrunnelse 1",
+                status = "KLAR_TIL_BEHANDLING",
+                frist = LocalDate.now(clock).plusWeeks(1),
             )
-        }.message shouldBe "erSattPåVent må alternere, og første hendelse må være sattPåVent=true"
+            .settPåVent(
+                tidspunktSattPåVent = nå(clock),
+                endretAv = "saksbehandler",
+                begrunnelse = "Begrunnelse 2",
+                status = "KLAR_TIL_BEHANDLING",
+                frist = oppdatertFrist,
+            )
+
+        ventestatus.erSattPåVent shouldBe true
+        ventestatus.ventestatusHendelser.size shouldBe 2
+        ventestatus.sattPåVentBegrunnelse shouldBe "Begrunnelse 2"
+        ventestatus.sattPåVentFrist shouldBe oppdatertFrist
     }
 
     @Test
-    fun `hendelser må alternere - kan ikke gjenoppta to ganger på rad`() {
+    fun `kan ikke gjenoppta to ganger på rad`() {
         val clock = TikkendeKlokke()
         shouldThrow<IllegalArgumentException> {
             Ventestatus(
@@ -167,7 +166,7 @@ class VentestatusTest {
                     ),
                 ),
             )
-        }.message shouldBe "erSattPåVent må alternere, og første hendelse må være sattPåVent=true"
+        }.message shouldBe "To hendelser på rad kan ikke være gjenopptatt"
     }
 
     @Test

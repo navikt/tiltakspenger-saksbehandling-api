@@ -29,6 +29,7 @@ suspend fun Sak.settKlagebehandlingPåVent(
                 SettRammebehandlingPåVentKommando(
                     sakId = kommando.sakId,
                     rammebehandlingId = tilknyttetBehandling.rammebehandling.id,
+                    oppdaterPåVent = false,
                     begrunnelse = kommando.begrunnelse,
                     frist = kommando.frist,
                     saksbehandler = kommando.saksbehandler,

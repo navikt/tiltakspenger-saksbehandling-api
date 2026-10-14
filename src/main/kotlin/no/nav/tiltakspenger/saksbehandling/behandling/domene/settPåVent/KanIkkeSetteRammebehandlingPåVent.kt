@@ -53,4 +53,8 @@ sealed interface KanIkkeSetteRammebehandlingPåVent : Loggbar {
     ) : KanIkkeSetteRammebehandlingPåVent {
         override val loggkontekst get() = Loggkontekst("klagebehandlingen kunne ikke settes på vent: $underliggende")
     }
+
+    data object BehandlingMåVæreSattPåVentForÅKunneOppdateres : KanIkkeSetteRammebehandlingPåVent {
+        override val loggkontekst = Loggkontekst("behandlingen er ikke satt på vent")
+    }
 }

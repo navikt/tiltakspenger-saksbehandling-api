@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Gjenoppta
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.LeggTilbakeBeslutter
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.LeggTilbakeSaksbehandler
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.OppdaterSettPåVent
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.OvertaBeslutter
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.OvertaSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.SettPåVent
@@ -127,6 +128,15 @@ private fun finnGyldigeRammebehandlingKommandoer(
             }
         ) {
             add(SettPåVent)
+        }
+        if (erSattPåVent && when (status) {
+                UNDER_AUTOMATISK_BEHANDLING -> true
+                KLAR_TIL_BEHANDLING -> erSaksbehandler
+                KLAR_TIL_BESLUTNING -> erBeslutter
+                else -> false
+            }
+        ) {
+            add(OppdaterSettPåVent)
         }
         if (erSattPåVent && when (status) {
                 KLAR_TIL_BEHANDLING, BenkBehandlingsstatus.UNDER_BEHANDLING, UNDER_AUTOMATISK_BEHANDLING -> erSaksbehandler

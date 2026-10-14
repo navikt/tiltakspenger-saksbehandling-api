@@ -10,6 +10,7 @@ data class SettRammebehandlingPåVentKommando(
     val sakId: SakId,
     val rammebehandlingId: RammebehandlingId,
     val begrunnelse: String,
+    val oppdaterPåVent: Boolean,
     val saksbehandler: Saksbehandler,
     val venterTil: LocalDateTime? = null,
     val frist: LocalDate?,
