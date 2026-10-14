@@ -349,8 +349,8 @@ class OppdatertTiltaksdeltakelseJobbTest {
 
             val revurdering = oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
             revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Innvilgelse>()
-            revurdering.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
-            revurdering.saksbehandler.shouldBeNull()
+            revurdering.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+            revurdering.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
             val grunn = revurdering.automatiskOpprettetGrunn.shouldNotBeNull()
             grunn.tiltaksdeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
             grunn.endring shouldBe TiltaksdeltakerEndring.Forlengelse(

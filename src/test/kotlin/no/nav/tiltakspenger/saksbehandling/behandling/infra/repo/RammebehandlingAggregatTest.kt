@@ -89,7 +89,7 @@ class RammebehandlingAggregatTest {
             repo.hentAutomatiskeRevurderingIder(limit = 10) shouldBe listOf(eldst.id, nyest.id)
             repo.hentAutomatiskeRevurderingIder(limit = 1) shouldBe listOf(eldst.id)
 
-            tac.delautomatiskStansJobb.automatiskBehandleStanser()
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurderinger()
 
             repo.hentAutomatiskeRevurderingIder(limit = 10).shouldBeEmpty()
         }

@@ -7,7 +7,6 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
-import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
@@ -104,7 +103,7 @@ class DelautomatiskStansServiceTest {
                 nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 20.april(2025)),
             )
 
-            tac.delautomatiskStansJobb.automatiskBehandleStanser()
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -145,7 +144,7 @@ class DelautomatiskStansServiceTest {
                 nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 7.januar(2025)),
             )
 
-            tac.delautomatiskStansJobb.automatiskBehandleStanser()
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -198,7 +197,7 @@ class DelautomatiskStansServiceTest {
             )!!
             sakMedUtbetaling.meldeperiodeBeregninger.sisteDagMedUtbetaling shouldBe 9.januar(2025)
 
-            tac.delautomatiskStansJobb.automatiskBehandleStanser()
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering)
                 .skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SISTE_UTBETALING)
@@ -220,7 +219,7 @@ class DelautomatiskStansServiceTest {
                 nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
             )
 
-            tac.delautomatiskStansJobb.automatiskBehandleStanser()
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.STANS_SLUTTDATO_ER_IKKE_PASSERT)
         }
@@ -242,7 +241,7 @@ class DelautomatiskStansServiceTest {
             )
             tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse)
 
-            tac.delautomatiskStansJobb.automatiskBehandleStanser()
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.STANS_DELTAKELSEN_ER_IKKE_AVSLUTTET)
         }
@@ -268,7 +267,7 @@ class DelautomatiskStansServiceTest {
 
             tac.behandleEndring(sak, deltakelse, avbruttTidligere).shouldBeInstanceOf<IngenRelevantEndring>()
 
-            tac.delautomatiskStansJobb.automatiskBehandleStanser()
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -304,7 +303,7 @@ class DelautomatiskStansServiceTest {
             )
             startRevurderingInnvilgelse(tac, sak.id).shouldNotBeNull()
 
-            tac.delautomatiskStansJobb.automatiskBehandleStanser()
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.ANNET_APEN_BEHANDLING)
         }
@@ -321,12 +320,7 @@ class DelautomatiskStansServiceTest {
             )
             val (_, revurdering) = startRevurderingStans(tac, sak.id)!!
 
-            tac.delautomatiskStansJobb.automatiskBehandleStanser()
-            tac.behandlingContext.delautomatiskStansService.forsøkAutomatiskStans(
-                sakId = sak.id,
-                revurderingId = revurdering.id,
-                correlationId = CorrelationId.generate(),
-            )
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering) shouldBe revurdering
         }

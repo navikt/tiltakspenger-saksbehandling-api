@@ -273,6 +273,7 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
         tiltaksdeltakelseKlient = klient,
         startRevurderingService = behandlingContext.startRevurderingService,
         delautomatiskStansService = behandlingContext.delautomatiskStansService,
+        delautomatiskForlengelseService = behandlingContext.delautomatiskForlengelseService,
         oppgaveKlient = oppgaveKlient,
         eksternOppgaveRepo = eksternOppgaveRepo,
         tiltaksdeltakerHendelseRepo = tiltaksdeltakerHendelseRepo,

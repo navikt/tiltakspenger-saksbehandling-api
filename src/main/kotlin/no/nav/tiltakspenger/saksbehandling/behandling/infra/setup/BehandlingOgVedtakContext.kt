@@ -31,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.Fo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskForlengelseService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskRevurderingSteg
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskStansService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.distribuering.DistribuerRammevedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.journalføring.JournalførRammevedtakService
@@ -110,9 +111,8 @@ open class BehandlingOgVedtakContext(
             clock = clock,
         )
     }
-    val delautomatiskStansService: DelautomatiskStansService by lazy {
-        DelautomatiskStansService(
-            sakService = sakService,
+    private val delautomatiskRevurderingSteg: DelautomatiskRevurderingSteg by lazy {
+        DelautomatiskRevurderingSteg(
             hentSaksopplysingerService = hentSaksopplysingerService,
             navkontorService = navkontorService,
             simulerService = simulerService,
@@ -122,13 +122,18 @@ open class BehandlingOgVedtakContext(
             clock = clock,
         )
     }
+    val delautomatiskStansService: DelautomatiskStansService by lazy {
+        DelautomatiskStansService(
+            sakService = sakService,
+            steg = delautomatiskRevurderingSteg,
+            clock = clock,
+        )
+    }
     val delautomatiskForlengelseService: DelautomatiskForlengelseService by lazy {
         DelautomatiskForlengelseService(
             sakService = sakService,
-            taRammebehandlingService = taRammebehandlingService,
-            oppdaterRammebehandlingService = oppdaterRammebehandlingService,
-            sendRammebehandlingTilBeslutningService = sendRammebehandlingTilBeslutningService,
-            leggTilbakeRammebehandlingService = leggTilbakeRammebehandlingService,
+            steg = delautomatiskRevurderingSteg,
+            clock = clock,
         )
     }
     val behandleSøknadPåNyttService: BehandleSøknadPåNyttService by lazy {

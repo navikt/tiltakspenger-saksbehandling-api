@@ -132,8 +132,11 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 }
                 require(iverksattTidspunkt == null)
                 require(beslutter == null)
-                require(this is Søknadsbehandling || (this is Revurdering && resultat is Revurderingsresultat.Stans && automatiskOpprettetGrunn != null)) {
-                    "Kun søknadsbehandlinger og automatisk opprettede stans-revurderinger kan være under automatisk behandling. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+                require(
+                    this is Søknadsbehandling ||
+                        (this is Revurdering && automatiskOpprettetGrunn != null && (resultat is Revurderingsresultat.Stans || resultat is Revurderingsresultat.Innvilgelse)),
+                ) {
+                    "Kun søknadsbehandlinger og automatisk opprettede revurderinger til stans eller innvilgelse kan være under automatisk behandling. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
                 }
                 require(klagebehandling == null) {
                     "Klagebehandling kan ikke være knyttet til en behandling som er under automatisk behandling. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"

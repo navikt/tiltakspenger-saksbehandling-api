@@ -10,15 +10,13 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
-import no.nav.tiltakspenger.saksbehandling.felles.Loggbar
-import no.nav.tiltakspenger.saksbehandling.felles.Loggkontekst
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.harSammeDeltakelsesmengde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.tilDeltakelsestilstand
 import java.time.LocalDate
 
 /**
@@ -37,187 +35,94 @@ data class AutomatiskForlengelse(
     val barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(nonEmptyListOf(innvilgelsesperiode))
 }
 
-sealed interface KanIkkeForlengeAutomatisk : Loggbar {
-    data object ErIkkeAutomatiskOpprettetInnvilgelse : KanIkkeForlengeAutomatisk {
-        override val loggkontekst = Loggkontekst("revurderingen er ikke en automatisk opprettet innvilgelse")
-    }
-
-    data class BehandlingenErIkkeKlarTilAutomatiskBehandling(val status: Rammebehandlingsstatus) : KanIkkeForlengeAutomatisk {
-        override val loggkontekst get() = Loggkontekst("revurderingen har status $status, er tildelt en saksbehandler, står på vent eller er knyttet til en klage")
-    }
-
-    data object ErIkkeEnRenForlengelse : KanIkkeForlengeAutomatisk {
-        override val loggkontekst = Loggkontekst("endringene i tiltaksdeltakelsen er ikke en ren forlengelse")
-    }
-
-    data object HarAndreÅpneBehandlinger : KanIkkeForlengeAutomatisk {
-        override val loggkontekst = Loggkontekst("saken har andre åpne behandlinger")
-    }
-
-    data object FantIkkeGjeldendeVedtak : KanIkkeForlengeAutomatisk {
-        override val loggkontekst = Loggkontekst("fant ikke et gjeldende vedtak som innvilger for tiltaksdeltakelsen")
-    }
-
-    data object VedtaketErStansetEllerOpphørt : KanIkkeForlengeAutomatisk {
-        override val loggkontekst = Loggkontekst("det gjeldende vedtaket er helt eller delvis stanset, opphørt eller omgjort i slutten av innvilgelsesperioden")
-    }
-
-    data object InnvilgelsenSlutterFørDeltakelsen : KanIkkeForlengeAutomatisk {
-        override val loggkontekst = Loggkontekst("det gjeldende vedtaket innvilget ikke frem til den tidligere sluttdatoen for deltakelsen")
-    }
-
-    data object ForlengerIkkeGjeldendeVedtak : KanIkkeForlengeAutomatisk {
-        override val loggkontekst = Loggkontekst("ny sluttdato er ikke etter siste innvilgede dag i det gjeldende vedtaket")
-    }
-
-    data object FantIkkeTiltaksdeltakelse : KanIkkeForlengeAutomatisk {
-        override val loggkontekst = Loggkontekst("fant ikke tiltaksdeltakelsen i saksopplysningene til revurderingen")
-    }
-
-    data class DeltakelsenHarUgyldigStatus(val status: TiltakDeltakerstatus) : KanIkkeForlengeAutomatisk {
-        override val loggkontekst get() = Loggkontekst("deltakelsen har status $status")
-    }
-
-    data object TiltaketGirIkkeRett : KanIkkeForlengeAutomatisk {
-        override val loggkontekst = Loggkontekst("tiltaksdeltakelsen kan ikke innvilges")
-    }
-
-    data object SaksopplysningeneAvvikerFraEndringen : KanIkkeForlengeAutomatisk {
-        override val loggkontekst = Loggkontekst("periode eller deltakelsesmengde i saksopplysningene samsvarer ikke med forlengelsen og det gjeldende vedtaket")
-    }
-
-    data object OverlapperAndreVedtak : KanIkkeForlengeAutomatisk {
-        override val loggkontekst = Loggkontekst("forlengelsesperioden overlapper andre vedtak på saken")
-    }
-
-    data object OverlapperAndreTiltaksdeltakelser : KanIkkeForlengeAutomatisk {
-        override val loggkontekst = Loggkontekst("forlengelsesperioden overlapper andre tiltaksdeltakelser")
-    }
-
-    data object HarAndreYtelser : KanIkkeForlengeAutomatisk {
-        override val loggkontekst = Loggkontekst("saksopplysningene har andre ytelser enn tiltakspenger")
-    }
-
-    data object HarVedtakIArena : KanIkkeForlengeAutomatisk {
-        override val loggkontekst = Loggkontekst("saksopplysningene har tiltakspengevedtak fra Arena")
-    }
-
-    data object HarBarnetillegg : KanIkkeForlengeAutomatisk {
-        override val loggkontekst = Loggkontekst("det gjeldende vedtaket har barnetillegg ved slutten av innvilgelsesperioden")
-    }
-
-    /**
-     * Vurderingen gikk gjennom, men et av stegene for å ta, fylle ut eller sende revurderingen til beslutning feilet.
-     * [årsak] skal være PII-fri, f.eks. klassenavnet til den underliggende feilen.
-     */
-    data class FeilVedAutomatiskBehandling(val steg: String, val årsak: String) : KanIkkeForlengeAutomatisk {
-        override val loggkontekst get() = Loggkontekst("feil ved $steg: $årsak")
-    }
-}
-
 /**
- * Vurderer om systemet har nok informasjon til å fylle ut en automatisk opprettet forlengelse selv.
+ * Utleder verdiene for å fylle ut en forlengelse av [tiltaksdeltakerId] uten saksbehandler.
+ * Gir grunnen til at forlengelsen må behandles manuelt dersom verdiene ikke kan utledes med stor sikkerhet.
  *
  * En forlengelse kan automatiseres når tiltaksdeltakelsen er utvidet fremover i tid fra et gjeldende vedtak, og vedtaket ikke er stanset eller opphørt.
  * Det gjeldende vedtaket er det siste vedtaket i den innvilgede tidslinjen som innvilger for [tiltaksdeltakerId].
  * Innvilgelsen må fortsatt gjelde helt frem til vedtakets opprinnelige sluttdato, og den må ha gått frem til deltakelsens tidligere sluttdato.
  * Forlengelsen innvilges fra dagen etter, til ny sluttdato, med samme antall dager per meldeperiode som i det gjeldende vedtaket.
  *
+ * Deltakelsen slik den er registrert nå, hentes fra [saksopplysninger], slik at det er de samme opplysningene beslutter ser.
+ * Endringer som har kommet etter at forlengelsen ble opprettet, fanges dermed opp her.
+ * Startdato og deltakelsesmengde må være uendret fra det gjeldende vedtaket, siden en forlengelse bare utvider perioden.
+ *
  * Vurderingen er bevisst konservativ, og alt som ikke er entydig overlates til saksbehandler.
  * Blant annet overlates forlengelser med barnetillegg, siden vi ikke vurderer barnas alder i den nye perioden ennå.
- * Periode, status og deltakelsesmengde kontrolleres mot saksopplysningene på revurderingen, slik at det er de samme opplysningene beslutter ser.
+ *
+ * @param saksopplysninger Saksopplysningene til revurderingen, hentet på nytt før vurderingen.
  */
 fun Sak.utledAutomatiskForlengelse(
-    revurdering: Revurdering,
     tiltaksdeltakerId: TiltaksdeltakerId,
-): Either<KanIkkeForlengeAutomatisk, AutomatiskForlengelse> {
-    val automatiskOpprettetGrunn = revurdering.automatiskOpprettetGrunn
-    if (revurdering.resultat !is Revurderingsresultat.Innvilgelse || automatiskOpprettetGrunn == null) {
-        return KanIkkeForlengeAutomatisk.ErIkkeAutomatiskOpprettetInnvilgelse.left()
-    }
-
-    if (revurdering.status != Rammebehandlingsstatus.KLAR_TIL_BEHANDLING ||
-        revurdering.saksbehandler != null ||
-        revurdering.ventestatus.erSattPåVent ||
-        revurdering.klagebehandling != null
-    ) {
-        return KanIkkeForlengeAutomatisk.BehandlingenErIkkeKlarTilAutomatiskBehandling(revurdering.status).left()
-    }
-
-    // Kombinasjoner med andre endringer, f.eks. endret deltakelsesmengde, krever en vurdering fra saksbehandler.
-    val forlengelse = automatiskOpprettetGrunn.endringer.forlengelse
-    if (forlengelse == null || automatiskOpprettetGrunn.endringer.size != 1) {
-        return KanIkkeForlengeAutomatisk.ErIkkeEnRenForlengelse.left()
-    }
-
-    if (rammebehandlinger.åpneBehandlinger.any { it.id != revurdering.id }) {
-        return KanIkkeForlengeAutomatisk.HarAndreÅpneBehandlinger.left()
-    }
-
+    saksopplysninger: Saksopplysninger,
+): Either<ManueltBehandlesGrunn, AutomatiskForlengelse> {
     val (gjeldendeVedtak, gjeldendePeriode) = rammevedtaksliste.innvilgetTidslinje.perioderMedVerdi
         .filter { (vedtak, periode) ->
             vedtak.valgteTiltaksdeltakelser?.hentVerdiForDag(periode.tilOgMed)?.internDeltakelseId == tiltaksdeltakerId
         }
         .maxByOrNull { it.periode.tilOgMed }
-        ?: return KanIkkeForlengeAutomatisk.FantIkkeGjeldendeVedtak.left()
+        ?: return ManueltBehandlesGrunn.FORLENGELSE_FANT_IKKE_GJELDENDE_VEDTAK.left()
 
     val sisteInnvilgedeDag = gjeldendePeriode.tilOgMed
 
     // Er slutten av innvilgelsen erstattet av et senere vedtak, er vedtaket stanset, opphørt eller omgjort.
     if (sisteInnvilgedeDag != gjeldendeVedtak.innvilgelsesperioder!!.tilOgMed) {
-        return KanIkkeForlengeAutomatisk.VedtaketErStansetEllerOpphørt.left()
+        return ManueltBehandlesGrunn.FORLENGELSE_VEDTAKET_ER_STANSET_ELLER_OPPHORT.left()
     }
 
     val tidligereDeltakelse = gjeldendeVedtak.valgteTiltaksdeltakelser!!.hentVerdiForDag(sisteInnvilgedeDag)!!
     if (tidligereDeltakelse.deltakelseTilOgMed != sisteInnvilgedeDag) {
-        return KanIkkeForlengeAutomatisk.InnvilgelsenSlutterFørDeltakelsen.left()
+        return ManueltBehandlesGrunn.FORLENGELSE_INNVILGELSEN_SLUTTER_FOR_DELTAKELSEN.left()
     }
 
-    val nySluttdato = forlengelse.nySluttdato
+    val nåtilstand = saksopplysninger.getTiltaksdeltakelse(tiltaksdeltakerId)
+        ?: return ManueltBehandlesGrunn.FORLENGELSE_FANT_IKKE_TILTAKSDELTAKELSE.left()
+
+    if (!nåtilstand.deltakelseStatus.deltarEllerHarDeltatt()) {
+        return ManueltBehandlesGrunn.FORLENGELSE_DELTAKELSEN_HAR_UGYLDIG_STATUS.left()
+    }
+
+    if (!nåtilstand.rettPåTiltakspenger) {
+        return ManueltBehandlesGrunn.FORLENGELSE_TILTAKET_GIR_IKKE_RETT.left()
+    }
+
+    val nySluttdato = nåtilstand.deltakelseTilOgMed
+        ?: return ManueltBehandlesGrunn.FORLENGELSE_DELTAKELSEN_MANGLER_SLUTTDATO.left()
+
     if (!nySluttdato.isAfter(sisteInnvilgedeDag)) {
-        return KanIkkeForlengeAutomatisk.ForlengerIkkeGjeldendeVedtak.left()
+        return ManueltBehandlesGrunn.FORLENGELSE_SLUTTDATO_ER_IKKE_ETTER_INNVILGELSEN.left()
     }
 
-    val deltakelse = revurdering.getTiltaksdeltakelse(tiltaksdeltakerId)
-        ?: return KanIkkeForlengeAutomatisk.FantIkkeTiltaksdeltakelse.left()
-
-    if (!deltakelse.deltakelseStatus.deltarEllerHarDeltatt()) {
-        return KanIkkeForlengeAutomatisk.DeltakelsenHarUgyldigStatus(deltakelse.deltakelseStatus).left()
+    if (nåtilstand.deltakelseFraOgMed != tidligereDeltakelse.deltakelseFraOgMed) {
+        return ManueltBehandlesGrunn.FORLENGELSE_ENDRET_STARTDATO.left()
     }
 
-    if (!revurdering.saksopplysninger.kanInnvilges(tiltaksdeltakerId)) {
-        return KanIkkeForlengeAutomatisk.TiltaketGirIkkeRett.left()
-    }
-
-    if (deltakelse.deltakelseFraOgMed != tidligereDeltakelse.deltakelseFraOgMed ||
-        deltakelse.deltakelseTilOgMed != nySluttdato ||
-        deltakelse.antallDagerPerUke != tidligereDeltakelse.antallDagerPerUke ||
-        deltakelse.deltakelseProsent != tidligereDeltakelse.deltakelseProsent
-    ) {
-        return KanIkkeForlengeAutomatisk.SaksopplysningeneAvvikerFraEndringen.left()
+    if (!tidligereDeltakelse.tilDeltakelsestilstand().harSammeDeltakelsesmengde(nåtilstand.tilDeltakelsestilstand())) {
+        return ManueltBehandlesGrunn.FORLENGELSE_ENDRET_DELTAKELSESMENGDE.left()
     }
 
     val innvilgelsesperiode = sisteInnvilgedeDag.plusDays(1) til nySluttdato
 
     if (rammevedtaksliste.tidslinje.overlapper(innvilgelsesperiode)) {
-        return KanIkkeForlengeAutomatisk.OverlapperAndreVedtak.left()
+        return ManueltBehandlesGrunn.FORLENGELSE_OVERLAPPER_ANDRE_VEDTAK.left()
     }
 
-    if (revurdering.saksopplysninger.harOverlappendeTiltaksdeltakelse(tiltaksdeltakerId, innvilgelsesperiode)) {
-        return KanIkkeForlengeAutomatisk.OverlapperAndreTiltaksdeltakelser.left()
+    if (saksopplysninger.harOverlappendeTiltaksdeltakelse(tiltaksdeltakerId, innvilgelsesperiode)) {
+        return ManueltBehandlesGrunn.FORLENGELSE_OVERLAPPENDE_TILTAK.left()
     }
 
-    if (revurdering.saksopplysninger.harAndreYtelserEnnTiltakspenger()) {
-        return KanIkkeForlengeAutomatisk.HarAndreYtelser.left()
+    if (saksopplysninger.harAndreYtelserEnnTiltakspenger()) {
+        return ManueltBehandlesGrunn.FORLENGELSE_ANDRE_YTELSER.left()
     }
 
-    if (revurdering.saksopplysninger.harTiltakspengevedtakFraArena()) {
-        return KanIkkeForlengeAutomatisk.HarVedtakIArena.left()
+    if (saksopplysninger.harTiltakspengevedtakFraArena()) {
+        return ManueltBehandlesGrunn.FORLENGELSE_VEDTAK_I_ARENA.left()
     }
 
     val antallBarn = rammevedtaksliste.barnetilleggsperioder.hentVerdiForDag(sisteInnvilgedeDag) ?: AntallBarn.ZERO
     if (antallBarn != AntallBarn.ZERO) {
-        return KanIkkeForlengeAutomatisk.HarBarnetillegg.left()
+        return ManueltBehandlesGrunn.FORLENGELSE_HAR_BARNETILLEGG.left()
     }
 
     val antallDagerPerMeldeperiode = gjeldendeVedtak.antallDagerPerMeldeperiode!!.hentVerdiForDag(sisteInnvilgedeDag)!!
