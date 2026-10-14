@@ -57,14 +57,11 @@ enum class ManueltBehandlesGrunn {
     FORLENGELSE_SLUTTDATO_ER_IKKE_ETTER_INNVILGELSEN,
     FORLENGELSE_ENDRET_STARTDATO,
 
-    /** Deltakelsesmengden er endret, og bruker kan melde i helg, så antall dager per meldeperiode kan ikke utledes entydig fra antall dager per uke. */
-    FORLENGELSE_ENDRET_DELTAKELSESMENGDE_OG_KAN_MELDE_I_HELG,
-
-    /** Deltakelsesmengden er endret, men den nye mangler både dager per uke og prosent, eller er mer enn fulltid. */
-    FORLENGELSE_KAN_IKKE_UTLEDE_DELTAKELSESMENGDE,
-
-    /** Deltakelsesmengden er endret, men den nye gir ikke et helt antall dager per meldeperiode, for eksempel 33 prosent. */
-    FORLENGELSE_DELTAKELSESMENGDE_GIR_IKKE_HELE_DAGER,
+    /**
+     * Deltakelsesmengden er endret samtidig med forlengelsen.
+     * Vi vet ikke fra hvilken dato endringen gjelder, så den kan også gjelde perioden som allerede er innvilget.
+     */
+    FORLENGELSE_ENDRET_DELTAKELSESMENGDE,
 
     /**
      * Vedtaket har barnetillegg, men det kan ikke periodiseres ut fra barna i søknaden.

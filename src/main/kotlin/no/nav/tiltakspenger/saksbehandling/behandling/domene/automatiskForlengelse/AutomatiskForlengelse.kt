@@ -19,7 +19,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Sa
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.Deltakelsestilstand
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.harSammeDeltakelsesmengde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.tilDeltakelsestilstand
 import java.time.LocalDate
@@ -28,7 +27,7 @@ import java.time.LocalDate
  * Det systemet har utledet for å kunne fylle ut en automatisk opprettet forlengelse (revurdering til innvilgelse) uten saksbehandler.
  *
  * @param innvilgelsesperiode Fra dagen etter siste innvilgede dag i det gjeldende vedtaket, til ny sluttdato for deltakelsen.
- * @param antallDagerPerMeldeperiode Videreført fra det gjeldende vedtaket, eller utledet fra deltakelsesmengden dersom den er endret.
+ * @param antallDagerPerMeldeperiode Videreført fra det gjeldende vedtaket.
  * @param antallBarn Dekker hele [innvilgelsesperiode], se [utledAntallBarn].
  * @param begrunnelse Begrunnelsen for vilkårsvurderingen.
  * @param begrunnelseBarnetillegg Begrunnelsen for barnetillegget, eller null dersom forlengelsen ikke har barnetillegg.
@@ -63,9 +62,9 @@ data class AutomatiskForlengelse(
  * Endringer som har kommet etter at forlengelsen ble opprettet, fanges dermed opp her.
  * Startdatoen må være uendret fra det gjeldende vedtaket, siden en forlengelse bare utvider perioden.
  *
- * Er deltakelsesmengden uendret, videreføres antall dager per meldeperiode fra det gjeldende vedtaket.
- * Er den endret, utledes antall dager per meldeperiode fra den nye deltakelsesmengden, se [utledDeltakelsesmengde].
- * Kan bruker melde i helg, overlates en endret deltakelsesmengde likevel til saksbehandler.
+ * Deltakelsesmengden må også være uendret, og antall dager per meldeperiode videreføres fra det gjeldende vedtaket.
+ * En endret deltakelsesmengde overlates til saksbehandler, siden vi ikke vet fra hvilken dato den gjelder.
+ * Den kan derfor også gjelde deler av perioden som allerede er innvilget, og da må den perioden omgjøres.
  * Barnetillegget videreføres fra det gjeldende vedtaket, og periodiseres ut fra barna i søknaden, se [utledAntallBarn].
  *
  * Vurderingen er bevisst konservativ, og alt som ikke er entydig overlates til saksbehandler.
@@ -117,15 +116,8 @@ fun Sak.utledAutomatiskForlengelse(
         return ManueltBehandlesGrunn.FORLENGELSE_ENDRET_STARTDATO.left()
     }
 
-    val tidligereDeltakelsesmengde = tidligereDeltakelse.tilDeltakelsestilstand()
-    val nyDeltakelsesmengde = nåtilstand.tilDeltakelsestilstand()
-    val endretDeltakelsesmengde = if (tidligereDeltakelsesmengde.harSammeDeltakelsesmengde(nyDeltakelsesmengde)) {
-        null
-    } else {
-        if (kanSendeInnHelgForMeldekort) {
-            return ManueltBehandlesGrunn.FORLENGELSE_ENDRET_DELTAKELSESMENGDE_OG_KAN_MELDE_I_HELG.left()
-        }
-        nyDeltakelsesmengde.utledDeltakelsesmengde().getOrElse { return it.left() }
+    if (!tidligereDeltakelse.tilDeltakelsestilstand().harSammeDeltakelsesmengde(nåtilstand.tilDeltakelsestilstand())) {
+        return ManueltBehandlesGrunn.FORLENGELSE_ENDRET_DELTAKELSESMENGDE.left()
     }
 
     val innvilgelsesperiode = sisteInnvilgedeDag.plusDays(1) til nySluttdato
@@ -154,20 +146,13 @@ fun Sak.utledAutomatiskForlengelse(
         innvilgelsesperiode = innvilgelsesperiode,
     ).getOrElse { return it.left() }
 
-    val antallDagerPerMeldeperiodeIVedtaket = gjeldendeVedtak.antallDagerPerMeldeperiode!!.hentVerdiForDag(sisteInnvilgedeDag)!!
-    val antallDagerPerMeldeperiode = endretDeltakelsesmengde?.antallDagerPerMeldeperiode ?: antallDagerPerMeldeperiodeIVedtaket
-
     return AutomatiskForlengelse(
         innvilgelsesperiode = innvilgelsesperiode,
-        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+        antallDagerPerMeldeperiode = gjeldendeVedtak.antallDagerPerMeldeperiode!!.hentVerdiForDag(sisteInnvilgedeDag)!!,
         antallBarn = antallBarn,
         tiltaksdeltakerId = tiltaksdeltakerId,
         begrunnelse = lagBegrunnelse(
             nySluttdato = nySluttdato,
-            tidligereDeltakelsesmengde = tidligereDeltakelsesmengde,
-            nyDeltakelsesmengde = nyDeltakelsesmengde,
-            antallDagerPerMeldeperiodeIVedtaket = antallDagerPerMeldeperiodeIVedtaket,
-            endretDeltakelsesmengde = endretDeltakelsesmengde,
             antallBarnIVedtaket = antallBarnIVedtaket,
             antallBarn = antallBarn,
         ),
@@ -224,99 +209,14 @@ private fun Sak.utledAntallBarn(
 }
 
 /**
- * Antall dager per meldeperiode utledet fra en deltakelsesmengde, med en beskrivelse av hva det er utledet fra.
- */
-data class UtledetDeltakelsesmengde(
-    val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
-    val beskrivelse: String,
-)
-
-private const val DAGER_PER_MELDEPERIODE_VED_FULLTID = 10F
-private const val PROSENT_VED_FULLTID = 100F
-private const val UKER_PER_MELDEPERIODE = 2F
-
-/**
- * Utleder antall dager per meldeperiode fra antall dager per uke dersom det er satt, ellers fra deltakelsesprosenten.
- * Dager per uke ganges med antall uker i en meldeperiode, så 2,5 dager per uke blir 5 dager per meldeperiode.
- * Prosenten regnes om der 100 prosent er 5 dager per uke, så 80 prosent blir 4 dager per uke og 8 dager per meldeperiode.
- * En verdi på 0 regnes som ikke satt, på samme måte som i sammenligningen av deltakelsesmengder.
- * Gir grunnen til manuell behandling dersom ingen av verdiene er satt, deltakelsesmengden er mer enn fulltid, eller den ikke gir et helt antall dager per meldeperiode.
- * Vi runder ikke av, siden det ikke er entydig hvilken vei det skal rundes.
- */
-fun Deltakelsestilstand.utledDeltakelsesmengde(): Either<ManueltBehandlesGrunn, UtledetDeltakelsesmengde> {
-    val dagerPerUke = angittDagerPerUke
-    val prosent = angittProsent
-
-    // Prosenten ganges før den deles, slik at hele prosenter gir eksakte flyttall.
-    val (dagerPerMeldeperiode, beskrivelse) = when {
-        dagerPerUke != null -> dagerPerUke * UKER_PER_MELDEPERIODE to dagerPerUke.beskrivSomDagerPerUke()
-        prosent != null -> prosent * DAGER_PER_MELDEPERIODE_VED_FULLTID / PROSENT_VED_FULLTID to prosent.beskrivSomProsent()
-        else -> return ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_DELTAKELSESMENGDE.left()
-    }
-
-    if (dagerPerMeldeperiode > DAGER_PER_MELDEPERIODE_VED_FULLTID) {
-        return ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_DELTAKELSESMENGDE.left()
-    }
-
-    if (dagerPerMeldeperiode % 1F != 0F) {
-        return ManueltBehandlesGrunn.FORLENGELSE_DELTAKELSESMENGDE_GIR_IKKE_HELE_DAGER.left()
-    }
-
-    return UtledetDeltakelsesmengde(
-        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(dagerPerMeldeperiode.toInt()),
-        beskrivelse = beskrivelse,
-    ).right()
-}
-
-/**
- * Beskriver alle verdiene som er satt for deltakelsesmengden, slik at det går frem hvilken av dem som er endret.
- * Er ingen av verdiene satt, beskrives den som ikke oppgitt.
- */
-fun Deltakelsestilstand.beskrivDeltakelsesmengde(): String =
-    listOfNotNull(angittDagerPerUke?.beskrivSomDagerPerUke(), angittProsent?.beskrivSomProsent())
-        .joinToString(" og ")
-        .ifEmpty { "ikke oppgitt" }
-
-/** En verdi på 0 regnes som ikke satt, på samme måte som i sammenligningen av deltakelsesmengder. */
-private val Deltakelsestilstand.angittDagerPerUke: Float? get() = antallDagerPerUke?.takeIf { it > 0F }
-
-/** En verdi på 0 regnes som ikke satt, på samme måte som i sammenligningen av deltakelsesmengder. */
-private val Deltakelsestilstand.angittProsent: Float? get() = deltakelseProsent?.takeIf { it > 0F }
-
-private fun Float.beskrivSomDagerPerUke(): String = "${formater()} dager per uke"
-
-private fun Float.beskrivSomProsent(): String = "${formater()} prosent"
-
-private fun Float.formater(): String =
-    if (this % 1F == 0F) toInt().toString() else toString().replace('.', ',')
-
-/**
  * Begrunnelsen for vilkårsvurderingen.
- * Deltakelsesmengden og antall dager per meldeperiode nevnes kun når deltakelsesmengden er endret.
- * Da beskrives først endringen i deltakelsesmengden, og deretter antall dager per meldeperiode i det gjeldende vedtaket og hva det er utledet til nå.
- * De holdes adskilt, siden antall dager i vedtaket kan være satt av saksbehandler uavhengig av den tidligere deltakelsesmengden.
  * Barnetillegget begrunnes i eget felt, se [lagBegrunnelseBarnetillegg], bortsett fra når det faller helt bort.
  */
 private fun lagBegrunnelse(
     nySluttdato: LocalDate,
-    tidligereDeltakelsesmengde: Deltakelsestilstand,
-    nyDeltakelsesmengde: Deltakelsestilstand,
-    antallDagerPerMeldeperiodeIVedtaket: AntallDagerForMeldeperiode,
-    endretDeltakelsesmengde: UtledetDeltakelsesmengde?,
     antallBarnIVedtaket: AntallBarn,
     antallBarn: SammenhengendePeriodisering<AntallBarn>,
 ): Begrunnelse {
-    val antallDager = endretDeltakelsesmengde?.let {
-        val endringIAntallDager = if (it.antallDagerPerMeldeperiode == antallDagerPerMeldeperiodeIVedtaket) {
-            "Antall dager per meldeperiode er fortsatt ${antallDagerPerMeldeperiodeIVedtaket.value}"
-        } else {
-            "Antall dager per meldeperiode endres fra ${antallDagerPerMeldeperiodeIVedtaket.value} i det gjeldende vedtaket " +
-                "til ${it.antallDagerPerMeldeperiode.value}"
-        }
-        "\nDeltakelsesmengden er endret fra ${tidligereDeltakelsesmengde.beskrivDeltakelsesmengde()} " +
-            "til ${nyDeltakelsesmengde.beskrivDeltakelsesmengde()}." +
-            "\n$endringIAntallDager, utledet fra ${it.beskrivelse}."
-    } ?: ""
     val barnetilleggFallerBort = if (antallBarnIVedtaket != AntallBarn.ZERO && antallBarn.inneholderKun(AntallBarn.ZERO)) {
         "\nBarnetillegget for ${antallBarnIVedtaket.value} barn i det gjeldende vedtaket faller bort, fordi barna har fylt 16 år."
     } else {
@@ -325,7 +225,6 @@ private fun lagBegrunnelse(
     return Begrunnelse.create(
         "Automatisk behandlet.\n" +
             "Tiltaksdeltakelsen er forlenget til ${nySluttdato.format(norskDatoFormatter)}." +
-            antallDager +
             barnetilleggFallerBort,
     )!!
 }
