@@ -107,6 +107,7 @@ class BenkGyldigeKommandoerTest {
         type = type,
         meldeperioder = listOf(Periode(LocalDate.of(2025, 1, 6), LocalDate.of(2025, 1, 19))),
         beløp = null,
+        prioritering = null,
     )
 
     private fun tilbakekreving(

@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
@@ -61,6 +62,7 @@ data class MeldekortBehandletAutomatisk(
     override val avbrutt: Avbrutt? = null
     override val skalSendeVedtaksbrev: Boolean = true
     override val skalJournalføreNotat: Boolean = false
+    override val prioritering: Prioritering? = null
 
     override val ventestatus: Ventestatus = Ventestatus()
     override val klagebehandling: Klagebehandling? = null

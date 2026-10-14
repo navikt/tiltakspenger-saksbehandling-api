@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -64,6 +65,7 @@ data class MeldekortUnderBehandling(
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     override val skalSendeVedtaksbrev: Boolean,
     override val skalJournalføreNotat: Boolean,
+    override val prioritering: Prioritering?,
     override val meldeperioder: Meldeperiodebehandlinger,
     override val ventestatus: Ventestatus,
     override val klagebehandling: Klagebehandling?,
@@ -92,6 +94,7 @@ data class MeldekortUnderBehandling(
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
             skalJournalføreNotat = kommando.skalJournalføreNotat,
+            prioritering = kommando.prioritering,
             sistEndret = nå(clock),
         )
 
@@ -142,6 +145,7 @@ data class MeldekortUnderBehandling(
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             skalJournalføreNotat = skalJournalføreNotat,
+            prioritering = prioritering,
             meldeperioder = this.meldeperioder,
             ventestatus = ventestatus,
             klagebehandling = klagebehandling,
@@ -302,6 +306,7 @@ fun Sak.opprettManuellMeldekortbehandling(
         ),
         skalSendeVedtaksbrev = true,
         skalJournalføreNotat = false,
+        prioritering = null,
         ventestatus = Ventestatus(),
         klagebehandling = klagebehandlingId?.let {
             val klagebehandling = hentKlagebehandling(it)

@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningFraMeldekortbehandling
@@ -82,6 +83,7 @@ class MeldekortbehandlingPostgresRepo(
                         sist_endret,
                         skal_sende_vedtaksbrev,
                         skal_journalfore_notat,
+                        prioritering_begrunnelse,
                         klagebehandling_id
                     ) values (
                         :id,
@@ -103,6 +105,7 @@ class MeldekortbehandlingPostgresRepo(
                         :sist_endret,
                         :skal_sende_vedtaksbrev,
                         :skal_journalfore_notat,
+                        :prioritering_begrunnelse,
                         :klagebehandling_id
                     )
                     """,
@@ -126,6 +129,7 @@ class MeldekortbehandlingPostgresRepo(
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
                     "skal_journalfore_notat" to meldekortbehandling.skalJournalføreNotat,
+                    "prioritering_begrunnelse" to meldekortbehandling.prioritering?.begrunnelse?.verdi,
                     "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
                 ).asUpdate,
             )
@@ -204,6 +208,7 @@ class MeldekortbehandlingPostgresRepo(
                         tekst_til_vedtaksbrev = :tekst_til_vedtaksbrev,
                         skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev,
                         skal_journalfore_notat = :skal_journalfore_notat,
+                        prioritering_begrunnelse = :prioritering_begrunnelse,
                         klagebehandling_id = :klagebehandling_id
                     where id = :id
                     """,
@@ -226,6 +231,7 @@ class MeldekortbehandlingPostgresRepo(
                     "tekst_til_vedtaksbrev" to meldekortbehandling.fritekstTilVedtaksbrev?.verdi,
                     "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
                     "skal_journalfore_notat" to meldekortbehandling.skalJournalføreNotat,
+                    "prioritering_begrunnelse" to meldekortbehandling.prioritering?.begrunnelse?.verdi,
                     "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
                 ).asUpdate,
             )
@@ -639,6 +645,7 @@ class MeldekortbehandlingPostgresRepo(
 
             val skalSendeVedtaksbrev = row.boolean("skal_sende_vedtaksbrev")
             val skalJournalføreNotat = row.boolean("skal_journalfore_notat")
+            val prioritering = row.stringOrNull("prioritering_begrunnelse")?.let { Prioritering.create(it) }
             val klagebehandling = row.stringOrNull("klagebehandling_id")?.let {
                 // Foreign key-en meldekortbehandling_klagebehandling_id_fkey garanterer at klagebehandlingen finnes.
                 // Tilstanden kan dermed ikke konstrueres, heller ikke ved å mutere databasen direkte, så en throw med melding ville blitt stående som udekket kode.
@@ -683,6 +690,7 @@ class MeldekortbehandlingPostgresRepo(
                         meldeperioder = meldeperioder,
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                         skalJournalføreNotat = skalJournalføreNotat,
+                        prioritering = prioritering,
                         ventestatus = ventestatus,
                         klagebehandling = klagebehandling,
                     )
@@ -709,6 +717,7 @@ class MeldekortbehandlingPostgresRepo(
                         meldeperioder = meldeperioder,
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                         skalJournalføreNotat = skalJournalføreNotat,
+                        prioritering = prioritering,
                         ventestatus = ventestatus,
                         klagebehandling = klagebehandling,
                     )
@@ -732,6 +741,7 @@ class MeldekortbehandlingPostgresRepo(
                         meldeperioder = meldeperioder,
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                         skalJournalføreNotat = skalJournalføreNotat,
+                        prioritering = prioritering,
                         ventestatus = ventestatus,
                         klagebehandling = klagebehandling,
                     )

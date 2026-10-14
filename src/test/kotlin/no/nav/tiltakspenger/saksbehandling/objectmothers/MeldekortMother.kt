@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningId
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
@@ -129,6 +130,7 @@ interface MeldekortMother : MotherOfAllMothers {
         sistEndret: LocalDateTime = opprettet,
         skalSendeVedtaksbrev: Boolean = false,
         skalJournalføreNotat: Boolean = false,
+        prioritering: Prioritering? = null,
         ventestatus: Ventestatus = Ventestatus(),
     ): MeldekortUnderBehandling {
         return MeldekortUnderBehandling(
@@ -149,6 +151,7 @@ interface MeldekortMother : MotherOfAllMothers {
             fritekstTilVedtaksbrev = null,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             skalJournalføreNotat = skalJournalføreNotat,
+            prioritering = prioritering,
             meldeperioder = Meldeperiodebehandlinger(
                 meldeperiode = dager,
                 beregning = null,
@@ -192,6 +195,7 @@ interface MeldekortMother : MotherOfAllMothers {
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         skalSendeVedtaksbrev: Boolean = true,
         skalJournalføreNotat: Boolean = false,
+        prioritering: Prioritering? = null,
         ventestatus: Ventestatus = Ventestatus(),
     ): MeldekortbehandlingAvbrutt {
         return MeldekortbehandlingAvbrutt(
@@ -214,6 +218,7 @@ interface MeldekortMother : MotherOfAllMothers {
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             skalJournalføreNotat = skalJournalføreNotat,
+            prioritering = prioritering,
             meldeperioder = Meldeperiodebehandlinger(
                 meldeperiode = genererMeldekortdagerFraMeldeperiode(meldeperiode),
                 beregning = null,
@@ -269,6 +274,7 @@ interface MeldekortMother : MotherOfAllMothers {
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         skalSendeVedtaksbrev: Boolean = true,
         skalJournalføreNotat: Boolean = false,
+        prioritering: Prioritering? = null,
     ): MeldekortbehandlingManuell {
         return MeldekortbehandlingManuell(
             id = id,
@@ -289,6 +295,7 @@ interface MeldekortMother : MotherOfAllMothers {
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             skalJournalføreNotat = skalJournalføreNotat,
+            prioritering = prioritering,
             meldeperioder = Meldeperiodebehandlinger(
                 meldeperiode = dager,
                 beregning = meldekortperiodeBeregning,
@@ -608,6 +615,7 @@ interface MeldekortMother : MotherOfAllMothers {
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         skalSendeVedtaksbrev: Boolean = true,
         skalJournalføreNotat: Boolean = false,
+        prioritering: Prioritering? = null,
     ): Meldekortbehandlinger {
         val kommandoer = meldeperioder.map { meldeperiode ->
             OppdaterMeldekortbehandlingKommando(
@@ -627,6 +635,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                 skalJournalføreNotat = skalJournalføreNotat,
+                prioritering = prioritering,
             )
         }
 
@@ -684,6 +693,7 @@ interface MeldekortMother : MotherOfAllMothers {
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         skalSendeVedtaksbrev: Boolean = true,
         skalJournalføreNotat: Boolean = false,
+        prioritering: Prioritering? = null,
     ): Pair<Meldekortbehandlinger, MeldekortbehandlingManuell> {
         val meldeperiode = meldeperiode(
             clock = clock,
@@ -718,6 +728,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                     skalJournalføreNotat = skalJournalføreNotat,
+                    prioritering = prioritering,
                     meldeperioder = Meldeperiodebehandlinger(
                         meldeperiode = dager,
                         beregning = null,
@@ -812,6 +823,7 @@ interface MeldekortMother : MotherOfAllMothers {
         sistEndret: LocalDateTime = opprettet,
         skalSendeVedtaksbrev: Boolean = true,
         skalJournalføreNotat: Boolean = false,
+        prioritering: Prioritering? = null,
     ): Meldekortbehandlinger {
         val meldekortId = kommando.meldekortId
         val sakId = kommando.sakId
@@ -854,6 +866,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 fritekstTilVedtaksbrev = null,
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                 skalJournalføreNotat = skalJournalføreNotat,
+                prioritering = prioritering,
                 meldeperioder = Meldeperiodebehandlinger(
                     meldeperiode = dager,
                     beregning = null,
@@ -1049,6 +1062,7 @@ interface MeldekortMother : MotherOfAllMothers {
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         skalSendeVedtaksbrev: Boolean = true,
         skalJournalføreNotat: Boolean = false,
+        prioritering: Prioritering? = null,
     ): OppdaterMeldekortbehandlingKommando {
         return OppdaterMeldekortbehandlingKommando(
             sakId = sakId,
@@ -1060,6 +1074,7 @@ interface MeldekortMother : MotherOfAllMothers {
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             skalJournalføreNotat = skalJournalføreNotat,
+            prioritering = prioritering,
         )
     }
 

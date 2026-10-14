@@ -241,7 +241,7 @@ class BenkPostgresRepo(
             "status" to command.filtrering.status.tilParam(),
             "type" to command.filtrering.type.tilParam(),
         ),
-        sortering = command.sortering.tilOrderBy { it.toDbString() },
+        sortering = "$PRIORITERTE_FØRST, ${command.sortering.tilOrderBy { it.toDbString() }}",
         limit = limit,
         offset = offset,
         map = { it.tilMeldekort() },
@@ -443,6 +443,7 @@ class BenkPostgresRepo(
                     from jsonb_array_elements(m.beregninger->'beregninger') beregning,
                          jsonb_array_elements(beregning->'dager') dag
                 )                               as beløp,
+                m.prioritering_begrunnelse      as prioritering_begrunnelse,
                 m.id                            as id
             from meldekortbehandling m
                 join sak s on m.sak_id = s.id
@@ -474,6 +475,7 @@ class BenkPostgresRepo(
                 ) then 'KORRIGERT_MELDEKORT'::text else 'INNSENDT_MELDEKORT'::text end,
                 jsonb_build_array(mp.kjede_id),
                 null::int,
+                null::text,
                 siste.id
             from (
                 select apne.*
@@ -642,7 +644,7 @@ class BenkPostgresRepo(
         """
 
         /**
-         * Prioriterte rammebehandlinger skal alltid ligge øverst, uavhengig av hvilken kolonne og retning saksbehandler sorterer på.
+         * Prioriterte rammebehandlinger og meldekortbehandlinger skal alltid ligge øverst, uavhengig av hvilken kolonne og retning saksbehandler sorterer på.
          * Sorteringen saksbehandler har valgt gjelder innad blant de prioriterte og innad blant resten.
          */
         const val PRIORITERTE_FØRST = "(prioritering_begrunnelse is not null) desc"
@@ -809,6 +811,7 @@ private fun Row.tilMeldekort(): BenkMeldekort = BenkMeldekort(
     type = enum("type", BenkMeldekortType.entries),
     meldeperioder = tilMeldeperioder(),
     beløp = intOrNull("beløp"),
+    prioritering = tilPrioritering(),
 )
 
 /**

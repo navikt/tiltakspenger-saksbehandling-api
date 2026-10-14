@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev.Companion.toFritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterPrioriteringDTO
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode
@@ -20,6 +21,11 @@ data class OppdaterMeldekortbehandlingDTO(
     val tekstTilVedtaksbrev: String?,
     val skalSendeVedtaksbrev: Boolean,
     val skalJournalføreNotat: Boolean,
+    /**
+     * null når behandlingen ikke er prioritert.
+     * Default for bakoverkompatibilitet med frontend som ikke sender feltet.
+     */
+    val prioritering: OppdaterPrioriteringDTO? = null,
 ) {
 
     data class OppdatertMeldeperiodeDTO(
@@ -58,6 +64,7 @@ data class OppdaterMeldekortbehandlingDTO(
             fritekstTilVedtaksbrev = tekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             skalJournalføreNotat = skalJournalføreNotat,
+            prioritering = prioritering?.tilDomene(),
         )
     }
 }

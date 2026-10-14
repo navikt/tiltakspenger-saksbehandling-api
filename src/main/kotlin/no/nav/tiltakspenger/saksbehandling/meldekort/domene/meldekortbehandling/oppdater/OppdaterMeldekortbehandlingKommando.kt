@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
@@ -32,6 +33,7 @@ class OppdaterMeldekortbehandlingKommando(
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val skalSendeVedtaksbrev: Boolean,
     val skalJournalføreNotat: Boolean,
+    val prioritering: Prioritering?,
     val correlationId: CorrelationId,
 ) {
     val periode: Periode = Periode(

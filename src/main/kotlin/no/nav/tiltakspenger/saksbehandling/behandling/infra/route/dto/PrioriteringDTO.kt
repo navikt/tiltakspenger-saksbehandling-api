@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 
 /**
- * Prioriteringen av en rammebehandling, slik den vises på behandlingen og i benken.
+ * Prioriteringen av en rammebehandling eller meldekortbehandling, slik den vises på behandlingen og i benken.
  * Begrunnelsen er saksbehandlers fritekst og kan sladdes, mens det at behandlingen er prioritert alltid vises.
  */
 data class PrioriteringDTO(

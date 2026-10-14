@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
@@ -165,6 +166,23 @@ class HentBenkRouteTest {
             )
 
             val respons = hentBenk(tac, "/benk/soknader", """{}""")
+
+            objectMapper.readTree(respons)["oversikt"]["behandlinger"].single()["prioritering"]
+                .toString() shouldEqualJson """{"begrunnelse": {"verdi": "Bruker står uten inntekt", "erSladdet": false}}"""
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `meldekortraden viser prioriteringen med begrunnelse`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling(
+                tac = tac,
+                saksbehandler = saksbehandler,
+                prioriteringBegrunnelse = "Bruker står uten inntekt",
+            )!!
+
+            val respons = hentBenk(tac, "/benk/meldekort", """{}""")
 
             objectMapper.readTree(respons)["oversikt"]["behandlinger"].single()["prioritering"]
                 .toString() shouldEqualJson """{"begrunnelse": {"verdi": "Bruker står uten inntekt", "erSladdet": false}}"""

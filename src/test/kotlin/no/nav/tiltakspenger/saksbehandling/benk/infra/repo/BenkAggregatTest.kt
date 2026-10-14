@@ -704,6 +704,38 @@ class BenkAggregatTest {
 
     @Test
     @IsolatedDatabaseTest
+    fun `meldekortfanen viser prioriterte behandlinger øverst uansett sortering`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val fnrEn = ObjectMother.gyldigFnr()
+            val fnrPrioritert = ObjectMother.gyldigFnr()
+            val fnrTre = ObjectMother.gyldigFnr()
+            listOf(fnrEn, fnrPrioritert, fnrTre).forEach { fnr ->
+                val (sak, _, _, meldekortbehandling) = iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(tac = tac, fnr = fnr)!!
+                oppdaterMeldekortbehandling(
+                    tac = tac,
+                    sakId = sak.id,
+                    meldekortId = meldekortbehandling.id,
+                    prioriteringBegrunnelse = if (fnr == fnrPrioritert) "Haster" else null,
+                )
+            }
+            val repo = tac.benkContext.benkRepo
+
+            fun sorterteRader(retning: BenkSorteringRetning) =
+                repo.hentMeldekort(
+                    command(BenkMeldekortFiltrering(null, null, null), BenkMeldekortKolonne.FNR, retning),
+                ).behandlinger
+
+            sorterteRader(BenkSorteringRetning.ASC).map { it.felles.fnr } shouldBe listOf(fnrPrioritert, fnrEn, fnrTre)
+            sorterteRader(BenkSorteringRetning.DESC).map { it.felles.fnr } shouldBe listOf(fnrPrioritert, fnrTre, fnrEn)
+            sorterteRader(BenkSorteringRetning.ASC).map { it.prioritering } shouldBe
+                listOf(BenkPrioritering("Haster"), null, null)
+            // Mine-fanen gjenbruker fanens spørring, så prioriteringen gjelder der også.
+            repo.hentMine(mineKommando()).getValue(BenkFane.MELDEKORT).behandlinger.first().felles.fnr shouldBe fnrPrioritert
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
     fun `meldekortfanen viser alle meldeperiodene en behandling dekker, i kronologisk rekkefølge`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak) = iverksettSøknadsbehandling(tac = tac)

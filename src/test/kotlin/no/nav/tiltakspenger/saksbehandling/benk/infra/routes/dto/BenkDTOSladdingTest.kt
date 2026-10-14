@@ -32,15 +32,16 @@ class BenkDTOSladdingTest {
 
     @Test
     fun `prioriteringsbegrunnelsen sladdes, men raden forblir prioritert`() {
-        val rammebehandlinger = benkResponsDTO().sladdet().oversikt.behandlinger.mapNotNull {
+        val prioriteringer = benkResponsDTO().sladdet().oversikt.behandlinger.mapNotNull {
             when (it) {
                 is BenkSøknadsbehandlingDTO -> it.prioritering
                 is BenkRevurderingDTO -> it.prioritering
-                is BenkMeldekortDTO, is BenkKlagebehandlingDTO, is BenkTilbakekrevingDTO -> null
+                is BenkMeldekortDTO -> it.prioritering
+                is BenkKlagebehandlingDTO, is BenkTilbakekrevingDTO -> null
             }
         }
 
-        rammebehandlinger shouldBe List(2) { PrioriteringDTO(begrunnelse = SladdetVerdi) }
+        prioriteringer shouldBe List(3) { PrioriteringDTO(begrunnelse = SladdetVerdi) }
     }
 
     @Test
@@ -190,6 +191,7 @@ class BenkDTOSladdingTest {
                     status = BenkBehandlingsstatusDTO.UNDER_BEHANDLING,
                     meldeperioder = listOf(PeriodeDTO(1.januar(2025).toString(), 14.januar(2025).toString())),
                     beløp = 1000,
+                    prioritering = prioriteringDTO(),
                     gyldigeKommandoer = gyldigeKommandoer,
                 ),
                 BenkKlagebehandlingDTO(

@@ -4,6 +4,8 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.PrioriteringDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.MeldeperiodeBeregningDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.UtbetalingskontrollDTO
@@ -79,6 +81,8 @@ data class MeldekortbehandlingDTO(
     val tilbakekrevingId: String?,
     val skalSendeVedtaksbrev: Boolean,
     val skalJournalføreNotat: Boolean,
+    /** null når behandlingen ikke er prioritert. */
+    val prioritering: PrioriteringDTO?,
     /**
      * hendelsene er sortert desc
      */
@@ -140,6 +144,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTO(
         tilbakekrevingId = hentTilbakekreving(id)?.id?.toString(),
         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         skalJournalføreNotat = skalJournalføreNotat,
+        prioritering = prioritering?.tilDTO(),
         ventestatus = ventestatus.ventestatusHendelser.tilDto(),
         klagebehandlingId = this.klagebehandling?.id?.toString(),
         gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),

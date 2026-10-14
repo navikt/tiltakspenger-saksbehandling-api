@@ -22,7 +22,7 @@ data class BenkVentestatus(
 )
 
 /**
- * Prioriteringen av en rammebehandling slik benken viser den.
+ * Prioriteringen av en rammebehandling eller meldekortbehandling slik benken viser den.
  * Prioriterte rader ligger alltid øverst i fanen, uavhengig av valgt sortering.
  */
 data class BenkPrioritering(
@@ -88,6 +88,11 @@ data class BenkMeldekort(
     val meldeperioder: List<Periode>,
     /** Beregnet beløp for meldekortbehandlinger som er beregnet, ellers null. */
     val beløp: Int?,
+    /**
+     * null når behandlingen ikke er prioritert.
+     * Brukers meldekort kan ikke prioriteres, og er alltid null.
+     */
+    val prioritering: BenkPrioritering?,
 ) : BenkBehandling
 
 data class BenkKlagebehandling(

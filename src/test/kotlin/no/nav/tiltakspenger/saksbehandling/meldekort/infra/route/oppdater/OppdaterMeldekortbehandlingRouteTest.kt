@@ -9,8 +9,10 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
@@ -33,6 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendMeldekortbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taMeldekortbehanding
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
+import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 class OppdaterMeldekortbehandlingRouteTest {
@@ -48,6 +51,66 @@ class OppdaterMeldekortbehandlingRouteTest {
 
             meldekortbehandling.begrunnelse!!.verdi shouldBe "oppdatert begrunnelse"
             tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortbehandling.id)!!.begrunnelse!!.verdi shouldBe "oppdatert begrunnelse"
+        }
+    }
+
+    /**
+     * Prioriteringen er et felt i behandlingsskjemaet, så den settes og fjernes ved å lagre skjemaet.
+     * Kjøres mot postgres for å dekke skrive- og lesesiden av prioriteringen i databaselaget.
+     */
+    @Test
+    fun `kan prioritere meldekortbehandlingen og fjerne prioriteringen igjen`() {
+        withTestApplicationContextAndPostgres { tac ->
+            var prioritertJson: String? = null
+            val (sak, _, _, meldekortbehandling) = this.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling(
+                tac = tac,
+                prioriteringBegrunnelse = "Bruker står uten inntekt",
+                medJsonBody = { prioritertJson = it },
+            )!!
+
+            JSONObject(prioritertJson).getJSONObject("meldekortbehandlinger")
+                .getJSONObject(meldekortbehandling.id.toString())
+                .getJSONObject("prioritering")
+                .getJSONObject("begrunnelse").apply {
+                    getString("verdi") shouldBe "Bruker står uten inntekt"
+                    getBoolean("erSladdet") shouldBe false
+                }
+            meldekortbehandling.prioritering shouldBe Prioritering.create("Bruker står uten inntekt")
+            tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortbehandling.id)!!.prioritering shouldBe Prioritering.create("Bruker står uten inntekt")
+
+            val (_, ikkePrioritert, _) = oppdaterMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                meldekortId = meldekortbehandling.id,
+                medJsonBody = {
+                    JSONObject(it).getJSONObject("meldekortbehandlinger")
+                        .getJSONObject(meldekortbehandling.id.toString())
+                        .isNull("prioritering") shouldBe true
+                },
+            )!!
+
+            ikkePrioritert.prioritering.shouldBeNull()
+            tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortbehandling.id)!!.prioritering.shouldBeNull()
+        }
+    }
+
+    /**
+     * En prioritering uten begrunnelse gir ingen mening, så klienten må sende null for å fjerne den.
+     */
+    @Test
+    fun `prioritering med blank begrunnelse avvises`() {
+        withTestApplicationContext { tac ->
+            this.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling(
+                tac = tac,
+                prioriteringBegrunnelse = "  ",
+                forventet = ForventetRespons(
+                    status = 400,
+                    contentType = "application/json; charset=UTF-8",
+                    body = ForventetBody.Json(
+                        """{"melding":"Kunne ikke deserialisere request","kode":"ugyldig_request"}""",
+                    ),
+                ),
+            ).shouldBeNull()
         }
     }
 

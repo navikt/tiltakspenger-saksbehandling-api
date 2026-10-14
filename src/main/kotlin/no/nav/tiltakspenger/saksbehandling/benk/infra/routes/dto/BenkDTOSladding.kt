@@ -55,6 +55,7 @@ fun BenkBehandlingDTO.sladdet(): BenkBehandlingDTO = when (this) {
         saksnummer = SladdetVerdi,
         fnr = SladdetVerdi,
         ventestatus = ventestatus.sladdet(),
+        prioritering = prioritering?.sladdet(),
         gyldigeKommandoer = emptyList(),
     )
 

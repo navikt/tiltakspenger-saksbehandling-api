@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.sladdet
 import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.skalSladdeFor
 import no.nav.tiltakspenger.saksbehandling.infra.route.sladdet
@@ -8,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.sladdet
 /**
  * Sladding av [MeldekortbehandlingDTO].
  * Navkontoret er stedsinformasjon om personen, og begrunnelsene er saksbehandlers fritekst.
+ * Begrunnelsen for prioriteringen er også fritekst og sladdes, men det at behandlingen er prioritert beholdes.
  * Meldeperiodene, beregningene og beløpene er ikke identifiserende og beholdes.
  */
 
@@ -19,6 +21,7 @@ fun MeldekortbehandlingDTO.sladdet(): MeldekortbehandlingDTO = this.copy(
     attesteringer = attesteringer.map { it.sladdet() },
     avbrutt = avbrutt?.sladdet(),
     ventestatus = ventestatus.map { it.sladdet() },
+    prioritering = prioritering?.sladdet(),
 )
 
 fun MeldekortbehandlingDTO.sladdetFor(saksbehandler: Saksbehandler): MeldekortbehandlingDTO =

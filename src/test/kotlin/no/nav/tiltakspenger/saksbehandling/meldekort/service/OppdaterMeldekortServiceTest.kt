@@ -60,6 +60,7 @@ class OppdaterMeldekortServiceTest {
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
                             skalJournalføreNotat = false,
+                            prioritering = null,
                         ),
                         clock,
                     )
@@ -111,6 +112,7 @@ class OppdaterMeldekortServiceTest {
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
                             skalJournalføreNotat = false,
+                            prioritering = null,
                         ),
                         clock,
                     )
@@ -163,6 +165,7 @@ class OppdaterMeldekortServiceTest {
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
                             skalJournalføreNotat = false,
+                            prioritering = null,
                         ),
                         clock,
                     )
@@ -214,6 +217,7 @@ class OppdaterMeldekortServiceTest {
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
                             skalJournalføreNotat = false,
+                            prioritering = null,
                         ),
                         clock,
                     )
@@ -266,6 +270,7 @@ class OppdaterMeldekortServiceTest {
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
                             skalJournalføreNotat = false,
+                            prioritering = null,
                         ),
                         clock,
                     )
@@ -317,6 +322,7 @@ class OppdaterMeldekortServiceTest {
                         fritekstTilVedtaksbrev = null,
                         skalSendeVedtaksbrev = true,
                         skalJournalføreNotat = false,
+                        prioritering = null,
                     ),
                     clock,
                 ).getOrFail()

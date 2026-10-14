@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -39,6 +40,7 @@ data class MeldekortbehandlingAvbrutt(
     override val meldeperioder: Meldeperiodebehandlinger,
     override val skalSendeVedtaksbrev: Boolean,
     override val skalJournalføreNotat: Boolean,
+    override val prioritering: Prioritering?,
     override val ventestatus: Ventestatus,
     override val klagebehandling: Klagebehandling?,
 ) : Meldekortbehandling {

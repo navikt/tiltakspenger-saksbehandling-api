@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto
 
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.PrioriteringDTO
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekort
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortType
 import no.nav.tiltakspenger.saksbehandling.benk.domene.finnGyldigeKommandoer
@@ -37,6 +38,8 @@ data class BenkMeldekortDTO(
     val status: BenkBehandlingsstatusDTO,
     val meldeperioder: List<PeriodeDTO>,
     val beløp: Int?,
+    /** null når behandlingen ikke er prioritert. */
+    val prioritering: PrioriteringDTO?,
     val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : BenkBehandlingDTO
 
@@ -61,6 +64,7 @@ fun BenkMeldekort.toDTO(
     type = type.toDTO(),
     meldeperioder = meldeperioder.map { PeriodeDTO(it.fraOgMed.toString(), it.tilOgMed.toString()) },
     beløp = beløp,
+    prioritering = prioritering?.toDTO(),
     gyldigeKommandoer = finnGyldigeKommandoer(saksbehandler).tilDTO(),
 )
 

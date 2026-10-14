@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningMedSimulering
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
@@ -55,6 +56,12 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
      * Notatet er kun synlig internt i Nav (Gosys), og deles ikke med bruker.
      */
     val skalJournalføreNotat: Boolean
+
+    /**
+     * Satt når behandlingen er markert som høyt prioritert, ellers null.
+     * Prioriterte behandlinger ligger alltid øverst i benken.
+     */
+    val prioritering: Prioritering?
 
     val meldeperioder: Meldeperiodebehandlinger
 
