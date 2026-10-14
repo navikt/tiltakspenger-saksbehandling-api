@@ -113,13 +113,17 @@ class DelautomatiskForlengelseServiceTest {
                 it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
                 it.beslutter.shouldBeNull()
                 it.manueltBehandlesGrunner.shouldBeEmpty()
-                it.begrunnelseVilkårsvurdering.shouldNotBeNull()
+                it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldBe
+                    "Automatisk behandlet.\nTiltaksdeltakelsen er forlenget til 30. juni 2025."
                 it.skalSendeVedtaksbrev shouldBe true
                 it.resultat.shouldBeInstanceOf<Revurderingsresultat.Innvilgelse>()
                 it.innvilgelsesperioder.shouldNotBeNull().totalPeriode shouldBe (6.mai(2025) til 30.juni(2025))
                 it.antallDagerPerMeldeperiode.shouldNotBeNull().verdier.distinct() shouldBe
                     vedtak.antallDagerPerMeldeperiode.shouldNotBeNull().verdier.distinct()
-                it.barnetillegg.shouldNotBeNull().periodisering.verdier.distinct() shouldBe listOf(AntallBarn.ZERO)
+                it.barnetillegg.shouldNotBeNull().also { barnetillegg ->
+                    barnetillegg.periodisering.verdier.distinct() shouldBe listOf(AntallBarn.ZERO)
+                    barnetillegg.begrunnelse.shouldBeNull()
+                }
             }
         }
     }
@@ -174,7 +178,9 @@ class DelautomatiskForlengelseServiceTest {
         withTestApplicationContextAndPostgres { tac ->
             forlengOgBehandleAutomatisk(tac, nåtilstand = { it.copy(antallDagerPerUke = 2.5F, deltakelseProsent = 50F) }).also {
                 it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 5)
-                it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldContain
+                it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldBe
+                    "Automatisk behandlet.\n" +
+                    "Tiltaksdeltakelsen er forlenget til 30. juni 2025.\n" +
                     "Deltakelsesmengden er endret til 2,5 dager per uke, som gir 5 dager per meldeperiode."
             }
         }
@@ -218,8 +224,10 @@ class DelautomatiskForlengelseServiceTest {
     @Test
     fun `bruker kan melde i helg med uendret deltakelsesmengde - fylles ut og sendes til beslutning`() {
         withTestApplicationContextAndPostgres { tac ->
-            forlengOgBehandleAutomatisk(tac, kanSendeHelg = true)
-                .skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10)
+            forlengOgBehandleAutomatisk(tac, kanSendeHelg = true).also {
+                it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10)
+                it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldNotContain "dager per meldeperiode"
+            }
         }
     }
 
@@ -231,8 +239,9 @@ class DelautomatiskForlengelseServiceTest {
                 barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015)), barnetilleggUtenIdent(fødselsdato = 1.januar(2018))),
             ).also {
                 it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10, antallBarn = AntallBarn(2))
-                it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldContain
+                it.barnetillegg.shouldNotBeNull().begrunnelse.shouldNotBeNull().verdi shouldBe
                     "Barnetillegg for 2 barn videreføres fra det gjeldende vedtaket."
+                it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldNotContain "arnetillegg"
             }
         }
     }
@@ -250,10 +259,11 @@ class DelautomatiskForlengelseServiceTest {
                     PeriodeMedVerdi(AntallBarn(2), 6.mai(2025) til 31.mai(2025)),
                     PeriodeMedVerdi(AntallBarn(1), 1.juni(2025) til 30.juni(2025)),
                 )
-                it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldContain
+                it.barnetillegg.shouldNotBeNull().begrunnelse.shouldNotBeNull().verdi shouldBe
                     "Barnetillegget for 2 barn i det gjeldende vedtaket reduseres når barn fyller 16 år:\n" +
                     "2 barn fra og med 6. mai 2025 til og med 31. mai 2025.\n" +
                     "1 barn fra og med 1. juni 2025 til og med 30. juni 2025."
+                it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldNotContain "arnetillegg"
             }
         }
     }
@@ -263,9 +273,11 @@ class DelautomatiskForlengelseServiceTest {
         withTestApplicationContextAndPostgres { tac ->
             forlengOgBehandleAutomatisk(tac, barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 6.mai(2009)))).also {
                 it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10, antallBarn = AntallBarn.ZERO)
-                it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldContain
-                    "Barnetillegget for 1 barn i det gjeldende vedtaket reduseres når barn fyller 16 år:\n" +
-                    "0 barn fra og med 6. mai 2025 til og med 30. juni 2025."
+                it.barnetillegg.shouldNotBeNull().begrunnelse.shouldBeNull()
+                it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldBe
+                    "Automatisk behandlet.\n" +
+                    "Tiltaksdeltakelsen er forlenget til 30. juni 2025.\n" +
+                    "Barnetillegget for 1 barn i det gjeldende vedtaket faller bort, fordi barna har fylt 16 år."
             }
         }
     }
@@ -279,7 +291,8 @@ class DelautomatiskForlengelseServiceTest {
                 antallBarnIVedtaket = AntallBarn.ZERO,
             ).also {
                 it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10, antallBarn = AntallBarn.ZERO)
-                it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldNotContain "Barnetillegg"
+                it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldNotContain "arnetillegg"
+                it.barnetillegg.shouldNotBeNull().begrunnelse.shouldBeNull()
             }
         }
     }

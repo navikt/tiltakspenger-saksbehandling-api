@@ -30,6 +30,8 @@ import java.time.LocalDate
  * @param innvilgelsesperiode Fra dagen etter siste innvilgede dag i det gjeldende vedtaket, til ny sluttdato for deltakelsen.
  * @param antallDagerPerMeldeperiode Videreført fra det gjeldende vedtaket, eller utledet fra deltakelsesmengden dersom den er endret.
  * @param antallBarn Dekker hele [innvilgelsesperiode], se [utledAntallBarn].
+ * @param begrunnelse Begrunnelsen for vilkårsvurderingen.
+ * @param begrunnelseBarnetillegg Begrunnelsen for barnetillegget, eller null dersom forlengelsen ikke har barnetillegg.
  */
 data class AutomatiskForlengelse(
     val innvilgelsesperiode: Periode,
@@ -37,6 +39,7 @@ data class AutomatiskForlengelse(
     val antallBarn: SammenhengendePeriodisering<AntallBarn>,
     val tiltaksdeltakerId: TiltaksdeltakerId,
     val begrunnelse: Begrunnelse,
+    val begrunnelseBarnetillegg: Begrunnelse?,
 ) {
     init {
         require(antallBarn.totalPeriode == innvilgelsesperiode) {
@@ -44,7 +47,7 @@ data class AutomatiskForlengelse(
         }
     }
 
-    val barnetillegg: Barnetillegg = Barnetillegg(periodisering = antallBarn, begrunnelse = null)
+    val barnetillegg: Barnetillegg = Barnetillegg(periodisering = antallBarn, begrunnelse = begrunnelseBarnetillegg)
 }
 
 /**
@@ -159,10 +162,12 @@ fun Sak.utledAutomatiskForlengelse(
         antallBarn = antallBarn,
         tiltaksdeltakerId = tiltaksdeltakerId,
         begrunnelse = lagBegrunnelse(
-            innvilgelsesperiode = innvilgelsesperiode,
             nySluttdato = nySluttdato,
-            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             endretDeltakelsesmengde = endretDeltakelsesmengde,
+            antallBarnIVedtaket = antallBarnIVedtaket,
+            antallBarn = antallBarn,
+        ),
+        begrunnelseBarnetillegg = lagBegrunnelseBarnetillegg(
             antallBarnIVedtaket = antallBarnIVedtaket,
             antallBarn = antallBarn,
         ),
@@ -262,39 +267,52 @@ fun Deltakelsestilstand.utledDeltakelsesmengde(): Either<ManueltBehandlesGrunn, 
 private fun Float.formater(): String =
     if (this % 1F == 0F) toInt().toString() else toString().replace('.', ',')
 
+/**
+ * Begrunnelsen for vilkårsvurderingen.
+ * Antall dager per meldeperiode nevnes kun når deltakelsesmengden er endret.
+ * Barnetillegget begrunnes i eget felt, se [lagBegrunnelseBarnetillegg], bortsett fra når det faller helt bort.
+ */
 private fun lagBegrunnelse(
-    innvilgelsesperiode: Periode,
     nySluttdato: LocalDate,
-    antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
     endretDeltakelsesmengde: UtledetDeltakelsesmengde?,
     antallBarnIVedtaket: AntallBarn,
     antallBarn: SammenhengendePeriodisering<AntallBarn>,
 ): Begrunnelse {
-    val antallDager = if (endretDeltakelsesmengde == null) {
-        "Antall dager per meldeperiode er ${antallDagerPerMeldeperiode.value}, som i det gjeldende vedtaket."
+    val antallDager = endretDeltakelsesmengde?.let {
+        "\nDeltakelsesmengden er endret til ${it.beskrivelse}, som gir ${it.antallDagerPerMeldeperiode.value} dager per meldeperiode."
+    } ?: ""
+    val barnetilleggFallerBort = if (antallBarnIVedtaket != AntallBarn.ZERO && antallBarn.inneholderKun(AntallBarn.ZERO)) {
+        "\nBarnetillegget for ${antallBarnIVedtaket.value} barn i det gjeldende vedtaket faller bort, fordi barna har fylt 16 år."
     } else {
-        "Deltakelsesmengden er endret til ${endretDeltakelsesmengde.beskrivelse}, " +
-            "som gir ${antallDagerPerMeldeperiode.value} dager per meldeperiode."
-    }
-    val barnetillegg = when {
-        antallBarnIVedtaket == AntallBarn.ZERO -> ""
-
-        antallBarn.inneholderKun(antallBarnIVedtaket) ->
-            "\nBarnetillegg for ${antallBarnIVedtaket.value} barn videreføres fra det gjeldende vedtaket."
-
-        else ->
-            "\nBarnetillegget for ${antallBarnIVedtaket.value} barn i det gjeldende vedtaket reduseres når barn fyller 16 år:" +
-                antallBarn.perioderMedVerdi.joinToString("") { (antall, periode) ->
-                    "\n${antall.value} barn fra og med ${periode.fraOgMed.format(norskDatoFormatter)} " +
-                        "til og med ${periode.tilOgMed.format(norskDatoFormatter)}."
-                }
+        ""
     }
     return Begrunnelse.create(
         "Automatisk behandlet.\n" +
-            "Tiltaksdeltakelsen er forlenget til ${nySluttdato.format(norskDatoFormatter)}.\n" +
-            "Tiltakspengene innvilges fra og med ${innvilgelsesperiode.fraOgMed.format(norskDatoFormatter)} " +
-            "til og med ${innvilgelsesperiode.tilOgMed.format(norskDatoFormatter)}.\n" +
+            "Tiltaksdeltakelsen er forlenget til ${nySluttdato.format(norskDatoFormatter)}." +
             antallDager +
-            barnetillegg,
+            barnetilleggFallerBort,
     )!!
+}
+
+/**
+ * Begrunnelsen for barnetillegget.
+ * Er null når forlengelsen ikke har barnetillegg, enten fordi det gjeldende vedtaket ikke hadde det, eller fordi det faller helt bort.
+ */
+private fun lagBegrunnelseBarnetillegg(
+    antallBarnIVedtaket: AntallBarn,
+    antallBarn: SammenhengendePeriodisering<AntallBarn>,
+): Begrunnelse? = when {
+    antallBarn.inneholderKun(AntallBarn.ZERO) -> null
+
+    antallBarn.inneholderKun(antallBarnIVedtaket) -> Begrunnelse.create(
+        "Barnetillegg for ${antallBarnIVedtaket.value} barn videreføres fra det gjeldende vedtaket.",
+    )
+
+    else -> Begrunnelse.create(
+        "Barnetillegget for ${antallBarnIVedtaket.value} barn i det gjeldende vedtaket reduseres når barn fyller 16 år:" +
+            antallBarn.perioderMedVerdi.joinToString("") { (antall, periode) ->
+                "\n${antall.value} barn fra og med ${periode.fraOgMed.format(norskDatoFormatter)} " +
+                    "til og med ${periode.tilOgMed.format(norskDatoFormatter)}."
+            },
+    )
 }
