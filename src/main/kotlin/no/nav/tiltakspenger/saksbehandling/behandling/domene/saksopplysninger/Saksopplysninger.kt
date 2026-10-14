@@ -22,7 +22,7 @@ import java.time.LocalDateTime
  * Er null dersom tiltaksdeltakelsesperioden er null.
  * @param tiltaksdeltakelserSomFratarRett tiltaksdeltakelser som fratar rett til tiltakspenger, og som vises til saksbehandler (i første omgang lønnstilskudd).
  * Inneholder de som overlapper med [periode], inkludert tvilstilfellene der manglende datoer gjør at vi ikke kan si sikkert.
- * Påvirker ikke behandlingen.
+ * Brukes aldri som grunnlag for beregning, men sender søknaden til manuell behandling i den del-automatiske behandlingen.
  */
 data class Saksopplysninger(
     val fødselsdato: LocalDate,
@@ -49,6 +49,13 @@ data class Saksopplysninger(
         return tiltaksdeltakelser.any {
             it.internDeltakelseId != internDeltakelseId && it.overlapperMed(tiltaksperiode) != Overlapp.Nei
         }
+    }
+
+    /**
+     * Siden denne kun brukes av den del-automatiske behandlingen ønsker vi å behandle tvilstilfellene (null) som om de kan overlappe.
+     */
+    fun tiltaksdeltakelserSomFratarRettSomOverlapper(periode: Periode): List<TiltaksdeltakelseSomFratarRett> {
+        return tiltaksdeltakelserSomFratarRett.filter { it.overlapperMed(periode) != Overlapp.Nei }
     }
 
     fun harAndreYtelserEnnTiltakspenger(): Boolean {

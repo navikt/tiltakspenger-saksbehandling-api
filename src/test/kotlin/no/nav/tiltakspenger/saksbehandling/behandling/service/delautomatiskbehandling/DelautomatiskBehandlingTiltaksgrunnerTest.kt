@@ -10,8 +10,12 @@ import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakstype
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn.SAKSOPPLYSNING_FANT_IKKE_TILTAK
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn.SAKSOPPLYSNING_HAR_LONNSTILSKUDD
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn.SAKSOPPLYSNING_MANGLER_FULLSTENDIG_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn.SAKSOPPLYSNING_MINDRE_ENN_14_DAGER_MELLOM_TILTAK_OG_SOKNAD
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn.SAKSOPPLYSNING_OVERLAPPENDE_TILTAK
@@ -30,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import java.time.LocalDate
 
 /**
  * Grunnene som stammer fra søknadstiltaket slik det ser ut i registeret når behandlingen opprettes.
@@ -158,6 +163,46 @@ class DelautomatiskBehandlingTiltaksgrunnerTest {
             )
         }
     }
+
+    @Test
+    fun `lønnstilskudd overlapper søknadsperioden`() {
+        withTestApplicationContext { tac ->
+            val søknadstiltak = tac.tiltaksdeltakelse(1.januar(2023) til 31.mars(2023))
+            val (sak, søknad) = opprettSakOgSøknad(tac, tiltaksdeltakelse = søknadstiltak)
+            tac.leggTilTiltaksdeltakelseSomFratarRett(sak.fnr, lønnstilskudd(fraOgMed = 1.mars(2023), tilOgMed = 30.april(2023)))
+
+            behandleAutomatisk(tac, søknad) shouldBe listOf(SAKSOPPLYSNING_HAR_LONNSTILSKUDD)
+        }
+    }
+
+    @Test
+    fun `lønnstilskudd uten periode regnes som overlappende`() {
+        withTestApplicationContext { tac ->
+            val søknadstiltak = tac.tiltaksdeltakelse(1.januar(2023) til 31.mars(2023))
+            val (sak, søknad) = opprettSakOgSøknad(tac, tiltaksdeltakelse = søknadstiltak)
+            tac.leggTilTiltaksdeltakelseSomFratarRett(sak.fnr, lønnstilskudd(fraOgMed = null, tilOgMed = null))
+
+            behandleAutomatisk(tac, søknad) shouldBe listOf(SAKSOPPLYSNING_HAR_LONNSTILSKUDD)
+        }
+    }
+
+    @Test
+    fun `lønnstilskudd utenfor søknadsperioden hindrer ikke automatisk behandling`() {
+        withTestApplicationContext { tac ->
+            val søknadstiltak = tac.tiltaksdeltakelse(1.januar(2023) til 31.mars(2023))
+            val (sak, søknad) = opprettSakOgSøknad(tac, tiltaksdeltakelse = søknadstiltak)
+            tac.leggTilTiltaksdeltakelseSomFratarRett(sak.fnr, lønnstilskudd(fraOgMed = 1.april(2023), tilOgMed = 30.april(2023)))
+
+            behandleAutomatisk(tac, søknad) shouldBe emptyList()
+        }
+    }
+
+    private fun lønnstilskudd(fraOgMed: LocalDate?, tilOgMed: LocalDate?) = testdeltakelse(
+        id = "TA7654321",
+        tiltakstype = Tiltakstype.SomFratarRett(tiltakskodeFraKilden = "MIDLONTIL"),
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
+    ) as Tiltaksdeltakelse.FratarRett
 
     /** Oppretter og kjører den automatiske behandlingen av [søknad], og returnerer grunnene til at den må behandles manuelt. */
     private suspend fun ApplicationTestBuilder.behandleAutomatisk(

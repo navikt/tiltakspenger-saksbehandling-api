@@ -338,6 +338,16 @@ class DelautomatiskBehandlingService(
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_MINDRE_ENN_14_DAGER_MELLOM_TILTAK_OG_SOKNAD)
         }
 
+        val tiltakSomFratarRett = behandling.saksopplysninger.tiltaksdeltakelserSomFratarRettSomOverlapper(
+            behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm(),
+        )
+        if (tiltakSomFratarRett.any { it.erLønnstilskudd }) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_HAR_LONNSTILSKUDD)
+        }
+        if (tiltakSomFratarRett.any { !it.erLønnstilskudd }) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_HAR_TILTAK_SOM_FRATAR_RETT)
+        }
+
         if (behandling.saksopplysninger.harAndreYtelserEnnTiltakspenger()) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_ANDRE_YTELSER)
         }

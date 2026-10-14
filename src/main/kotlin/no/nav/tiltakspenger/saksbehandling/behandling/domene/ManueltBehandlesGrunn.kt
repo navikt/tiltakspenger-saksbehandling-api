@@ -17,6 +17,15 @@ enum class ManueltBehandlesGrunn {
     SAKSOPPLYSNING_DELTIDSTILTAK_UTEN_DAGER_PER_UKE,
     SAKSOPPLYSNING_OVERLAPPENDE_TILTAK,
     SAKSOPPLYSNING_MINDRE_ENN_14_DAGER_MELLOM_TILTAK_OG_SOKNAD,
+
+    /** Bruker har lønnstilskudd i søknadsperioden, som fratar rett til tiltakspenger. */
+    SAKSOPPLYSNING_HAR_LONNSTILSKUDD,
+
+    /**
+     * Bruker har et annet tiltak enn lønnstilskudd i søknadsperioden som fratar rett til tiltakspenger.
+     * Alle tiltak som fratar rett er i dag lønnstilskudd, så denne er forberedt på at det kommer flere typer.
+     */
+    SAKSOPPLYSNING_HAR_TILTAK_SOM_FRATAR_RETT,
     SAKSOPPLYSNING_ULIK_TILTAKSPERIODE,
     SAKSOPPLYSNING_HAR_IKKE_DELTATT_PA_TILTAK,
     SAKSOPPLYSNING_ANDRE_YTELSER,

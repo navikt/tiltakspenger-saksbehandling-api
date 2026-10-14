@@ -1,5 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse
 
+import no.nav.tiltakspenger.libs.periode.Overlapp
+import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periode.ÅpenPeriode
 import java.time.LocalDate
 
 /**
@@ -25,4 +28,16 @@ data class TiltaksdeltakelseSomFratarRett(
     val deltakelseProsent: Float?,
     val antallDagerPerUke: Float?,
     val kilde: Tiltakskilde,
-)
+) {
+    /**
+     * Alle tiltakstyper som fratar rett er i dag lønnstilskudd, og libs bærer derfor ingen diskriminator for typen.
+     * TODO: Når libs får flere tiltakstyper som fratar rett, må dette utledes fra en diskriminator på [no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse.FratarRett].
+     * Klassifiser aldri på [tiltakskodeFraKilden], den er kun til visning.
+     */
+    val erLønnstilskudd: Boolean get() = true
+
+    /**
+     * Se [ÅpenPeriode.overlapperMed].
+     */
+    fun overlapperMed(periode: Periode): Overlapp = ÅpenPeriode(deltakelseFraOgMed, deltakelseTilOgMed).overlapperMed(periode)
+}
