@@ -55,6 +55,7 @@ interface StartSøknadsbehandlingBuilder {
                 tac = tac,
                 sakId = sakId,
                 tiltaksdeltakelse = tiltaksdeltakelse,
+                barnetillegg = barnetillegg,
             )
         }
         søknad.shouldBeInstanceOf<InnvilgbarSøknad>()
@@ -127,6 +128,7 @@ interface StartSøknadsbehandlingBuilder {
         saksbehandler: Saksbehandler = saksbehandler(),
         tiltaksdeltakelse: TiltaksdeltakelseIntern = tac.tiltaksdeltakelse(),
         clock: Clock = fixedClock,
+        barnFraSøknad: List<BarnetilleggFraSøknad> = emptyList(),
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad, behandling) = opprettSøknadsbehandlingKlarTilBehandling(
             tac = tac,
@@ -134,6 +136,7 @@ interface StartSøknadsbehandlingBuilder {
             fnr = fnr,
             tiltaksdeltakelse = tiltaksdeltakelse,
             clock = clock,
+            barnetillegg = barnFraSøknad,
         )
 
         val (oppdaterSak, behandlingOppdatert) = taRammebehandlinger(
@@ -161,6 +164,7 @@ interface StartSøknadsbehandlingBuilder {
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         clock: Clock = fixedClock,
         prioriteringBegrunnelse: String? = null,
+        barnFraSøknad: List<BarnetilleggFraSøknad> = emptyList(),
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad, behandling) = opprettSøknadsbehandlingUnderBehandling(
             tac = tac,
@@ -169,6 +173,7 @@ interface StartSøknadsbehandlingBuilder {
             saksbehandler = saksbehandler,
             tiltaksdeltakelse = tiltaksdeltakelse,
             clock = clock,
+            barnFraSøknad = barnFraSøknad,
         )
 
         val (oppdatertSak, oppdatertBehandling) = oppdaterSøknadsbehandlingInnvilgelse(

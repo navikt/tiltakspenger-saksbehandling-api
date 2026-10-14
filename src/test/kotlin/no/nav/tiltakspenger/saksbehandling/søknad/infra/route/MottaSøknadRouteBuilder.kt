@@ -32,6 +32,7 @@ interface MottaSøknadRouteBuilder {
         sakId: SakId,
         søknadId: SøknadId = SøknadId.random(),
         tiltaksdeltakelse: TiltaksdeltakelseIntern = tac.tiltaksdeltakelse(),
+        barnetillegg: List<BarnetilleggFraSøknad> = emptyList(),
     ): Pair<Sak, Søknad> {
         val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
         val saksnummer = hentEllerOpprettSakForSystembruker(tac, sak.fnr)
@@ -41,7 +42,7 @@ interface MottaSøknadRouteBuilder {
             tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
             sakId = sak.id,
         )
-        mottaSøknad(tac, sak.fnr, saksnummer, søknadId, tiltaksdeltakelse)
+        mottaSøknad(tac, sak.fnr, saksnummer, søknadId, tiltaksdeltakelse, barnetillegg)
         val oppdatertSak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
         return oppdatertSak to oppdatertSak.søknader.single { it.id == søknadId }
     }

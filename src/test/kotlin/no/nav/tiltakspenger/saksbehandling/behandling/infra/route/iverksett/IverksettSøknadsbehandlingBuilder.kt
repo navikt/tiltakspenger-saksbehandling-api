@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -44,6 +45,7 @@ interface IverksettSøknadsbehandlingBuilder {
         // Utledes fra innvilgelsesperiodene slik at flyten registrerer samme deltakelse som innvilges; en frisk deltakelse ville fått ny id.
         tiltaksdeltakelse: TiltaksdeltakelseIntern = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+        barnFraSøknad: List<BarnetilleggFraSøknad> = emptyList(),
     ): Tuple4<Sak, Søknad, Rammevedtak, RammebehandlingDTOJson> {
         val (sak, søknad, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(
             tac = tac,
@@ -55,6 +57,7 @@ interface IverksettSøknadsbehandlingBuilder {
             barnetillegg = barnetillegg,
             tiltaksdeltakelse = tiltaksdeltakelse,
             saksbehandler = saksbehandler,
+            barnFraSøknad = barnFraSøknad,
         )
 
         taRammebehandlinger(tac, behandlinger = listOf(sak.id to behandlingId), saksbehandler = beslutter)

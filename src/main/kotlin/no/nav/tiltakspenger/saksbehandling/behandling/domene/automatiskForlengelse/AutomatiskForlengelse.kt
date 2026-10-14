@@ -3,17 +3,18 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskForlenge
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.periodiserAntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -28,19 +29,22 @@ import java.time.LocalDate
  *
  * @param innvilgelsesperiode Fra dagen etter siste innvilgede dag i det gjeldende vedtaket, til ny sluttdato for deltakelsen.
  * @param antallDagerPerMeldeperiode Videreført fra det gjeldende vedtaket, eller utledet fra deltakelsesmengden dersom den er endret.
- * @param antallBarn Videreført fra det gjeldende vedtaket, og gjelder hele [innvilgelsesperiode].
+ * @param antallBarn Dekker hele [innvilgelsesperiode], se [utledAntallBarn].
  */
 data class AutomatiskForlengelse(
     val innvilgelsesperiode: Periode,
     val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
-    val antallBarn: AntallBarn,
+    val antallBarn: SammenhengendePeriodisering<AntallBarn>,
     val tiltaksdeltakerId: TiltaksdeltakerId,
     val begrunnelse: Begrunnelse,
 ) {
-    val barnetillegg: Barnetillegg = Barnetillegg(
-        periodisering = nonEmptyListOf(PeriodeMedVerdi(antallBarn, innvilgelsesperiode)).tilIkkeTomPeriodisering(),
-        begrunnelse = null,
-    )
+    init {
+        require(antallBarn.totalPeriode == innvilgelsesperiode) {
+            "Antall barn må dekke hele innvilgelsesperioden $innvilgelsesperiode, men dekket ${antallBarn.totalPeriode}"
+        }
+    }
+
+    val barnetillegg: Barnetillegg = Barnetillegg(periodisering = antallBarn, begrunnelse = null)
 }
 
 /**
@@ -59,7 +63,7 @@ data class AutomatiskForlengelse(
  * Er deltakelsesmengden uendret, videreføres antall dager per meldeperiode fra det gjeldende vedtaket.
  * Er den endret, utledes antall dager per meldeperiode fra den nye deltakelsesmengden, se [utledDeltakelsesmengde].
  * Kan bruker melde i helg, overlates en endret deltakelsesmengde likevel til saksbehandler.
- * Antall barn med barnetillegg videreføres fra det gjeldende vedtaket.
+ * Barnetillegget videreføres fra det gjeldende vedtaket, og periodiseres ut fra barna i søknaden, se [utledAntallBarn].
  *
  * Vurderingen er bevisst konservativ, og alt som ikke er entydig overlates til saksbehandler.
  *
@@ -138,7 +142,13 @@ fun Sak.utledAutomatiskForlengelse(
         return ManueltBehandlesGrunn.FORLENGELSE_VEDTAK_I_ARENA.left()
     }
 
-    val antallBarn = rammevedtaksliste.barnetilleggsperioder.hentVerdiForDag(sisteInnvilgedeDag) ?: AntallBarn.ZERO
+    val antallBarnIVedtaket = rammevedtaksliste.barnetilleggsperioder.hentVerdiForDag(sisteInnvilgedeDag) ?: AntallBarn.ZERO
+    val antallBarn = utledAntallBarn(
+        tiltaksdeltakerId = tiltaksdeltakerId,
+        sisteInnvilgedeDag = sisteInnvilgedeDag,
+        antallBarnIVedtaket = antallBarnIVedtaket,
+        innvilgelsesperiode = innvilgelsesperiode,
+    ).getOrElse { return it.left() }
 
     val antallDagerPerMeldeperiode = endretDeltakelsesmengde?.antallDagerPerMeldeperiode
         ?: gjeldendeVedtak.antallDagerPerMeldeperiode!!.hentVerdiForDag(sisteInnvilgedeDag)!!
@@ -153,9 +163,55 @@ fun Sak.utledAutomatiskForlengelse(
             nySluttdato = nySluttdato,
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             endretDeltakelsesmengde = endretDeltakelsesmengde,
+            antallBarnIVedtaket = antallBarnIVedtaket,
             antallBarn = antallBarn,
         ),
     ).right()
+}
+
+/**
+ * Utleder antall barn med barnetillegg i [innvilgelsesperiode].
+ *
+ * Hadde det gjeldende vedtaket ikke barnetillegg på [sisteInnvilgedeDag] ([antallBarnIVedtaket] er 0), får heller ikke forlengelsen barnetillegg.
+ * Nye barn krever en ny søknad, så det er ikke noe å vurdere.
+ *
+ * Ellers periodiseres barnetillegget ut fra barna i søknaden som ligger til grunn for innvilgelsen av [tiltaksdeltakerId], se [periodiserAntallBarn].
+ * Slik faller barnetillegget bort for barn som fyller 16 år i forlengelsen, på samme måte som når saksbehandler forhåndsutfyller fra søknaden.
+ * Søknaden må gi like mange barn som det gjeldende vedtaket på [sisteInnvilgedeDag], slik at vi vet at det er de samme barna som er innvilget.
+ * Har saksbehandler for eksempel innvilget barnetillegg for et barn utenfor EØS, eller lagt til et barn, overlates forlengelsen til saksbehandler.
+ * Det samme gjelder om søknaden gir flere barn i forlengelsen enn i vedtaket, siden et nytt barn må vurderes av saksbehandler.
+ */
+private fun Sak.utledAntallBarn(
+    tiltaksdeltakerId: TiltaksdeltakerId,
+    sisteInnvilgedeDag: LocalDate,
+    antallBarnIVedtaket: AntallBarn,
+    innvilgelsesperiode: Periode,
+): Either<ManueltBehandlesGrunn, SammenhengendePeriodisering<AntallBarn>> {
+    if (antallBarnIVedtaket == AntallBarn.ZERO) {
+        return SammenhengendePeriodisering(AntallBarn.ZERO, innvilgelsesperiode).right()
+    }
+
+    val barnFraSøknaden = rammevedtaksliste
+        .filter { it.rammebehandling is Søknadsbehandling && it.rammebehandlingsresultat is Søknadsbehandlingsresultat.Innvilgelse }
+        .filter { vedtak -> vedtak.valgteTiltaksdeltakelser!!.verdier.any { it.internDeltakelseId == tiltaksdeltakerId } }
+        .maxByOrNull { it.opprettet }
+        ?.let { (it.rammebehandling as Søknadsbehandling).søknad.barnetillegg }
+        ?: return ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG.left()
+
+    val antallBarnFraSøknadenISisteInnvilgedeDag = barnFraSøknaden
+        .periodiserAntallBarn(sisteInnvilgedeDag til sisteInnvilgedeDag)
+        .verdier
+        .single()
+    if (antallBarnFraSøknadenISisteInnvilgedeDag != antallBarnIVedtaket) {
+        return ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG.left()
+    }
+
+    val antallBarn = barnFraSøknaden.periodiserAntallBarn(innvilgelsesperiode)
+    if (antallBarn.verdier.any { it.value > antallBarnIVedtaket.value }) {
+        return ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG.left()
+    }
+
+    return antallBarn.right()
 }
 
 /**
@@ -211,7 +267,8 @@ private fun lagBegrunnelse(
     nySluttdato: LocalDate,
     antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
     endretDeltakelsesmengde: UtledetDeltakelsesmengde?,
-    antallBarn: AntallBarn,
+    antallBarnIVedtaket: AntallBarn,
+    antallBarn: SammenhengendePeriodisering<AntallBarn>,
 ): Begrunnelse {
     val antallDager = if (endretDeltakelsesmengde == null) {
         "Antall dager per meldeperiode er ${antallDagerPerMeldeperiode.value}, som i det gjeldende vedtaket."
@@ -219,10 +276,18 @@ private fun lagBegrunnelse(
         "Deltakelsesmengden er endret til ${endretDeltakelsesmengde.beskrivelse}, " +
             "som gir ${antallDagerPerMeldeperiode.value} dager per meldeperiode."
     }
-    val barnetillegg = if (antallBarn == AntallBarn.ZERO) {
-        ""
-    } else {
-        "\nBarnetillegg for ${antallBarn.value} barn videreføres fra det gjeldende vedtaket."
+    val barnetillegg = when {
+        antallBarnIVedtaket == AntallBarn.ZERO -> ""
+
+        antallBarn.inneholderKun(antallBarnIVedtaket) ->
+            "\nBarnetillegg for ${antallBarnIVedtaket.value} barn videreføres fra det gjeldende vedtaket."
+
+        else ->
+            "\nBarnetillegget for ${antallBarnIVedtaket.value} barn i det gjeldende vedtaket reduseres når barn fyller 16 år:" +
+                antallBarn.perioderMedVerdi.joinToString("") { (antall, periode) ->
+                    "\n${antall.value} barn fra og med ${periode.fraOgMed.format(norskDatoFormatter)} " +
+                        "til og med ${periode.tilOgMed.format(norskDatoFormatter)}."
+                }
     }
     return Begrunnelse.create(
         "Automatisk behandlet.\n" +

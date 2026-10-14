@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgels
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedAvslag
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 
@@ -36,6 +37,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
         // Utledes fra innvilgelsesperiodene slik at flyten registrerer samme deltakelse som innvilges; en frisk deltakelse ville fått ny id.
         tiltaksdeltakelse: TiltaksdeltakelseIntern = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+        barnFraSøknad: List<BarnetilleggFraSøknad> = emptyList(),
     ): Tuple4<Sak, Søknad, RammebehandlingId, String> {
         val (sak, søknad, behandling) = when (resultat) {
             SøknadsbehandlingsresultatType.INNVILGELSE -> opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
@@ -47,6 +49,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg,
                 tiltaksdeltakelse = tiltaksdeltakelse,
+                barnFraSøknad = barnFraSøknad,
             )
 
             SøknadsbehandlingsresultatType.AVSLAG -> opprettSøknadsbehandlingUnderBehandlingMedAvslag(

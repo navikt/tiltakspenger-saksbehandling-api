@@ -66,6 +66,12 @@ enum class ManueltBehandlesGrunn {
     /** Deltakelsesmengden er endret, men den nye gir ikke et helt antall dager per meldeperiode, for eksempel 33 prosent. */
     FORLENGELSE_DELTAKELSESMENGDE_GIR_IKKE_HELE_DAGER,
 
+    /**
+     * Vedtaket har barnetillegg, men det kan ikke periodiseres ut fra barna i søknaden.
+     * Enten finnes ingen innvilget søknad for deltakelsen, søknaden gir et annet antall barn enn vedtaket, eller den gir nye barn i forlengelsen.
+     */
+    FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG,
+
     FORLENGELSE_OVERLAPPER_ANDRE_VEDTAK,
     FORLENGELSE_OVERLAPPENDE_TILTAK,
     FORLENGELSE_ANDRE_YTELSER,
