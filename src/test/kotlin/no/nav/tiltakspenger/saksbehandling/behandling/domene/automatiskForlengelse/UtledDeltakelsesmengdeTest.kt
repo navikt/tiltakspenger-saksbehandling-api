@@ -12,13 +12,19 @@ import org.junit.jupiter.api.Test
 
 class UtledDeltakelsesmengdeTest {
 
-    private fun deltakelsesmengde(antallDagerPerUke: Float?, deltakelseProsent: Float?) = Deltakelsestilstand(
+    private fun deltakelsestilstand(antallDagerPerUke: Float?, deltakelseProsent: Float?) = Deltakelsestilstand(
         deltakelseFraOgMed = null,
         deltakelseTilOgMed = null,
         deltakelseStatus = TiltakDeltakerstatus.Deltar,
         deltakelseProsent = deltakelseProsent,
         antallDagerPerUke = antallDagerPerUke,
-    ).utledDeltakelsesmengde()
+    )
+
+    private fun deltakelsesmengde(antallDagerPerUke: Float?, deltakelseProsent: Float?) =
+        deltakelsestilstand(antallDagerPerUke, deltakelseProsent).utledDeltakelsesmengde()
+
+    private fun beskrivelse(antallDagerPerUke: Float?, deltakelseProsent: Float?) =
+        deltakelsestilstand(antallDagerPerUke, deltakelseProsent).beskrivDeltakelsesmengde()
 
     private fun Either<ManueltBehandlesGrunn, UtledetDeltakelsesmengde>.skalGi(antallDagerPerMeldeperiode: Int, beskrivelse: String) {
         this shouldBe UtledetDeltakelsesmengde(AntallDagerForMeldeperiode(antallDagerPerMeldeperiode), beskrivelse).right()
@@ -76,5 +82,31 @@ class UtledDeltakelsesmengdeTest {
             .skalOverlates(ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_DELTAKELSESMENGDE)
         deltakelsesmengde(antallDagerPerUke = null, deltakelseProsent = 120F)
             .skalOverlates(ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_DELTAKELSESMENGDE)
+    }
+
+    @Test
+    fun `beskrivelsen tar med alle verdiene som er satt`() {
+        beskrivelse(antallDagerPerUke = 5F, deltakelseProsent = 100F) shouldBe "5 dager per uke og 100 prosent"
+        beskrivelse(antallDagerPerUke = 2.5F, deltakelseProsent = 50F) shouldBe "2,5 dager per uke og 50 prosent"
+    }
+
+    @Test
+    fun `beskrivelsen utelater verdier som ikke er satt eller er 0`() {
+        beskrivelse(antallDagerPerUke = 2.5F, deltakelseProsent = null) shouldBe "2,5 dager per uke"
+        beskrivelse(antallDagerPerUke = 2F, deltakelseProsent = 0F) shouldBe "2 dager per uke"
+        beskrivelse(antallDagerPerUke = null, deltakelseProsent = 80F) shouldBe "80 prosent"
+        beskrivelse(antallDagerPerUke = 0F, deltakelseProsent = 33.5F) shouldBe "33,5 prosent"
+    }
+
+    @Test
+    fun `beskrivelsen gis også for deltakelsesmengder som ikke kan utledes`() {
+        beskrivelse(antallDagerPerUke = 6F, deltakelseProsent = null) shouldBe "6 dager per uke"
+        beskrivelse(antallDagerPerUke = null, deltakelseProsent = 33F) shouldBe "33 prosent"
+    }
+
+    @Test
+    fun `beskrivelsen er ikke oppgitt når ingen av verdiene er satt`() {
+        beskrivelse(antallDagerPerUke = null, deltakelseProsent = null) shouldBe "ikke oppgitt"
+        beskrivelse(antallDagerPerUke = 0F, deltakelseProsent = 0F) shouldBe "ikke oppgitt"
     }
 }

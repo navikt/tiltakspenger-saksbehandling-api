@@ -117,8 +117,9 @@ fun Sak.utledAutomatiskForlengelse(
         return ManueltBehandlesGrunn.FORLENGELSE_ENDRET_STARTDATO.left()
     }
 
+    val tidligereDeltakelsesmengde = tidligereDeltakelse.tilDeltakelsestilstand()
     val nyDeltakelsesmengde = nåtilstand.tilDeltakelsestilstand()
-    val endretDeltakelsesmengde = if (tidligereDeltakelse.tilDeltakelsestilstand().harSammeDeltakelsesmengde(nyDeltakelsesmengde)) {
+    val endretDeltakelsesmengde = if (tidligereDeltakelsesmengde.harSammeDeltakelsesmengde(nyDeltakelsesmengde)) {
         null
     } else {
         if (kanSendeInnHelgForMeldekort) {
@@ -153,8 +154,8 @@ fun Sak.utledAutomatiskForlengelse(
         innvilgelsesperiode = innvilgelsesperiode,
     ).getOrElse { return it.left() }
 
-    val antallDagerPerMeldeperiode = endretDeltakelsesmengde?.antallDagerPerMeldeperiode
-        ?: gjeldendeVedtak.antallDagerPerMeldeperiode!!.hentVerdiForDag(sisteInnvilgedeDag)!!
+    val antallDagerPerMeldeperiodeIVedtaket = gjeldendeVedtak.antallDagerPerMeldeperiode!!.hentVerdiForDag(sisteInnvilgedeDag)!!
+    val antallDagerPerMeldeperiode = endretDeltakelsesmengde?.antallDagerPerMeldeperiode ?: antallDagerPerMeldeperiodeIVedtaket
 
     return AutomatiskForlengelse(
         innvilgelsesperiode = innvilgelsesperiode,
@@ -163,6 +164,9 @@ fun Sak.utledAutomatiskForlengelse(
         tiltaksdeltakerId = tiltaksdeltakerId,
         begrunnelse = lagBegrunnelse(
             nySluttdato = nySluttdato,
+            tidligereDeltakelsesmengde = tidligereDeltakelsesmengde,
+            nyDeltakelsesmengde = nyDeltakelsesmengde,
+            antallDagerPerMeldeperiodeIVedtaket = antallDagerPerMeldeperiodeIVedtaket,
             endretDeltakelsesmengde = endretDeltakelsesmengde,
             antallBarnIVedtaket = antallBarnIVedtaket,
             antallBarn = antallBarn,
@@ -240,13 +244,13 @@ private const val UKER_PER_MELDEPERIODE = 2F
  * Vi runder ikke av, siden det ikke er entydig hvilken vei det skal rundes.
  */
 fun Deltakelsestilstand.utledDeltakelsesmengde(): Either<ManueltBehandlesGrunn, UtledetDeltakelsesmengde> {
-    val dagerPerUke = antallDagerPerUke?.takeIf { it > 0F }
-    val prosent = deltakelseProsent?.takeIf { it > 0F }
+    val dagerPerUke = angittDagerPerUke
+    val prosent = angittProsent
 
     // Prosenten ganges før den deles, slik at hele prosenter gir eksakte flyttall.
     val (dagerPerMeldeperiode, beskrivelse) = when {
-        dagerPerUke != null -> dagerPerUke * UKER_PER_MELDEPERIODE to "${dagerPerUke.formater()} dager per uke"
-        prosent != null -> prosent * DAGER_PER_MELDEPERIODE_VED_FULLTID / PROSENT_VED_FULLTID to "${prosent.formater()} prosent"
+        dagerPerUke != null -> dagerPerUke * UKER_PER_MELDEPERIODE to dagerPerUke.beskrivSomDagerPerUke()
+        prosent != null -> prosent * DAGER_PER_MELDEPERIODE_VED_FULLTID / PROSENT_VED_FULLTID to prosent.beskrivSomProsent()
         else -> return ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_DELTAKELSESMENGDE.left()
     }
 
@@ -264,22 +268,54 @@ fun Deltakelsestilstand.utledDeltakelsesmengde(): Either<ManueltBehandlesGrunn, 
     ).right()
 }
 
+/**
+ * Beskriver alle verdiene som er satt for deltakelsesmengden, slik at det går frem hvilken av dem som er endret.
+ * Er ingen av verdiene satt, beskrives den som ikke oppgitt.
+ */
+fun Deltakelsestilstand.beskrivDeltakelsesmengde(): String =
+    listOfNotNull(angittDagerPerUke?.beskrivSomDagerPerUke(), angittProsent?.beskrivSomProsent())
+        .joinToString(" og ")
+        .ifEmpty { "ikke oppgitt" }
+
+/** En verdi på 0 regnes som ikke satt, på samme måte som i sammenligningen av deltakelsesmengder. */
+private val Deltakelsestilstand.angittDagerPerUke: Float? get() = antallDagerPerUke?.takeIf { it > 0F }
+
+/** En verdi på 0 regnes som ikke satt, på samme måte som i sammenligningen av deltakelsesmengder. */
+private val Deltakelsestilstand.angittProsent: Float? get() = deltakelseProsent?.takeIf { it > 0F }
+
+private fun Float.beskrivSomDagerPerUke(): String = "${formater()} dager per uke"
+
+private fun Float.beskrivSomProsent(): String = "${formater()} prosent"
+
 private fun Float.formater(): String =
     if (this % 1F == 0F) toInt().toString() else toString().replace('.', ',')
 
 /**
  * Begrunnelsen for vilkårsvurderingen.
- * Antall dager per meldeperiode nevnes kun når deltakelsesmengden er endret.
+ * Deltakelsesmengden og antall dager per meldeperiode nevnes kun når deltakelsesmengden er endret.
+ * Da beskrives først endringen i deltakelsesmengden, og deretter antall dager per meldeperiode i det gjeldende vedtaket og hva det er utledet til nå.
+ * De holdes adskilt, siden antall dager i vedtaket kan være satt av saksbehandler uavhengig av den tidligere deltakelsesmengden.
  * Barnetillegget begrunnes i eget felt, se [lagBegrunnelseBarnetillegg], bortsett fra når det faller helt bort.
  */
 private fun lagBegrunnelse(
     nySluttdato: LocalDate,
+    tidligereDeltakelsesmengde: Deltakelsestilstand,
+    nyDeltakelsesmengde: Deltakelsestilstand,
+    antallDagerPerMeldeperiodeIVedtaket: AntallDagerForMeldeperiode,
     endretDeltakelsesmengde: UtledetDeltakelsesmengde?,
     antallBarnIVedtaket: AntallBarn,
     antallBarn: SammenhengendePeriodisering<AntallBarn>,
 ): Begrunnelse {
     val antallDager = endretDeltakelsesmengde?.let {
-        "\nDeltakelsesmengden er endret til ${it.beskrivelse}, som gir ${it.antallDagerPerMeldeperiode.value} dager per meldeperiode."
+        val endringIAntallDager = if (it.antallDagerPerMeldeperiode == antallDagerPerMeldeperiodeIVedtaket) {
+            "Antall dager per meldeperiode er fortsatt ${antallDagerPerMeldeperiodeIVedtaket.value}"
+        } else {
+            "Antall dager per meldeperiode endres fra ${antallDagerPerMeldeperiodeIVedtaket.value} i det gjeldende vedtaket " +
+                "til ${it.antallDagerPerMeldeperiode.value}"
+        }
+        "\nDeltakelsesmengden er endret fra ${tidligereDeltakelsesmengde.beskrivDeltakelsesmengde()} " +
+            "til ${nyDeltakelsesmengde.beskrivDeltakelsesmengde()}." +
+            "\n$endringIAntallDager, utledet fra ${it.beskrivelse}."
     } ?: ""
     val barnetilleggFallerBort = if (antallBarnIVedtaket != AntallBarn.ZERO && antallBarn.inneholderKun(AntallBarn.ZERO)) {
         "\nBarnetillegget for ${antallBarnIVedtaket.value} barn i det gjeldende vedtaket faller bort, fordi barna har fylt 16 år."

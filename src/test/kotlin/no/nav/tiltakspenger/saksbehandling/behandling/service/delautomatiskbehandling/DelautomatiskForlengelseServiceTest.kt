@@ -132,17 +132,19 @@ class DelautomatiskForlengelseServiceTest {
      * Iverksetter en innvilgelse av deltakelsen, oppretter en forlengelse til 30. juni og registrerer [nåtilstand] før forlengelsen behandles.
      * Gir forlengelsen slik den er lagret etter den automatiske behandlingen.
      *
+     * @param tidligereTilstand Deltakelsen slik den var da søknaden ble innvilget.
      * @param barnFraSøknad Barna i søknaden som innvilges.
      * @param antallBarnIVedtaket Antall barn det innvilges barnetillegg for i hele vedtaksperioden.
      */
     private suspend fun ApplicationTestBuilder.forlengOgBehandleAutomatisk(
         tac: TestApplicationContextMedPostgres,
+        tidligereTilstand: (TiltaksdeltakelseIntern) -> TiltaksdeltakelseIntern = { it },
         nåtilstand: (TiltaksdeltakelseIntern) -> TiltaksdeltakelseIntern = { it },
         barnFraSøknad: List<BarnetilleggFraSøknad> = emptyList(),
         antallBarnIVedtaket: AntallBarn = AntallBarn(barnFraSøknad.size),
         kanSendeHelg: Boolean = false,
     ): Revurdering {
-        val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
+        val deltakelse = tidligereTilstand(tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025)))
         val (sak) = iverksettSøknadsbehandling(
             tac = tac,
             tiltaksdeltakelse = deltakelse,
@@ -181,7 +183,8 @@ class DelautomatiskForlengelseServiceTest {
                 it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldBe
                     "Automatisk behandlet.\n" +
                     "Tiltaksdeltakelsen er forlenget til 30. juni 2025.\n" +
-                    "Deltakelsesmengden er endret til 2,5 dager per uke, som gir 5 dager per meldeperiode."
+                    "Deltakelsesmengden er endret fra 5 dager per uke og 100 prosent til 2,5 dager per uke og 50 prosent.\n" +
+                    "Antall dager per meldeperiode endres fra 10 i det gjeldende vedtaket til 5, utledet fra 2,5 dager per uke."
             }
         }
     }
@@ -192,7 +195,36 @@ class DelautomatiskForlengelseServiceTest {
             forlengOgBehandleAutomatisk(tac, nåtilstand = { it.copy(antallDagerPerUke = null, deltakelseProsent = 80F) }).also {
                 it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 8)
                 it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldContain
-                    "Deltakelsesmengden er endret til 80 prosent, som gir 8 dager per meldeperiode."
+                    "Deltakelsesmengden er endret fra 5 dager per uke og 100 prosent til 80 prosent.\n" +
+                    "Antall dager per meldeperiode endres fra 10 i det gjeldende vedtaket til 8, utledet fra 80 prosent."
+            }
+        }
+    }
+
+    @Test
+    fun `kun prosenten er endret og dager per uke er uendret - begrunnelsen viser hva som er endret`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(tac, nåtilstand = { it.copy(antallDagerPerUke = 5F, deltakelseProsent = 80F) }).also {
+                it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10)
+                it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldContain
+                    "Deltakelsesmengden er endret fra 5 dager per uke og 100 prosent til 5 dager per uke og 80 prosent.\n" +
+                    "Antall dager per meldeperiode er fortsatt 10, utledet fra 5 dager per uke."
+            }
+        }
+    }
+
+    @Test
+    fun `deltakelsesmengden var ikke oppgitt i vedtaket - begrunnelsen sier at den ikke var oppgitt`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(
+                tac,
+                tidligereTilstand = { it.copy(antallDagerPerUke = null, deltakelseProsent = null) },
+                nåtilstand = { it.copy(antallDagerPerUke = null, deltakelseProsent = 80F) },
+            ).also {
+                it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 8)
+                it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldContain
+                    "Deltakelsesmengden er endret fra ikke oppgitt til 80 prosent.\n" +
+                    "Antall dager per meldeperiode endres fra 10 i det gjeldende vedtaket til 8, utledet fra 80 prosent."
             }
         }
     }
