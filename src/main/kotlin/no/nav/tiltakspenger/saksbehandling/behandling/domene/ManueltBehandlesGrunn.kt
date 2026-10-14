@@ -63,6 +63,9 @@ enum class ManueltBehandlesGrunn {
     /** Deltakelsesmengden er endret, men den nye mangler både dager per uke og prosent, eller er mer enn fulltid. */
     FORLENGELSE_KAN_IKKE_UTLEDE_DELTAKELSESMENGDE,
 
+    /** Deltakelsesmengden er endret, men den nye gir ikke et helt antall dager per meldeperiode, for eksempel 33 prosent. */
+    FORLENGELSE_DELTAKELSESMENGDE_GIR_IKKE_HELE_DAGER,
+
     FORLENGELSE_OVERLAPPER_ANDRE_VEDTAK,
     FORLENGELSE_OVERLAPPENDE_TILTAK,
     FORLENGELSE_ANDRE_YTELSER,

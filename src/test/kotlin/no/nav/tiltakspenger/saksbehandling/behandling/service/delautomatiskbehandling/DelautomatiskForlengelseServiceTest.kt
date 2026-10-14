@@ -189,6 +189,14 @@ class DelautomatiskForlengelseServiceTest {
     }
 
     @Test
+    fun `deltakelsesmengden er endret til prosent som ikke gir hele dager - overlates til saksbehandler`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(tac, nåtilstand = { it.copy(antallDagerPerUke = null, deltakelseProsent = 33F) })
+                .skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.FORLENGELSE_DELTAKELSESMENGDE_GIR_IKKE_HELE_DAGER)
+        }
+    }
+
+    @Test
     fun `deltakelsesmengden er endret og bruker kan melde i helg - overlates til saksbehandler`() {
         withTestApplicationContextAndPostgres { tac ->
             forlengOgBehandleAutomatisk(tac, nåtilstand = { it.copy(antallDagerPerUke = 2F) }, kanSendeHelg = true)

@@ -1,8 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskForlengelse
 
-import io.kotest.matchers.nulls.shouldBeNull
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.Deltakelsestilstand
 import org.junit.jupiter.api.Test
@@ -17,8 +20,12 @@ class UtledDeltakelsesmengdeTest {
         antallDagerPerUke = antallDagerPerUke,
     ).utledDeltakelsesmengde()
 
-    private fun UtledetDeltakelsesmengde?.skalGi(antallDagerPerMeldeperiode: Int, beskrivelse: String) {
-        this shouldBe UtledetDeltakelsesmengde(AntallDagerForMeldeperiode(antallDagerPerMeldeperiode), beskrivelse)
+    private fun Either<ManueltBehandlesGrunn, UtledetDeltakelsesmengde>.skalGi(antallDagerPerMeldeperiode: Int, beskrivelse: String) {
+        this shouldBe UtledetDeltakelsesmengde(AntallDagerForMeldeperiode(antallDagerPerMeldeperiode), beskrivelse).right()
+    }
+
+    private fun Either<ManueltBehandlesGrunn, UtledetDeltakelsesmengde>.skalOverlates(grunn: ManueltBehandlesGrunn) {
+        this shouldBe grunn.left()
     }
 
     @Test
@@ -36,28 +43,38 @@ class UtledDeltakelsesmengdeTest {
         deltakelsesmengde(antallDagerPerUke = null, deltakelseProsent = 100F).skalGi(10, "100 prosent")
         deltakelsesmengde(antallDagerPerUke = null, deltakelseProsent = 80F).skalGi(8, "80 prosent")
         deltakelsesmengde(antallDagerPerUke = 0F, deltakelseProsent = 50F).skalGi(5, "50 prosent")
+        deltakelsesmengde(antallDagerPerUke = null, deltakelseProsent = 10F).skalGi(1, "10 prosent")
     }
 
     @Test
-    fun `prosent som ikke gir hele dager rundes til nærmeste hele dag per meldeperiode`() {
-        deltakelsesmengde(antallDagerPerUke = null, deltakelseProsent = 33.3F).skalGi(3, "33,3 prosent")
-        deltakelsesmengde(antallDagerPerUke = null, deltakelseProsent = 25F).skalGi(3, "25 prosent")
+    fun `prosent som ikke gir hele dager per meldeperiode - overlates til saksbehandler`() {
+        deltakelsesmengde(antallDagerPerUke = null, deltakelseProsent = 33.3F)
+            .skalOverlates(ManueltBehandlesGrunn.FORLENGELSE_DELTAKELSESMENGDE_GIR_IKKE_HELE_DAGER)
+        deltakelsesmengde(antallDagerPerUke = null, deltakelseProsent = 25F)
+            .skalOverlates(ManueltBehandlesGrunn.FORLENGELSE_DELTAKELSESMENGDE_GIR_IKKE_HELE_DAGER)
+        deltakelsesmengde(antallDagerPerUke = null, deltakelseProsent = 2F)
+            .skalOverlates(ManueltBehandlesGrunn.FORLENGELSE_DELTAKELSESMENGDE_GIR_IKKE_HELE_DAGER)
     }
 
     @Test
-    fun `svært lav deltakelsesmengde gir minst 1 dag per meldeperiode`() {
-        deltakelsesmengde(antallDagerPerUke = null, deltakelseProsent = 2F).skalGi(1, "2 prosent")
+    fun `dager per uke som ikke gir hele dager per meldeperiode - overlates til saksbehandler`() {
+        deltakelsesmengde(antallDagerPerUke = 2.25F, deltakelseProsent = 100F)
+            .skalOverlates(ManueltBehandlesGrunn.FORLENGELSE_DELTAKELSESMENGDE_GIR_IKKE_HELE_DAGER)
     }
 
     @Test
     fun `kan ikke utledes uten dager per uke og prosent`() {
-        deltakelsesmengde(antallDagerPerUke = null, deltakelseProsent = null).shouldBeNull()
-        deltakelsesmengde(antallDagerPerUke = 0F, deltakelseProsent = 0F).shouldBeNull()
+        deltakelsesmengde(antallDagerPerUke = null, deltakelseProsent = null)
+            .skalOverlates(ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_DELTAKELSESMENGDE)
+        deltakelsesmengde(antallDagerPerUke = 0F, deltakelseProsent = 0F)
+            .skalOverlates(ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_DELTAKELSESMENGDE)
     }
 
     @Test
     fun `kan ikke utledes når deltakelsesmengden er mer enn fulltid`() {
-        deltakelsesmengde(antallDagerPerUke = 5.5F, deltakelseProsent = null).shouldBeNull()
-        deltakelsesmengde(antallDagerPerUke = null, deltakelseProsent = 120F).shouldBeNull()
+        deltakelsesmengde(antallDagerPerUke = 5.5F, deltakelseProsent = null)
+            .skalOverlates(ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_DELTAKELSESMENGDE)
+        deltakelsesmengde(antallDagerPerUke = null, deltakelseProsent = 120F)
+            .skalOverlates(ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_DELTAKELSESMENGDE)
     }
 }
