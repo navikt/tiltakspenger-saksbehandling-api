@@ -9,5 +9,8 @@ rules:
         # og callerne skal plukke opp forbedringer uten PR i hvert repo.
         # Mønsteret må ha /* for å matche reusable workflow-stier (owner/repo alene matcher ikke subpath).
         "navikt/tiltakspenger-workflows/*": ref-pin
-        # Alt annet krever SHA-pinning (Nav-policy).
-        "*": hash-pin
+        # Reusable workflows fra andre repoer låses ikke av lockfila, så de må fortsatt SHA-pinnes i workflow-fila.
+        "navikt/tms-deploy/*": hash-pin
+        # Actions refereres med tag og låses til commit i .github/workflows/actions.lock (gh actions-lock), også transitive avhengigheter.
+        # zizmor kjenner ikke lockfila; at hver referanse faktisk er låst sjekkes av lockfil-jobben i lint-workflowen.
+        "*": ref-pin
