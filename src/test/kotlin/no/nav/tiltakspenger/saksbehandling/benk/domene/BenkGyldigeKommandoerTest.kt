@@ -53,6 +53,7 @@ class BenkGyldigeKommandoerTest {
                             id = RammebehandlingId.random(),
                             status = status,
                             resultat = BenkRevurderingResultat.STANS,
+                            prioritering = null,
                         ).finnGyldigeKommandoer(leserolle) shouldBe emptyList()
                         meldekort(status, felles).finnGyldigeKommandoer(leserolle) shouldBe emptyList()
                     }
@@ -92,6 +93,7 @@ class BenkGyldigeKommandoerTest {
         søknadstype = BenkSøknadstype.DIGITAL,
         kravtidspunkt = felles.startet,
         resultat = BenkSøknadsbehandlingResultat.IKKE_VALGT,
+        prioritering = null,
     )
 
     private fun meldekort(

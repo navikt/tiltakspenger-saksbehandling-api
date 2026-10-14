@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.sladdet
 /**
  * Sladding av [RammebehandlingDTO].
  * Fødselsdatoen i saksopplysningene, søknaden og saksbehandlers fritekster erstattes.
+ * Begrunnelsen for prioriteringen er fritekst og sladdes, men det at behandlingen er prioritert beholdes.
  * Navkontoret er stedsinformasjon om personen og sladdes sammen med resten.
  * Identer, ID-er, statuser, beløp og perioder beholdes.
  */
@@ -25,6 +26,7 @@ fun SøknadsbehandlingDTO.sladdet(): SøknadsbehandlingDTO = this.copy(
     fritekstTilVedtaksbrev = SladdetVerdi,
     begrunnelseVilkårsvurdering = SladdetVerdi,
     avbrutt = avbrutt?.sladdet(),
+    prioritering = prioritering?.sladdet(),
     ventestatus = ventestatus.map { it.sladdet() },
     utbetaling = utbetaling?.sladdet(),
     resultatDTO = resultatDTO.sladdet(),
@@ -37,6 +39,7 @@ fun RevurderingDTO.sladdet(): RevurderingDTO = this.copy(
     fritekstTilVedtaksbrev = SladdetVerdi,
     begrunnelseVilkårsvurdering = SladdetVerdi,
     avbrutt = avbrutt?.sladdet(),
+    prioritering = prioritering?.sladdet(),
     ventestatus = ventestatus.map { it.sladdet() },
     utbetaling = utbetaling?.sladdet(),
     resultatDTO = resultatDTO.sladdet(),

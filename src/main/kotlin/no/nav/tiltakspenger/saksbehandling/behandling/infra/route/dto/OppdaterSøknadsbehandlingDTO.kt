@@ -32,6 +32,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
         val barnetillegg: OppdaterBarnetilleggDTO,
         override val skalSendeVedtaksbrev: Boolean = true,
         override val skalJournalføreNotat: Boolean = false,
+        override val prioritering: OppdaterPrioriteringDTO? = null,
     ) : OppdaterSøknadsbehandlingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.INNVILGELSE
 
@@ -55,6 +56,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 automatiskSaksbehandlet = false,
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                 skalJournalføreNotat = skalJournalføreNotat,
+                prioritering = prioritering?.tilDomene(),
             )
         }
     }
@@ -65,6 +67,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
         val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>,
         override val skalSendeVedtaksbrev: Boolean = true,
         override val skalJournalføreNotat: Boolean = false,
+        override val prioritering: OppdaterPrioriteringDTO? = null,
     ) : OppdaterSøknadsbehandlingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.AVSLAG
 
@@ -84,6 +87,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 avslagsgrunner = avslagsgrunner.toAvslagsgrunnlag(),
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                 skalJournalføreNotat = skalJournalføreNotat,
+                prioritering = prioritering?.tilDomene(),
             )
         }
     }
@@ -92,6 +96,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
         override val fritekstTilVedtaksbrev: String?,
         override val begrunnelseVilkårsvurdering: String?,
         override val skalJournalføreNotat: Boolean = false,
+        override val prioritering: OppdaterPrioriteringDTO? = null,
     ) : OppdaterSøknadsbehandlingDTO {
         override val resultat = null
         override val skalSendeVedtaksbrev: Boolean = true
@@ -110,6 +115,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 skalJournalføreNotat = skalJournalføreNotat,
+                prioritering = prioritering?.tilDomene(),
             )
         }
     }

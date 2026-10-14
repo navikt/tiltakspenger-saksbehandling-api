@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto
 
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.PrioriteringDTO
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurdering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.benk.domene.finnGyldigeKommandoer
@@ -33,6 +34,8 @@ data class BenkRevurderingDTO(
     override val personmarkører: BenkPersonmarkørerDTO,
     val status: BenkBehandlingsstatusDTO,
     val resultat: BenkRevurderingResultatDTO?,
+    /** null når behandlingen ikke er prioritert. */
+    val prioritering: PrioriteringDTO?,
     val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : BenkBehandlingDTO
 
@@ -55,6 +58,7 @@ fun BenkRevurdering.toDTO(
     personmarkører = personmarkører,
     status = status.toDTO(),
     resultat = resultat?.toDTO(),
+    prioritering = prioritering?.toDTO(),
     gyldigeKommandoer = finnGyldigeKommandoer(saksbehandler).tilDTO(),
 )
 

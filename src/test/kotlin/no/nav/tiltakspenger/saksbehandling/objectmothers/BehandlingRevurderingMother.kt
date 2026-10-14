@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetalin
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
@@ -114,6 +115,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
         skalSendeVedtaksbrev: Boolean = true,
         skalJournalføreNotat: Boolean = false,
+        prioritering: Prioritering? = null,
         kommando: OppdaterRevurderingKommando.Stans = OppdaterRevurderingKommando.Stans(
             sakId = sakId,
             behandlingId = id,
@@ -125,6 +127,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             stansFraOgMed = OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed.create(stansFraOgMed),
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             skalJournalføreNotat = skalJournalføreNotat,
+            prioritering = prioritering,
         ),
         utbetaling: BehandlingUtbetaling? = null,
     ): Revurdering {
@@ -461,6 +464,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                     vedtaksperiode = omgjørRammevedtak.gjeldendeTotalPeriode!!,
                     skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                     skalJournalføreNotat = skalJournalføreNotat,
+                    prioritering = null,
                 ),
                 utbetaling = null,
                 finnRammevedtakSomOmgjøres = { OmgjørRammevedtak.create(omgjørRammevedtak) },

@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
@@ -43,11 +44,13 @@ class OppdaterRevurderingOpphørRouteTest {
                 behandlingId = omgjøring.id,
                 vedtaksperiode = innvilgelsesperiode,
                 skalSendeVedtaksbrev = true,
+                prioriteringBegrunnelse = "Opphør haster",
             )
 
             oppdatertOmgjøring.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringOpphør>()
             oppdatertOmgjøring.resultat!!.vedtaksperiode shouldBe innvilgelsesperiode
             oppdatertOmgjøring.skalSendeVedtaksbrev shouldBe true
+            oppdatertOmgjøring.prioritering shouldBe Prioritering.create("Opphør haster")
         }
     }
 
@@ -140,9 +143,11 @@ class OppdaterRevurderingOpphørRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
+                prioriteringBegrunnelse = "Haster",
             )
 
             oppdatertOmgjøring.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringIkkeValgt>()
+            oppdatertOmgjøring.prioritering shouldBe Prioritering.create("Haster")
             oppdatertOmgjøring.resultat!!.vedtaksperiode shouldBe null
             oppdatertOmgjøring.resultat!!.omgjørRammevedtak.rammevedtakIDer.single() shouldBe søknadVedtak.id
             oppdatertOmgjøring.resultat!!.omgjørRammevedtak.perioder.single() shouldBe innvilgelsesperiode

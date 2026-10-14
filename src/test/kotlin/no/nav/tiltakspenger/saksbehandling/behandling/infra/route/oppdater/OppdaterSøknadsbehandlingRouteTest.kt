@@ -8,6 +8,7 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
@@ -17,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.utenBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat.Avslag
@@ -285,6 +287,83 @@ class OppdaterSøknadsbehandlingRouteTest {
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.innvilgelsesperioder shouldBe innvilgelsesperioder
             }
+        }
+    }
+
+    /**
+     * Prioriteringen er et felt i behandlingsskjemaet, så den settes og fjernes ved å lagre skjemaet.
+     */
+    @Test
+    fun `kan prioritere behandlingen og fjerne prioriteringen igjen`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+
+            val (_, prioritert, prioritertJson) = oppdaterSøknadsbehandlingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                prioriteringBegrunnelse = "Bruker står uten inntekt",
+            )
+
+            prioritert.prioritering shouldBe Prioritering.create("Bruker står uten inntekt")
+            JSONObject(prioritertJson).getJSONObject("prioritering").getJSONObject("begrunnelse").apply {
+                getString("verdi") shouldBe "Bruker står uten inntekt"
+                getBoolean("erSladdet") shouldBe false
+            }
+
+            val (_, ikkePrioritert, ikkePrioritertJson) = oppdaterSøknadsbehandlingAvslag(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+            )
+
+            ikkePrioritert.prioritering.shouldBeNull()
+            JSONObject(ikkePrioritertJson).isNull("prioritering") shouldBe true
+        }
+    }
+
+    @Test
+    fun `kan prioritere behandlingen uten valgt resultat og med avslag`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+
+            oppdaterSøknadsbehandlingIkkeValgt(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                prioriteringBegrunnelse = "Ikke valgt",
+            ).second.prioritering shouldBe Prioritering.create("Ikke valgt")
+
+            oppdaterSøknadsbehandlingAvslag(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                prioriteringBegrunnelse = "Avslag",
+            ).second.prioritering shouldBe Prioritering.create("Avslag")
+        }
+    }
+
+    /**
+     * En prioritering uten begrunnelse gir ingen mening, så klienten må sende null for å fjerne den.
+     */
+    @Test
+    fun `prioritering med blank begrunnelse avvises`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+
+            oppdaterSøknadsbehandlingIkkeValgt(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                prioriteringBegrunnelse = "  ",
+                forventet = ForventetRespons(
+                    status = 400,
+                    contentType = "application/json; charset=UTF-8",
+                    body = ForventetBody.Json(
+                        """{"melding":"Kunne ikke deserialisere request","kode":"ugyldig_request"}""",
+                    ),
+                ),
+            ).second.prioritering.shouldBeNull()
         }
     }
 

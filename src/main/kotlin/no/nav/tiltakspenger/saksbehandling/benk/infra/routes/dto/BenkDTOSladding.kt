@@ -1,12 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto
 
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.sladdet
 import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.skalSladdeFor
 
 /**
  * Sladding av [BenkResponsMedTilgangDTO].
  * Hver rad i benken bærer fødselsnummeret til personen saken gjelder, og ventestatusen bærer saksbehandlers begrunnelse.
+ * Begrunnelsen for en prioritering er også fritekst og sladdes, men det at raden er prioritert beholdes.
  * sakId og saksnummer sladdes også, så raden ikke kan kobles til en sak.
  * Antallene, statusene, beløpene og identene i benken er ikke identifiserende og beholdes.
  *
@@ -35,6 +37,7 @@ fun BenkBehandlingDTO.sladdet(): BenkBehandlingDTO = when (this) {
         saksnummer = SladdetVerdi,
         fnr = SladdetVerdi,
         ventestatus = ventestatus.sladdet(),
+        prioritering = prioritering?.sladdet(),
         gyldigeKommandoer = emptyList(),
     )
 
@@ -43,6 +46,7 @@ fun BenkBehandlingDTO.sladdet(): BenkBehandlingDTO = when (this) {
         saksnummer = SladdetVerdi,
         fnr = SladdetVerdi,
         ventestatus = ventestatus.sladdet(),
+        prioritering = prioritering?.sladdet(),
         gyldigeKommandoer = emptyList(),
     )
 

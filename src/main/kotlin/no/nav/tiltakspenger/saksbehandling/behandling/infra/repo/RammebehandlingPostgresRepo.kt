@@ -379,7 +379,8 @@ class RammebehandlingPostgresRepo(
                 klagebehandling_id = :klagebehandling_id,
                 automatisk_opprettet_grunn = :automatisk_opprettet_grunn::jsonb,
                 skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev,
-                skal_journalfore_notat = :skal_journalfore_notat
+                skal_journalfore_notat = :skal_journalfore_notat,
+                prioritering_begrunnelse = :prioritering_begrunnelse
         """
 
         fun hentOrNull(
@@ -475,7 +476,8 @@ class RammebehandlingPostgresRepo(
                         klagebehandling_id,
                         automatisk_opprettet_grunn,
                         skal_sende_vedtaksbrev,
-                        skal_journalfore_notat
+                        skal_journalfore_notat,
+                        prioritering_begrunnelse
                     ) values (
                         :id,
                         :sak_id,
@@ -515,7 +517,8 @@ class RammebehandlingPostgresRepo(
                         :klagebehandling_id,
                         :automatisk_opprettet_grunn::jsonb,
                         :skal_sende_vedtaksbrev,
-                        :skal_journalfore_notat
+                        :skal_journalfore_notat,
+                        :prioritering_begrunnelse
                     )
                     """.trimIndent(),
                     behandling.tilDbParams(),

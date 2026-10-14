@@ -59,6 +59,9 @@ sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
     val tilbakekrevingId: String?
     val skalSendeVedtaksbrev: Boolean
     val skalJournalføreNotat: Boolean
+
+    /** null når behandlingen ikke er prioritert. */
+    val prioritering: PrioriteringDTO?
     val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>
 }
 
@@ -91,6 +94,7 @@ data class SøknadsbehandlingDTO(
     val kanInnvilges: Boolean,
     override val skalSendeVedtaksbrev: Boolean,
     override val skalJournalføreNotat: Boolean,
+    override val prioritering: PrioriteringDTO?,
     override val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : RammebehandlingDTO,
     SøknadsbehandlingResultatDTO by resultatDTO {
@@ -127,6 +131,7 @@ data class RevurderingDTO(
     val manueltBehandlesGrunner: List<String>,
     override val skalSendeVedtaksbrev: Boolean,
     override val skalJournalføreNotat: Boolean,
+    override val prioritering: PrioriteringDTO?,
     override val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : RammebehandlingDTO,
     RevurderingResultatDTO by resultatDTO {
@@ -208,6 +213,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         tilbakekrevingId = tilbakekrevingId?.toString(),
         skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
         skalJournalføreNotat = this.skalJournalføreNotat,
+        prioritering = this.prioritering?.tilDTO(),
         gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
     )
 }
@@ -246,6 +252,7 @@ fun Revurdering.tilRevurderingDTO(
         manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
         skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
         skalJournalføreNotat = this.skalJournalføreNotat,
+        prioritering = this.prioritering?.tilDTO(),
         gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
     )
 }

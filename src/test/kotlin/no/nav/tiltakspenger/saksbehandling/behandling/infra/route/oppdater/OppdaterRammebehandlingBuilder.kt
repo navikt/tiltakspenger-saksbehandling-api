@@ -40,6 +40,7 @@ interface OppdaterRammebehandlingBuilder {
         skalJournalføreNotat: Boolean = false,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+        prioriteringBegrunnelse: String? = null,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Triple<Sak, Rammebehandling, String> {
@@ -55,6 +56,7 @@ interface OppdaterRammebehandlingBuilder {
                 fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev,
                 skalJournalføreNotat,
+                prioriteringBegrunnelse,
             )
         }
             }
@@ -77,6 +79,7 @@ interface OppdaterRammebehandlingBuilder {
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         skalJournalføreNotat: Boolean = false,
+        prioriteringBegrunnelse: String? = null,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Triple<Sak, Rammebehandling, String> {
@@ -86,7 +89,8 @@ interface OppdaterRammebehandlingBuilder {
               "resultat": "IKKE_VALGT",
               "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
               "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
-              "skalJournalføreNotat": $skalJournalføreNotat
+              "skalJournalføreNotat": $skalJournalføreNotat,
+              "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()}
             }
         """.trimIndent()
 
@@ -111,6 +115,7 @@ interface OppdaterRammebehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         skalSendeVedtaksbrev: Boolean = true,
         skalJournalføreNotat: Boolean = false,
+        prioriteringBegrunnelse: String? = null,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -120,7 +125,8 @@ interface OppdaterRammebehandlingBuilder {
               "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
               "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
               "skalSendeVedtaksbrev" : $skalSendeVedtaksbrev,
-              "skalJournalføreNotat": $skalJournalføreNotat
+              "skalJournalføreNotat": $skalJournalføreNotat,
+              "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()}
             }
         """.trimIndent()
 
@@ -146,6 +152,7 @@ interface OppdaterRammebehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         skalSendeVedtaksbrev: Boolean = true,
         skalJournalføreNotat: Boolean = false,
+        prioriteringBegrunnelse: String? = null,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -159,6 +166,7 @@ interface OppdaterRammebehandlingBuilder {
                 fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev,
                 skalJournalføreNotat,
+                prioriteringBegrunnelse,
             )
         }
             }
@@ -187,6 +195,7 @@ interface OppdaterRammebehandlingBuilder {
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         skalSendeVedtaksbrev: Boolean = true,
         skalJournalføreNotat: Boolean = false,
+        prioriteringBegrunnelse: String? = null,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -201,6 +210,7 @@ interface OppdaterRammebehandlingBuilder {
                 fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev,
                 skalJournalføreNotat,
+                prioriteringBegrunnelse,
             )
         }
             }
@@ -228,6 +238,7 @@ interface OppdaterRammebehandlingBuilder {
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         skalSendeVedtaksbrev: Boolean = true,
         skalJournalføreNotat: Boolean = false,
+        prioriteringBegrunnelse: String? = null,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -238,7 +249,8 @@ interface OppdaterRammebehandlingBuilder {
               "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
               "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
                 "skalSendeVedtaksbrev" : $skalSendeVedtaksbrev,
-              "skalJournalføreNotat": $skalJournalføreNotat
+              "skalJournalføreNotat": $skalJournalføreNotat,
+              "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()}
             }
         """.trimIndent()
 
@@ -258,11 +270,13 @@ interface OppdaterRammebehandlingBuilder {
         behandlingId: RammebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
+        prioriteringBegrunnelse: String? = null,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
             {
-              "resultat": "OMGJØRING_IKKE_VALGT"
+              "resultat": "OMGJØRING_IKKE_VALGT",
+              "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()}
             }
         """.trimIndent()
 
@@ -289,6 +303,7 @@ interface OppdaterRammebehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         skalSendeVedtaksbrev: Boolean = true,
         skalJournalføreNotat: Boolean = false,
+        prioriteringBegrunnelse: String? = null,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -300,7 +315,8 @@ interface OppdaterRammebehandlingBuilder {
               "stansFraOgMed": ${stansFraOgMed?.toString()?.medQuotes()},
               "resultat": "STANS",
                 "skalSendeVedtaksbrev" : $skalSendeVedtaksbrev,
-              "skalJournalføreNotat": $skalJournalføreNotat
+              "skalJournalføreNotat": $skalJournalføreNotat,
+              "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()}
             }
         """.trimIndent()
 
@@ -368,6 +384,7 @@ interface OppdaterRammebehandlingBuilder {
         fritekstTilVedtaksbrev: String? = null,
         skalSendeVedtaksbrev: Boolean = true,
         skalJournalføreNotat: Boolean = false,
+        prioriteringBegrunnelse: String? = null,
     ): String {
         return """            
             "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
@@ -403,7 +420,10 @@ interface OppdaterRammebehandlingBuilder {
             }
         },
         "skalSendeVedtaksbrev": $skalSendeVedtaksbrev,
-        "skalJournalføreNotat": $skalJournalføreNotat
+        "skalJournalføreNotat": $skalJournalføreNotat,
+        "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()}
         """.trimIndent()
     }
 }
+
+private fun String?.tilPrioriteringJson(): String? = this?.let { "{\"begrunnelse\": ${it.medQuotes()}}" }

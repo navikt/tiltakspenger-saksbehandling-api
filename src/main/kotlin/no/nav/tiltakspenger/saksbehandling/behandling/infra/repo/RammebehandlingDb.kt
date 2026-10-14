@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -76,6 +77,7 @@ fun Row.toBehandling(session: Session): Rammebehandling {
     val begrunnelseVilkårsvurdering = stringOrNull("begrunnelse_vilkårsvurdering")?.let {
         Begrunnelse.create(it)
     }
+    val prioritering = stringOrNull("prioritering_begrunnelse")?.let { Prioritering.create(it) }
 
     val saksopplysninger = saksopplysningerMedOppdatertEksternDeltakselseId(
         saksopplysninger = string("saksopplysninger").toSaksopplysninger(),
@@ -172,6 +174,7 @@ fun Row.toBehandling(session: Session): Rammebehandling {
                 utbetalingskontroll = utbetalingskontroll,
                 skalSendeVedtaksbrev = boolean("skal_sende_vedtaksbrev"),
                 skalJournalføreNotat = boolean("skal_journalfore_notat"),
+                prioritering = prioritering,
             )
         }
 
@@ -246,6 +249,7 @@ fun Row.toBehandling(session: Session): Rammebehandling {
                 manueltBehandlesGrunner = manueltBehandlesGrunner,
                 skalSendeVedtaksbrev = boolean("skal_sende_vedtaksbrev"),
                 skalJournalføreNotat = boolean("skal_journalfore_notat"),
+                prioritering = prioritering,
             )
         }
     }
@@ -316,6 +320,7 @@ fun Rammebehandling.tilDbParams(): Map<String, Any?> {
         },
         "skal_sende_vedtaksbrev" to this.skalSendeVedtaksbrev,
         "skal_journalfore_notat" to this.skalJournalføreNotat,
+        "prioritering_begrunnelse" to this.prioritering?.begrunnelse?.verdi,
 
         *this.resultat.tilDbParams(),
     )

@@ -108,6 +108,12 @@ sealed interface Rammebehandling : AttesterbarBehandling {
      */
     val skalJournalføreNotat: Boolean
 
+    /**
+     * Satt når behandlingen er markert som høyt prioritert, ellers null.
+     * Prioriterte behandlinger ligger alltid øverst i benken.
+     */
+    val prioritering: Prioritering?
+
     fun getTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): TiltaksdeltakelseIntern? =
         saksopplysninger.getTiltaksdeltakelse(internDeltakelseId)
 

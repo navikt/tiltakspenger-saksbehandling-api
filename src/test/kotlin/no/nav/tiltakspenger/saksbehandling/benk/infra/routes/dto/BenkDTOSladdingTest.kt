@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.PrioriteringDTO
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
@@ -26,6 +27,26 @@ class BenkDTOSladdingTest {
         benkResponsDTO.sladdet().oversikt.behandlinger.forEach {
             it.fnr shouldBe SladdetVerdi
             it.ventestatus.begrunnelse shouldBe SladdetVerdi
+        }
+    }
+
+    @Test
+    fun `prioriteringsbegrunnelsen sladdes, men raden forblir prioritert`() {
+        val rammebehandlinger = benkResponsDTO().sladdet().oversikt.behandlinger.mapNotNull {
+            when (it) {
+                is BenkSøknadsbehandlingDTO -> it.prioritering
+                is BenkRevurderingDTO -> it.prioritering
+                is BenkMeldekortDTO, is BenkKlagebehandlingDTO, is BenkTilbakekrevingDTO -> null
+            }
+        }
+
+        rammebehandlinger shouldBe List(2) { PrioriteringDTO(begrunnelse = SladdetVerdi) }
+    }
+
+    @Test
+    fun `rader uten prioritering forblir uten prioritering etter sladding`() {
+        benkSøknadsbehandlingDTO().copy(prioritering = null).sladdet().let {
+            (it as BenkSøknadsbehandlingDTO).prioritering shouldBe null
         }
     }
 
@@ -149,6 +170,7 @@ class BenkDTOSladdingTest {
                     personmarkører = personmarkørerDTO(),
                     status = BenkBehandlingsstatusDTO.UNDER_BEHANDLING,
                     resultat = BenkRevurderingResultatDTO.STANS,
+                    prioritering = prioriteringDTO(),
                     gyldigeKommandoer = gyldigeKommandoer,
                 ),
                 BenkMeldekortDTO(
@@ -244,6 +266,7 @@ class BenkDTOSladdingTest {
         søknadstype = BenkSøknadstypeDTO.DIGITAL,
         kravtidspunkt = 1.januarDateTime(2025).toString(),
         resultat = BenkSøknadsbehandlingResultatDTO.IKKE_VALGT,
+        prioritering = prioriteringDTO(),
         gyldigeKommandoer = gyldigeKommandoer,
     )
 
@@ -256,6 +279,10 @@ class BenkDTOSladdingTest {
         skjermet = false,
         kode6 = false,
         kode7 = false,
+    )
+
+    private fun prioriteringDTO(): PrioriteringDTO = PrioriteringDTO(
+        begrunnelse = "Bruker står uten inntekt".ikkeSladdet(),
     )
 
     private fun ventestatusDTO(): BenkVentestatusDTO = BenkVentestatusDTO(

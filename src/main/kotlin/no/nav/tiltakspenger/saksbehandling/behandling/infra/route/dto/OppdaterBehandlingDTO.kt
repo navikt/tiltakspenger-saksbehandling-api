@@ -25,6 +25,7 @@ sealed interface OppdaterBehandlingDTO {
     val begrunnelseVilkårsvurdering: String?
     val skalSendeVedtaksbrev: Boolean
     val skalJournalføreNotat: Boolean
+    val prioritering: OppdaterPrioriteringDTO?
 
     fun tilDomene(
         sakId: SakId,

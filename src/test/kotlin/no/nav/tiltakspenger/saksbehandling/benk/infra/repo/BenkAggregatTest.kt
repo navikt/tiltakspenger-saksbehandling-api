@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortType
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineSortering
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkPrioritering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurdering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerFiltrering
@@ -479,6 +480,68 @@ class BenkAggregatTest {
                 it.totalAntall shouldBe 2
             }
             repo.hentSøknader(søknaderCommand()).behandlinger.size shouldBe 2
+        }
+    }
+
+    /**
+     * Prioriterte behandlinger skal alltid ligge øverst, uansett hvilken kolonne og retning saksbehandleren sorterer på.
+     * Fnr-generatoren er strengt stigende, så den prioriterte i midten ville ellers ligget i midten i begge retninger.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `søknadsfanen viser prioriterte behandlinger øverst uansett sortering`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val fnrEn = ObjectMother.gyldigFnr()
+            val fnrPrioritert = ObjectMother.gyldigFnr()
+            val fnrTre = ObjectMother.gyldigFnr()
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, fnr = fnrEn)
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
+                tac = tac,
+                fnr = fnrPrioritert,
+                prioriteringBegrunnelse = "Bruker står uten inntekt",
+            )
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, fnr = fnrTre)
+            val repo = tac.benkContext.benkRepo
+
+            fun sorterteRader(retning: BenkSorteringRetning) =
+                repo.hentSøknader(søknaderCommand(kolonne = BenkSøknaderKolonne.FNR, retning = retning)).behandlinger
+
+            sorterteRader(BenkSorteringRetning.ASC).map { it.felles.fnr } shouldBe listOf(fnrPrioritert, fnrEn, fnrTre)
+            sorterteRader(BenkSorteringRetning.DESC).map { it.felles.fnr } shouldBe listOf(fnrPrioritert, fnrTre, fnrEn)
+            sorterteRader(BenkSorteringRetning.ASC).map { it.prioritering } shouldBe
+                listOf(BenkPrioritering("Bruker står uten inntekt"), null, null)
+            // Mine-fanen gjenbruker fanens spørring, så prioriteringen gjelder der også.
+            repo.hentMine(mineKommando()).getValue(BenkFane.SØKNADER).behandlinger.first().felles.fnr shouldBe fnrPrioritert
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `revurderingsfanen viser prioriterte behandlinger øverst uansett sortering`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val fnrEn = ObjectMother.gyldigFnr()
+            val fnrPrioritert = ObjectMother.gyldigFnr()
+            val fnrTre = ObjectMother.gyldigFnr()
+            listOf(fnrEn, fnrPrioritert, fnrTre).forEach { fnr ->
+                val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac = tac, fnr = fnr)
+                oppdaterRevurderingStans(
+                    tac = tac,
+                    sakId = sak.id,
+                    behandlingId = revurdering.id,
+                    prioriteringBegrunnelse = if (fnr == fnrPrioritert) "Haster" else null,
+                )
+            }
+            val repo = tac.benkContext.benkRepo
+
+            fun sorterteRader(retning: BenkSorteringRetning) =
+                repo.hentRevurderinger(
+                    command(BenkRevurderingerFiltrering(null, null, null), BenkRevurderingerKolonne.FNR, retning),
+                ).behandlinger
+
+            sorterteRader(BenkSorteringRetning.ASC).map { it.felles.fnr } shouldBe listOf(fnrPrioritert, fnrEn, fnrTre)
+            sorterteRader(BenkSorteringRetning.DESC).map { it.felles.fnr } shouldBe listOf(fnrPrioritert, fnrTre, fnrEn)
+            sorterteRader(BenkSorteringRetning.ASC).map { it.prioritering } shouldBe
+                listOf(BenkPrioritering("Haster"), null, null)
         }
     }
 

@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 
 sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando {
@@ -33,6 +34,7 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val barnetillegg: Barnetillegg,
         override val skalSendeVedtaksbrev: Boolean,
         override val skalJournalføreNotat: Boolean,
+        override val prioritering: Prioritering?,
     ) : OppdaterSøknadsbehandlingKommando,
         OppdaterBehandlingKommando.Innvilgelse
 
@@ -46,6 +48,7 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
         override val skalSendeVedtaksbrev: Boolean,
         override val skalJournalføreNotat: Boolean,
+        override val prioritering: Prioritering?,
     ) : OppdaterSøknadsbehandlingKommando {
         override val automatiskSaksbehandlet: Boolean = false
     }
@@ -61,6 +64,7 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val begrunnelseVilkårsvurdering: Begrunnelse?,
         override val skalJournalføreNotat: Boolean,
+        override val prioritering: Prioritering?,
     ) : OppdaterSøknadsbehandlingKommando {
         override val automatiskSaksbehandlet: Boolean = false
         override val skalSendeVedtaksbrev: Boolean = true

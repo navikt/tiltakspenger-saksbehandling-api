@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterSøknadsbehandlingKommando
@@ -57,6 +58,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
         correlationId: CorrelationId = CorrelationId.generate(),
         skalSendeVedtaksbrev: Boolean = true,
         skalJournalføreNotat: Boolean = false,
+        prioritering: Prioritering? = null,
     ): OppdaterSøknadsbehandlingKommando.Innvilgelse {
         return OppdaterSøknadsbehandlingKommando.Innvilgelse(
             sakId = sakId,
@@ -70,6 +72,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
             barnetillegg = barnetillegg,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             skalJournalføreNotat = skalJournalføreNotat,
+            prioritering = prioritering,
         )
     }
 
@@ -83,6 +86,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
         correlationId: CorrelationId = CorrelationId.generate(),
         skalSendeVedtaksbrev: Boolean = true,
         skalJournalføreNotat: Boolean = false,
+        prioritering: Prioritering? = null,
     ): OppdaterSøknadsbehandlingKommando.Avslag {
         return OppdaterSøknadsbehandlingKommando.Avslag(
             sakId = sakId,
@@ -94,6 +98,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
             avslagsgrunner = avslagsgrunner,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             skalJournalføreNotat = skalJournalføreNotat,
+            prioritering = prioritering,
         )
     }
 
@@ -114,6 +119,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
         correlationId: CorrelationId = CorrelationId.generate(),
         skalSendeVedtaksbrev: Boolean = true,
         skalJournalføreNotat: Boolean = false,
+        prioritering: Prioritering? = null,
     ): OppdaterRevurderingKommando.Innvilgelse {
         return OppdaterRevurderingKommando.Innvilgelse(
             sakId = sakId,
@@ -126,6 +132,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
             barnetillegg = barnetillegg,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             skalJournalføreNotat = skalJournalføreNotat,
+            prioritering = prioritering,
         )
     }
 }

@@ -91,6 +91,7 @@ class HentBenkRouteTest {
                         "søknadstype": "DIGITAL",
                         "kravtidspunkt": "${søknad.mottatt}",
                         "resultat": "IKKE_VALGT",
+                        "prioritering": null,
                         "gyldigeKommandoer": ["TildelSaksbehandler", "Avbryt"]
                       }
                     ],
@@ -150,6 +151,23 @@ class HentBenkRouteTest {
 
             objectMapper.readTree(respons)["oversikt"]["behandlinger"].single()["gyldigeKommandoer"]
                 .toString() shouldEqualJson """["LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"]"""
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `raden viser prioriteringen med begrunnelse`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
+                tac = tac,
+                saksbehandler = saksbehandler,
+                prioriteringBegrunnelse = "Bruker står uten inntekt",
+            )
+
+            val respons = hentBenk(tac, "/benk/soknader", """{}""")
+
+            objectMapper.readTree(respons)["oversikt"]["behandlinger"].single()["prioritering"]
+                .toString() shouldEqualJson """{"begrunnelse": {"verdi": "Bruker står uten inntekt", "erSladdet": false}}"""
         }
     }
 

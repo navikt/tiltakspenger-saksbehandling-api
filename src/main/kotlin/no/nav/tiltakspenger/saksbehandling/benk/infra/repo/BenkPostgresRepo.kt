@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortType
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkPrioritering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRepo
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurdering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingResultat
@@ -204,7 +205,7 @@ class BenkPostgresRepo(
             "soknadstype" to command.filtrering.søknadstype.tilParam(),
             "resultat" to command.filtrering.resultat.tilParam(),
         ),
-        sortering = command.sortering.tilOrderBy { it.toDbString() },
+        sortering = "$PRIORITERTE_FØRST, ${command.sortering.tilOrderBy { it.toDbString() }}",
         limit = limit,
         offset = offset,
         map = { it.tilSøknadsbehandling() },
@@ -222,7 +223,7 @@ class BenkPostgresRepo(
             "status" to command.filtrering.status.tilParam(),
             "resultat" to command.filtrering.resultat.tilParam(),
         ),
-        sortering = command.sortering.tilOrderBy { it.toDbString() },
+        sortering = "$PRIORITERTE_FØRST, ${command.sortering.tilOrderBy { it.toDbString() }}",
         limit = limit,
         offset = offset,
         map = { it.tilRevurdering() },
@@ -374,6 +375,7 @@ class BenkPostgresRepo(
                 sø.soknadstype::text        as søknadstype,
                 sø.mottatt                as kravtidspunkt,
                 coalesce(b.resultat, 'IKKE_VALGT') as resultat,
+                b.prioritering_begrunnelse  as prioritering_begrunnelse,
                 b.id                        as id
             from behandling b
                 join søknad sø on sø.id = b.soknad_id
@@ -400,6 +402,7 @@ class BenkPostgresRepo(
                 (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as vente_frist,
                 b.status::text              as status,
                 b.resultat::text            as resultat,
+                b.prioritering_begrunnelse  as prioritering_begrunnelse,
                 b.id                        as id
             from behandling b
                 join sak sa on b.sak_id = sa.id
@@ -639,6 +642,12 @@ class BenkPostgresRepo(
         """
 
         /**
+         * Prioriterte rammebehandlinger skal alltid ligge øverst, uavhengig av hvilken kolonne og retning saksbehandler sorterer på.
+         * Sorteringen saksbehandler har valgt gjelder innad blant de prioriterte og innad blant resten.
+         */
+        const val PRIORITERTE_FØRST = "(prioritering_begrunnelse is not null) desc"
+
+        /**
          * Alle basespørringene produserer `er_satt_på_vent`, så filteret er felles.
          */
         const val PÅ_VENT_FILTER = "(not :skjul_pa_vent or not er_satt_på_vent)"
@@ -769,6 +778,9 @@ private fun Row.tilFelles(): BenkBehandlingsfelles = BenkBehandlingsfelles(
     ),
 )
 
+private fun Row.tilPrioritering(): BenkPrioritering? =
+    stringOrNull("prioritering_begrunnelse")?.let { BenkPrioritering(it) }
+
 private fun Row.tilBehandlingsstatus(): BenkBehandlingsstatus =
     enum("status", BenkBehandlingsstatus.entries)
 
@@ -779,6 +791,7 @@ private fun Row.tilSøknadsbehandling(): BenkSøknadsbehandling = BenkSøknadsbe
     søknadstype = enum("søknadstype", BenkSøknadstype.entries),
     kravtidspunkt = localDateTime("kravtidspunkt"),
     resultat = enum("resultat", BenkSøknadsbehandlingResultat.entries),
+    prioritering = tilPrioritering(),
 )
 
 private fun Row.tilRevurdering(): BenkRevurdering = BenkRevurdering(
@@ -786,6 +799,7 @@ private fun Row.tilRevurdering(): BenkRevurdering = BenkRevurdering(
     id = RammebehandlingId.fromString(string("id")),
     status = tilBehandlingsstatus(),
     resultat = enumOrNull("resultat", BenkRevurderingResultat.entries),
+    prioritering = tilPrioritering(),
 )
 
 private fun Row.tilMeldekort(): BenkMeldekort = BenkMeldekort(

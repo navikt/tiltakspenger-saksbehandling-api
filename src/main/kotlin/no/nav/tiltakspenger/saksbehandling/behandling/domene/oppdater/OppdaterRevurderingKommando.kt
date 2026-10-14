@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import java.time.LocalDate
 
@@ -34,6 +35,7 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         val stansFraOgMed: ValgtStansFraOgMed,
         override val skalSendeVedtaksbrev: Boolean,
         override val skalJournalføreNotat: Boolean,
+        override val prioritering: Prioritering?,
     ) : OppdaterRevurderingKommando {
 
         /** Dersom saksbehandler har valgt at det skal stanses fra første dag som gir rett */
@@ -87,6 +89,7 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val barnetillegg: Barnetillegg,
         override val skalSendeVedtaksbrev: Boolean,
         override val skalJournalføreNotat: Boolean,
+        override val prioritering: Prioritering?,
     ) : OppdaterRevurderingKommando,
         OppdaterBehandlingKommando.Innvilgelse
 }
@@ -106,6 +109,7 @@ sealed interface OppdaterOmgjøringKommando : OppdaterRevurderingKommando {
         override val vedtaksperiode: Periode,
         override val skalSendeVedtaksbrev: Boolean,
         override val skalJournalføreNotat: Boolean,
+        override val prioritering: Prioritering?,
     ) : OppdaterOmgjøringKommando,
         OppdaterBehandlingKommando.Innvilgelse
 
@@ -120,6 +124,7 @@ sealed interface OppdaterOmgjøringKommando : OppdaterRevurderingKommando {
         val valgteHjemler: NonEmptySet<HjemmelForOpphør>,
         override val skalSendeVedtaksbrev: Boolean,
         override val skalJournalføreNotat: Boolean,
+        override val prioritering: Prioritering?,
     ) : OppdaterOmgjøringKommando
 
     data class OmgjøringIkkeValgt(
@@ -127,6 +132,7 @@ sealed interface OppdaterOmgjøringKommando : OppdaterRevurderingKommando {
         override val behandlingId: RammebehandlingId,
         override val saksbehandler: Saksbehandler,
         override val correlationId: CorrelationId,
+        override val prioritering: Prioritering?,
     ) : OppdaterOmgjøringKommando {
         override val vedtaksperiode = null
         override val begrunnelseVilkårsvurdering = null

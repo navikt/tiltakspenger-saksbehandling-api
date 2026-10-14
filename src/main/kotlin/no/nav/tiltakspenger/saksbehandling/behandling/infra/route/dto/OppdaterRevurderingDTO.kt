@@ -32,6 +32,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         val barnetillegg: OppdaterBarnetilleggDTO,
         override val skalSendeVedtaksbrev: Boolean = true,
         override val skalJournalføreNotat: Boolean = false,
+        override val prioritering: OppdaterPrioriteringDTO? = null,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
 
@@ -54,6 +55,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperioder.perioder),
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                 skalJournalføreNotat = skalJournalføreNotat,
+                prioritering = prioritering?.tilDomene(),
             )
         }
     }
@@ -66,6 +68,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         val stansFraOgMed: LocalDate?,
         override val skalSendeVedtaksbrev: Boolean = true,
         override val skalJournalføreNotat: Boolean = false,
+        override val prioritering: OppdaterPrioriteringDTO? = null,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.STANS
 
@@ -94,6 +97,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 valgteHjemler = valgteHjemler.toDomain().toNonEmptySetOrThrow(),
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                 skalJournalføreNotat = skalJournalføreNotat,
+                prioritering = prioritering?.tilDomene(),
             )
         }
     }
@@ -106,6 +110,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         val vedtaksperiode: PeriodeDTO,
         override val skalSendeVedtaksbrev: Boolean = true,
         override val skalJournalføreNotat: Boolean = false,
+        override val prioritering: OppdaterPrioriteringDTO? = null,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.OMGJØRING
 
@@ -129,6 +134,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 vedtaksperiode = vedtaksperiode.toDomain(),
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                 skalJournalføreNotat = skalJournalføreNotat,
+                prioritering = prioritering?.tilDomene(),
             )
         }
     }
@@ -140,6 +146,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         val valgteHjemler: List<HjemmelForOpphørDTO>,
         override val skalSendeVedtaksbrev: Boolean = true,
         override val skalJournalføreNotat: Boolean = false,
+        override val prioritering: OppdaterPrioriteringDTO? = null,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.OMGJØRING_OPPHØR
 
@@ -160,11 +167,14 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 valgteHjemler = valgteHjemler.toDomain(),
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                 skalJournalføreNotat = skalJournalføreNotat,
+                prioritering = prioritering?.tilDomene(),
             )
         }
     }
 
-    data object OmgjøringIkkeValgt : OppdaterRevurderingDTO {
+    data class OmgjøringIkkeValgt(
+        override val prioritering: OppdaterPrioriteringDTO? = null,
+    ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.OMGJØRING_IKKE_VALGT
         override val fritekstTilVedtaksbrev = null
         override val begrunnelseVilkårsvurdering = null
@@ -182,6 +192,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
+                prioritering = prioritering?.tilDomene(),
             )
         }
     }

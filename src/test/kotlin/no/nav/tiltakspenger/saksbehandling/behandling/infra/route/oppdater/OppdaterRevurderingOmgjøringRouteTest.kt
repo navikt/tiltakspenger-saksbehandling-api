@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.utenBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -169,8 +170,10 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 behandlingId = omgjøring.id,
                 vedtaksperiode = førsteInnvilgelsesperiode,
                 skalSendeVedtaksbrev = false,
+                prioriteringBegrunnelse = "Haster",
             ).also {
                 it.second.skalSendeVedtaksbrev shouldBe false
+                it.second.prioritering shouldBe Prioritering.create("Haster")
             }
         }
     }

@@ -51,6 +51,7 @@ fun String.shouldBeRevurderingDTO(
     status: String = "VEDTATT",
     skalSendeVedtaksbrev: Boolean = true,
     skalJournalføreNotat: Boolean = false,
+    prioriteringBegrunnelse: String? = null,
     gyldigeKommandoer: List<String> = emptyList(),
     periodeFraOgMed: String = "2023-01-01",
     periodeTilOgMed: String = "2023-03-31",
@@ -188,6 +189,7 @@ fun String.shouldBeRevurderingDTO(
           "status": "$status",
           "skalSendeVedtaksbrev": $skalSendeVedtaksbrev,
           "skalJournalføreNotat": $skalJournalføreNotat,
+          "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
           "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
         }
     """
@@ -229,6 +231,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
     status: String = "VEDTATT",
     skalSendeVedtaksbrev: Boolean = true,
     skalJournalføreNotat: Boolean = false,
+    prioriteringBegrunnelse: String? = null,
     gyldigeKommandoer: List<String> = emptyList(),
     automatiskSaksbehandlet: Boolean = false,
     kanInnvilges: Boolean = true,
@@ -387,6 +390,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
         "status": "$status",
         "skalSendeVedtaksbrev": $skalSendeVedtaksbrev,
         "skalJournalføreNotat": $skalJournalføreNotat,
+        "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
         "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
     }
     """
@@ -396,3 +400,6 @@ fun String.shouldBeSøknadsbehandlingDTO(
         this.shouldEqualJson(expected)
     }
 }
+
+private fun String?.tilPrioriteringJson(): String? =
+    this?.let { "{\"begrunnelse\": {\"verdi\": \"$it\", \"erSladdet\": false}}" }

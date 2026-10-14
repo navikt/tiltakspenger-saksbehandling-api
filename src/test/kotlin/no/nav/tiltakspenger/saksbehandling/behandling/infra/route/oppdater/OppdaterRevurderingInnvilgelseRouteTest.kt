@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -95,6 +96,7 @@ class OppdaterRevurderingInnvilgelseRouteTest {
                 innvilgelsesperioder = innvilgelsesperioder(nyInnvilgelsesperiode),
                 barnetillegg = barnetillegg,
                 skalSendeVedtaksbrev = false,
+                prioriteringBegrunnelse = "Haster",
             )
 
             val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id)
@@ -106,6 +108,7 @@ class OppdaterRevurderingInnvilgelseRouteTest {
             oppdatertBehandling.barnetillegg shouldBe barnetillegg
             oppdatertBehandling.antallDagerPerMeldeperiode shouldBe antallDager
             oppdatertBehandling.skalSendeVedtaksbrev shouldBe false
+            oppdatertBehandling.prioritering shouldBe Prioritering.create("Haster")
         }
     }
 

@@ -52,6 +52,7 @@ fun Søknadsbehandling.oppdater(
         utbetaling = utbetaling,
         skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
         skalJournalføreNotat = kommando.skalJournalføreNotat,
+        prioritering = kommando.prioritering,
     ).also {
         require(it.resultat?.erFerdigutfylt(saksopplysninger) != false) {
             "Behandlingsresultatet må være ferdigutfylt etter vi oppdaterer søknadsbehandlingen"

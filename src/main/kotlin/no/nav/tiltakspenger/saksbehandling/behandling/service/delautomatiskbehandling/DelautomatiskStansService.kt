@@ -178,6 +178,7 @@ class DelautomatiskStansService(
             stansFraOgMed = automatiskStans.stansFraOgMed,
             skalSendeVedtaksbrev = true,
             skalJournalføreNotat = false,
+            prioritering = revurdering.prioritering,
         )
         // Saken har innvilgede perioder, ellers kunne ikke stansen utledes.
         val førsteDagSomGirRett = førsteDagSomGirRett!!

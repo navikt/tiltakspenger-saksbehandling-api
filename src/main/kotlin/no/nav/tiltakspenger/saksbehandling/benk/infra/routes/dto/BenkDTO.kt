@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingAvvistÅrsak
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingBulk
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.PrioriteringDTO
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkAntallPerFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandlingsstatus
@@ -13,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineResponsMedTilgang
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOppsummering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversiktMedTilgang
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkPersonmarkører
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkPrioritering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRad
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkResponsMedTilgang
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkResponsUtenTilgang
@@ -326,6 +328,10 @@ private fun BenkOppsummering.toDTO(): BenkOppsummeringDTO = BenkOppsummeringDTO(
     antallSkjermet = antallSkjermet,
     antallKode6 = antallKode6,
     antallKode7 = antallKode7,
+)
+
+fun BenkPrioritering.toDTO(): PrioriteringDTO = PrioriteringDTO(
+    begrunnelse = begrunnelse.ikkeSladdet(),
 )
 
 fun BenkVentestatus.toDTO(): BenkVentestatusDTO = BenkVentestatusDTO(

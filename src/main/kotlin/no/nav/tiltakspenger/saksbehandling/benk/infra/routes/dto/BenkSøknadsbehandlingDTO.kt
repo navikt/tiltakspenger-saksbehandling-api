@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto
 
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.PrioriteringDTO
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknadstype
@@ -42,6 +43,8 @@ data class BenkSøknadsbehandlingDTO(
     val søknadstype: BenkSøknadstypeDTO,
     val kravtidspunkt: String,
     val resultat: BenkSøknadsbehandlingResultatDTO,
+    /** null når behandlingen ikke er prioritert. */
+    val prioritering: PrioriteringDTO?,
     val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : BenkBehandlingDTO
 
@@ -66,6 +69,7 @@ fun BenkSøknadsbehandling.toDTO(
     søknadstype = søknadstype.toDTO(),
     kravtidspunkt = kravtidspunkt.toString(),
     resultat = resultat.toDTO(),
+    prioritering = prioritering?.toDTO(),
     gyldigeKommandoer = finnGyldigeKommandoer(saksbehandler).tilDTO(),
 )
 

@@ -160,6 +160,7 @@ interface StartSøknadsbehandlingBuilder {
         tiltaksdeltakelse: TiltaksdeltakelseIntern = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         clock: Clock = fixedClock,
+        prioriteringBegrunnelse: String? = null,
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad, behandling) = opprettSøknadsbehandlingUnderBehandling(
             tac = tac,
@@ -181,6 +182,7 @@ interface StartSøknadsbehandlingBuilder {
             skalJournalføreNotat = skalJournalføreNotat,
             innvilgelsesperioder = innvilgelsesperioder,
             barnetillegg = barnetillegg,
+            prioriteringBegrunnelse = prioriteringBegrunnelse,
         )
 
         return Triple(oppdatertSak, søknad, oppdatertBehandling as Søknadsbehandling)

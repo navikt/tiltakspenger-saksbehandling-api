@@ -22,6 +22,14 @@ data class BenkVentestatus(
 )
 
 /**
+ * Prioriteringen av en rammebehandling slik benken viser den.
+ * Prioriterte rader ligger alltid øverst i fanen, uavhengig av valgt sortering.
+ */
+data class BenkPrioritering(
+    val begrunnelse: String,
+)
+
+/**
  * Fellesfeltene alle rader i benken har, uavhengig av fane.
  */
 data class BenkBehandlingsfelles(
@@ -54,6 +62,8 @@ data class BenkSøknadsbehandling(
     val kravtidspunkt: LocalDateTime,
     /** Basen lagrer null fram til noe er valgt — benken kaller det [BenkSøknadsbehandlingResultat.IKKE_VALGT]. */
     val resultat: BenkSøknadsbehandlingResultat,
+    /** null når behandlingen ikke er prioritert. */
+    val prioritering: BenkPrioritering?,
 ) : BenkBehandling
 
 data class BenkRevurdering(
@@ -61,6 +71,8 @@ data class BenkRevurdering(
     val id: RammebehandlingId,
     val status: BenkBehandlingsstatus,
     val resultat: BenkRevurderingResultat?,
+    /** null når behandlingen ikke er prioritert. */
+    val prioritering: BenkPrioritering?,
 ) : BenkBehandling
 
 data class BenkMeldekort(

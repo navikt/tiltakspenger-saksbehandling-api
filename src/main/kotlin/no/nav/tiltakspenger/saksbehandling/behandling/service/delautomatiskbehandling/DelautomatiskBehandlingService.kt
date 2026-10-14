@@ -177,6 +177,7 @@ class DelautomatiskBehandlingService(
             automatiskSaksbehandlet = true,
             skalSendeVedtaksbrev = true,
             skalJournalføreNotat = false,
+            prioritering = behandling.prioritering,
         )
 
         val (utbetaling, simuleringMedMetadata) = this.beregnInnvilgelse(

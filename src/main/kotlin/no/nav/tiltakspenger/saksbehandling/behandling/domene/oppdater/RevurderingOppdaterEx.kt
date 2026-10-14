@@ -38,6 +38,7 @@ fun Revurdering.oppdaterInnvilgelse(
         utbetaling = utbetaling,
         skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
         skalJournalføreNotat = kommando.skalJournalføreNotat,
+        prioritering = kommando.prioritering,
     ).also {
         // TODO jah: Etter omgjøring, fjern denne sjekken, fjern nullstill resultat og påse at dette gjøres ved send til beslutter + iverksett.
         require(it.resultat.erFerdigutfylt(saksopplysninger))
@@ -73,5 +74,6 @@ fun Revurdering.oppdaterStans(
         utbetaling = utbetaling,
         skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
         skalJournalføreNotat = kommando.skalJournalføreNotat,
+        prioritering = kommando.prioritering,
     ).right()
 }

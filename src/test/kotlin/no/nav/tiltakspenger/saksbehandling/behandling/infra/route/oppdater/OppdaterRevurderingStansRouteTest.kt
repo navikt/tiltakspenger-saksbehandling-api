@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat.Stans
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
@@ -43,6 +44,27 @@ class OppdaterRevurderingStansRouteTest {
             oppdatertBehandling.vedtaksperiode!!.fraOgMed shouldBe 9.april(2025)
             (oppdatertBehandling.resultat as Stans).valgtHjemmel shouldBe listOf(HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak)
             oppdatertBehandling.skalSendeVedtaksbrev shouldBe true
+        }
+    }
+
+    @Test
+    fun `kan prioritere revurdering stans`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(
+                tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 30.april(2025)),
+            )
+
+            val (_, oppdatert) = oppdaterRevurderingStans(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                stansFraOgMed = 9.april(2025),
+                harValgtStansFraFørsteDagSomGirRett = false,
+                prioriteringBegrunnelse = "Haster",
+            )
+
+            oppdatert.prioritering shouldBe Prioritering.create("Haster")
         }
     }
 
