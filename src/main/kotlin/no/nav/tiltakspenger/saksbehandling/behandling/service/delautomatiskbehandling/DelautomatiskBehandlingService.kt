@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_T
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.gjenoppta
@@ -176,8 +177,8 @@ class DelautomatiskBehandlingService(
             barnetillegg = barnetillegg,
             automatiskSaksbehandlet = true,
             skalSendeVedtaksbrev = true,
-            skalJournalføreNotat = false,
             prioritering = behandling.prioritering,
+            skalJournalføreNotat = SkalJournalføreNotat.INGEN,
         )
 
         val (utbetaling, simuleringMedMetadata) = this.beregnInnvilgelse(

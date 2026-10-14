@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.journalnotat
 
+import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -9,7 +10,9 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -39,6 +42,7 @@ class JournalnotatRouteTest {
     private val saksbehandler = ObjectMother.saksbehandler()
     private val beslutter = ObjectMother.beslutter()
     private val begrunnelse = "Begrunnelse for vilkårsvurderingen."
+    private val barnetilleggBegrunnelse = "Begrunnelse for barnetillegg."
 
     @Test
     fun `rammebehandling som skal journalføre notat uten begrunnelse kan ikke sendes til beslutning`() {
@@ -47,7 +51,7 @@ class JournalnotatRouteTest {
                 tac = tac,
                 saksbehandler = saksbehandler,
                 begrunnelseVilkårsvurdering = null,
-                skalJournalføreNotat = true,
+                skalJournalføreNotat = SkalJournalføreNotat(vilkårsvurdering = true, barnetillegg = false),
             )
 
             sendSøknadsbehandlingTilBeslutningForBehandlingId(
@@ -66,6 +70,32 @@ class JournalnotatRouteTest {
         }
     }
 
+    @Test
+    fun `rammebehandling som skal journalføre barnetillegg uten begrunnelse for barnetillegg kan ikke sendes til beslutning`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
+                tac = tac,
+                saksbehandler = saksbehandler,
+                begrunnelseVilkårsvurdering = Begrunnelse.createOrThrow(begrunnelse),
+                skalJournalføreNotat = SkalJournalføreNotat(vilkårsvurdering = true, barnetillegg = true),
+            )
+
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                saksbehandler = saksbehandler,
+                forventet = ForventetRespons(
+                    status = 400,
+                    contentType = "application/json; charset=UTF-8",
+                    body = ForventetBody.Json(
+                        """{"melding":"Begrunnelsen for barnetillegg må være utfylt når den skal journalføres som notat","kode":"må_ha_begrunnelse_for_barnetillegg_for_å_journalføre_notat"}""",
+                    ),
+                ),
+            )
+        }
+    }
+
     /**
      * Isolert fordi notatjobben tar hele køen.
      * I den delte databasen kan en annen tests jobb journalføre det samme vedtaket samtidig og overskrive journalføringsnotatet mellom stegene i testen.
@@ -74,16 +104,22 @@ class JournalnotatRouteTest {
     @IsolatedDatabaseTest
     fun `valget lagres og vises på rammebehandlingen, og notatet journalføres etter iverksettelse`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val innvilgelsesperioder = ObjectMother.innvilgelsesperioder()
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
                 tac = tac,
                 saksbehandler = saksbehandler,
                 begrunnelseVilkårsvurdering = Begrunnelse.createOrThrow(begrunnelse),
-                skalJournalføreNotat = true,
+                skalJournalføreNotat = SkalJournalføreNotat(vilkårsvurdering = true, barnetillegg = true),
+                innvilgelsesperioder = innvilgelsesperioder,
+                barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder)
+                    .copy(begrunnelse = Begrunnelse.createOrThrow(barnetilleggBegrunnelse)),
             )
-            behandling.skalJournalføreNotat shouldBe true
+            behandling.skalJournalføreNotat shouldBe SkalJournalføreNotat(vilkårsvurdering = true, barnetillegg = true)
 
             val json = sendSøknadsbehandlingTilBeslutningForBehandlingId(tac, sak.id, behandling.id, saksbehandler)!!
-            JSONObject(json).getBoolean("skalJournalføreNotat") shouldBe true
+            JSONObject(json).getJSONObject("skalJournalføreNotat").toString().shouldEqualJson(
+                """{"vilkårsvurdering": true, "barnetillegg": true}""",
+            )
 
             val vedtak = iverksettRammebehandling(tac, sak.id, behandling, JobberEtterIverksettelse(journalførNotat = false))
             vedtak.journalføringsnotat.shouldBeNull()
@@ -104,13 +140,13 @@ class JournalnotatRouteTest {
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
                 tac = tac,
                 saksbehandler = saksbehandler,
-                skalJournalføreNotat = false,
+                skalJournalføreNotat = SkalJournalføreNotat.INGEN,
             )
             sendSøknadsbehandlingTilBeslutningForBehandlingId(tac, sak.id, behandling.id, saksbehandler)
 
             val vedtak = iverksettRammebehandling(tac, sak.id, behandling, JobberEtterIverksettelse())
 
-            vedtak.skalJournalføreNotat shouldBe false
+            vedtak.skalJournalføreNotat shouldBe SkalJournalføreNotat.INGEN
             vedtak.journalføringsnotat.shouldBeNull()
         }
     }

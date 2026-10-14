@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 
 sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando {
@@ -33,8 +34,8 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val innvilgelsesperioder: IkkeTomPeriodisering<InnvilgelsesperiodeKommando>,
         override val barnetillegg: Barnetillegg,
         override val skalSendeVedtaksbrev: Boolean,
-        override val skalJournalføreNotat: Boolean,
         override val prioritering: Prioritering?,
+        override val skalJournalføreNotat: SkalJournalføreNotat,
     ) : OppdaterSøknadsbehandlingKommando,
         OppdaterBehandlingKommando.Innvilgelse
 
@@ -47,8 +48,8 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val begrunnelseVilkårsvurdering: Begrunnelse?,
         val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
         override val skalSendeVedtaksbrev: Boolean,
-        override val skalJournalføreNotat: Boolean,
         override val prioritering: Prioritering?,
+        override val skalJournalføreNotat: SkalJournalføreNotat,
     ) : OppdaterSøknadsbehandlingKommando {
         override val automatiskSaksbehandlet: Boolean = false
     }
@@ -63,8 +64,8 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val correlationId: CorrelationId,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val begrunnelseVilkårsvurdering: Begrunnelse?,
-        override val skalJournalføreNotat: Boolean,
         override val prioritering: Prioritering?,
+        override val skalJournalføreNotat: SkalJournalføreNotat,
     ) : OppdaterSøknadsbehandlingKommando {
         override val automatiskSaksbehandlet: Boolean = false
         override val skalSendeVedtaksbrev: Boolean = true

@@ -6,7 +6,11 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivReq
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivRequest.JournalpostDokument.DokumentVariant.ArkivPDF
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivRequest.JournalpostDokument.DokumentVariant.OriginalJson
 import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalnotat
-import no.nav.tiltakspenger.saksbehandling.journalnotat.infra.JOURNALNOTAT_TITTEL
+
+/** Tittel på journalposten og dokumentet i Joark.
+ * PDF-en har samme tittel, satt i journalnotat-malen i pdfgenrs.
+ */
+const val JOURNALNOTAT_TITTEL = "Notat om vedtak om tiltakspenger"
 
 /**
  * Notatet journalføres som NOTAT, som ikke distribueres og ikke vises for bruker på nav.no.

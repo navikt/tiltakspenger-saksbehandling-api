@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import java.time.LocalDate
 
@@ -34,8 +35,8 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         val valgteHjemler: NonEmptySet<HjemmelForStans>,
         val stansFraOgMed: ValgtStansFraOgMed,
         override val skalSendeVedtaksbrev: Boolean,
-        override val skalJournalføreNotat: Boolean,
         override val prioritering: Prioritering?,
+        override val skalJournalføreNotat: SkalJournalføreNotat,
     ) : OppdaterRevurderingKommando {
 
         /** Dersom saksbehandler har valgt at det skal stanses fra første dag som gir rett */
@@ -88,8 +89,8 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val innvilgelsesperioder: IkkeTomPeriodisering<InnvilgelsesperiodeKommando>,
         override val barnetillegg: Barnetillegg,
         override val skalSendeVedtaksbrev: Boolean,
-        override val skalJournalføreNotat: Boolean,
         override val prioritering: Prioritering?,
+        override val skalJournalføreNotat: SkalJournalføreNotat,
     ) : OppdaterRevurderingKommando,
         OppdaterBehandlingKommando.Innvilgelse
 }
@@ -108,8 +109,8 @@ sealed interface OppdaterOmgjøringKommando : OppdaterRevurderingKommando {
         override val barnetillegg: Barnetillegg,
         override val vedtaksperiode: Periode,
         override val skalSendeVedtaksbrev: Boolean,
-        override val skalJournalføreNotat: Boolean,
         override val prioritering: Prioritering?,
+        override val skalJournalføreNotat: SkalJournalføreNotat,
     ) : OppdaterOmgjøringKommando,
         OppdaterBehandlingKommando.Innvilgelse
 
@@ -123,8 +124,8 @@ sealed interface OppdaterOmgjøringKommando : OppdaterRevurderingKommando {
         override val vedtaksperiode: Periode,
         val valgteHjemler: NonEmptySet<HjemmelForOpphør>,
         override val skalSendeVedtaksbrev: Boolean,
-        override val skalJournalføreNotat: Boolean,
         override val prioritering: Prioritering?,
+        override val skalJournalføreNotat: SkalJournalføreNotat,
     ) : OppdaterOmgjøringKommando
 
     data class OmgjøringIkkeValgt(
@@ -138,6 +139,6 @@ sealed interface OppdaterOmgjøringKommando : OppdaterRevurderingKommando {
         override val begrunnelseVilkårsvurdering = null
         override val fritekstTilVedtaksbrev = null
         override val skalSendeVedtaksbrev = true
-        override val skalJournalføreNotat = false
+        override val skalJournalføreNotat = SkalJournalføreNotat.INGEN
     }
 }

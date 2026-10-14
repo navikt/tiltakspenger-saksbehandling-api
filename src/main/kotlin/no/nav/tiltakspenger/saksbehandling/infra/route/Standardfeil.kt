@@ -58,4 +58,9 @@ object Standardfeil {
         "Begrunnelsen må være utfylt når notatet skal journalføres",
         "må_ha_begrunnelse_for_å_journalføre_notat",
     )
+
+    fun måHaBegrunnelseForBarnetilleggForÅJournalføreNotat(): ErrorJson = ErrorJson(
+        "Begrunnelsen for barnetillegg må være utfylt når den skal journalføres som notat",
+        "må_ha_begrunnelse_for_barnetillegg_for_å_journalføre_notat",
+    )
 }

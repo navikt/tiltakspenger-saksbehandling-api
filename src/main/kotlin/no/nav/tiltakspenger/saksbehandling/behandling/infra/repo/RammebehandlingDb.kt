@@ -173,8 +173,8 @@ fun Row.toBehandling(session: Session): Rammebehandling {
                 utbetaling = utbetaling,
                 utbetalingskontroll = utbetalingskontroll,
                 skalSendeVedtaksbrev = boolean("skal_sende_vedtaksbrev"),
-                skalJournalføreNotat = boolean("skal_journalfore_notat"),
                 prioritering = prioritering,
+                skalJournalføreNotat = string("skal_journalfore_notat").toSkalJournalføreNotat(),
             )
         }
 
@@ -248,8 +248,8 @@ fun Row.toBehandling(session: Session): Rammebehandling {
                 automatiskOpprettetGrunn = stringOrNull("automatisk_opprettet_grunn")?.toAutomatiskOpprettetRevurderingGrunn(),
                 manueltBehandlesGrunner = manueltBehandlesGrunner,
                 skalSendeVedtaksbrev = boolean("skal_sende_vedtaksbrev"),
-                skalJournalføreNotat = boolean("skal_journalfore_notat"),
                 prioritering = prioritering,
+                skalJournalføreNotat = string("skal_journalfore_notat").toSkalJournalføreNotat(),
             )
         }
     }
@@ -319,8 +319,8 @@ fun Rammebehandling.tilDbParams(): Map<String, Any?> {
             is Søknadsbehandling -> null
         },
         "skal_sende_vedtaksbrev" to this.skalSendeVedtaksbrev,
-        "skal_journalfore_notat" to this.skalJournalføreNotat,
         "prioritering_begrunnelse" to this.prioritering?.begrunnelse?.verdi,
+        "skal_journalfore_notat" to this.skalJournalføreNotat.toDbJson(),
 
         *this.resultat.tilDbParams(),
     )

@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
@@ -88,7 +89,7 @@ data class Rammevedtak(
     val klagebehandling: Klagebehandling? = rammebehandling.klagebehandling
     val klagebehandlingsresultat: Klagebehandlingsresultat? = klagebehandling?.resultat
     val skalSendeVedtaksbrev: Boolean = rammebehandling.skalSendeVedtaksbrev
-    val skalJournalføreNotat: Boolean = rammebehandling.skalJournalføreNotat
+    val skalJournalføreNotat: SkalJournalføreNotat = rammebehandling.skalJournalføreNotat
 
     val omgjortGrad: Omgjøringsgrad? by lazy {
         if (omgjortAvRammevedtak.isEmpty()) {

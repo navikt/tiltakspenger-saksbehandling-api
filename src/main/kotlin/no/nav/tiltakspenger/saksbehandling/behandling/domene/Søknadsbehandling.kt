@@ -66,8 +66,8 @@ data class Søknadsbehandling(
     override val utbetalingskontroll: Utbetalingskontroll?,
     override val klagebehandling: Klagebehandling?,
     override val skalSendeVedtaksbrev: Boolean,
-    override val skalJournalføreNotat: Boolean,
     override val prioritering: Prioritering?,
+    override val skalJournalføreNotat: SkalJournalføreNotat,
 ) : Rammebehandling {
 
     override val vedtaksperiode = resultat?.vedtaksperiode
@@ -241,8 +241,8 @@ data class Søknadsbehandling(
                     sistEndret = opprettet,
                 ),
                 skalSendeVedtaksbrev = true,
-                skalJournalføreNotat = false,
                 prioritering = null,
+                skalJournalføreNotat = SkalJournalføreNotat.INGEN,
             )
             val statistikkhendelser = Statistikkhendelser(
                 opprettetSøknadsbehandling.genererSaksstatistikk(StatistikkhendelseType.OPPRETTET_BEHANDLING),
@@ -295,8 +295,8 @@ data class Søknadsbehandling(
                 utbetalingskontroll = null,
                 klagebehandling = null,
                 skalSendeVedtaksbrev = true,
-                skalJournalføreNotat = false,
                 prioritering = null,
+                skalJournalføreNotat = SkalJournalføreNotat.INGEN,
             )
             val statistikkhendelser = Statistikkhendelser(
                 opprettetSøknadsbehandling.genererSaksstatistikk(StatistikkhendelseType.OPPRETTET_BEHANDLING),

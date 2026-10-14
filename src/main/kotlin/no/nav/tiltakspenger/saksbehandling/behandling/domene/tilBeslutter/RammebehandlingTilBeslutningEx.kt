@@ -51,7 +51,7 @@ fun Rammebehandling.tilBeslutning(
  *  - behandlingen kan ikke eies av en annen saksbehandler
  *  - behandlingen må være [UNDER_BEHANDLING] eller [UNDER_AUTOMATISK_BEHANDLING]
  *  - behandlingen kan ikke stå på vent
- *  - skal notatet journalføres, må begrunnelsen for vilkårsvurderingen være utfylt
+ *  - begrunnelsene som er valgt å journalføre som notat, må være utfylt
  */
 fun Rammebehandling.kanSendeTilBeslutning(saksbehandler: Saksbehandler): Either<KanIkkeSendeRammebehandlingTilBeslutter, Unit> {
     krevSaksbehandlerRolle(saksbehandler)
@@ -65,8 +65,11 @@ fun Rammebehandling.kanSendeTilBeslutning(saksbehandler: Saksbehandler): Either<
     if (ventestatus.erSattPåVent) {
         return KanIkkeSendeRammebehandlingTilBeslutter.ErPaVent.left()
     }
-    if (skalJournalføreNotat && begrunnelseVilkårsvurdering == null) {
+    if (skalJournalføreNotat.vilkårsvurdering && begrunnelseVilkårsvurdering == null) {
         return KanIkkeSendeRammebehandlingTilBeslutter.MåHaBegrunnelseForÅJournalføreNotat.left()
+    }
+    if (skalJournalføreNotat.barnetillegg && barnetillegg?.begrunnelse == null) {
+        return KanIkkeSendeRammebehandlingTilBeslutter.MåHaBegrunnelseForBarnetilleggForÅJournalføreNotat.left()
     }
 
     return Unit.right()

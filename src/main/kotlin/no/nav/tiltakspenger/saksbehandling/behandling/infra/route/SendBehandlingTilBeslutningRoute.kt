@@ -61,6 +61,7 @@ fun Route.sendRammebehandlingTilBeslutningRoute(
                         KanIkkeSendeRammebehandlingTilBeslutter.MåVæreUnderBehandlingEllerAutomatisk,
                         is KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeil,
                         KanIkkeSendeRammebehandlingTilBeslutter.MåHaBegrunnelseForÅJournalføreNotat,
+                        KanIkkeSendeRammebehandlingTilBeslutter.MåHaBegrunnelseForBarnetilleggForÅJournalføreNotat,
                         -> call.respondJson(statusAndValue = it.toErrorJson(saksbehandler))
 
                         is KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingFeil -> call.respondJson(it.toErrorJson(saksbehandler))
@@ -120,4 +121,6 @@ private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(saksbehandler: S
     is KanIkkeSendeRammebehandlingTilBeslutter.OmgjøringsgrunnlagetErEndret -> omgjøringsgrunnlagetErEndretForSaksbehandler
 
     KanIkkeSendeRammebehandlingTilBeslutter.MåHaBegrunnelseForÅJournalføreNotat -> HttpStatusCode.BadRequest to Standardfeil.måHaBegrunnelseForÅJournalføreNotat()
+
+    KanIkkeSendeRammebehandlingTilBeslutter.MåHaBegrunnelseForBarnetilleggForÅJournalføreNotat -> HttpStatusCode.BadRequest to Standardfeil.måHaBegrunnelseForBarnetilleggForÅJournalføreNotat()
 }

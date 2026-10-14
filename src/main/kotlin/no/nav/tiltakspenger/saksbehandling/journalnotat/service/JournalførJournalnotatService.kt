@@ -83,7 +83,7 @@ class JournalførJournalnotatService(
     ) {
         val correlationId = CorrelationId.generate()
         val loggkontekst =
-            "sakId: ${journalnotat.sakId}, saksnummer: ${journalnotat.saksnummer}, vedtakId: ${journalnotat.vedtakId}, vedtakstype: ${journalnotat.vedtakstype}"
+            "sakId: ${journalnotat.sakId}, saksnummer: ${journalnotat.saksnummer}, vedtakId: ${journalnotat.vedtakId}"
 
         log.info { "Genererer journalnotat. $loggkontekst" }
         val pdfOgJson = genererJournalnotatKlient.genererJournalnotat(

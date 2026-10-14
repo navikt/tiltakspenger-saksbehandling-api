@@ -24,4 +24,7 @@ sealed interface KanIkkeSendeRammebehandlingTilBeslutter {
 
     /** Notatet som journalføres er begrunnelsen for vilkårsvurderingen, så den kan ikke være tom når saksbehandler har valgt å journalføre. */
     data object MåHaBegrunnelseForÅJournalføreNotat : KanIkkeSendeRammebehandlingTilBeslutter
+
+    /** Saksbehandler har valgt å journalføre begrunnelsen for barnetillegg, men behandlingen har ingen slik begrunnelse. */
+    data object MåHaBegrunnelseForBarnetilleggForÅJournalføreNotat : KanIkkeSendeRammebehandlingTilBeslutter
 }

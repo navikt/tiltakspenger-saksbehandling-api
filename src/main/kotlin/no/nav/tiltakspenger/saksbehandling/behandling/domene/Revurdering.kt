@@ -57,8 +57,8 @@ data class Revurdering(
     override val utbetalingskontroll: Utbetalingskontroll?,
     override val klagebehandling: Klagebehandling?,
     override val skalSendeVedtaksbrev: Boolean,
-    override val skalJournalføreNotat: Boolean,
     override val prioritering: Prioritering?,
+    override val skalJournalføreNotat: SkalJournalføreNotat,
     val automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
     val manueltBehandlesGrunner: List<ManueltBehandlesGrunn> = emptyList(),
 ) : Rammebehandling {
@@ -346,8 +346,8 @@ data class Revurdering(
                 utbetalingskontroll = null,
                 klagebehandling = klagebehandling,
                 skalSendeVedtaksbrev = true,
-                skalJournalføreNotat = false,
                 prioritering = null,
+                skalJournalføreNotat = SkalJournalføreNotat.INGEN,
                 automatiskOpprettetGrunn = automatiskOpprettetGrunn,
             )
         }

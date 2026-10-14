@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
@@ -157,7 +158,7 @@ interface StartSøknadsbehandlingBuilder {
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         begrunnelseVilkårsvurdering: Begrunnelse? = null,
         skalSendeVedtaksbrev: Boolean = true,
-        skalJournalføreNotat: Boolean = false,
+        skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         // Utledes fra innvilgelsesperiodene slik at flyten registrerer samme deltakelse som innvilges; en frisk deltakelse ville fått ny id.
         tiltaksdeltakelse: TiltaksdeltakelseIntern = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),

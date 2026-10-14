@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.utledAutomatiskStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando
@@ -114,8 +115,8 @@ class DelautomatiskStansService(
             valgteHjemler = nonEmptySetOf(automatiskStans.hjemmel),
             stansFraOgMed = automatiskStans.stansFraOgMed,
             skalSendeVedtaksbrev = true,
-            skalJournalføreNotat = false,
             prioritering = revurdering.prioritering,
+            skalJournalføreNotat = SkalJournalføreNotat.INGEN,
         )
         // Saken har innvilgede perioder, ellers kunne ikke stansen utledes.
         val førsteDagSomGirRett = førsteDagSomGirRett!!

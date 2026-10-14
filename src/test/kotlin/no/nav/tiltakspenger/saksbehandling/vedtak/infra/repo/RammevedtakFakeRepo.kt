@@ -58,7 +58,7 @@ class RammevedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : RammevedtakR
 
     override fun hentRammevedtakIderMedNotatSomSkalJournalføres(limit: Int): List<VedtakId> {
         return data.get().values
-            .filter { it.skalJournalføreNotat && it.journalføringsnotat == null }
+            .filter { it.skalJournalføreNotat.skalJournalføres && it.journalføringsnotat == null }
             .sortedBy { it.opprettet }
             .take(limit)
             .map { it.id }

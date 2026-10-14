@@ -143,7 +143,10 @@ class RammevedtakPostgresRepo(
                     FROM rammevedtak rv
                     JOIN behandling b ON b.id = rv.behandling_id
                     WHERE rv.journalføringsnotat IS NULL
-                      AND b.skal_journalfore_notat = TRUE
+                      AND (
+                        (b.skal_journalfore_notat ->> 'vilkårsvurdering')::boolean
+                        OR (b.skal_journalfore_notat ->> 'barnetillegg')::boolean
+                      )
                     ORDER BY rv.opprettet
                     LIMIT :limit
                     """,

@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import arrow.core.Either
+import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -421,11 +422,15 @@ class PdfgenrsHttpClientTest {
                     sakId = SakId.random(),
                     saksnummer = saksnummer,
                     fnr = Fnr.random(),
-                    vedtakstype = Journalnotat.Vedtakstype.MELDEKORT,
                     saksbehandler = "Z123456",
                     beslutter = "B123456",
                     notatsdato = 2.januar(2025),
-                    begrunnelse = Begrunnelse.createOrThrow("begrunnelse"),
+                    begrunnelser = nonEmptyListOf(
+                        Journalnotat.Notatbegrunnelse(
+                            type = Journalnotat.Begrunnelsestype.MELDEKORT,
+                            begrunnelse = Begrunnelse.createOrThrow("begrunnelse"),
+                        ),
+                    ),
                 ),
                 hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
