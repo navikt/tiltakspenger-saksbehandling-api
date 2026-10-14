@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Oppholdssted
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -64,14 +65,38 @@ data class ManueltRegistrertSøknadBody(
         val etternavn: String,
     )
 
+    /**
+     * Saksbehandler oppgir [oppholdssted].
+     * [oppholdInnenforEøs] er ja/nei-spørsmålet det erstatter, og tas bare imot så lenge en frontend som ikke sender [oppholdssted] kan være i drift.
+     */
     data class BarnetilleggDTO(
         val fødselsdato: LocalDate?,
         val fornavn: String?,
         val mellomnavn: String?,
         val etternavn: String?,
-        val oppholdInnenforEøs: JaNeiSpmDTO,
+        val oppholdInnenforEøs: JaNeiSpmDTO?,
+        val oppholdssted: OppholdsstedSpmDTO?,
         val fnr: String?,
     )
+
+    enum class OppholdsstedSvar {
+        NORGE,
+        ANNET_EØS_LAND,
+        IKKE_EØS_LAND,
+        IKKE_BESVART,
+    }
+
+    data class OppholdsstedSpmDTO(
+        val svar: OppholdsstedSvar,
+    ) {
+        fun tilDomene(): Oppholdssted? =
+            when (svar) {
+                OppholdsstedSvar.NORGE -> Oppholdssted.NORGE
+                OppholdsstedSvar.ANNET_EØS_LAND -> Oppholdssted.ANNET_EØS_LAND
+                OppholdsstedSvar.IKKE_EØS_LAND -> Oppholdssted.IKKE_EØS_LAND
+                OppholdsstedSvar.IKKE_BESVART -> null
+            }
+    }
 
     enum class JaNeiSvar {
         JA,
@@ -145,7 +170,8 @@ data class ManueltRegistrertSøknadBody(
         checkNotNull(this.fødselsdato) { "Fødselsdato kan ikke være null for barnetillegg, manuelle barn " }
 
         return BarnetilleggFraSøknad.Manuell(
-            oppholderSegIEØS = this.oppholdInnenforEøs.tilDomene(),
+            oppholderSegIEØS = this.oppholderSegIEØS(),
+            oppholdssted = this.oppholdssted?.tilDomene(),
             fornavn = this.fornavn,
             mellomnavn = this.mellomnavn,
             etternavn = this.etternavn,
@@ -156,13 +182,21 @@ data class ManueltRegistrertSøknadBody(
     fun BarnetilleggDTO.tilDomenePdl(): BarnetilleggFraSøknad.FraPdl {
         checkNotNull(this.fødselsdato) { "Fødselsdato kan ikke være null for barnetillegg fra PDL" }
         return BarnetilleggFraSøknad.FraPdl(
-            oppholderSegIEØS = this.oppholdInnenforEøs.tilDomene(),
+            oppholderSegIEØS = this.oppholderSegIEØS(),
+            oppholdssted = this.oppholdssted?.tilDomene(),
             fornavn = this.fornavn,
             mellomnavn = this.mellomnavn,
             etternavn = this.etternavn,
             fødselsdato = this.fødselsdato,
             fnr = this.fnr?.let { Fnr.fromString(it) },
         )
+    }
+
+    private fun BarnetilleggDTO.oppholderSegIEØS(): Søknad.JaNeiSpm {
+        if (this.oppholdssted != null) {
+            return this.oppholdssted.tilDomene()?.tilOppholderSegIEØS() ?: Søknad.JaNeiSpm.IkkeBesvart
+        }
+        return requireNotNull(this.oppholdInnenforEøs) { "Barnet må ha enten oppholdssted eller oppholdInnenforEøs" }.tilDomene()
     }
 
     fun JaNeiSpmDTO.tilDomene(): Søknad.JaNeiSpm =

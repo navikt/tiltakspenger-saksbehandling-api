@@ -284,7 +284,14 @@ data class Søknadstiltak(
 )
 
 sealed class BarnetilleggFraSøknad {
+    /**
+     * Om barnet oppholder seg i Norge eller et annet EØS-land.
+     * Når [oppholdssted] er satt, er dette avledet fra det.
+     */
     abstract val oppholderSegIEØS: Søknad.JaNeiSpm
+
+    /** Null for søknader fra før søknaden spurte om oppholdssted, og når spørsmålet ikke er besvart. */
+    abstract val oppholdssted: Oppholdssted?
     abstract val fornavn: String?
     abstract val mellomnavn: String?
     abstract val etternavn: String?
@@ -292,24 +299,41 @@ sealed class BarnetilleggFraSøknad {
 
     abstract fun under16ForDato(dato: LocalDate): Boolean
 
+    protected fun validerOpphold() {
+        val sted = oppholdssted ?: return
+        require(sted.tilOppholderSegIEØS() == oppholderSegIEØS) {
+            "oppholderSegIEØS=$oppholderSegIEØS stemmer ikke med oppholdssted=$sted"
+        }
+    }
+
     data class FraPdl(
         override val oppholderSegIEØS: Søknad.JaNeiSpm,
+        override val oppholdssted: Oppholdssted?,
         override val fornavn: String?,
         override val mellomnavn: String?,
         override val etternavn: String?,
         override val fødselsdato: LocalDate,
         val fnr: Fnr?,
     ) : BarnetilleggFraSøknad() {
+        init {
+            validerOpphold()
+        }
+
         override fun under16ForDato(dato: LocalDate): Boolean = fødselsdato.plusYears(16) > dato
     }
 
     data class Manuell(
         override val oppholderSegIEØS: Søknad.JaNeiSpm,
+        override val oppholdssted: Oppholdssted?,
         override val fornavn: String,
         override val mellomnavn: String?,
         override val etternavn: String,
         override val fødselsdato: LocalDate,
     ) : BarnetilleggFraSøknad() {
+        init {
+            validerOpphold()
+        }
+
         override fun under16ForDato(dato: LocalDate): Boolean = fødselsdato.plusYears(16) > dato
     }
 }

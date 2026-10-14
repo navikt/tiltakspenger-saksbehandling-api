@@ -43,6 +43,7 @@ fun Route.nySøknadDevRoute(applicationContext: LocalApplicationContext) {
                     mellomnavn = null,
                     etternavn = etternavn,
                     oppholderSegIEØS = it.oppholderSegIEØS,
+                    oppholdssted = it.oppholdssted,
                 )
             }.map { it.tilDomenePdl() }
 

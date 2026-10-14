@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.soknad.BarnetilleggDTO
 import no.nav.tiltakspenger.libs.soknad.FraOgMedDatoSpmDTO
 import no.nav.tiltakspenger.libs.soknad.JaNeiSpmDTO
+import no.nav.tiltakspenger.libs.soknad.OppholdsstedDTO
 import no.nav.tiltakspenger.libs.soknad.PeriodeSpmDTO
 import no.nav.tiltakspenger.libs.soknad.SpmSvarDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadDTO
@@ -14,6 +15,7 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Oppholdssted
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelser
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
@@ -46,7 +48,9 @@ object SøknadDTOMapper {
             mottatt = dto.opprettet,
             vedlegg = dto.vedlegg,
             harSøktPåTiltak = Søknad.JaNeiSpm.Ja,
-            harSøktOmBarnetillegg = if (dto.barnetilleggPdl.isNotEmpty() || dto.barnetilleggManuelle.isNotEmpty()) Søknad.JaNeiSpm.Ja else Søknad.JaNeiSpm.Nei,
+            // Søknader fra før søknaden spurte eksplisitt om barnetillegg, har bare barnelistene å gå etter.
+            harSøktOmBarnetillegg = dto.harSøktOmBarnetillegg?.tilDomene()
+                ?: if (dto.barnetilleggPdl.isNotEmpty() || dto.barnetilleggManuelle.isNotEmpty()) Søknad.JaNeiSpm.Ja else Søknad.JaNeiSpm.Nei,
             kvp = dto.kvp.tilDomene(),
             intro = dto.intro.tilDomene(),
             institusjon = dto.institusjon.tilDomene(),
@@ -106,6 +110,7 @@ object SøknadDTOMapper {
 
         return BarnetilleggFraSøknad.Manuell(
             oppholderSegIEØS = this.oppholderSegIEØS.tilDomene(),
+            oppholdssted = this.oppholdssted?.tilDomene(),
             fornavn = this.fornavn!!,
             mellomnavn = this.mellomnavn,
             etternavn = this.etternavn!!,
@@ -117,6 +122,7 @@ object SøknadDTOMapper {
         checkNotNull(this.fødselsdato) { "Fødselsdato kan ikke være null for barnetillegg fra PDL" }
         return BarnetilleggFraSøknad.FraPdl(
             oppholderSegIEØS = this.oppholderSegIEØS.tilDomene(),
+            oppholdssted = this.oppholdssted?.tilDomene(),
             fornavn = this.fornavn,
             mellomnavn = this.mellomnavn,
             etternavn = this.etternavn,
@@ -129,5 +135,12 @@ object SøknadDTOMapper {
         when (this.svar) {
             SpmSvarDTO.Nei -> Søknad.JaNeiSpm.Nei
             SpmSvarDTO.Ja -> Søknad.JaNeiSpm.Ja
+        }
+
+    fun OppholdsstedDTO.tilDomene(): Oppholdssted =
+        when (this) {
+            OppholdsstedDTO.NORGE -> Oppholdssted.NORGE
+            OppholdsstedDTO.ANNET_EØS_LAND -> Oppholdssted.ANNET_EØS_LAND
+            OppholdsstedDTO.IKKE_EØS_LAND -> Oppholdssted.IKKE_EØS_LAND
         }
 }

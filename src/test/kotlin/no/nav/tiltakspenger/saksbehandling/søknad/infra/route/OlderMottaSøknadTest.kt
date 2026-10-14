@@ -78,6 +78,7 @@ class OlderMottaSøknadTest {
                     listOf(
                         BarnetilleggFraSøknad.FraPdl(
                             oppholderSegIEØS = Søknad.JaNeiSpm.Ja,
+                            oppholdssted = null,
                             fornavn = "INKLUDERENDE",
                             mellomnavn = null,
                             etternavn = "DIVA",
@@ -86,6 +87,7 @@ class OlderMottaSøknadTest {
                         ),
                         BarnetilleggFraSøknad.Manuell(
                             oppholderSegIEØS = Søknad.JaNeiSpm.Ja,
+                            oppholdssted = null,
                             fornavn = "IKKEINKLUDERENDE",
                             mellomnavn = null,
                             etternavn = "DIVA",

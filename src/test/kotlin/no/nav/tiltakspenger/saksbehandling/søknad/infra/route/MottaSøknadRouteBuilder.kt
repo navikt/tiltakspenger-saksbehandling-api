@@ -214,7 +214,8 @@ private fun List<BarnetilleggFraSøknad>.tilJson(): String = this.joinToString(
       "fornavn": ${barn.fornavn.tilJsonstreng()},
       "mellomnavn": ${barn.mellomnavn.tilJsonstreng()},
       "etternavn": ${barn.etternavn.tilJsonstreng()},
-      "oppholderSegIEØS": { "svar": "${barn.oppholderSegIEØS.tilSpmSvar()}" }
+      "oppholderSegIEØS": { "svar": "${barn.oppholderSegIEØS.tilSpmSvar()}" },
+      "oppholdssted": ${barn.oppholdssted?.name.tilJsonstreng()}
     }
     """.trimIndent()
 }
