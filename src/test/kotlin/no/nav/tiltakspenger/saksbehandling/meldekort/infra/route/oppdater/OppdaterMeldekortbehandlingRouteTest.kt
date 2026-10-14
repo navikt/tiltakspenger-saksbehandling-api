@@ -16,15 +16,22 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingType
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.httpKlientUventetStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilOppdatertMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgOppdaterMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendMeldekortbehandlingTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taMeldekortbehanding
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import org.junit.jupiter.api.Test
 
@@ -352,6 +359,72 @@ class OppdaterMeldekortbehandlingRouteTest {
                 meldeperioder = listOf(ukjentKjede),
                 forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             )
+        }
+    }
+
+    @Test
+    fun `kan legge til en kjede som en nyere behandling har iverksatt mens denne var åpen`() {
+        // Kjøres mot postgres for å verifisere at saken kan hentes fra databasen igjen etter hvert steg.
+        val clock = TikkendeKlokke(fixedClockAt(12.mai(2026)))
+
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
+            val (sak, _, _) = this.iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2026) til 30.april(2026)),
+            )
+            val førsteKjede = sak.meldeperiodeKjeder[0].kjedeId
+            val andreKjede = sak.meldeperiodeKjeder[1].kjedeId
+
+            // Den eldste behandlingen er åpen mens en nyere behandling av andre kjede opprettes og iverksettes.
+            val (_, eldsteBehandling) = opprettMeldekortbehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = førsteKjede,
+            )!!
+            val (_, _, nyesteBehandling) = opprettOgIverksettMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = andreKjede,
+            )!!
+
+            // Saksbehandler utvider den eldste behandlingen med andre kjede, som da blir en korrigering.
+            val (_, oppdatertEldsteBehandling) = oppdaterMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                meldekortId = eldsteBehandling.id,
+                meldeperioder = sak.meldeperiodeKjeder.take(2).map {
+                    it.hentSisteMeldeperiode().tilOppdatertMeldeperiodeDTO()
+                },
+            )!!
+
+            oppdatertEldsteBehandling.meldeperioder.meldeperioder.map { it.kjedeId to it.type } shouldBe listOf(
+                førsteKjede to MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                andreKjede to MeldeperiodebehandlingType.KORRIGERING,
+            )
+
+            sendMeldekortbehandlingTilBeslutning(
+                tac = tac,
+                sakId = sak.id,
+                meldekortId = eldsteBehandling.id,
+            )!!
+            taMeldekortbehanding(
+                tac = tac,
+                sakId = sak.id,
+                meldekortId = eldsteBehandling.id,
+                saksbehandlerEllerBeslutter = ObjectMother.beslutter("beslutter"),
+            )!!
+            val (oppdatertSak) = iverksettMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                meldekortId = eldsteBehandling.id,
+            )!!
+
+            // Rekkefølgen per kjede følger iverksettelsen, ikke når behandlingene ble opprettet.
+            oppdatertSak.meldekortbehandlinger.behandledeMeldekortPerKjede[andreKjede]!!.map { it.id } shouldBe listOf(
+                nyesteBehandling.id,
+                eldsteBehandling.id,
+            )
+            oppdatertSak.meldekortbehandlinger.sisteGodkjenteMeldekort!!.id shouldBe eldsteBehandling.id
         }
     }
 }

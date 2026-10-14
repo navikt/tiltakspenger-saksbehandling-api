@@ -15,11 +15,13 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.SendMeldekortbehandlingTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import java.time.Clock
+import java.time.LocalDateTime
 
 /**
  * Består av ingen, én eller flere [Meldekortbehandling].
  * Vil være tom fram til første innvilgede søknadsbehandling.
  * Merk at [verdi] inneholder alle meldekortbehandlinger, inkludert de som er avbrutt, og bør ikke brukes direkte!
+ * [verdi] må være sortert i [behandlingsrekkefølge].
  */
 data class Meldekortbehandlinger(
     private val verdi: List<Meldekortbehandling>,
@@ -45,9 +47,9 @@ data class Meldekortbehandlinger(
         verdi.filterIsInstance<Meldekortbehandling.Behandlet>()
     }
 
+    /** Behandlingene av hver kjede, sortert i [behandlingsrekkefølge]. */
     val behandledeMeldekortPerKjede: Map<MeldeperiodeKjedeId, List<Meldekortbehandling.Behandlet>> by lazy {
         behandledeMeldekort
-            .sortedBy { it.opprettet }
             .flatMap { behandling -> behandling.kjedeIder.map { kjedeId -> kjedeId to behandling } }
             .groupBy({ it.first }, { it.second })
     }
@@ -68,7 +70,7 @@ data class Meldekortbehandlinger(
         }
     }
 
-    val sisteGodkjenteMeldekort: Meldekortbehandling.Behandlet? by lazy { godkjenteMeldekort.maxByOrNull { it.opprettet } }
+    val sisteGodkjenteMeldekort: Meldekortbehandling.Behandlet? by lazy { godkjenteMeldekort.lastOrNull() }
 
     /** Meldekort som er under behandling eller venter på beslutning */
     val åpneMeldekortbehandlinger: List<Meldekortbehandling> = verdi.filter { it.erÅpen() }
@@ -151,7 +153,7 @@ data class Meldekortbehandlinger(
                 } else {
                     it
                 }
-            },
+            }.sortedWith(behandlingsrekkefølge),
         )
     }
 
@@ -163,19 +165,19 @@ data class Meldekortbehandlinger(
                 } else {
                     it
                 }
-            },
+            }.sortedWith(behandlingsrekkefølge),
         )
     }
 
     fun leggTil(behandling: MeldekortUnderBehandling): Meldekortbehandlinger {
         return Meldekortbehandlinger(
-            verdi = verdi.plus(behandling).sortedBy { it.opprettet },
+            verdi = verdi.plus(behandling).sortedWith(behandlingsrekkefølge),
         )
     }
 
     fun leggTil(behandling: MeldekortBehandletAutomatisk): Meldekortbehandlinger {
         return Meldekortbehandlinger(
-            verdi = verdi.plus(behandling).sortedBy { it.opprettet },
+            verdi = verdi.plus(behandling).sortedWith(behandlingsrekkefølge),
         )
     }
 
@@ -185,8 +187,8 @@ data class Meldekortbehandlinger(
 
     init {
         verdi.zipWithNext { a, b ->
-            require(a.opprettet < b.opprettet) {
-                "Meldekortperiodene må være sortert på opprettet-tidspunkt. ${a.opprettet}(${a.id}) er ikke før ${b.opprettet}(${b.id})"
+            require(behandlingsrekkefølge.compare(a, b) < 0) {
+                "Meldekortbehandlingene må være sortert på iverksatt-tidspunkt (ikke-iverksatte sist), deretter opprettet-tidspunkt. ${a.id}(iverksatt ${a.iverksattTidspunkt}, opprettet ${a.opprettet}) er ikke før ${b.id}(iverksatt ${b.iverksattTidspunkt}, opprettet ${b.opprettet})"
             }
         }
 
@@ -224,6 +226,17 @@ data class Meldekortbehandlinger(
     }
 
     companion object {
+        /**
+         * Rekkefølgen behandlingene får virkning i, og som [Meldekortbehandlinger] er sortert i.
+         * Iverksatte behandlinger sorteres på iverksettelsestidspunkt, og behandlinger som ikke er iverksatt (åpne og avbrutte) kommer sist.
+         * Flere behandlinger kan være åpne samtidig, så opprettet-tidspunktet sier ikke noe om rekkefølgen behandlingene iverksettes i.
+         * En åpen behandling kan for eksempel utvides med en kjede som en nyere behandling har iverksatt i mellomtiden.
+         * Opprettet-tidspunktet brukes derfor bare til å skille behandlinger med likt iverksettelsestidspunkt.
+         */
+        val behandlingsrekkefølge: Comparator<Meldekortbehandling> =
+            compareBy<Meldekortbehandling, LocalDateTime?>(nullsLast()) { it.iverksattTidspunkt }
+                .thenBy { it.opprettet }
+
         fun empty(): Meldekortbehandlinger {
             return Meldekortbehandlinger(
                 verdi = emptyList(),

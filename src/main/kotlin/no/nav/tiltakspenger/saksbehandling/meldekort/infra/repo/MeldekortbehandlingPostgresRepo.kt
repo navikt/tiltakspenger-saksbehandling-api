@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
-import arrow.core.toNonEmptyListOrThrow
 import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
@@ -581,7 +580,7 @@ class MeldekortbehandlingPostgresRepo(
                     "sakId" to sakId.toString(),
                 ).map { fromRow(it, session) }.asList,
             )
-            return if (behandlinger.isEmpty()) null else Meldekortbehandlinger(behandlinger.toNonEmptyListOrThrow())
+            return if (behandlinger.isEmpty()) null else Meldekortbehandlinger(behandlinger.sortedWith(Meldekortbehandlinger.behandlingsrekkefølge))
         }
 
         private fun fromRow(

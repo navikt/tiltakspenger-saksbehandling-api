@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingType
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -239,5 +240,167 @@ class MeldekortbehandlingerTest {
                 ),
             )
         }
+    }
+
+    @Test
+    fun `en eldre åpen behandling kan korrigere en kjede som en nyere behandling har iverksatt`() {
+        val sakId = SakId.random()
+        val eldreÅpenBehandling = ObjectMother.meldekortUnderBehandling(
+            sakId = sakId,
+            periode = førstePeriode,
+            opprettet = 1.januar(2025).atStartOfDay(),
+            type = MeldeperiodebehandlingType.KORRIGERING,
+        )
+        val nyereIverksattBehandling = ObjectMother.meldekortBehandletManuelt(
+            sakId = sakId,
+            periode = førstePeriode,
+            opprettet = 2.januar(2025).atStartOfDay(),
+            iverksattTidspunkt = 3.januar(2025).atStartOfDay(),
+            type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+        )
+
+        shouldNotThrowAny {
+            Meldekortbehandlinger(verdi = listOf(nyereIverksattBehandling, eldreÅpenBehandling))
+        }
+    }
+
+    @Test
+    fun `en eldre åpen behandling kan ikke ha FØRSTE_BEHANDLING på en kjede som en nyere behandling har iverksatt`() {
+        val sakId = SakId.random()
+
+        shouldThrow<IllegalArgumentException> {
+            Meldekortbehandlinger(
+                verdi = listOf(
+                    ObjectMother.meldekortBehandletManuelt(
+                        sakId = sakId,
+                        periode = førstePeriode,
+                        opprettet = 2.januar(2025).atStartOfDay(),
+                        iverksattTidspunkt = 3.januar(2025).atStartOfDay(),
+                        type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                    ),
+                    ObjectMother.meldekortUnderBehandling(
+                        sakId = sakId,
+                        periode = førstePeriode,
+                        opprettet = 1.januar(2025).atStartOfDay(),
+                        type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                    ),
+                ),
+            )
+        }.message shouldContain "Kjede ${MeldeperiodeKjedeId.fraPeriode(førstePeriode)} har typene [FØRSTE_BEHANDLING, FØRSTE_BEHANDLING]"
+    }
+
+    @Test
+    fun `behandlinger av en kjede sorteres på iverksettelsestidspunkt og ikke opprettet-tidspunkt`() {
+        val sakId = SakId.random()
+        val kjedeId = MeldeperiodeKjedeId.fraPeriode(førstePeriode)
+        val eldreBehandlingIverksattSist = ObjectMother.meldekortBehandletManuelt(
+            sakId = sakId,
+            periode = førstePeriode,
+            opprettet = 1.januar(2025).atStartOfDay(),
+            iverksattTidspunkt = 4.januar(2025).atStartOfDay(),
+            type = MeldeperiodebehandlingType.KORRIGERING,
+        )
+        val nyereBehandlingIverksattFørst = ObjectMother.meldekortBehandletManuelt(
+            sakId = sakId,
+            periode = førstePeriode,
+            opprettet = 2.januar(2025).atStartOfDay(),
+            iverksattTidspunkt = 3.januar(2025).atStartOfDay(),
+            type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+        )
+
+        val meldekortbehandlinger = shouldNotThrowAny {
+            Meldekortbehandlinger(verdi = listOf(nyereBehandlingIverksattFørst, eldreBehandlingIverksattSist))
+        }
+
+        meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId] shouldBe listOf(
+            nyereBehandlingIverksattFørst,
+            eldreBehandlingIverksattSist,
+        )
+        meldekortbehandlinger.sisteBehandledeMeldekortPerKjede shouldBe listOf(eldreBehandlingIverksattSist)
+        meldekortbehandlinger.sisteGodkjenteMeldekort shouldBe eldreBehandlingIverksattSist
+    }
+
+    @Test
+    fun `behandlinger av en kjede som ikke er iverksatt sorteres sist`() {
+        val sakId = SakId.random()
+        val kjedeId = MeldeperiodeKjedeId.fraPeriode(førstePeriode)
+        val eldreBehandlingTilBeslutning = ObjectMother.meldekortBehandletManuelt(
+            sakId = sakId,
+            periode = førstePeriode,
+            opprettet = 1.januar(2025).atStartOfDay(),
+            status = MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING,
+            iverksattTidspunkt = null,
+            beslutter = null,
+            type = MeldeperiodebehandlingType.KORRIGERING,
+        )
+        val nyereIverksattBehandling = ObjectMother.meldekortBehandletManuelt(
+            sakId = sakId,
+            periode = førstePeriode,
+            opprettet = 2.januar(2025).atStartOfDay(),
+            iverksattTidspunkt = 3.januar(2025).atStartOfDay(),
+            type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+        )
+
+        val meldekortbehandlinger = shouldNotThrowAny {
+            Meldekortbehandlinger(verdi = listOf(nyereIverksattBehandling, eldreBehandlingTilBeslutning))
+        }
+
+        meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId] shouldBe listOf(
+            nyereIverksattBehandling,
+            eldreBehandlingTilBeslutning,
+        )
+        meldekortbehandlinger.sisteGodkjenteMeldekort shouldBe nyereIverksattBehandling
+    }
+
+    @Test
+    fun `behandlingene må være sortert på iverksettelsestidspunkt og ikke opprettet-tidspunkt`() {
+        val sakId = SakId.random()
+        val eldreÅpenBehandling = ObjectMother.meldekortUnderBehandling(
+            sakId = sakId,
+            periode = andrePeriode,
+            opprettet = 1.januar(2025).atStartOfDay(),
+        )
+        val nyereIverksattBehandling = ObjectMother.meldekortBehandletManuelt(
+            sakId = sakId,
+            periode = førstePeriode,
+            opprettet = 2.januar(2025).atStartOfDay(),
+            iverksattTidspunkt = 3.januar(2025).atStartOfDay(),
+        )
+
+        shouldThrow<IllegalArgumentException> {
+            Meldekortbehandlinger(verdi = listOf(eldreÅpenBehandling, nyereIverksattBehandling))
+        }.message shouldContain "Meldekortbehandlingene må være sortert på iverksatt-tidspunkt"
+
+        Meldekortbehandlinger(verdi = listOf(nyereIverksattBehandling, eldreÅpenBehandling)).toList() shouldBe listOf(
+            nyereIverksattBehandling,
+            eldreÅpenBehandling,
+        )
+    }
+
+    @Test
+    fun `en behandling som iverksettes sorteres foran eldre behandlinger som fortsatt er åpne`() {
+        val sakId = SakId.random()
+        val eldreÅpenBehandling = ObjectMother.meldekortUnderBehandling(
+            sakId = sakId,
+            periode = førstePeriode,
+            opprettet = 1.januar(2025).atStartOfDay(),
+        )
+        val nyereÅpenBehandling = ObjectMother.meldekortUnderBehandling(
+            sakId = sakId,
+            periode = andrePeriode,
+            opprettet = 2.januar(2025).atStartOfDay(),
+        )
+        val nyereBehandlingIverksatt = ObjectMother.meldekortBehandletManuelt(
+            id = nyereÅpenBehandling.id,
+            sakId = sakId,
+            periode = andrePeriode,
+            opprettet = nyereÅpenBehandling.opprettet,
+            iverksattTidspunkt = 3.januar(2025).atStartOfDay(),
+        )
+
+        val meldekortbehandlinger = Meldekortbehandlinger(verdi = listOf(eldreÅpenBehandling, nyereÅpenBehandling))
+            .oppdaterMeldekortbehandling(nyereBehandlingIverksatt)
+
+        meldekortbehandlinger.toList() shouldBe listOf(nyereBehandlingIverksatt, eldreÅpenBehandling)
     }
 }

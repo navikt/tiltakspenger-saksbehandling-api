@@ -53,7 +53,7 @@ class MeldekortbehandlingFakeRepo : MeldekortbehandlingRepo {
             .get()
             .values
             .filter { it.sakId == sakId }
-            .sortedBy { it.opprettet }
+            .sortedWith(Meldekortbehandlinger.behandlingsrekkefølge)
             .let { meldekort ->
                 meldekort.firstOrNull()?.let {
                     Meldekortbehandlinger(meldekort)
