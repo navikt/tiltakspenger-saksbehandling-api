@@ -153,7 +153,7 @@ dependencies {
     implementation("io.arrow-kt:arrow-fx-coroutines:2.2.3")
 
     // Caffeine
-    implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.3.0")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.4.20")
     testImplementation(platform("org.junit:junit-bom:6.1.3"))
