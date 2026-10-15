@@ -9,6 +9,7 @@ data class SettKlagebehandlingPåVentKommando(
     val sakId: SakId,
     val klagebehandlingId: KlagebehandlingId,
     val saksbehandler: Saksbehandler,
+    val oppdaterPåVent: Boolean,
     val begrunnelse: String,
     val frist: LocalDate?,
 )

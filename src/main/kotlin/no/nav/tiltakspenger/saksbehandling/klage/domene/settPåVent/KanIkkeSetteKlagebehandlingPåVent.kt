@@ -13,4 +13,6 @@ sealed interface KanIkkeSetteKlagebehandlingPåVent {
     data class KanIkkeOppdateres(
         val underliggende: KanIkkeOppdatereKlagebehandling,
     ) : KanIkkeSetteKlagebehandlingPåVent
+
+    data object KlagenMåVæreSattPåVentForÅKunneOppdateres : KanIkkeSetteKlagebehandlingPåVent
 }

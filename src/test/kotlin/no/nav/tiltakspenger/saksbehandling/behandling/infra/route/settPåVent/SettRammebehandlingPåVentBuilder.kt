@@ -57,6 +57,7 @@ interface SettRammebehandlingPåVentBuilder {
 
     /**
      * Forventer at det allerede finnes en sak og en åpen rammebehandling under behanding.
+     * Med [oppdaterSattPåVent] forventes det i stedet at behandlingen allerede er satt på vent, og begrunnelse og frist oppdateres.
      */
     suspend fun ApplicationTestBuilder.settRammebehandlingPåVent(
         tac: TestApplicationContext,
@@ -65,6 +66,7 @@ interface SettRammebehandlingPåVentBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         begrunnelse: String = "Begrunnelse for å sette rammebehandling på vent",
         frist: LocalDate? = null,
+        oppdaterSattPåVent: Boolean = false,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple4<Sak, Søknad, Rammebehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
@@ -78,7 +80,8 @@ interface SettRammebehandlingPåVentBuilder {
             """
                 {
                     "frist": "${frist?.let { "$it" } ?: ""}",
-                    "begrunnelse": "$begrunnelse"
+                    "begrunnelse": "$begrunnelse",
+                    "oppdaterSattPåVent": $oppdaterSattPåVent
                 }
             """.trimIndent(),
         ).apply {

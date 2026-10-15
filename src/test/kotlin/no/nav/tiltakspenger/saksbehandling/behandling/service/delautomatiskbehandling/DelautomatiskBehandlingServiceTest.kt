@@ -134,6 +134,7 @@ class DelautomatiskBehandlingServiceTest {
             val kommando = SettRammebehandlingPåVentKommando(
                 sakId = behandling.sakId,
                 rammebehandlingId = behandling.id,
+                oppdaterPåVent = false,
                 begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
                 saksbehandler = AUTOMATISK_SAKSBEHANDLER,
                 venterTil = innvilgelsesperiode.fraOgMed.atStartOfDay(),
@@ -185,6 +186,7 @@ class DelautomatiskBehandlingServiceTest {
             val kommando = SettRammebehandlingPåVentKommando(
                 sakId = behandling.sakId,
                 rammebehandlingId = behandling.id,
+                oppdaterPåVent = false,
                 begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
                 saksbehandler = AUTOMATISK_SAKSBEHANDLER,
                 venterTil = innvilgelsesperiode.fraOgMed.atStartOfDay(),
@@ -236,6 +238,7 @@ class DelautomatiskBehandlingServiceTest {
             val kommando = SettRammebehandlingPåVentKommando(
                 sakId = behandling.sakId,
                 rammebehandlingId = behandling.id,
+                oppdaterPåVent = false,
                 begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
                 saksbehandler = AUTOMATISK_SAKSBEHANDLER,
                 venterTil = nå(tac.clock),

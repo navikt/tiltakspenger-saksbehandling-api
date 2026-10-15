@@ -37,7 +37,8 @@ fun JsonNode.shouldHaSisteVentestatus(
     if (forventetAntallHendelser != null) {
         withClue("antall hendelser i ventestatus") { ventestatus.size() shouldBe forventetAntallHendelser }
     }
-    val hendelse = ventestatus.last()
+    // DTO-en sorterer hendelsene med nyeste først, se tilDto() i VenteStatusHendelseDTO.kt.
+    val hendelse = ventestatus.first()
     withClue("sattPåVentAv i siste ventestatus-hendelse") { hendelse.get("sattPåVentAv").asString() shouldBe sattPåVentAv }
     withClue("begrunnelse i siste ventestatus-hendelse") {
         hendelse.sladdbarVerdi("begrunnelse").asString() shouldBe begrunnelse

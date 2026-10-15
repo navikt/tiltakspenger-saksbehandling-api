@@ -39,6 +39,7 @@ class BehandlingDTOTest {
                         SettRammebehandlingPåVentKommando(
                             sakId = behandling.sakId,
                             rammebehandlingId = behandling.id,
+                            oppdaterPåVent = false,
                             begrunnelse = "1",
                             saksbehandler = beslutter,
                             venterTil = null,
@@ -59,6 +60,7 @@ class BehandlingDTOTest {
                         SettRammebehandlingPåVentKommando(
                             sakId = behandling.sakId,
                             rammebehandlingId = behandling.id,
+                            oppdaterPåVent = false,
                             begrunnelse = "2",
                             saksbehandler = beslutter,
                             venterTil = null,

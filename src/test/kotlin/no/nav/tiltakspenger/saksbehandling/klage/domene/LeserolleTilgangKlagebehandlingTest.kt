@@ -140,6 +140,7 @@ class LeserolleTilgangKlagebehandlingTest {
                 SakId.random(),
                 KlagebehandlingId.random(),
                 bruker,
+                oppdaterPåVent = false,
                 begrunnelse = "begrunnelse",
                 frist = null,
             )

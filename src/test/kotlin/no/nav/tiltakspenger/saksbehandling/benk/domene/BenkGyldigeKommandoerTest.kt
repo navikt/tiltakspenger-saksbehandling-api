@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Gjenoppta
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.LeggTilbakeBeslutter
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.LeggTilbakeSaksbehandler
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.OppdaterSettPåVent
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.OvertaBeslutter
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.OvertaSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.SettPåVent
@@ -192,6 +193,30 @@ class BenkGyldigeKommandoerTest {
                 BenkBehandlingsstatus.UNDER_BEHANDLING,
                 felles(saksbehandler = saksbehandler.navIdent, erSattPåVent = true),
             ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(LeggTilbakeSaksbehandler, Gjenoppta, Avbryt)
+        }
+
+        @Test
+        fun `klar til behandling på vent kan oppdateres og gjenopptas av en saksbehandler`() {
+            søknadsbehandling(
+                BenkBehandlingsstatus.KLAR_TIL_BEHANDLING,
+                felles(erSattPåVent = true),
+            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(TildelSaksbehandler, OppdaterSettPåVent, Gjenoppta, Avbryt)
+        }
+
+        @Test
+        fun `klar til beslutning på vent kan oppdateres og gjenopptas av en beslutter`() {
+            søknadsbehandling(
+                BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
+                felles(saksbehandler = saksbehandler.navIdent, erSattPåVent = true),
+            ).finnGyldigeKommandoer(beslutter) shouldBe listOf(TildelBeslutter, OppdaterSettPåVent, Gjenoppta)
+        }
+
+        @Test
+        fun `klar til beslutning på vent kan ikke oppdateres av saksbehandleren på saken`() {
+            søknadsbehandling(
+                BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
+                felles(saksbehandler = saksbehandler.navIdent, erSattPåVent = true),
+            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(Avbryt)
         }
 
         @Test

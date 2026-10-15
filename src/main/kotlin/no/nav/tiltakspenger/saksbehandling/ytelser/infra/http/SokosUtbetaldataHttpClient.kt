@@ -85,11 +85,11 @@ class SokosUtbetaldataHttpClient(
 
     private fun List<UtbetalingDto>.tilYtelser(): List<Ytelse> {
         val utbetalinger = this.flatMap { it.ytelseListe }
-        val relevanteYtelser = utbetalinger.filter { it.ytelsestype == null || it.ytelsestype in relevanteYtelsestyper }
+        val relevanteYtelser = utbetalinger.filter { it.ytelsestype == null || it.ytelsestype in relevanteYtelsestyper } // 1. Bug til Taulant -> forkaster alt vi ikke har tatt stilling til
             .groupBy { it.ytelsestype }
         return relevanteYtelser.map { ytelse ->
             Ytelse(
-                ytelsetype = Ytelsetype.entries.find { ytelse.key == it.tekstverdi } ?: Ytelsetype.UKJENT,
+                ytelsetype = Ytelsetype.entries.find { ytelse.key == it.tekstverdi } ?: Ytelsetype.UKJENT, // 1. Bug til Taulant -> forkaster alt vi ikke har tatt stilling til
                 perioder = ytelse.value.map {
                     Periode(
                         fraOgMed = it.ytelsesperiode.fom,

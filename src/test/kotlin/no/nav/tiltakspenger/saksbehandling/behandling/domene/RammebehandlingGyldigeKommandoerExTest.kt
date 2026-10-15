@@ -27,6 +27,7 @@ class RammebehandlingGyldigeKommandoerExTest {
             kommando = SettRammebehandlingPåVentKommando(
                 sakId = sakId,
                 rammebehandlingId = id,
+                oppdaterPåVent = false,
                 begrunnelse = "venter på noe",
                 saksbehandler = saksbehandler,
                 frist = null,
@@ -220,7 +221,7 @@ class RammebehandlingGyldigeKommandoerExTest {
      * `kanTaBehandling` ser ikke på ventestatus, så tildeling annonseres ved siden av gjenopptaking.
      */
     @Test
-    fun `behandling på vent tilbyr gjenoppta i stedet for sett på vent`() {
+    fun `behandling på vent tilbyr oppdatering og gjenoppta i stedet for sett på vent`() {
         val behandling = ObjectMother.nyOpprettetSøknadsbehandling(saksbehandler = saksbehandler)
             .settPåVentAv(saksbehandler)
 
@@ -228,25 +229,27 @@ class RammebehandlingGyldigeKommandoerExTest {
         behandling.ventestatus.erSattPåVent shouldBe true
         behandling.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(
             SaksbehandlerBehandlingKommando.TildelSaksbehandler,
+            SaksbehandlerBehandlingKommando.OppdaterSettPåVent,
             SaksbehandlerBehandlingKommando.Gjenoppta,
             SaksbehandlerBehandlingKommando.Avbryt,
         )
     }
 
     @Test
-    fun `behandling på vent - en annen saksbehandler kan også gjenoppta`() {
+    fun `behandling på vent - en annen saksbehandler kan også oppdatere og gjenoppta`() {
         val behandling = ObjectMother.nyOpprettetSøknadsbehandling(saksbehandler = saksbehandler)
             .settPåVentAv(saksbehandler)
 
         behandling.finnGyldigeKommandoer(annenSaksbehandler) shouldBe listOf(
             SaksbehandlerBehandlingKommando.TildelSaksbehandler,
+            SaksbehandlerBehandlingKommando.OppdaterSettPåVent,
             SaksbehandlerBehandlingKommando.Gjenoppta,
             SaksbehandlerBehandlingKommando.Avbryt,
         )
     }
 
     @Test
-    fun `behandling på vent - en beslutter kan ikke gjenoppta en behandling som er klar til behandling`() {
+    fun `behandling på vent - en beslutter kan ikke oppdatere eller gjenoppta en behandling som er klar til behandling`() {
         val behandling = ObjectMother.nyOpprettetSøknadsbehandling(saksbehandler = saksbehandler)
             .settPåVentAv(saksbehandler)
 
@@ -256,7 +259,7 @@ class RammebehandlingGyldigeKommandoerExTest {
     }
 
     @Test
-    fun `behandling på vent under beslutning - beslutteren kan gjenoppta`() {
+    fun `behandling på vent under beslutning - beslutteren kan oppdatere og gjenoppta`() {
         val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(
             saksbehandler = saksbehandler,
             beslutter = beslutter,
@@ -265,23 +268,26 @@ class RammebehandlingGyldigeKommandoerExTest {
         behandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
         behandling.finnGyldigeKommandoer(beslutter) shouldBe listOf(
             SaksbehandlerBehandlingKommando.TildelBeslutter,
+            SaksbehandlerBehandlingKommando.OppdaterSettPåVent,
             SaksbehandlerBehandlingKommando.Gjenoppta,
         )
     }
 
     @Test
-    fun `behandling på vent under beslutning tilbyr ikke angring til saksbehandleren`() {
+    fun `behandling på vent under beslutning tilbyr verken angring eller oppdatering til saksbehandleren`() {
         val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(
             saksbehandler = saksbehandler,
             beslutter = beslutter,
         ).settPåVentAv(beslutter)
 
         behandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
-        behandling.finnGyldigeKommandoer(saksbehandler).contains(SaksbehandlerBehandlingKommando.AngreSendTilBeslutning) shouldBe false
+        val kommandoer = behandling.finnGyldigeKommandoer(saksbehandler)
+        kommandoer.contains(SaksbehandlerBehandlingKommando.AngreSendTilBeslutning) shouldBe false
+        kommandoer.contains(SaksbehandlerBehandlingKommando.OppdaterSettPåVent) shouldBe false
     }
 
     /**
-     * `settPåVent` og `gjenoppta` er rollefrie for automatiske behandlinger fordi den automatiske saksbehandlingen selv bruker dem.
+     * `settPåVent`, oppdatering av ventestatus og `gjenoppta` er rollefrie for automatiske behandlinger fordi den automatiske saksbehandlingen selv bruker dem.
      * Testen dokumenterer at det også slår ut på kommandoene som annonseres til en vanlig bruker.
      */
     @Test
@@ -296,12 +302,13 @@ class RammebehandlingGyldigeKommandoerExTest {
     }
 
     @Test
-    fun `under automatisk behandling på vent - en saksbehandler kan gjenoppta`() {
+    fun `under automatisk behandling på vent - en saksbehandler kan oppdatere og gjenoppta`() {
         val behandling = ObjectMother.nyOpprettetAutomatiskSøknadsbehandling()
             .settPåVentAv(AUTOMATISK_SAKSBEHANDLER)
 
         behandling.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
         behandling.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(
+            SaksbehandlerBehandlingKommando.OppdaterSettPåVent,
             SaksbehandlerBehandlingKommando.Gjenoppta,
             SaksbehandlerBehandlingKommando.Avbryt,
         )

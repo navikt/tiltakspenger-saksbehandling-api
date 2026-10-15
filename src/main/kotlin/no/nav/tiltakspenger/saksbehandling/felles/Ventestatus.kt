@@ -15,10 +15,9 @@ data class Ventestatus(
             ventestatusHendelser.zipWithNext { a, b -> a.tidspunkt < b.tidspunkt }.all { it },
         ) { "Hendelsene må være sortert etter tidspunkt" }
         require(
-            ventestatusHendelser.withIndex().all { (index, hendelse) ->
-                hendelse.erSattPåVent == (index % 2 == 0)
-            },
-        ) { "erSattPåVent må alternere, og første hendelse må være sattPåVent=true" }
+            ventestatusHendelser.zipWithNext().all { (a, b) -> !(!a.erSattPåVent && !b.erSattPåVent) },
+        ) { "To hendelser på rad kan ikke være gjenopptatt" }
+        ventestatusHendelser.firstOrNull()?.also { require(it.erSattPåVent) { "Første ventestatus må være satt på vent" } }
     }
 
     fun settPåVent(

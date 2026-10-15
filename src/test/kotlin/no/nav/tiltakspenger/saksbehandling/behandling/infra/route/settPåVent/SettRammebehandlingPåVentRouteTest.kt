@@ -6,6 +6,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.KanIkkeSetteRammebehandlingPåVent
@@ -124,6 +125,7 @@ class SettRammebehandlingPåVentRouteTest {
                 SettRammebehandlingPåVentKommando(
                     sakId = sak.id,
                     rammebehandlingId = behandlingId,
+                    oppdaterPåVent = false,
                     begrunnelse = "Beslutter setter på vent",
                     saksbehandler = beslutter,
                     frist = null,
@@ -267,6 +269,205 @@ class SettRammebehandlingPåVentRouteTest {
             ) shouldBe null
 
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).ventestatus.erSattPåVent shouldBe false
+        }
+    }
+
+    @Test
+    fun `kan oppdatere begrunnelse og frist på en søknadsbehandling som er klar til behandling og satt på vent`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandlingPåVent) = opprettSøknadsbehandlingOgSettPåVent(tac = tac)!!
+            val annenSaksbehandler = ObjectMother.saksbehandler123()
+
+            val (_, _, oppdatertBehandling, sakJson) = settRammebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                rammebehandlingId = behandlingPåVent!!.id,
+                saksbehandler = annenSaksbehandler,
+                begrunnelse = "Oppdatert begrunnelse",
+                frist = 15.januar(2026),
+                oppdaterSattPåVent = true,
+            )!!
+
+            oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+            oppdatertBehandling.saksbehandler shouldBe null
+            oppdatertBehandling.beslutter shouldBe null
+            oppdatertBehandling.ventestatus.erSattPåVent shouldBe true
+            oppdatertBehandling.ventestatus.ventestatusHendelser.size shouldBe 2
+            oppdatertBehandling.ventestatus.ventestatusHendelser.last().let { hendelse ->
+                hendelse.endretAv shouldBe annenSaksbehandler.navIdent
+                hendelse.begrunnelse shouldBe "Oppdatert begrunnelse"
+                hendelse.frist shouldBe 15.januar(2026)
+                hendelse.erSattPåVent shouldBe true
+                hendelse.status shouldBe "KLAR_TIL_BEHANDLING"
+            }
+            sakJson.rammebehandlingJson(oppdatertBehandling.id).also { behandlingJson ->
+                behandlingJson.get("status").asString() shouldBe "KLAR_TIL_BEHANDLING"
+                behandlingJson.get("saksbehandler").isNull shouldBe true
+                behandlingJson.shouldHaSisteVentestatus(
+                    sattPåVentAv = annenSaksbehandler.navIdent,
+                    begrunnelse = "Oppdatert begrunnelse",
+                    status = "KLAR_TIL_BEHANDLING",
+                    frist = 15.januar(2026),
+                    forventetAntallHendelser = 2,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `kan oppdatere begrunnelse og frist på en søknadsbehandling som er klar til beslutning og satt på vent`() {
+        withTestApplicationContext { tac ->
+            val beslutter = ObjectMother.beslutter()
+            val annenBeslutter = ObjectMother.beslutter(navIdent = "B99999")
+            val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
+            taRammebehandlinger(tac, listOf(sak.id to behandlingId), beslutter)!!
+            settRammebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                rammebehandlingId = behandlingId,
+                saksbehandler = beslutter,
+            )!!
+
+            settRammebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                rammebehandlingId = behandlingId,
+                saksbehandler = annenBeslutter,
+                begrunnelse = "Oppdatert begrunnelse fra beslutter",
+                frist = 15.januar(2026),
+                oppdaterSattPåVent = true,
+            )!!
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
+                it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+                it.saksbehandler shouldBe "Z12345"
+                it.beslutter shouldBe null
+                it.ventestatus.ventestatusHendelser.size shouldBe 2
+                it.ventestatus.ventestatusHendelser.last().let { hendelse ->
+                    hendelse.endretAv shouldBe annenBeslutter.navIdent
+                    hendelse.begrunnelse shouldBe "Oppdatert begrunnelse fra beslutter"
+                    hendelse.frist shouldBe 15.januar(2026)
+                    hendelse.erSattPåVent shouldBe true
+                    hendelse.status shouldBe "KLAR_TIL_BESLUTNING"
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `kan ikke oppdatere en behandling som ikke er satt på vent`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+
+            settRammebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                rammebehandlingId = behandling.id,
+                oppdaterSattPåVent = true,
+                forventet = ForventetRespons.json(
+                    400,
+                    """
+                    {
+                      "melding": "Behandlingen må være satt på vent for å kunne oppdateres.",
+                      "kode": "må_være_satt_på_vent"
+                    }
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
+            ) shouldBe null
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+                it.ventestatus.erSattPåVent shouldBe false
+            }
+        }
+    }
+
+    @Test
+    fun `kan ikke sette en behandling på vent på nytt uten å oppdatere`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandlingPåVent) = opprettSøknadsbehandlingOgSettPåVent(tac = tac)!!
+
+            settRammebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                rammebehandlingId = behandlingPåVent!!.id,
+                oppdaterSattPåVent = false,
+                forventet = ForventetRespons.json(
+                    400,
+                    """
+                    {
+                      "melding": "Behandlingen er allerede satt på vent.",
+                      "kode": "behandlingen_er_allerede_paa_vent"
+                    }
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
+            ) shouldBe null
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingPåVent.id).ventestatus.ventestatusHendelser.size shouldBe 1
+        }
+    }
+
+    @Test
+    fun `en bruker uten saksbehandlerrolle kan ikke oppdatere en behandling som er klar til behandling og satt på vent`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandlingPåVent) = opprettSøknadsbehandlingOgSettPåVent(tac = tac)!!
+
+            settRammebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                rammebehandlingId = behandlingPåVent!!.id,
+                saksbehandler = ObjectMother.beslutter(),
+                oppdaterSattPåVent = true,
+                forventet = ForventetRespons.json(
+                    403,
+                    """
+                    {
+                      "melding": "Du må være saksbehandler for å sette denne behandlingen på vent.",
+                      "kode": "maa_vaere_saksbehandler"
+                    }
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
+            ) shouldBe null
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingPåVent.id).ventestatus.ventestatusHendelser.size shouldBe 1
+        }
+    }
+
+    @Test
+    fun `en bruker uten beslutterrolle kan ikke oppdatere en behandling som er klar til beslutning og satt på vent`() {
+        withTestApplicationContext { tac ->
+            val beslutter = ObjectMother.beslutter()
+            val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
+            taRammebehandlinger(tac, listOf(sak.id to behandlingId), beslutter)!!
+            settRammebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                rammebehandlingId = behandlingId,
+                saksbehandler = beslutter,
+            )!!
+
+            settRammebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                rammebehandlingId = behandlingId,
+                saksbehandler = ObjectMother.saksbehandler(),
+                oppdaterSattPåVent = true,
+                forventet = ForventetRespons.json(
+                    403,
+                    """
+                    {
+                      "melding": "Du må være beslutter for å sette denne behandlingen på vent.",
+                      "kode": "maa_vaere_beslutter"
+                    }
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
+            ) shouldBe null
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).ventestatus.ventestatusHendelser.size shouldBe 1
         }
     }
 
