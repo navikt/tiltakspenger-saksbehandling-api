@@ -58,6 +58,7 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -469,7 +470,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                 ),
                 utbetaling = null,
                 finnRammevedtakSomOmgjøres = { OmgjørRammevedtak.create(omgjørRammevedtak) },
-                omgjortVedtak = omgjørRammevedtak,
+                rammevedtaksliste = Rammevedtaksliste(omgjørRammevedtak),
                 clock = clock,
             ).getOrFail()
         }.tilBeslutning(

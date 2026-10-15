@@ -152,7 +152,7 @@ class DelautomatiskStansService(
             ),
             utbetaling = simulertUtbetaling?.utbetaling,
             finnRammevedtakSomOmgjøres = { vedtaksliste.finnRammevedtakSomOmgjøres(it) },
-            omgjortVedtak = opphør.omgjørRammevedtak,
+            rammevedtaksliste = rammevedtaksliste,
             clock = clock,
         ).getOrElse {
             log.warn { "Kunne ikke fylle ut automatisk opphør: $it - ${omgjøring.loggkontekst(correlationId)}" }

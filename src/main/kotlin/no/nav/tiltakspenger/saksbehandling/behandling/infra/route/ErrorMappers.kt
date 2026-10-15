@@ -49,21 +49,6 @@ fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, Erro
         "kan_ikke_opphøre",
     )
 
-    KanIkkeOppdatereOmgjøring.KanIkkeOmgjøreFlereVedtak -> HttpStatusCode.BadRequest to ErrorJson(
-        "En omgjøring kan kun omgjøre ett tidligere vedtak",
-        "kan_ikke_omgjøre_flere_vedtak",
-    )
-
-    KanIkkeOppdatereOmgjøring.MåOmgjøreEnSammenhengendePeriode -> HttpStatusCode.BadRequest to ErrorJson(
-        "Kan foreløpig ikke omgjøre vedtak som ikke har en sammenhengende gjeldende periode",
-        "perioder_som_omgjøres_må_være_sammenhengende",
-    )
-
-    KanIkkeOppdatereOmgjøring.MåOmgjøreAngittVedtak -> HttpStatusCode.BadRequest to ErrorJson(
-        "Må omgjøre angitt vedtak",
-        "må_omgjøre_angitt_vedtak",
-    )
-
     KanIkkeOppdatereOmgjøring.MåOmgjøreMinstEttVedtak -> HttpStatusCode.BadRequest to ErrorJson(
         "Må omgjøre minst ett vedtak",
         "må_omgjøre_minst_ett_vedtak",
@@ -74,9 +59,9 @@ fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, Erro
         "vedtaksperiode_må_inneholde_innvilgelsesperiodene",
     )
 
-    KanIkkeOppdatereOmgjøring.KanIkkeOpphøreVedtakUtenGjeldendeInnvilgelse -> HttpStatusCode.BadRequest to ErrorJson(
-        "Kan ikke opphøre vedtak uten gjeldende innvilgelse",
-        "vedtak_kan_ikke_opphøres_uten_gjeldende_innvilgelse",
+    KanIkkeOppdatereOmgjøring.KanIkkeOpphøreOverStansEllerOpphør -> HttpStatusCode.BadRequest to ErrorJson(
+        "Kan ikke opphøre over en periode som allerede er stanset eller opphørt",
+        "kan_ikke_opphøre_over_stans_eller_opphør",
     )
 
     is KanIkkeOppdatereOmgjøring.UgyldigPeriodeForOpphør -> HttpStatusCode.BadRequest to ErrorJson(

@@ -24,13 +24,28 @@ private data class DatadelingVedtakJson(
     val vedtaksperiode: PeriodeDTO,
     // TODO: oppdater til periodisert innvilgelse
     val innvilgelsesperiode: PeriodeDTO?,
+    // TODO: erstattes av [omgjørRammevedtak] - kan fjernes når datadeling ikke bruker dette feltet lenger.
     val omgjørRammevedtakId: String?,
     val omgjortAvRammevedtakId: String?,
     val rettighet: DatadelingRettighet,
     val opprettet: String,
     val barnetillegg: Barnetillegg?,
     val valgteHjemlerHarIkkeRettighet: List<DatadelingHjemmelHarIkkeRettighet>?,
+    // Alle periodene dette vedtaket omgjør, på tvers av ett eller flere tidligere vedtak.
+    // Listen er tom dersom vedtaket ikke omgjør noe.
+    val omgjørRammevedtak: List<DatadelingOmgjørRammevedtak>,
 ) {
+    data class DatadelingOmgjørRammevedtak(
+        val vedtakId: String,
+        val periode: PeriodeDTO,
+        val omgjøringsgrad: DatadelingOmgjøringsgrad,
+    )
+
+    enum class DatadelingOmgjøringsgrad {
+        HELT,
+        DELVIS,
+    }
+
     data class Barnetillegg(
         val perioder: List<BarnetilleggPeriode>,
     )
@@ -77,7 +92,9 @@ fun Rammevedtak.toDatadelingJson(): String {
         // TODO jah: omgjørRammevedtakId og omgjortAvRammevedtakId bør gjøres om etter vi har lagt på eksplisitt omgjøring på vedtakene.
         // Kommentar jah: Disse ble lagt til utelukkende for revurdering til omgjøring for å tydeliggjøre at vedtaket omgjør et annet vedtak i sin helhet.
         // Det vil være en ny avgjørelse dersom vi skal dele informasjon fra andre vedtak her.
-        omgjørRammevedtakId = if (this.erOmgjøringsbehandling) this.omgjørRammevedtak.single().rammevedtakId.toString() else null,
+        // Ved omgjøring av flere vedtak sender vi det eldste, slik at kontrakten er bakoverkompatibel.
+        // Den fullstendige oversikten ligger i [DatadelingVedtakJson.omgjørRammevedtak].
+        omgjørRammevedtakId = if (this.erOmgjøringsbehandling) this.omgjørRammevedtak.rammevedtakIDer.first().toString() else null,
         // Kommentar jah: Hvis vi skulle beholdt dagens logikk her, måtte vi sjekket om rammevedtaket som omgjorde dette vedtaket var en omgjøringsbehandling.
         // Istedenfor å gjøre det, deler vi det vedtaket som har omgjort dette vedtaket helt.
         omgjortAvRammevedtakId = if (this.omgjortAvRammevedtak.size == 1 && this.omgjortAvRammevedtak.first().omgjøringsgrad == Omgjøringsgrad.HELT) this.omgjortAvRammevedtak.first().rammevedtakId.toString() else null,
@@ -101,6 +118,16 @@ fun Rammevedtak.toDatadelingJson(): String {
         opprettet = opprettet.toString(),
         barnetillegg = barnetillegg?.toDatadelingBarnetillegg(),
         valgteHjemlerHarIkkeRettighet = this.toValgteHjemlerHarIkkeRettighetListe(),
+        omgjørRammevedtak = this.omgjørRammevedtak.map {
+            DatadelingVedtakJson.DatadelingOmgjørRammevedtak(
+                vedtakId = it.rammevedtakId.toString(),
+                periode = it.periode.toDTO(),
+                omgjøringsgrad = when (it.omgjøringsgrad) {
+                    Omgjøringsgrad.HELT -> DatadelingVedtakJson.DatadelingOmgjøringsgrad.HELT
+                    Omgjøringsgrad.DELVIS -> DatadelingVedtakJson.DatadelingOmgjøringsgrad.DELVIS
+                },
+            )
+        },
     ).let { serialize(it) }
 }
 

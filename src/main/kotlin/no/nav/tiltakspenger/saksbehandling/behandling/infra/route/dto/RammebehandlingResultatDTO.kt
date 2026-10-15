@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import arrow.core.NonEmptySet
+import no.nav.tiltakspenger.libs.periode.PeriodeDTO
+import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
@@ -11,6 +13,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.Revurderin
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RevurderingResultatDTO.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RevurderingResultatDTO.OmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RevurderingResultatDTO.Stans
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.OmgjøringsgradDTO
+import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.OmgjøringsgradDTO.Companion.tilDTO
 
 sealed interface RammebehandlingResultatDTO {
     val resultat: RammebehandlingResultatTypeDTO
@@ -57,22 +62,47 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
     data class OmgjøringInnvilgelse(
         override val innvilgelsesperioder: InnvilgelsesperioderDTO?,
         override val barnetillegg: BarnetilleggDTO?,
-        val omgjørVedtak: String,
+        override val omgjørVedtak: String,
+        override val omgjørRammevedtak: List<OmgjørRammevedtakDTO>,
     ) : RevurderingResultatDTO,
-        RammebehandlingInnvilgelseResultatDTO {
+        RammebehandlingInnvilgelseResultatDTO,
+        OmgjøringResultatDTO {
         override val resultat = RammebehandlingResultatTypeDTO.OMGJØRING
     }
 
     data class OmgjøringOpphør(
-        val omgjørVedtak: String,
+        override val omgjørVedtak: String,
+        override val omgjørRammevedtak: List<OmgjørRammevedtakDTO>,
         val valgteHjemler: NonEmptySet<HjemmelForOpphørDTO>,
-    ) : RevurderingResultatDTO {
+    ) : RevurderingResultatDTO,
+        OmgjøringResultatDTO {
         override val resultat = RammebehandlingResultatTypeDTO.OMGJØRING_OPPHØR
     }
 
-    data class OmgjøringIkkeValgt(val omgjørVedtak: String) : RevurderingResultatDTO {
+    data class OmgjøringIkkeValgt(
+        override val omgjørVedtak: String,
+        override val omgjørRammevedtak: List<OmgjørRammevedtakDTO>,
+    ) : RevurderingResultatDTO,
+        OmgjøringResultatDTO {
         override val resultat = RammebehandlingResultatTypeDTO.OMGJØRING_IKKE_VALGT
     }
+
+    /**
+     * @param omgjørVedtak Det eldste vedtaket som omgjøres.
+     * Beholdes for bakoverkompatibilitet til frontend har tatt i bruk [omgjørRammevedtak].
+     * @param omgjørRammevedtak Alle periodene som omgjøres, sortert på fraOgMed.
+     * Kan omfatte flere vedtak og ha hull.
+     */
+    sealed interface OmgjøringResultatDTO {
+        val omgjørVedtak: String
+        val omgjørRammevedtak: List<OmgjørRammevedtakDTO>
+    }
+
+    data class OmgjørRammevedtakDTO(
+        val vedtakId: String,
+        val periode: PeriodeDTO,
+        val omgjøringsgrad: OmgjøringsgradDTO,
+    )
 
     sealed interface RammebehandlingInnvilgelseResultatDTO {
         val innvilgelsesperioder: InnvilgelsesperioderDTO?
@@ -110,16 +140,30 @@ fun Revurderingsresultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
         is Omgjøringsresultat.OmgjøringInnvilgelse -> OmgjøringInnvilgelse(
             innvilgelsesperioder = innvilgelsesperioder?.tilDTO(),
             barnetillegg = barnetillegg?.toBarnetilleggDTO(),
-            omgjørVedtak = omgjortVedtak.rammevedtakId.toString(),
+            omgjørVedtak = omgjørRammevedtak.eldsteVedtakId(),
+            omgjørRammevedtak = omgjørRammevedtak.tilOmgjørRammevedtakDTO(),
         )
 
         is Omgjøringsresultat.OmgjøringOpphør -> OmgjøringOpphør(
-            omgjørVedtak = omgjortVedtak.rammevedtakId.toString(),
+            omgjørVedtak = omgjørRammevedtak.eldsteVedtakId(),
+            omgjørRammevedtak = omgjørRammevedtak.tilOmgjørRammevedtakDTO(),
             valgteHjemler = valgteHjemler.tilHjemmelForOpphørDTO(),
         )
 
         is Omgjøringsresultat.OmgjøringIkkeValgt -> OmgjøringIkkeValgt(
-            omgjørVedtak = omgjortVedtak.rammevedtakId.toString(),
+            omgjørVedtak = omgjørRammevedtak.eldsteVedtakId(),
+            omgjørRammevedtak = omgjørRammevedtak.tilOmgjørRammevedtakDTO(),
         )
     }
 }
+
+private fun OmgjørRammevedtak.eldsteVedtakId(): String = rammevedtakIDer.first().toString()
+
+private fun OmgjørRammevedtak.tilOmgjørRammevedtakDTO(): List<RevurderingResultatDTO.OmgjørRammevedtakDTO> =
+    omgjøringsperioder.sortedBy { it.periode.fraOgMed }.map {
+        RevurderingResultatDTO.OmgjørRammevedtakDTO(
+            vedtakId = it.rammevedtakId.toString(),
+            periode = it.periode.toDTO(),
+            omgjøringsgrad = it.omgjøringsgrad.tilDTO(),
+        )
+    }
