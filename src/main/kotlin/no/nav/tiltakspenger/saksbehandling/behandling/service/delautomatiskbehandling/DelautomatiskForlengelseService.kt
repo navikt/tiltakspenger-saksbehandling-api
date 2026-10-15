@@ -18,23 +18,31 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGru
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskForlengelse.utledAutomatiskForlengelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.gjenoppta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startAutomatiskForlengelse
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.ForberedtRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import java.time.Clock
+import java.time.LocalDate
+import java.time.LocalTime
 
 /**
  * Oppretter og behandler forlengelser (revurderinger til innvilgelse) som systemet starter når en tiltaksdeltakelse er forlenget.
  *
  * [opprett] bygger forlengelsen under automatisk behandling, tildelt [AUTOMATISK_SAKSBEHANDLER].
  * [forsøkAutomatiskForlengelse] utleder verdiene for forlengelsen, fyller den ut og sender den til beslutning.
+ * Starter forlengelsen frem i tid, settes den i stedet på vent til startdatoen, og vurderes på nytt da.
  * Stegene som er felles med andre automatiske revurderinger, ligger i [DelautomatiskRevurderingSteg].
  *
  * Kan forlengelsen ikke behandles automatisk, overlates den til en saksbehandler med alle grunnene lagret på revurderingen.
@@ -74,18 +82,107 @@ class DelautomatiskForlengelseService(
         val sak = sakService.hentForSakId(sakId)
         val revurdering = steg.hentRevurderingUnderAutomatiskBehandling(sak, revurderingId, correlationId) ?: return
 
+        val venterTil = revurdering.venterTil
+        if (venterTil != null && venterTil >= nå(clock)) {
+            log.info { "Forlengelsen venter til $venterTil, hopper over - ${revurdering.loggkontekst(correlationId)}" }
+            return
+        }
+
         val (oppdatertSak, oppdatertRevurdering) = steg.oppdaterSaksopplysninger(sak, revurdering, correlationId)
 
-        oppdatertSak.fyllUtOgSendTilBeslutning(oppdatertRevurdering, correlationId).fold(
+        oppdatertSak.startdatoFremITid(oppdatertRevurdering)?.let { startdato ->
+            settPåVentTilStartdato(oppdatertRevurdering, startdato, correlationId)
+            return
+        }
+
+        val (gjenopptattRevurdering, statistikkhendelser) = gjenopptaHvisPåVent(oppdatertRevurdering, correlationId)
+
+        oppdatertSak.oppdaterRammebehandling(gjenopptattRevurdering).fyllUtOgSendTilBeslutning(gjenopptattRevurdering, correlationId).fold(
             ifLeft = { grunner ->
                 log.info { "Kan ikke forlenge automatisk ($grunner), overlates til saksbehandler - ${revurdering.loggkontekst(correlationId)}" }
-                steg.lagreTilManuellBehandling(oppdatertRevurdering, grunner)
+                steg.lagreTilManuellBehandling(gjenopptattRevurdering, grunner, statistikkhendelser)
             },
             ifRight = { (sendtTilBeslutning, simuleringMedMetadata) ->
-                steg.lagreSendtTilBeslutning(sendtTilBeslutning, simuleringMedMetadata)
+                steg.lagreSendtTilBeslutning(sendtTilBeslutning, simuleringMedMetadata, statistikkhendelser)
                 log.info { "Automatisk forlengelse er fylt ut og sendt til beslutning - ${revurdering.loggkontekst(correlationId)}" }
             },
         )
+    }
+
+    /**
+     * Gir startdatoen for forlengelsen dersom den er frem i tid.
+     * Da venter vi med å behandle forlengelsen til startdatoen, slik at senere endringer i deltakelsen kommer med.
+     * Kan ikke forlengelsen utledes, gis null, siden den uansett skal overlates til saksbehandler.
+     */
+    private fun Sak.startdatoFremITid(revurdering: Revurdering): LocalDate? {
+        val tiltaksdeltakerId = revurdering.automatiskOpprettetGrunn?.tiltaksdeltakerId ?: return null
+        val startdato = utledAutomatiskForlengelse(
+            tiltaksdeltakerId = tiltaksdeltakerId,
+            saksopplysninger = revurdering.saksopplysninger,
+        ).getOrNull()?.innvilgelsesperiode?.fraOgMed ?: return null
+        return startdato.takeIf { it.isAfter(LocalDate.now(clock)) }
+    }
+
+    /**
+     * Setter forlengelsen på vent til [startdato], eller flytter ventetiden dersom den allerede er på vent.
+     * Revurderingen lagres med de oppdaterte saksopplysningene.
+     */
+    private suspend fun settPåVentTilStartdato(
+        revurdering: Revurdering,
+        startdato: LocalDate,
+        correlationId: CorrelationId,
+    ) {
+        val venterTil = startdato.atTime(VENTER_TIL_KLOKKESLETT)
+        if (revurdering.ventestatus.erSattPåVent) {
+            // Siden vi ikke sender ventestatusen til statistikk, trenger vi ikke sende ny statistikk her.
+            steg.lagre(revurdering.oppdaterVenterTil(nyVenterTil = venterTil, clock = clock), Statistikkhendelser.empty())
+            log.info { "Forlengelsen starter $startdato og var allerede på vent, venter til $venterTil - ${revurdering.loggkontekst(correlationId)}" }
+            return
+        }
+        val (påVent, statistikkhendelser) = revurdering.settPåVent(
+            kommando = SettRammebehandlingPåVentKommando(
+                sakId = revurdering.sakId,
+                rammebehandlingId = revurdering.id,
+                begrunnelse = "Forlengelsen starter frem i tid",
+                oppdaterPåVent = false,
+                saksbehandler = AUTOMATISK_SAKSBEHANDLER,
+                venterTil = venterTil,
+                frist = null,
+            ),
+            clock = clock,
+        ).getOrElse {
+            throw IllegalStateException("Kunne ikke sette automatisk forlengelse på vent: $it - ${revurdering.loggkontekst(correlationId)}")
+        }
+        steg.lagre(påVent as Revurdering, statistikkhendelser)
+        log.info { "Forlengelsen starter $startdato, satt på vent til $venterTil - ${revurdering.loggkontekst(correlationId)}" }
+    }
+
+    /**
+     * Gjenopptar forlengelsen dersom den er på vent, slik at den kan fylles ut og sendes til beslutning eller overlates til saksbehandler.
+     * Statistikken for gjenopptakelsen lagres sammen med resultatet.
+     */
+    private suspend fun gjenopptaHvisPåVent(
+        revurdering: Revurdering,
+        correlationId: CorrelationId,
+    ): Pair<Revurdering, Statistikkhendelser> {
+        if (!revurdering.ventestatus.erSattPåVent) {
+            return revurdering to Statistikkhendelser.empty()
+        }
+        val (gjenopptatt, statistikkhendelser) = revurdering.gjenoppta(
+            kommando = GjenopptaRammebehandlingKommando(
+                sakId = revurdering.sakId,
+                rammebehandlingId = revurdering.id,
+                saksbehandler = AUTOMATISK_SAKSBEHANDLER,
+                correlationId = correlationId,
+            ),
+            clock = clock,
+            // Saksopplysningene er allerede oppdatert.
+            hentSaksopplysninger = null,
+        ).getOrElse {
+            throw IllegalStateException("Kunne ikke gjenoppta automatisk forlengelse: $it - ${revurdering.loggkontekst(correlationId)}")
+        }
+        log.info { "Gjenopptar forlengelsen fra vent - ${revurdering.loggkontekst(correlationId)}" }
+        return (gjenopptatt as Revurdering) to statistikkhendelser
     }
 
     /**
@@ -159,5 +256,9 @@ class DelautomatiskForlengelseService(
             .getOrElse { return it.left() }
 
         return (sendtTilBeslutning to simulertUtbetaling?.simuleringMedMetadata).right()
+    }
+
+    companion object {
+        private val VENTER_TIL_KLOKKESLETT: LocalTime = LocalTime.of(6, 0)
     }
 }

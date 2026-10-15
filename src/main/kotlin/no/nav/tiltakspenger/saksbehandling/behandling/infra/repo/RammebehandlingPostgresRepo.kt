@@ -328,11 +328,15 @@ class RammebehandlingPostgresRepo(
                     from behandling b
                     where
                       b.behandlingstype = 'REVURDERING' and
-                      b.status = 'UNDER_AUTOMATISK_BEHANDLING'
+                      b.status = 'UNDER_AUTOMATISK_BEHANDLING' and
+                      (b.venter_til is null or b.venter_til < :now)
                     order by b.opprettet
                     limit :limit
                     """.trimIndent(),
-                    mapOf("limit" to limit),
+                    mapOf(
+                        "now" to nå(clock),
+                        "limit" to limit,
+                    ),
                 ).map { RammebehandlingId.fromString(it.string("id")) }.asList,
             )
         }

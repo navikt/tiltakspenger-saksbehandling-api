@@ -211,12 +211,16 @@ class DelautomatiskRevurderingSteg(
             ).right()
     }
 
+    /**
+     * @param tidligereStatistikkhendelser Statistikk fra steg som ikke er lagret ennå, f.eks. at revurderingen er gjenopptatt fra vent.
+     */
     suspend fun lagreSendtTilBeslutning(
         revurdering: Revurdering,
         simuleringMedMetadata: SimuleringMedMetadata?,
+        tidligereStatistikkhendelser: Statistikkhendelser = Statistikkhendelser.empty(),
     ) {
         val statistikk = statistikkService.generer(
-            Statistikkhendelser(revurdering.genererSaksstatistikk(StatistikkhendelseType.SENDT_TIL_BESLUTTER)),
+            tidligereStatistikkhendelser.leggTil(revurdering.genererSaksstatistikk(StatistikkhendelseType.SENDT_TIL_BESLUTTER)),
         )
         sessionFactory.withTransactionContext { tx ->
             rammebehandlingRepo.lagre(revurdering, tx)
@@ -225,16 +229,31 @@ class DelautomatiskRevurderingSteg(
         }
     }
 
+    /**
+     * @param tidligereStatistikkhendelser Statistikk fra steg som ikke er lagret ennå, f.eks. at revurderingen er gjenopptatt fra vent.
+     */
     suspend fun lagreTilManuellBehandling(
         revurdering: Revurdering,
         grunner: NonEmptyList<ManueltBehandlesGrunn>,
+        tidligereStatistikkhendelser: Statistikkhendelser = Statistikkhendelser.empty(),
     ) {
         val tilManuellBehandling = revurdering.tilManuellBehandling(grunner, clock)
-        val statistikk = statistikkService.generer(
-            Statistikkhendelser(tilManuellBehandling.genererSaksstatistikk(StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER)),
+        lagre(
+            tilManuellBehandling,
+            tidligereStatistikkhendelser.leggTil(tilManuellBehandling.genererSaksstatistikk(StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER)),
         )
+    }
+
+    /**
+     * Lagrer revurderingen og statistikken i samme transaksjon.
+     */
+    suspend fun lagre(
+        revurdering: Revurdering,
+        statistikkhendelser: Statistikkhendelser,
+    ) {
+        val statistikk = statistikkService.generer(statistikkhendelser)
         sessionFactory.withTransactionContext { tx ->
-            rammebehandlingRepo.lagre(tilManuellBehandling, tx)
+            rammebehandlingRepo.lagre(revurdering, tx)
             statistikkService.lagre(statistikk, tx)
         }
     }

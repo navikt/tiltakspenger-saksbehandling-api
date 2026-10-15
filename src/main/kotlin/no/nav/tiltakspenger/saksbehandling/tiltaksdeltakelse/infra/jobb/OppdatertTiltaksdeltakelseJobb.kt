@@ -15,8 +15,10 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.ForberedtRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskForlengelseService
@@ -44,7 +46,7 @@ import java.time.LocalDateTime
 /**
  * Hendelsene tolkes ikke — consumerne setter bare en markør ([Tiltaksdeltaker.sisteUbehandletEndringTidspunkt]) på deltakeren, og jobben henter nå-tilstanden for deltakelsen ferskt fra tiltakshistorikk-tjenesten.
  * Nå-tilstanden sammenlignes med saken, og relevante endringer fører til at en revurdering opprettes automatisk.
- * Automatiske søknadsbehandlinger på vent får fremskyndet ny vurdering når deltakelsen endres.
+ * Automatiske søknadsbehandlinger og forlengelser på vent får fremskyndet ny vurdering når deltakelsen endres.
  * Endringer som ikke kan revurderes automatisk fører til en Gosys-oppgave inntil erstatteren er på plass.
  * Referansen til oppgaven lagres som en [EksternOppgave] før markøren nullstilles.
  * Hver ferdig behandlede endring lagres i `tiltaksdeltaker_endring` for sporbarhet, i samme transaksjon som markøren nullstilles.
@@ -147,7 +149,7 @@ class OppdatertTiltaksdeltakelseJobb(
         val sisteUbehandletEndringTidspunkt = deltaker.sisteUbehandletEndringTidspunkt!!
         val sak = sakRepo.hentForSakId(deltaker.sakId)!!
 
-        sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(deltaker.id)
+        sak.oppdaterAutomatiskeBehandlingerPåVent(deltaker.id)
 
         val oppdatertDeltakelse = tiltaksdeltakelseKlient.hentTiltaksdeltakelse(
             fnr = sak.fnr,
@@ -198,19 +200,29 @@ class OppdatertTiltaksdeltakelseJobb(
         }
     }
 
-    // Oppdaterer venterTil for alle åpne søknadsbehandlinger som er under automatisk behandling og satt på vent, slik at de vurderes på nytt etter endring på deltaker
-    private fun Sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(tiltaksdeltakerId: TiltaksdeltakerId) {
-        rammebehandlinger.åpneSøknadsbehandlinger
+    /**
+     * Oppdaterer venterTil for alle åpne søknadsbehandlinger og forlengelser for deltakeren som er under automatisk behandling og satt på vent.
+     * Slik vurderes de på nytt med den oppdaterte deltakelsen, siden saksopplysningene hentes på nytt når de vekkes.
+     * Det opprettes ingen ny revurdering for endringen så lenge forlengelsen er åpen, se [finnEndringerForDeltakelse].
+     */
+    private fun Sak.oppdaterAutomatiskeBehandlingerPåVent(tiltaksdeltakerId: TiltaksdeltakerId) {
+        val nyVenterTil = nå(clock).plusMinutes(MINUTTER_FORSINKELSE)
+        val søknadsbehandlinger = rammebehandlinger.åpneSøknadsbehandlinger
             .filter { it.søknad.tiltak?.tiltaksdeltakerId == tiltaksdeltakerId && it.erUnderAutomatiskBehandling && it.ventestatus.erSattPåVent }
-            .forEach {
-                it.oppdaterVenterTil(
-                    nyVenterTil = nå(clock).plusMinutes(MINUTTER_FORSINKELSE),
-                    clock = clock,
-                ).let { behandling ->
-                    rammebehandlingRepo.lagre(behandling)
-                }
-                log.info { "Har oppdatert venterTil for automatisk behandling med id ${it.id} pga endring på deltaker med intern id $tiltaksdeltakerId" }
+            .map { it.oppdaterVenterTil(nyVenterTil = nyVenterTil, clock = clock) }
+        val forlengelser = rammebehandlinger.åpneBehandlinger
+            .filterIsInstance<Revurdering>()
+            .filter {
+                it.automatiskOpprettetGrunn?.tiltaksdeltakerId == tiltaksdeltakerId &&
+                    it.resultat is Revurderingsresultat.Innvilgelse &&
+                    it.erUnderAutomatiskBehandling &&
+                    it.ventestatus.erSattPåVent
             }
+            .map { it.oppdaterVenterTil(nyVenterTil = nyVenterTil, clock = clock) }
+        (søknadsbehandlinger + forlengelser).forEach {
+            rammebehandlingRepo.lagre(it)
+            log.info { "Har oppdatert venterTil for automatisk behandling med id ${it.id} pga endring på deltaker med intern id $tiltaksdeltakerId" }
+        }
     }
 
     /**
