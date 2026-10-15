@@ -6,6 +6,8 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -106,26 +108,37 @@ class RammevedtakAggregatTest {
     }
 
     /**
-     * Notatkøen tar kun vedtak der saksbehandler aktivt har valgt å journalføre notatet.
+     * Notatkøen tar kun vedtak der saksbehandler aktivt har valgt å journalføre minst én av begrunnelsene.
      * Et vedtak der notatet er valgt bort er den naturlige kandidaten som skal falle utenfor.
      */
     @Test
     @IsolatedDatabaseTest
     fun `notatkøen tar kun vedtak som skal ha notat uten journalpost, sorterer eldst først, respekterer limit og tømmes av jobben`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val eldst = iverksattRammevedtakMedValgForNotat(tac, skalJournalføreNotat = true)
-            val nyest = iverksattRammevedtakMedValgForNotat(tac, skalJournalføreNotat = true)
-            val valgtBort = iverksattRammevedtakMedValgForNotat(tac, skalJournalføreNotat = false)
+            val eldst = iverksattRammevedtakMedValgForNotat(
+                tac,
+                SkalJournalføreNotat(vilkårsvurdering = true, barnetillegg = false),
+            )
+            val midterst = iverksattRammevedtakMedValgForNotat(
+                tac,
+                SkalJournalføreNotat(vilkårsvurdering = false, barnetillegg = true),
+            )
+            val nyest = iverksattRammevedtakMedValgForNotat(
+                tac,
+                SkalJournalføreNotat(vilkårsvurdering = true, barnetillegg = true),
+            )
+            val valgtBort = iverksattRammevedtakMedValgForNotat(tac, SkalJournalføreNotat.INGEN)
 
             val repo = tac.behandlingContext.rammevedtakRepo
 
-            repo.hentRammevedtakIderMedNotatSomSkalJournalføres(limit = 10) shouldBe listOf(eldst, nyest)
+            repo.hentRammevedtakIderMedNotatSomSkalJournalføres(limit = 10) shouldBe listOf(eldst, midterst, nyest)
             repo.hentRammevedtakIderMedNotatSomSkalJournalføres(limit = 1) shouldBe listOf(eldst)
 
             tac.journalførJournalnotatService.journalførNotater()
 
             repo.hentRammevedtakIderMedNotatSomSkalJournalføres(limit = 10).shouldBeEmpty()
             repo.hentForVedtakId(eldst)!!.journalføringsnotat.shouldNotBeNull()
+            repo.hentForVedtakId(midterst)!!.journalføringsnotat.shouldNotBeNull()
             repo.hentForVedtakId(nyest)!!.journalføringsnotat.shouldNotBeNull()
             repo.hentForVedtakId(valgtBort)!!.journalføringsnotat.shouldBeNull()
         }
@@ -152,12 +165,16 @@ class RammevedtakAggregatTest {
     /** Notatjobben slås av, slik at vedtak som skal ha notat blir liggende i køen. */
     private suspend fun ApplicationTestBuilder.iverksattRammevedtakMedValgForNotat(
         tac: TestApplicationContext,
-        skalJournalføreNotat: Boolean,
+        skalJournalføreNotat: SkalJournalføreNotat,
     ): VedtakId {
+        val innvilgelsesperioder = ObjectMother.innvilgelsesperioder()
         val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
             tac = tac,
             begrunnelseVilkårsvurdering = Begrunnelse.createOrThrow("Begrunnelse for vilkårsvurderingen"),
             skalJournalføreNotat = skalJournalføreNotat,
+            innvilgelsesperioder = innvilgelsesperioder,
+            barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder)
+                .copy(begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for barnetillegg")),
         )
         sendSøknadsbehandlingTilBeslutningForBehandlingId(tac, sak.id, behandling.id)
         taRammebehandlinger(tac, behandlinger = listOf(sak.id to behandling.id), saksbehandler = ObjectMother.beslutter())

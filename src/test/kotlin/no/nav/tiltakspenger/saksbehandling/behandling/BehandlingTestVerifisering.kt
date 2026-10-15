@@ -6,7 +6,10 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.json.serialize
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdetTekst
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
@@ -50,7 +53,7 @@ fun String.shouldBeRevurderingDTO(
     sistEndret: String = "2025-01-01T01:03:05.456789",
     status: String = "VEDTATT",
     skalSendeVedtaksbrev: Boolean = true,
-    skalJournalføreNotat: Boolean = false,
+    skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
     prioriteringBegrunnelse: String? = null,
     gyldigeKommandoer: List<String> = emptyList(),
     periodeFraOgMed: String = "2023-01-01",
@@ -188,8 +191,8 @@ fun String.shouldBeRevurderingDTO(
           "sistEndret": "$sistEndret",
           "status": "$status",
           "skalSendeVedtaksbrev": $skalSendeVedtaksbrev,
-          "skalJournalføreNotat": $skalJournalføreNotat,
           "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
+          "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())},
           "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
         }
     """
@@ -230,8 +233,8 @@ fun String.shouldBeSøknadsbehandlingDTO(
     sistEndret: String = "2025-01-01T01:03:06.456789",
     status: String = "VEDTATT",
     skalSendeVedtaksbrev: Boolean = true,
-    skalJournalføreNotat: Boolean = false,
     prioriteringBegrunnelse: String? = null,
+    skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
     gyldigeKommandoer: List<String> = emptyList(),
     automatiskSaksbehandlet: Boolean = false,
     kanInnvilges: Boolean = true,
@@ -389,8 +392,8 @@ fun String.shouldBeSøknadsbehandlingDTO(
         },
         "status": "$status",
         "skalSendeVedtaksbrev": $skalSendeVedtaksbrev,
-        "skalJournalføreNotat": $skalJournalføreNotat,
         "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
+        "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())},
         "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
     }
     """

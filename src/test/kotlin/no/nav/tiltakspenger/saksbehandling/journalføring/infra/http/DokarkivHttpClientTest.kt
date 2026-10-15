@@ -322,11 +322,15 @@ class DokarkivHttpClientTest {
             sakId = SakId.random(),
             saksnummer = Saksnummer.genererSaknummer(3.desember(2025), "4050"),
             fnr = Fnr.random(),
-            vedtakstype = Journalnotat.Vedtakstype.STANS,
             saksbehandler = "Z123456",
             beslutter = "B123456",
             notatsdato = 3.desember(2025),
-            begrunnelse = Begrunnelse.createOrThrow("begrunnelse"),
+            begrunnelser = nonEmptyListOf(
+                Journalnotat.Notatbegrunnelse(
+                    type = Journalnotat.Begrunnelsestype.MELDEKORT,
+                    begrunnelse = Begrunnelse.createOrThrow("begrunnelse"),
+                ),
+            ),
         )
 
         val dokumenter = nyKlient(transport).journalførJournalnotat(journalnotat, pdfOgJson, correlationId).getOrFail()

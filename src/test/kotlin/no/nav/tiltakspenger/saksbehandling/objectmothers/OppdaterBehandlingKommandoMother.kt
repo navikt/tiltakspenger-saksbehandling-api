@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_T
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterSøknadsbehandlingKommando
@@ -57,8 +58,8 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
         ),
         correlationId: CorrelationId = CorrelationId.generate(),
         skalSendeVedtaksbrev: Boolean = true,
-        skalJournalføreNotat: Boolean = false,
         prioritering: Prioritering? = null,
+        skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
     ): OppdaterSøknadsbehandlingKommando.Innvilgelse {
         return OppdaterSøknadsbehandlingKommando.Innvilgelse(
             sakId = sakId,
@@ -85,8 +86,8 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag> = nonEmptySetOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak),
         correlationId: CorrelationId = CorrelationId.generate(),
         skalSendeVedtaksbrev: Boolean = true,
-        skalJournalføreNotat: Boolean = false,
         prioritering: Prioritering? = null,
+        skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
     ): OppdaterSøknadsbehandlingKommando.Avslag {
         return OppdaterSøknadsbehandlingKommando.Avslag(
             sakId = sakId,
@@ -118,8 +119,8 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
         ),
         correlationId: CorrelationId = CorrelationId.generate(),
         skalSendeVedtaksbrev: Boolean = true,
-        skalJournalføreNotat: Boolean = false,
         prioritering: Prioritering? = null,
+        skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
     ): OppdaterRevurderingKommando.Innvilgelse {
         return OppdaterRevurderingKommando.Innvilgelse(
             sakId = sakId,

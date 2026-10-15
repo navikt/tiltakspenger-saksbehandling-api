@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo.Companion.oppdaterRammebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import java.time.Clock
 import java.time.LocalDateTime
@@ -379,8 +380,8 @@ class RammebehandlingPostgresRepo(
                 klagebehandling_id = :klagebehandling_id,
                 automatisk_opprettet_grunn = :automatisk_opprettet_grunn::jsonb,
                 skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev,
-                skal_journalfore_notat = :skal_journalfore_notat,
-                prioritering_begrunnelse = :prioritering_begrunnelse
+                prioritering_begrunnelse = :prioritering_begrunnelse,
+                skal_journalfore_notat = :skal_journalfore_notat::jsonb
         """
 
         fun hentOrNull(
@@ -476,8 +477,8 @@ class RammebehandlingPostgresRepo(
                         klagebehandling_id,
                         automatisk_opprettet_grunn,
                         skal_sende_vedtaksbrev,
-                        skal_journalfore_notat,
-                        prioritering_begrunnelse
+                        prioritering_begrunnelse,
+                        skal_journalfore_notat
                     ) values (
                         :id,
                         :sak_id,
@@ -517,8 +518,8 @@ class RammebehandlingPostgresRepo(
                         :klagebehandling_id,
                         :automatisk_opprettet_grunn::jsonb,
                         :skal_sende_vedtaksbrev,
-                        :skal_journalfore_notat,
-                        :prioritering_begrunnelse
+                        :prioritering_begrunnelse,
+                        :skal_journalfore_notat::jsonb
                     )
                     """.trimIndent(),
                     behandling.tilDbParams(),

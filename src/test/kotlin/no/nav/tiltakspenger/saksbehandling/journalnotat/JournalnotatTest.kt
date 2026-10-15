@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.journalnotat
 
+import arrow.core.nonEmptyListOf
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -11,14 +12,15 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.tilJournalnotatDokumentJson
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.journalnotat.infra.http.tilJournalpostRequest
-import no.nav.tiltakspenger.saksbehandling.journalnotat.infra.tilBegrunnelseTittel
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -27,6 +29,8 @@ import org.junit.jupiter.api.Test
 class JournalnotatTest {
 
     private val begrunnelse = Begrunnelse.createOrThrow("Linje én.\nLinje to.")
+
+    private val barnetilleggBegrunnelse = Begrunnelse.createOrThrow("Bruker forsørger ett barn.")
 
     private val fnr = Fnr.random()
 
@@ -38,11 +42,13 @@ class JournalnotatTest {
         sakId = SakId.fromString("sak_01KAJ7K0Y7SJ1Y5BN5MN8Z9FDW"),
         saksnummer = Saksnummer("202501011001"),
         fnr = fnr,
-        vedtakstype = Journalnotat.Vedtakstype.SØKNAD_AVSLAG,
         saksbehandler = "Z123456",
         beslutter = "B123456",
         notatsdato = 2.januar(2025),
-        begrunnelse = begrunnelse,
+        begrunnelser = nonEmptyListOf(
+            Journalnotat.Notatbegrunnelse(Journalnotat.Begrunnelsestype.VILKÅRSVURDERING, begrunnelse),
+            Journalnotat.Notatbegrunnelse(Journalnotat.Begrunnelsestype.BARNETILLEGG, barnetilleggBegrunnelse),
+        ),
     )
 
     @Test
@@ -97,7 +103,7 @@ class JournalnotatTest {
     }
 
     @Test
-    fun `pdfgenrs-payloaden har navn, metadata og begrunnelsen uendret`() = runTest {
+    fun `pdfgenrs-payloaden har navn, metadata og begrunnelsene uendret i valgt rekkefølge`() = runTest {
         val json = journalnotat.tilJournalnotatDokumentJson(
             hentBrukersNavn = { Navn("Ola", "Mellom", "Nordmann") },
             hentSaksbehandlersNavn = { navIdent -> "Navn for $navIdent" },
@@ -112,40 +118,22 @@ class JournalnotatTest {
                 "etternavn": "Mellom Nordmann"
               },
               "saksnummer": "202501011001",
-              "tittel": "Notat om vedtak om tiltakspenger",
               "notatsdato": "2. januar 2025",
               "saksbehandlerNavn": "Navn for Z123456",
               "beslutterNavn": "Navn for B123456",
-              "begrunnelseTittel": "Begrunnelse for vilkårsvurderingen",
-              "begrunnelse": "Linje én.\nLinje to."
+              "begrunnelser": [
+                {
+                  "type": "VILKÅRSVURDERING",
+                  "begrunnelse": "Linje én.\nLinje to."
+                },
+                {
+                  "type": "BARNETILLEGG",
+                  "begrunnelse": "Bruker forsørger ett barn."
+                }
+              ]
             }
             """.trimIndent(),
         )
-    }
-
-    @Test
-    fun `hver vedtakstype har sin begrunnelsestittel`() {
-        Journalnotat.Vedtakstype.entries.associateWith { it.tilBegrunnelseTittel() } shouldBe mapOf(
-            Journalnotat.Vedtakstype.SØKNAD_INNVILGELSE to "Begrunnelse for vilkårsvurderingen",
-            Journalnotat.Vedtakstype.SØKNAD_AVSLAG to "Begrunnelse for vilkårsvurderingen",
-            Journalnotat.Vedtakstype.REVURDERING_INNVILGELSE to "Begrunnelse for vilkårsvurderingen",
-            Journalnotat.Vedtakstype.STANS to "Begrunnelse for vilkårsvurderingen",
-            Journalnotat.Vedtakstype.OMGJØRING_INNVILGELSE to "Begrunnelse for vilkårsvurderingen",
-            Journalnotat.Vedtakstype.OMGJØRING_OPPHØR to "Begrunnelse for vilkårsvurderingen",
-            Journalnotat.Vedtakstype.MELDEKORT to "Begrunnelse",
-        )
-    }
-
-    @Test
-    fun `rammevedtak gir notat med vedtakstype utledet fra resultatet`() {
-        ObjectMother.nyRammevedtakInnvilgelse().medNotat().tilJournalnotat(notatsdato).vedtakstype shouldBe
-            Journalnotat.Vedtakstype.SØKNAD_INNVILGELSE
-        ObjectMother.nyRammevedtakAvslag().medNotat().tilJournalnotat(notatsdato).vedtakstype shouldBe
-            Journalnotat.Vedtakstype.SØKNAD_AVSLAG
-        ObjectMother.nyRammevedtakStans().medNotat().tilJournalnotat(notatsdato).vedtakstype shouldBe
-            Journalnotat.Vedtakstype.STANS
-        ObjectMother.nyRammevedtakOmgjøring().medNotat().tilJournalnotat(notatsdato).vedtakstype shouldBe
-            Journalnotat.Vedtakstype.OMGJØRING_INNVILGELSE
     }
 
     @Test
@@ -157,11 +145,33 @@ class JournalnotatTest {
             sakId = vedtak.sakId,
             saksnummer = vedtak.saksnummer,
             fnr = vedtak.fnr,
-            vedtakstype = Journalnotat.Vedtakstype.SØKNAD_INNVILGELSE,
             saksbehandler = vedtak.saksbehandler,
             beslutter = vedtak.beslutter,
             notatsdato = notatsdato,
-            begrunnelse = begrunnelse,
+            begrunnelser = nonEmptyListOf(
+                Journalnotat.Notatbegrunnelse(Journalnotat.Begrunnelsestype.VILKÅRSVURDERING, begrunnelse),
+            ),
+        )
+    }
+
+    @Test
+    fun `rammevedtak med kun barnetillegg valgt gir notat med kun begrunnelsen for barnetillegg`() {
+        val vedtak = ObjectMother.nyRammevedtakInnvilgelse()
+            .medNotat(SkalJournalføreNotat(vilkårsvurdering = false, barnetillegg = true))
+
+        vedtak.tilJournalnotat(notatsdato).begrunnelser shouldBe nonEmptyListOf(
+            Journalnotat.Notatbegrunnelse(Journalnotat.Begrunnelsestype.BARNETILLEGG, barnetilleggBegrunnelse),
+        )
+    }
+
+    @Test
+    fun `rammevedtak med begge valgt gir notat med vilkårsvurderingen før barnetillegg`() {
+        val vedtak = ObjectMother.nyRammevedtakInnvilgelse()
+            .medNotat(SkalJournalføreNotat(vilkårsvurdering = true, barnetillegg = true))
+
+        vedtak.tilJournalnotat(notatsdato).begrunnelser shouldBe nonEmptyListOf(
+            Journalnotat.Notatbegrunnelse(Journalnotat.Begrunnelsestype.VILKÅRSVURDERING, begrunnelse),
+            Journalnotat.Notatbegrunnelse(Journalnotat.Begrunnelsestype.BARNETILLEGG, barnetilleggBegrunnelse),
         )
     }
 
@@ -184,11 +194,12 @@ class JournalnotatTest {
             sakId = vedtak.sakId,
             saksnummer = vedtak.saksnummer,
             fnr = vedtak.fnr,
-            vedtakstype = Journalnotat.Vedtakstype.MELDEKORT,
             saksbehandler = vedtak.saksbehandler,
             beslutter = vedtak.beslutter,
             notatsdato = notatsdato,
-            begrunnelse = begrunnelse,
+            begrunnelser = nonEmptyListOf(
+                Journalnotat.Notatbegrunnelse(Journalnotat.Begrunnelsestype.MELDEKORT, begrunnelse),
+            ),
         )
     }
 
@@ -201,10 +212,29 @@ class JournalnotatTest {
         }
     }
 
-    private fun Rammevedtak.medNotat(): Rammevedtak = copy(
+    private fun Rammevedtak.medNotat(
+        skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat(
+            vilkårsvurdering = true,
+            barnetillegg = false,
+        ),
+    ): Rammevedtak = copy(
         rammebehandling = when (val behandling = rammebehandling) {
-            is Søknadsbehandling -> behandling.copy(skalJournalføreNotat = true, begrunnelseVilkårsvurdering = begrunnelse)
-            is Revurdering -> behandling.copy(skalJournalføreNotat = true, begrunnelseVilkårsvurdering = begrunnelse)
+            is Søknadsbehandling -> behandling.copy(
+                skalJournalføreNotat = skalJournalføreNotat,
+                begrunnelseVilkårsvurdering = begrunnelse,
+                resultat = when (val resultat = behandling.resultat) {
+                    is Søknadsbehandlingsresultat.Innvilgelse -> resultat.copy(
+                        barnetillegg = resultat.barnetillegg.copy(begrunnelse = barnetilleggBegrunnelse),
+                    )
+
+                    else -> resultat
+                },
+            )
+
+            is Revurdering -> behandling.copy(
+                skalJournalføreNotat = skalJournalføreNotat,
+                begrunnelseVilkårsvurdering = begrunnelse,
+            )
         },
     )
 }

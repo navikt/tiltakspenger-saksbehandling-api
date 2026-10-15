@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
@@ -37,7 +38,7 @@ interface OppdaterRammebehandlingBuilder {
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         skalSendeVedtaksbrev: Boolean = true,
-        skalJournalføreNotat: Boolean = false,
+        skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         prioriteringBegrunnelse: String? = null,
@@ -55,8 +56,8 @@ interface OppdaterRammebehandlingBuilder {
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev,
-                skalJournalføreNotat,
                 prioriteringBegrunnelse,
+                skalJournalføreNotat,
             )
         }
             }
@@ -78,8 +79,8 @@ interface OppdaterRammebehandlingBuilder {
         behandlingId: RammebehandlingId,
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
-        skalJournalføreNotat: Boolean = false,
         prioriteringBegrunnelse: String? = null,
+        skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Triple<Sak, Rammebehandling, String> {
@@ -89,8 +90,8 @@ interface OppdaterRammebehandlingBuilder {
               "resultat": "IKKE_VALGT",
               "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
               "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
-              "skalJournalføreNotat": $skalJournalføreNotat,
-              "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()}
+              "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
+              "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())}
             }
         """.trimIndent()
 
@@ -114,8 +115,8 @@ interface OppdaterRammebehandlingBuilder {
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         skalSendeVedtaksbrev: Boolean = true,
-        skalJournalføreNotat: Boolean = false,
         prioriteringBegrunnelse: String? = null,
+        skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -125,8 +126,8 @@ interface OppdaterRammebehandlingBuilder {
               "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
               "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
               "skalSendeVedtaksbrev" : $skalSendeVedtaksbrev,
-              "skalJournalføreNotat": $skalJournalføreNotat,
-              "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()}
+              "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
+              "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())}
             }
         """.trimIndent()
 
@@ -151,8 +152,8 @@ interface OppdaterRammebehandlingBuilder {
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         skalSendeVedtaksbrev: Boolean = true,
-        skalJournalføreNotat: Boolean = false,
         prioriteringBegrunnelse: String? = null,
+        skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -165,8 +166,8 @@ interface OppdaterRammebehandlingBuilder {
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev,
-                skalJournalføreNotat,
                 prioriteringBegrunnelse,
+                skalJournalføreNotat,
             )
         }
             }
@@ -194,8 +195,8 @@ interface OppdaterRammebehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         skalSendeVedtaksbrev: Boolean = true,
-        skalJournalføreNotat: Boolean = false,
         prioriteringBegrunnelse: String? = null,
+        skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -209,8 +210,8 @@ interface OppdaterRammebehandlingBuilder {
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev,
-                skalJournalføreNotat,
                 prioriteringBegrunnelse,
+                skalJournalføreNotat,
             )
         }
             }
@@ -237,8 +238,8 @@ interface OppdaterRammebehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         skalSendeVedtaksbrev: Boolean = true,
-        skalJournalføreNotat: Boolean = false,
         prioriteringBegrunnelse: String? = null,
+        skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -248,9 +249,9 @@ interface OppdaterRammebehandlingBuilder {
               "valgteHjemler": [${valgteHjemler.joinToString(",") { it.tilHjemmelForOpphørDTO().toString().medQuotes() }}],
               "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
               "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
-                "skalSendeVedtaksbrev" : $skalSendeVedtaksbrev,
-              "skalJournalføreNotat": $skalJournalføreNotat,
-              "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()}
+              "skalSendeVedtaksbrev" : $skalSendeVedtaksbrev,
+              "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
+              "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())}
             }
         """.trimIndent()
 
@@ -302,8 +303,8 @@ interface OppdaterRammebehandlingBuilder {
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         skalSendeVedtaksbrev: Boolean = true,
-        skalJournalføreNotat: Boolean = false,
         prioriteringBegrunnelse: String? = null,
+        skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -314,9 +315,9 @@ interface OppdaterRammebehandlingBuilder {
               "harValgtStansFraFørsteDagSomGirRett": $harValgtStansFraFørsteDagSomGirRett,
               "stansFraOgMed": ${stansFraOgMed?.toString()?.medQuotes()},
               "resultat": "STANS",
-                "skalSendeVedtaksbrev" : $skalSendeVedtaksbrev,
-              "skalJournalføreNotat": $skalJournalføreNotat,
-              "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()}
+              "skalSendeVedtaksbrev" : $skalSendeVedtaksbrev,
+              "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
+              "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())}
             }
         """.trimIndent()
 
@@ -383,8 +384,8 @@ interface OppdaterRammebehandlingBuilder {
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         skalSendeVedtaksbrev: Boolean = true,
-        skalJournalføreNotat: Boolean = false,
         prioriteringBegrunnelse: String? = null,
+        skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
     ): String {
         return """            
             "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
@@ -420,8 +421,8 @@ interface OppdaterRammebehandlingBuilder {
             }
         },
         "skalSendeVedtaksbrev": $skalSendeVedtaksbrev,
-        "skalJournalføreNotat": $skalJournalføreNotat,
-        "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()}
+        "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
+        "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())}
         """.trimIndent()
     }
 }

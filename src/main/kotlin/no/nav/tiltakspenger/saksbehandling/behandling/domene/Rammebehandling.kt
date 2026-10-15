@@ -102,11 +102,8 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     val skalSendeVedtaksbrev: Boolean
 
-    /**
-     * Saksbehandlers valg om begrunnelsen for vilkårsvurderingen skal journalføres som et internt notat i Joark etter iverksettelse.
-     * Notatet er kun synlig internt i Nav (Gosys), og deles ikke med bruker.
-     */
-    val skalJournalføreNotat: Boolean
+    /** Saksbehandlers valg om hvilke begrunnelser som skal journalføres som et internt notat i Joark etter iverksettelse. */
+    val skalJournalføreNotat: SkalJournalføreNotat
 
     /**
      * Satt når behandlingen er markert som høyt prioritert, ellers null.

@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskForlengelse.utledAutomatiskForlengelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando
@@ -129,7 +130,7 @@ class DelautomatiskForlengelseService(
             ).tilIkkeTomPeriodisering(),
             barnetillegg = automatiskForlengelse.barnetillegg,
             skalSendeVedtaksbrev = true,
-            skalJournalføreNotat = false,
+            skalJournalføreNotat = SkalJournalføreNotat.INGEN,
             prioritering = revurdering.prioritering,
         )
 

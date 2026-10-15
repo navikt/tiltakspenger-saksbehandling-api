@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.iverksett.iverksett
@@ -114,8 +115,8 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         sisteDagSomGirRett: LocalDate,
         omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
         skalSendeVedtaksbrev: Boolean = true,
-        skalJournalføreNotat: Boolean = false,
         prioritering: Prioritering? = null,
+        skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
         kommando: OppdaterRevurderingKommando.Stans = OppdaterRevurderingKommando.Stans(
             sakId = sakId,
             behandlingId = id,
@@ -434,7 +435,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             )
         },
         skalSendeVedtaksbrev: Boolean = true,
-        skalJournalføreNotat: Boolean = false,
+        skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
     ): Rammebehandling {
         return nyOpprettetRevurderingOmgjøring(
             clock = clock,

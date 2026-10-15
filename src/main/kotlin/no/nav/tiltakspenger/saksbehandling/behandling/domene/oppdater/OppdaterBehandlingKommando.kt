@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilInnvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 
@@ -22,7 +23,7 @@ sealed interface OppdaterBehandlingKommando {
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
     val begrunnelseVilkårsvurdering: Begrunnelse?
     val skalSendeVedtaksbrev: Boolean
-    val skalJournalføreNotat: Boolean
+    val skalJournalføreNotat: SkalJournalføreNotat
 
     /** null betyr at behandlingen ikke er prioritert. */
     val prioritering: Prioritering?
