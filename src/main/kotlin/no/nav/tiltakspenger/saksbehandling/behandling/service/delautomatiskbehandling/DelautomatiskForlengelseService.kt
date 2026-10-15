@@ -117,7 +117,7 @@ class DelautomatiskForlengelseService(
             saksbehandler = AUTOMATISK_SAKSBEHANDLER,
             correlationId = correlationId,
             begrunnelseVilkårsvurdering = automatiskForlengelse.begrunnelse,
-            fritekstTilVedtaksbrev = null,
+            fritekstTilVedtaksbrev = automatiskForlengelse.fritekstTilVedtaksbrev,
             innvilgelsesperioder = listOf(
                 PeriodeMedVerdi(
                     verdi = InnvilgelsesperiodeKommando(

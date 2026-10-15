@@ -4,6 +4,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.testing.ApplicationTestBuilder
@@ -130,6 +131,8 @@ class DelautomatiskForlengelseServiceTest {
                 it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldBe
                     "Automatisk behandlet.\nTiltaksdeltakelsen er forlenget til 30. juni 2025."
                 it.skalSendeVedtaksbrev shouldBe true
+                it.fritekstTilVedtaksbrev.shouldNotBeNull().verdi shouldBe
+                    "Tiltaket ditt er forlenget. Vi forlenger derfor vedtaket ditt om tiltakspenger."
                 it.resultat.shouldBeInstanceOf<Revurderingsresultat.Innvilgelse>()
                 it.innvilgelsesperioder.shouldNotBeNull().totalPeriode shouldBe (6.mai(2025) til 30.juni(2025))
                 it.antallDagerPerMeldeperiode.shouldNotBeNull().verdier.distinct() shouldBe
@@ -499,6 +502,8 @@ class DelautomatiskForlengelseServiceTest {
                 it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10, antallBarn = AntallBarn(2))
                 it.barnetillegg.shouldNotBeNull().begrunnelse.shouldNotBeNull().verdi shouldBe
                     "Barnetillegg for 2 barn videreføres fra det gjeldende vedtaket."
+                it.fritekstTilVedtaksbrev.shouldNotBeNull().verdi shouldBe
+                    "Tiltaket ditt er forlenget. Vi forlenger derfor vedtaket ditt om tiltakspenger og barnetillegg."
                 it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldNotContain "arnetillegg"
             }
         }
@@ -522,6 +527,56 @@ class DelautomatiskForlengelseServiceTest {
                     "2 barn fra og med 6. mai 2025 til og med 31. mai 2025.\n" +
                     "1 barn fra og med 1. juni 2025 til og med 30. juni 2025."
                 it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldNotContain "arnetillegg"
+                it.fritekstTilVedtaksbrev.shouldNotBeNull().verdi shouldBe
+                    "Tiltaket ditt er forlenget. Vi forlenger derfor vedtaket ditt om tiltakspenger og barnetillegg.\n\n" +
+                    "Barnetillegg gis for hvert barn under 16 år. " +
+                    "Ett av dine barn fyller 16 år i tiltaksperioden. " +
+                    "Barnetillegget for dette barnet vil derfor stoppe fra den dagen barnet ditt fyller 16 år. " +
+                    "Vi viser til forskriften om tiltakspenger § 3."
+            }
+        }
+    }
+
+    @Test
+    fun `to av tre barn fyller 16 i forlengelsen - brevet forklarer at barnetillegget stopper for begge`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(
+                tac,
+                barnFraSøknad = listOf(
+                    barnetilleggMedIdent(fødselsdato = 1.januar(2015)),
+                    barnetilleggMedIdent(fødselsdato = 1.juni(2009)),
+                    barnetilleggMedIdent(fødselsdato = 15.juni(2009)),
+                ),
+            ).also {
+                it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+                it.barnetillegg.shouldNotBeNull().periodisering.perioderMedVerdi.toList() shouldBe listOf(
+                    PeriodeMedVerdi(AntallBarn(3), 6.mai(2025) til 31.mai(2025)),
+                    PeriodeMedVerdi(AntallBarn(2), 1.juni(2025) til 14.juni(2025)),
+                    PeriodeMedVerdi(AntallBarn(1), 15.juni(2025) til 30.juni(2025)),
+                )
+                it.fritekstTilVedtaksbrev.shouldNotBeNull().verdi shouldBe
+                    "Tiltaket ditt er forlenget. Vi forlenger derfor vedtaket ditt om tiltakspenger og barnetillegg.\n\n" +
+                    "Barnetillegg gis for hvert barn under 16 år. " +
+                    "To av dine barn fyller 16 år i tiltaksperioden. " +
+                    "Barnetillegget for disse barna vil derfor stoppe fra den dagen hvert av barna fyller 16 år. " +
+                    "Vi viser til forskriften om tiltakspenger § 3."
+            }
+        }
+    }
+
+    @Test
+    fun `det eneste barnet fyller 16 i forlengelsen - brevet oppgir siste dag med barnetillegg`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(tac, barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.juni(2009)))).also {
+                it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+                it.barnetillegg.shouldNotBeNull().periodisering.perioderMedVerdi.toList() shouldBe listOf(
+                    PeriodeMedVerdi(AntallBarn(1), 6.mai(2025) til 31.mai(2025)),
+                    PeriodeMedVerdi(AntallBarn.ZERO, 1.juni(2025) til 30.juni(2025)),
+                )
+                it.fritekstTilVedtaksbrev.shouldNotBeNull().verdi shouldBe
+                    "Tiltaket ditt er forlenget. Vi forlenger derfor vedtaket ditt om tiltakspenger og barnetillegg.\n\n" +
+                    "Du er innvilget barnetillegg til og med 31. mai 2025 fordi du ikke har rett til barnetillegg for barn over 16 år. " +
+                    "Vi viser til forskriften om tiltakspenger § 3."
             }
         }
     }
@@ -549,6 +604,7 @@ class DelautomatiskForlengelseServiceTest {
 
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammevedtaksliste.also { vedtaksliste ->
                 vedtaksliste.last().rammebehandling.id shouldBe revurdering.id
+                vedtaksliste.last().rammebehandling.fritekstTilVedtaksbrev.shouldNotBeNull().verdi shouldContain "Ett av dine barn fyller 16 år"
                 vedtaksliste.barnetilleggsperioder.perioderMedVerdi.toList() shouldBe listOf(
                     PeriodeMedVerdi(AntallBarn(2), 5.januar(2025) til 31.mai(2025)),
                     PeriodeMedVerdi(AntallBarn(1), 1.juni(2025) til 30.juni(2025)),
@@ -570,6 +626,10 @@ class DelautomatiskForlengelseServiceTest {
                     "Automatisk behandlet.\n" +
                     "Tiltaksdeltakelsen er forlenget til 30. juni 2025.\n" +
                     "Barnetillegget for 1 barn i det gjeldende vedtaket faller bort, fordi barna har fylt 16 år."
+                it.fritekstTilVedtaksbrev.shouldNotBeNull().verdi shouldBe
+                    "Tiltaket ditt er forlenget. Vi forlenger derfor vedtaket ditt om tiltakspenger.\n\n" +
+                    "Du er innvilget barnetillegg til og med 5. mai 2025 fordi du ikke har rett til barnetillegg for barn over 16 år. " +
+                    "Vi viser til forskriften om tiltakspenger § 3."
             }
         }
     }
@@ -585,6 +645,8 @@ class DelautomatiskForlengelseServiceTest {
                 it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10, antallBarn = AntallBarn.ZERO)
                 it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldNotContain "arnetillegg"
                 it.barnetillegg.shouldNotBeNull().begrunnelse.shouldBeNull()
+                it.fritekstTilVedtaksbrev.shouldNotBeNull().verdi shouldBe
+                    "Tiltaket ditt er forlenget. Vi forlenger derfor vedtaket ditt om tiltakspenger."
             }
         }
     }
