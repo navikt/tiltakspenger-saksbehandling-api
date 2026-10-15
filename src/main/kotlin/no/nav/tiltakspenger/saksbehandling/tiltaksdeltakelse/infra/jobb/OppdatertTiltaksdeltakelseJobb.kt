@@ -19,7 +19,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.ForberedtRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskStansJobb
+import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskForlengelseService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskRevurderingJobb
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskStansService
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgave
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgaveRepo
@@ -48,7 +49,7 @@ import java.time.LocalDateTime
  * Referansen til oppgaven lagres som en [EksternOppgave] før markøren nullstilles.
  * Hver ferdig behandlede endring lagres i `tiltaksdeltaker_endring` for sporbarhet, i samme transaksjon som markøren nullstilles.
  * En automatisk revurdering lagres også i den transaksjonen, slik at revurderingen, sporingen og kvitteringen lagres samlet eller ikke i det hele tatt.
- * En automatisk stans opprettes under automatisk behandling og behandles videre av [DelautomatiskStansJobb].
+ * En automatisk stans eller forlengelse opprettes under automatisk behandling og behandles videre av [DelautomatiskRevurderingJobb].
  */
 class OppdatertTiltaksdeltakelseJobb(
     private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
@@ -57,6 +58,7 @@ class OppdatertTiltaksdeltakelseJobb(
     private val tiltaksdeltakelseKlient: TiltaksdeltakelseKlient,
     private val startRevurderingService: StartRevurderingService,
     private val delautomatiskStansService: DelautomatiskStansService,
+    private val delautomatiskForlengelseService: DelautomatiskForlengelseService,
     private val oppgaveKlient: OppgaveKlient,
     private val eksternOppgaveRepo: EksternOppgaveRepo,
     private val tiltaksdeltakerHendelseRepo: TiltaksdeltakerHendelseRepo,
@@ -212,8 +214,8 @@ class OppdatertTiltaksdeltakelseJobb(
     }
 
     /**
-     * En stans opprettes under automatisk behandling og behandles videre av [DelautomatiskStansJobb].
-     * Andre revurderinger opprettes klare til behandling for en saksbehandler.
+     * En stans eller forlengelse opprettes under automatisk behandling og behandles videre av [DelautomatiskRevurderingJobb].
+     * Omgjøringer opprettes klare til behandling for en saksbehandler.
      */
     private suspend fun forberedRevurdering(
         sak: Sak,
@@ -226,15 +228,15 @@ class OppdatertTiltaksdeltakelseJobb(
         val forberedtRevurdering = when (revurderingSomSkalOpprettes) {
             AutomatiskRevurderingAvEndring.Stans -> delautomatiskStansService.opprett(sak, automatiskOpprettetGrunn, correlationId)
 
-            AutomatiskRevurderingAvEndring.Innvilgelse,
-            is AutomatiskRevurderingAvEndring.Omgjøring,
-            -> startRevurderingService.forberedRevurdering(
+            AutomatiskRevurderingAvEndring.Innvilgelse -> delautomatiskForlengelseService.opprett(sak, automatiskOpprettetGrunn, correlationId)
+
+            is AutomatiskRevurderingAvEndring.Omgjøring -> startRevurderingService.forberedRevurdering(
                 StartRevurderingKommando(
                     sakId = sak.id,
                     correlationId = correlationId,
                     saksbehandler = null,
                     revurderingType = revurderingSomSkalOpprettes.type,
-                    vedtakIdSomOmgjøres = (revurderingSomSkalOpprettes as? AutomatiskRevurderingAvEndring.Omgjøring)?.vedtakIdSomOmgjøres,
+                    vedtakIdSomOmgjøres = revurderingSomSkalOpprettes.vedtakIdSomOmgjøres,
                     klagebehandlingId = null,
                     automatiskOpprettetGrunn = automatiskOpprettetGrunn,
                 ),

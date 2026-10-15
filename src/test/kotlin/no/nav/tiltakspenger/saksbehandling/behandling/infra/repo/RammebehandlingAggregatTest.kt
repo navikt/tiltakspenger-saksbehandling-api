@@ -3,14 +3,18 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -20,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import org.junit.jupiter.api.Test
 
 /**
@@ -70,15 +75,16 @@ class RammebehandlingAggregatTest {
     }
 
     /**
-     * Køen for automatisk stans har to kriterier: behandlingstypen revurdering og statusen `UNDER_AUTOMATISK_BEHANDLING`.
-     * Stansene opprettes av jobben for endringer i tiltaksdeltakelse, og jobben som konsumerer køen testes i `DelautomatiskStansServiceTest`.
+     * Køen for automatiske revurderinger har to kriterier: behandlingstypen revurdering og statusen `UNDER_AUTOMATISK_BEHANDLING`.
+     * Den rommer både stans og forlengelse, som opprettes av jobben for endringer i tiltaksdeltakelse.
+     * Jobben som konsumerer køen testes i `DelautomatiskStansServiceTest` og `DelautomatiskForlengelseServiceTest`.
      */
     @Test
     @IsolatedDatabaseTest
-    fun `stans-køen tar kun revurderinger under automatisk behandling, sorterer eldst først og respekterer limit`() {
+    fun `revurderingskøen tar kun revurderinger under automatisk behandling, sorterer eldst først og respekterer limit`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val eldst = opprettAutomatiskStans(tac)
-            val nyest = opprettAutomatiskStans(tac)
+            val eldst = opprettAutomatiskRevurdering(tac) { it.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 20.april(2025)) }
+            val nyest = opprettAutomatiskRevurdering(tac) { it.copy(deltakelseTilOgMed = 30.juni(2025)) }
             // Kandidatene som skal falle utenfor på type og status: søknadsbehandling under automatisk behandling og manuelt opprettet stans.
             opprettSøknadsbehandlingUnderAutomatiskBehandling(tac = tac)
             val (manuellSak) = iverksettSøknadsbehandling(tac = tac)
@@ -89,21 +95,32 @@ class RammebehandlingAggregatTest {
             repo.hentAutomatiskeRevurderingIder(limit = 10) shouldBe listOf(eldst.id, nyest.id)
             repo.hentAutomatiskeRevurderingIder(limit = 1) shouldBe listOf(eldst.id)
 
-            tac.delautomatiskStansJobb.automatiskBehandleStanser()
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurderinger()
 
             repo.hentAutomatiskeRevurderingIder(limit = 10).shouldBeEmpty()
+            listOf(eldst, nyest).forEach {
+                tac.sakContext.sakRepo.hentForSakId(it.sakId)!!.hentRammebehandling(it.id)!!.status shouldBe
+                    Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+            }
+            eldst.resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>()
+            nyest.resultat.shouldBeInstanceOf<Revurderingsresultat.Innvilgelse>()
         }
     }
 
-    /** Iverksetter en innvilgelse og lar jobben for endringer i tiltaksdeltakelse opprette en stans når deltakelsen avbrytes. */
-    private suspend fun ApplicationTestBuilder.opprettAutomatiskStans(tac: TestApplicationContextMedPostgres): Rammebehandling {
+    /**
+     * Iverksetter en innvilgelse og lar jobben for endringer i tiltaksdeltakelse opprette en automatisk revurdering når deltakelsen endres til [nåtilstand].
+     */
+    private suspend fun ApplicationTestBuilder.opprettAutomatiskRevurdering(
+        tac: TestApplicationContextMedPostgres,
+        nåtilstand: (TiltaksdeltakelseIntern) -> TiltaksdeltakelseIntern,
+    ): Rammebehandling {
         val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
         val (sak) = iverksettSøknadsbehandling(
             tac = tac,
             tiltaksdeltakelse = deltakelse,
             innvilgelsesperioder = ObjectMother.innvilgelsesperioder(deltakelse.periode!!, deltakelse),
         )
-        tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt))
+        tac.oppdaterTiltaksdeltakelse(sak.fnr, nåtilstand(deltakelse))
         tac.tiltakContext.tiltaksdeltakerRepo.registrerUbehandletEndring(
             id = deltakelse.internDeltakelseId,
             sakId = sak.id,

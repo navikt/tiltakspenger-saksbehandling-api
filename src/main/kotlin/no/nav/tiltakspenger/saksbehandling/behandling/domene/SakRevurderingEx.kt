@@ -152,21 +152,49 @@ private suspend fun Sak.startRevurderingInnvilgelse(
         saksnummer = this.saksnummer,
         fnr = this.fnr,
         saksbehandler = saksbehandler,
-        saksopplysninger = hentSaksopplysninger(
-            fnr,
-            correlationId,
-            this.tiltaksdeltakelserDetErSøktTiltakspengerFor,
-            // TODO jah: På sikt er det mer presist at saksbehandler velger disse når hen starter en revurdering innvilgelse.
-            //  Det er vanskelig å begrense denne så lenge vi ikke vet på forhånd om dette er en revurdering av tidligere innvilget perioder, forlengelse eller en kombinasjon.
-            this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.tiltaksdeltakerId }.distinct(),
-            false,
-            id,
-        ),
+        saksopplysninger = hentSaksopplysningerForInnvilgelse(hentSaksopplysninger, correlationId),
         opprettet = opprettet,
         klagebehandling = klagebehandling,
         automatiskOpprettetGrunn = automatiskOpprettetGrunn,
     )
 }
+
+/**
+ * Starter en forlengelse som behandles av den automatiske saksbehandleren, se [Revurdering.opprettAutomatiskForlengelse].
+ */
+suspend fun Sak.startAutomatiskForlengelse(
+    automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn,
+    correlationId: CorrelationId,
+    clock: Clock,
+    hentSaksopplysninger: HentSaksopplysninger,
+): Pair<Sak, Revurdering> {
+    require(harFørstegangsvedtak) {
+        "Må ha en tidligere vedtatt innvilgelse for å kunne forlenge"
+    }
+    val revurdering = Revurdering.opprettAutomatiskForlengelse(
+        sakId = this.id,
+        saksnummer = this.saksnummer,
+        fnr = this.fnr,
+        saksopplysninger = hentSaksopplysningerForInnvilgelse(hentSaksopplysninger, correlationId),
+        opprettet = nå(clock),
+        automatiskOpprettetGrunn = automatiskOpprettetGrunn,
+    )
+    return Pair(this.leggTilRevurdering(revurdering), revurdering)
+}
+
+private suspend fun Sak.hentSaksopplysningerForInnvilgelse(
+    hentSaksopplysninger: HentSaksopplysninger,
+    correlationId: CorrelationId,
+): Saksopplysninger = hentSaksopplysninger(
+    fnr,
+    correlationId,
+    this.tiltaksdeltakelserDetErSøktTiltakspengerFor,
+    // TODO jah: På sikt er det mer presist at saksbehandler velger disse når hen starter en revurdering innvilgelse.
+    //  Det er vanskelig å begrense denne så lenge vi ikke vet på forhånd om dette er en revurdering av tidligere innvilget perioder, forlengelse eller en kombinasjon.
+    this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.tiltaksdeltakerId }.distinct(),
+    false,
+    id,
+)
 
 private suspend fun Sak.startRevurderingOmgjøring(
     saksbehandler: Saksbehandler?,

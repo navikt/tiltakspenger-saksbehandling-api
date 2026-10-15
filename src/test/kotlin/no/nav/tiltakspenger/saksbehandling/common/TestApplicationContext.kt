@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.kafka.avro.infra.AvroKafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
@@ -546,6 +547,11 @@ sealed class TestApplicationContext(
     /** Registrerer en journalpost i [SafJournalpostFakeClient] knyttet til gitt [fnr]. */
     fun leggTilJournalpost(journalpostId: JournalpostId, fnr: Fnr) {
         safJournalpostFakeClient.addJournalpost(journalpostId, fnr)
+    }
+
+    /** Registrerer vedtakene [TiltakspengerArenaFakeClient] skal svare med for [fnr]. */
+    fun leggTilTiltakspengevedtakFraArena(fnr: Fnr, vedtak: List<ArenaTPVedtak>) {
+        tiltakspengerArenaFakeClient.leggTilVedtak(fnr = fnr, vedtak = vedtak)
     }
 
     /** Registrerer ytelsene [SokosUtbetaldataFakeClient] skal svare med for [fnr]. */

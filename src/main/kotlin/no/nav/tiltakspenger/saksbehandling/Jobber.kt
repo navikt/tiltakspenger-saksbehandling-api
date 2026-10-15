@@ -192,9 +192,9 @@ private fun tiltaksdeltakerJobber(
         },
     ),
     Task(
-        navn = "saksbehandling-jobb-behandle-automatiske-stanser",
+        navn = "saksbehandling-jobb-behandle-automatiske-revurderinger",
         utfør = { _ ->
-            applicationContext.delautomatiskStansJobb.automatiskBehandleStanser()
+            applicationContext.delautomatiskRevurderingJobb.automatiskBehandleRevurderinger()
             TaskResultat.Ferdig
         },
     ),

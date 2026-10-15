@@ -202,6 +202,34 @@ data class Revurdering(
             )
         }
 
+        /**
+         * En forlengelse (revurdering til innvilgelse) som opprettes av systemet og behandles av den automatiske saksbehandleren.
+         * Behandlingen er [UNDER_AUTOMATISK_BEHANDLING] og tildelt [AUTOMATISK_SAKSBEHANDLER_ID] til den enten sendes til beslutning eller overlates til en saksbehandler.
+         */
+        fun opprettAutomatiskForlengelse(
+            sakId: SakId,
+            revurderingId: RammebehandlingId = RammebehandlingId.random(),
+            saksnummer: Saksnummer,
+            fnr: Fnr,
+            saksopplysninger: Saksopplysninger,
+            opprettet: LocalDateTime,
+            automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn,
+        ): Revurdering {
+            return opprett(
+                revurderingId = revurderingId,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                status = UNDER_AUTOMATISK_BEHANDLING,
+                saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID,
+                saksopplysninger = saksopplysninger,
+                opprettet = opprettet,
+                resultat = Innvilgelse.empty,
+                klagebehandling = null,
+                automatiskOpprettetGrunn = automatiskOpprettetGrunn,
+            )
+        }
+
         fun opprettInnvilgelse(
             sakId: SakId,
             saksnummer: Saksnummer,

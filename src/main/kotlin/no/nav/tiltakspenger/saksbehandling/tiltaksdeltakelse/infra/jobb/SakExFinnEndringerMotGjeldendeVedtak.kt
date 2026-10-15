@@ -276,6 +276,7 @@ private fun GjeldendeInnvilgelse.finnEndringer(
  * Stansen behandles automatisk etter at den er opprettet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.utledAutomatiskStans].
  * - Forlengelse gir innvilgelse dersom ny sluttdato er etter siste dag med rett på saken.
  * Ellers vurderes omgjøring dersom deltakelsesmengden er endret samtidig.
+ * Forlengelsen behandles automatisk etter at den er opprettet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskForlengelse.utledAutomatiskForlengelse].
  * - Endret startdato, sluttdato eller deltakelsesmengde gir omgjøring.
  * - Ikke aktuell, avsluttet som forventet og ren statusendring følges opp manuelt.
  *
