@@ -30,7 +30,8 @@ data class StatistikkStønadDTO(
     // For omgjøring, vil de tilsvare omgjøringsperioden (innvilgelse + implisitt opphør/ikke rett).
     // For stans vil de tilsvare stansperiode.
     // For opphør vil de tilsvare opphørsperiode.
-    // Selv om det på lang sikt kan tenkes at vi støtter omgjøringer av vedtak med hull (forskjellige ikke-overlappende tiltak o.l), så innfører vi ikke denne om til en liste den 2025-10-20.
+    // En omgjøring kan omgjøre flere vedtak og ha hull, men vi beholder totalperioden her for bakoverkompatibilitet.
+    // De faktiske periodene som omgjøres ligger i [omgjørRammevedtak].
     val vedtaksperiodeFraOgMed: LocalDate,
     val vedtaksperiodeTilOgMed: LocalDate,
 

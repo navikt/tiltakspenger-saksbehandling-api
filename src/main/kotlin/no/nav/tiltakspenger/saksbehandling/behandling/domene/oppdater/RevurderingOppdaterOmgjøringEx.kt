@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
@@ -11,14 +10,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
-import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import java.time.Clock
 
 fun Revurdering.oppdaterOmgjøring(
     kommando: OppdaterOmgjøringKommando,
     utbetaling: BehandlingUtbetaling?,
     finnRammevedtakSomOmgjøres: (vedtaksperiode: Periode) -> OmgjørRammevedtak,
-    omgjortVedtak: Rammevedtak,
+    rammevedtaksliste: Rammevedtaksliste,
     clock: Clock,
 ): Either<KanIkkeOppdatereBehandling, Revurdering> {
     require(this.resultat is Omgjøringsresultat)
@@ -30,7 +29,6 @@ fun Revurdering.oppdaterOmgjøring(
             kommando = kommando,
             utbetaling = utbetaling,
             finnRammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres,
-            omgjortVedtak = omgjortVedtak,
             clock = clock,
         )
 
@@ -47,35 +45,33 @@ fun Revurdering.oppdaterOmgjøring(
                 kommando = kommando,
                 utbetaling = utbetaling,
                 finnRammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres,
-                omgjortVedtak = omgjortVedtak,
+                rammevedtaksliste = rammevedtaksliste,
                 clock = clock,
             )
         }
 
         is OppdaterOmgjøringKommando.OmgjøringIkkeValgt -> oppdaterOmgjøringIkkeValgt(
             kommando = kommando,
-            finnRammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres,
-            omgjortVedtak = omgjortVedtak,
             clock = clock,
         )
     }
 }
 
+/**
+ * Vedtaksperioden kan omgjøre ett eller flere vedtak, og kan ha hull både innad i et vedtak og mellom vedtakene.
+ * Vedtaket omgjøringen ble startet fra er kun et utgangspunkt; det er vedtaksperioden som avgjør hvilke vedtak som omgjøres.
+ */
 private fun Revurdering.oppdaterOmgjøringInnvilgelse(
     kommando: OppdaterOmgjøringKommando.OmgjøringInnvilgelse,
     utbetaling: BehandlingUtbetaling?,
     finnRammevedtakSomOmgjøres: (vedtaksperiode: Periode) -> OmgjørRammevedtak,
-    omgjortVedtak: Rammevedtak,
     clock: Clock,
 ): Either<KanIkkeOppdatereBehandling, Revurdering> {
     val nyVedtaksperiode = kommando.vedtaksperiode
 
     val rammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres(nyVedtaksperiode)
 
-    validerRammevedtakSomOmgjøres(
-        rammevedtakSomOmgjøres,
-        omgjortVedtak.id,
-    ).onLeft { return it.left() }
+    validerRammevedtakSomOmgjøres(rammevedtakSomOmgjøres).onLeft { return it.left() }
 
     if (!nyVedtaksperiode.inneholderHele(kommando.innvilgelsesperioder.totalPeriode)) {
         return KanIkkeOppdatereOmgjøring.VedtaksperiodeMåInneholdeInnvilgelsesperiodene.left()
@@ -106,33 +102,40 @@ private fun Revurdering.oppdaterOmgjøringInnvilgelse(
     ).right()
 }
 
+/**
+ * Opphøret kan gå over flere vedtak og over hull, men må starte og slutte i en gjeldende innvilgelsesperiode på saken.
+ * Det kan gå over vedtak som er delvis opphørt (omgjøring til innvilgelse), men ikke over stans eller rent opphør.
+ */
 // TODO abn: sjekkene her bør også kjøres ved iverksetting
 private fun Revurdering.oppdaterOmgjøringOpphør(
     kommando: OppdaterOmgjøringKommando.OmgjøringOpphør,
     utbetaling: BehandlingUtbetaling?,
     finnRammevedtakSomOmgjøres: (vedtaksperiode: Periode) -> OmgjørRammevedtak,
-    omgjortVedtak: Rammevedtak,
+    rammevedtaksliste: Rammevedtaksliste,
     clock: Clock,
 ): Either<KanIkkeOppdatereBehandling, Revurdering> {
     val opphørtPeriode = kommando.vedtaksperiode
 
     val rammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres(opphørtPeriode)
 
-    validerRammevedtakSomOmgjøres(
-        rammevedtakSomOmgjøres,
-        omgjortVedtak.id,
-    ).onLeft { return it.left() }
+    validerRammevedtakSomOmgjøres(rammevedtakSomOmgjøres).onLeft { return it.left() }
 
-    if (omgjortVedtak.gyldigOpphørskommando == null) {
-        return KanIkkeOppdatereOmgjøring.KanIkkeOpphøreVedtakUtenGjeldendeInnvilgelse.left()
+    val omgjørStansEllerOpphør = rammevedtakSomOmgjøres.rammevedtakIDer
+        .map { rammevedtaksliste.hentRammevedtakForId(it) }
+        .any { it.erStans || it.erOpphør }
+
+    if (omgjørStansEllerOpphør) {
+        return KanIkkeOppdatereOmgjøring.KanIkkeOpphøreOverStansEllerOpphør.left()
     }
 
-    if (omgjortVedtak.gjeldendeInnvilgetPerioder.none { it.inneholder(opphørtPeriode.fraOgMed) }) {
+    val gjeldendeInnvilgetPerioder = rammevedtaksliste.innvilgetTidslinje.perioder
+
+    if (gjeldendeInnvilgetPerioder.none { it.inneholder(opphørtPeriode.fraOgMed) }) {
         return KanIkkeOppdatereOmgjøring.UgyldigPeriodeForOpphør("Perioden som opphøres må starte i en gjeldende innvilgelsesperiode")
             .left()
     }
 
-    if (omgjortVedtak.gjeldendeInnvilgetPerioder.none { it.inneholder(opphørtPeriode.tilOgMed) }) {
+    if (gjeldendeInnvilgetPerioder.none { it.inneholder(opphørtPeriode.tilOgMed) }) {
         return KanIkkeOppdatereOmgjøring.UgyldigPeriodeForOpphør("Perioden som opphøres må slutte i en gjeldende innvilgelsesperiode")
             .left()
     }
@@ -153,14 +156,14 @@ private fun Revurdering.oppdaterOmgjøringOpphør(
     ).right()
 }
 
+/**
+ * Beholder omgjøringsgrunnlaget fra forrige resultat, slik at vedtakene som var valgt for omgjøring ikke går tapt.
+ */
 private fun Revurdering.oppdaterOmgjøringIkkeValgt(
     kommando: OppdaterOmgjøringKommando.OmgjøringIkkeValgt,
-    finnRammevedtakSomOmgjøres: (vedtaksperiode: Periode) -> OmgjørRammevedtak,
-    omgjortVedtak: Rammevedtak,
     clock: Clock,
 ): Either<KanIkkeOppdatereBehandling, Revurdering> {
-    val rammevedtakSomOmgjøres =
-        omgjortVedtak.gjeldendeTotalPeriode?.let { finnRammevedtakSomOmgjøres(it) } ?: OmgjørRammevedtak.empty
+    val rammevedtakSomOmgjøres = this.resultat.omgjørRammevedtak
 
     return this.copy(
         sistEndret = nå(clock),
@@ -177,22 +180,9 @@ private fun Revurdering.oppdaterOmgjøringIkkeValgt(
 
 private fun validerRammevedtakSomOmgjøres(
     rammevedtakSomOmgjøres: OmgjørRammevedtak,
-    valgtRammevedtakId: VedtakId,
 ): Either<KanIkkeOppdatereOmgjøring, Unit> {
-    if (rammevedtakSomOmgjøres.rammevedtakIDer.size > 1) {
-        return KanIkkeOppdatereOmgjøring.KanIkkeOmgjøreFlereVedtak.left()
-    }
-
-    if (rammevedtakSomOmgjøres.rammevedtakIDer.size == 0) {
+    if (rammevedtakSomOmgjøres.isEmpty()) {
         return KanIkkeOppdatereOmgjøring.MåOmgjøreMinstEttVedtak.left()
-    }
-
-    if (rammevedtakSomOmgjøres.rammevedtakIDer.single() != valgtRammevedtakId) {
-        return KanIkkeOppdatereOmgjøring.MåOmgjøreAngittVedtak.left()
-    }
-
-    if (rammevedtakSomOmgjøres.perioder.size != 1) {
-        return KanIkkeOppdatereOmgjøring.MåOmgjøreEnSammenhengendePeriode.left()
     }
 
     return Unit.right()

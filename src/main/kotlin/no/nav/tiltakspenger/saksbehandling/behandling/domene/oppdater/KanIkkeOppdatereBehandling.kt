@@ -21,17 +21,12 @@ sealed interface KanIkkeOppdatereBehandling {
 }
 
 sealed interface KanIkkeOppdatereOmgjøring : KanIkkeOppdatereBehandling {
-    data object KanIkkeOmgjøreFlereVedtak : KanIkkeOppdatereOmgjøring
-
     data object MåOmgjøreMinstEttVedtak : KanIkkeOppdatereOmgjøring
-
-    data object MåOmgjøreAngittVedtak : KanIkkeOppdatereOmgjøring
-
-    data object MåOmgjøreEnSammenhengendePeriode : KanIkkeOppdatereOmgjøring
 
     data object VedtaksperiodeMåInneholdeInnvilgelsesperiodene : KanIkkeOppdatereOmgjøring
 
-    data object KanIkkeOpphøreVedtakUtenGjeldendeInnvilgelse : KanIkkeOppdatereOmgjøring
+    /** Et opphør kan gå over vedtak som er delvis opphørt, men ikke over stans eller et rent opphør. */
+    data object KanIkkeOpphøreOverStansEllerOpphør : KanIkkeOppdatereOmgjøring
 
     data class UgyldigPeriodeForOpphør(val årsak: String) : KanIkkeOppdatereOmgjøring
 

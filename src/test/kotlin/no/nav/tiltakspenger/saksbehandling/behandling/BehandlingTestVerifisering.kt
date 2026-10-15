@@ -154,7 +154,16 @@ fun String.shouldBeRevurderingDTO(
     }
           ${
         if (resultat == RammebehandlingResultatTypeDTO.OMGJØRING || resultat == RammebehandlingResultatTypeDTO.OMGJØRING_IKKE_VALGT) {
-            """"omgjørVedtak": "$omgjørVedtak","""
+            """
+              "omgjørVedtak": "$omgjørVedtak",
+              "omgjørRammevedtak": [
+                {
+                  "vedtakId": "$omgjørVedtak",
+                  "periode": {"fraOgMed": "$periodeFraOgMed", "tilOgMed": "$periodeTilOgMed"},
+                  "omgjøringsgrad": "HELT"
+                }
+              ],
+            """.trimIndent()
         } else {
             ""
         }
