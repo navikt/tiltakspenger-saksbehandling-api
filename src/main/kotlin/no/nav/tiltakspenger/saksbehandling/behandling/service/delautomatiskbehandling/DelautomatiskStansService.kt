@@ -1,8 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -33,7 +35,7 @@ import java.time.LocalDate
  * [forsøkAutomatiskStans] utleder verdiene for stansen, fyller den ut og sender den til beslutning.
  * Stegene som er felles med andre automatiske revurderinger, ligger i [DelautomatiskRevurderingSteg].
  *
- * Kan stansen ikke behandles automatisk, overlates den til en saksbehandler med grunnen lagret på revurderingen.
+ * Kan stansen ikke behandles automatisk, overlates den til en saksbehandler med alle grunnene lagret på revurderingen.
  * Uventede feil kastes videre uten at noe er lagret.
  * Da forsøkes stansen på nytt neste gang jobben kjører.
  */
@@ -73,9 +75,9 @@ class DelautomatiskStansService(
         val (oppdatertSak, oppdatertRevurdering) = steg.oppdaterSaksopplysninger(sak, revurdering, correlationId)
 
         oppdatertSak.fyllUtOgSendTilBeslutning(oppdatertRevurdering, correlationId).fold(
-            ifLeft = { grunn ->
-                log.info { "Kan ikke stanse automatisk ($grunn), overlates til saksbehandler - ${revurdering.loggkontekst(correlationId)}" }
-                steg.lagreTilManuellBehandling(oppdatertRevurdering, grunn)
+            ifLeft = { grunner ->
+                log.info { "Kan ikke stanse automatisk ($grunner), overlates til saksbehandler - ${revurdering.loggkontekst(correlationId)}" }
+                steg.lagreTilManuellBehandling(oppdatertRevurdering, grunner)
             },
             ifRight = { (sendtTilBeslutning, simuleringMedMetadata) ->
                 steg.lagreSendtTilBeslutning(sendtTilBeslutning, simuleringMedMetadata)
@@ -85,23 +87,27 @@ class DelautomatiskStansService(
     }
 
     /**
-     * Gir revurderingen klar for lagring som sendt til beslutning, eller grunnen til at den må behandles manuelt.
+     * Gir revurderingen klar for lagring som sendt til beslutning, eller alle grunnene til at den må behandles manuelt.
      */
     private suspend fun Sak.fyllUtOgSendTilBeslutning(
         revurdering: Revurdering,
         correlationId: CorrelationId,
-    ): Either<ManueltBehandlesGrunn, Pair<Revurdering, SimuleringMedMetadata?>> {
-        if (rammebehandlinger.åpneBehandlinger.any { it.id != revurdering.id }) {
-            return ManueltBehandlesGrunn.ANNET_APEN_BEHANDLING.left()
-        }
-
+    ): Either<NonEmptyList<ManueltBehandlesGrunn>, Pair<Revurdering, SimuleringMedMetadata?>> {
         val tiltaksdeltakerId = revurdering.automatiskOpprettetGrunn?.tiltaksdeltakerId
-            ?: return ManueltBehandlesGrunn.STANS_FANT_IKKE_TILTAKSDELTAKELSE.left()
+            ?: return steg.medAnnenÅpenBehandling(
+                this,
+                revurdering,
+                nonEmptyListOf(ManueltBehandlesGrunn.STANS_FANT_IKKE_TILTAKSDELTAKELSE).left(),
+            )
 
-        val automatiskStans = utledAutomatiskStans(
-            tiltaksdeltakerId = tiltaksdeltakerId,
-            nåtilstand = revurdering.getTiltaksdeltakelse(tiltaksdeltakerId),
-            iDag = LocalDate.now(clock),
+        val automatiskStans = steg.medAnnenÅpenBehandling(
+            this,
+            revurdering,
+            utledAutomatiskStans(
+                tiltaksdeltakerId = tiltaksdeltakerId,
+                nåtilstand = revurdering.getTiltaksdeltakelse(tiltaksdeltakerId),
+                iDag = LocalDate.now(clock),
+            ),
         ).getOrElse { return it.left() }
 
         val kommando = OppdaterRevurderingKommando.Stans(
@@ -137,7 +143,7 @@ class DelautomatiskStansService(
             clock = clock,
         ).getOrElse {
             log.warn { "Kunne ikke fylle ut automatisk stans: $it - ${revurdering.loggkontekst(correlationId)}" }
-            return ManueltBehandlesGrunn.STANS_KAN_IKKE_FYLLES_UT.left()
+            return nonEmptyListOf(ManueltBehandlesGrunn.STANS_KAN_IKKE_FYLLES_UT).left()
         }.oppdaterUtbetalingskontroll(
             oppdatertKontroll = simulertUtbetaling?.utbetalingskontroll,
             clock = clock,

@@ -65,17 +65,12 @@ data class ManueltRegistrertSøknadBody(
         val etternavn: String,
     )
 
-    /**
-     * Saksbehandler oppgir [oppholdssted].
-     * [oppholdInnenforEøs] er ja/nei-spørsmålet det erstatter, og tas bare imot så lenge en frontend som ikke sender [oppholdssted] kan være i drift.
-     */
     data class BarnetilleggDTO(
         val fødselsdato: LocalDate?,
         val fornavn: String?,
         val mellomnavn: String?,
         val etternavn: String?,
-        val oppholdInnenforEøs: JaNeiSpmDTO?,
-        val oppholdssted: OppholdsstedSpmDTO?,
+        val oppholdssted: OppholdsstedSpmDTO,
         val fnr: String?,
     )
 
@@ -171,7 +166,7 @@ data class ManueltRegistrertSøknadBody(
 
         return BarnetilleggFraSøknad.Manuell(
             oppholderSegIEØS = this.oppholderSegIEØS(),
-            oppholdssted = this.oppholdssted?.tilDomene(),
+            oppholdssted = this.oppholdssted.tilDomene(),
             fornavn = this.fornavn,
             mellomnavn = this.mellomnavn,
             etternavn = this.etternavn,
@@ -183,7 +178,7 @@ data class ManueltRegistrertSøknadBody(
         checkNotNull(this.fødselsdato) { "Fødselsdato kan ikke være null for barnetillegg fra PDL" }
         return BarnetilleggFraSøknad.FraPdl(
             oppholderSegIEØS = this.oppholderSegIEØS(),
-            oppholdssted = this.oppholdssted?.tilDomene(),
+            oppholdssted = this.oppholdssted.tilDomene(),
             fornavn = this.fornavn,
             mellomnavn = this.mellomnavn,
             etternavn = this.etternavn,
@@ -192,12 +187,8 @@ data class ManueltRegistrertSøknadBody(
         )
     }
 
-    private fun BarnetilleggDTO.oppholderSegIEØS(): Søknad.JaNeiSpm {
-        if (this.oppholdssted != null) {
-            return this.oppholdssted.tilDomene()?.tilOppholderSegIEØS() ?: Søknad.JaNeiSpm.IkkeBesvart
-        }
-        return requireNotNull(this.oppholdInnenforEøs) { "Barnet må ha enten oppholdssted eller oppholdInnenforEøs" }.tilDomene()
-    }
+    private fun BarnetilleggDTO.oppholderSegIEØS(): Søknad.JaNeiSpm =
+        this.oppholdssted.tilDomene()?.tilOppholderSegIEØS() ?: Søknad.JaNeiSpm.IkkeBesvart
 
     fun JaNeiSpmDTO.tilDomene(): Søknad.JaNeiSpm =
         when (this.svar) {

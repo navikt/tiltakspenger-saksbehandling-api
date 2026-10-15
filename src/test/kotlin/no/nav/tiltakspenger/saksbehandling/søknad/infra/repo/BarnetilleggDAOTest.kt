@@ -32,7 +32,7 @@ class BarnetilleggDAOTest {
                   "fornavn": "Barn",
                   "mellomnavn": null,
                   "etternavn": "Utenfnr",
-                  "oppholdInnenforEøs": {"svar": "JA"},
+                  "oppholdssted": {"svar": "NORGE"},
                   "fnr": null
                 }]
             """.trimIndent()

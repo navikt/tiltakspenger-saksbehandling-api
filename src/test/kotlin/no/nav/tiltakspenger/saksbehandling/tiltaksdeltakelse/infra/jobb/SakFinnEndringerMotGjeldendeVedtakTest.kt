@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -339,14 +340,14 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val avbrutt = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)
 
         sak.utledAutomatiskStans(deltakelse.internDeltakelseId, nåtilstand = null, iDag = iDag) shouldBe
-            ManueltBehandlesGrunn.STANS_FANT_IKKE_TILTAKSDELTAKELSE.left()
+            nonEmptyListOf(ManueltBehandlesGrunn.STANS_FANT_IKKE_TILTAKSDELTAKELSE).left()
         sak.utledStans(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(1))) shouldBe
-            ManueltBehandlesGrunn.STANS_DELTAKELSEN_ER_IKKE_AVSLUTTET.left()
+            nonEmptyListOf(ManueltBehandlesGrunn.STANS_DELTAKELSEN_ER_IKKE_AVSLUTTET).left()
         sak.utledStans(avbrutt.copy(deltakelseTilOgMed = null)) shouldBe
-            ManueltBehandlesGrunn.STANS_DELTAKELSEN_MANGLER_SLUTTDATO.left()
-        sak.utledStans(avbrutt) shouldBe ManueltBehandlesGrunn.STANS_SLUTTDATO_ER_IKKE_PASSERT.left()
+            nonEmptyListOf(ManueltBehandlesGrunn.STANS_DELTAKELSEN_MANGLER_SLUTTDATO).left()
+        sak.utledStans(avbrutt) shouldBe nonEmptyListOf(ManueltBehandlesGrunn.STANS_SLUTTDATO_ER_IKKE_PASSERT).left()
         sak.utledStans(avbrutt.copy(deltakelseTilOgMed = iDag.plusDays(1))) shouldBe
-            ManueltBehandlesGrunn.STANS_SLUTTDATO_ER_IKKE_PASSERT.left()
+            nonEmptyListOf(ManueltBehandlesGrunn.STANS_SLUTTDATO_ER_IKKE_PASSERT).left()
     }
 
     @Test
@@ -356,10 +357,40 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val annenDeltakelse = ObjectMother.tiltaksdeltakelse(fom = iDag, tom = iDag.plusMonths(1))
 
         sakMedInnvilgelse(innvilgelsesperiode = deltakelse.deltakelseFraOgMed!! til sluttdato).utledStans(avbrutt) shouldBe
-            ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SLUTTDATO.left()
+            nonEmptyListOf(ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SLUTTDATO).left()
         sakMedInnvilgelse(innvilgelsesperiode = deltakelse.deltakelseFraOgMed!! til iDag.minusDays(1))
             .medInnvilgelse(innvilgelsesperiode = annenDeltakelse.periode!!, innvilgetDeltakelse = annenDeltakelse)
-            .utledStans(avbrutt) shouldBe ManueltBehandlesGrunn.STANS_ANDRE_DELTAKELSER_INNVILGET_ETTER_SLUTTDATO.left()
+            .utledStans(avbrutt) shouldBe nonEmptyListOf(ManueltBehandlesGrunn.STANS_ANDRE_DELTAKELSER_INNVILGET_ETTER_SLUTTDATO).left()
+    }
+
+    /**
+     * Grunnene som kan vurderes uavhengig av hverandre, samles.
+     * Sjekker som bygger på en sluttdato som mangler eller ikke er passert, hoppes over.
+     */
+    @Test
+    fun `stans samler alle grunnene til manuell behandling`() {
+        val sluttdato = iDag.minusWeeks(1)
+        val annenDeltakelse = ObjectMother.tiltaksdeltakelse(fom = iDag, tom = iDag.plusMonths(1))
+
+        sakMedInnvilgelse().utledStans(deltakelse.copy(deltakelseTilOgMed = null)) shouldBe nonEmptyListOf(
+            ManueltBehandlesGrunn.STANS_DELTAKELSEN_ER_IKKE_AVSLUTTET,
+            ManueltBehandlesGrunn.STANS_DELTAKELSEN_MANGLER_SLUTTDATO,
+        ).left()
+        sakMedInnvilgelse().utledStans(deltakelse) shouldBe nonEmptyListOf(
+            ManueltBehandlesGrunn.STANS_DELTAKELSEN_ER_IKKE_AVSLUTTET,
+            ManueltBehandlesGrunn.STANS_SLUTTDATO_ER_IKKE_PASSERT,
+        ).left()
+        sakMedInnvilgelse(innvilgelsesperiode = deltakelse.deltakelseFraOgMed!! til sluttdato)
+            .utledStans(deltakelse.copy(deltakelseTilOgMed = sluttdato)) shouldBe nonEmptyListOf(
+            ManueltBehandlesGrunn.STANS_DELTAKELSEN_ER_IKKE_AVSLUTTET,
+            ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SLUTTDATO,
+        ).left()
+        sakMedInnvilgelse(innvilgelsesperiode = deltakelse.deltakelseFraOgMed!! til iDag.minusDays(1))
+            .medInnvilgelse(innvilgelsesperiode = annenDeltakelse.periode!!, innvilgetDeltakelse = annenDeltakelse)
+            .utledStans(deltakelse.copy(deltakelseTilOgMed = sluttdato)) shouldBe nonEmptyListOf(
+            ManueltBehandlesGrunn.STANS_DELTAKELSEN_ER_IKKE_AVSLUTTET,
+            ManueltBehandlesGrunn.STANS_ANDRE_DELTAKELSER_INNVILGET_ETTER_SLUTTDATO,
+        ).left()
     }
 
     @Test
@@ -602,7 +633,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
 
     private fun Sak.finnEndringer(nåtilstand: TiltaksdeltakelseIntern): TiltaksdeltakerEndring = vurder(nåtilstand).endring
 
-    private fun Sak.utledStans(nåtilstand: TiltaksdeltakelseIntern): Either<ManueltBehandlesGrunn, AutomatiskStans> =
+    private fun Sak.utledStans(nåtilstand: TiltaksdeltakelseIntern): Either<NonEmptyList<ManueltBehandlesGrunn>, AutomatiskStans> =
         utledAutomatiskStans(deltakelse.internDeltakelseId, nåtilstand, iDag)
 
     private fun sakMedInnvilgelse(

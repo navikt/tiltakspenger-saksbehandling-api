@@ -1,9 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskForlengelse
 
 import arrow.core.Either
-import arrow.core.getOrElse
+import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.right
+import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
@@ -51,7 +52,8 @@ data class AutomatiskForlengelse(
 
 /**
  * Utleder verdiene for å fylle ut en forlengelse av [tiltaksdeltakerId] uten saksbehandler.
- * Gir grunnen til at forlengelsen må behandles manuelt dersom verdiene ikke kan utledes med stor sikkerhet.
+ * Gir alle grunnene til at forlengelsen må behandles manuelt dersom verdiene ikke kan utledes med stor sikkerhet.
+ * Sjekker som bygger på en verdi som ikke kunne utledes, hoppes over, slik at saksbehandler ikke får følgefeil.
  *
  * En forlengelse kan automatiseres når tiltaksdeltakelsen er utvidet fremover i tid fra et gjeldende vedtak, og vedtaket ikke er stanset eller opphørt.
  * Det gjeldende vedtaket er det siste vedtaket i den innvilgede tidslinjen som innvilger for [tiltaksdeltakerId].
@@ -74,85 +76,106 @@ data class AutomatiskForlengelse(
 fun Sak.utledAutomatiskForlengelse(
     tiltaksdeltakerId: TiltaksdeltakerId,
     saksopplysninger: Saksopplysninger,
-): Either<ManueltBehandlesGrunn, AutomatiskForlengelse> {
-    val (gjeldendeVedtak, gjeldendePeriode) = rammevedtaksliste.innvilgetTidslinje.perioderMedVerdi
+): Either<NonEmptyList<ManueltBehandlesGrunn>, AutomatiskForlengelse> {
+    val grunner = mutableListOf<ManueltBehandlesGrunn>()
+
+    val gjeldende = rammevedtaksliste.innvilgetTidslinje.perioderMedVerdi
         .filter { (vedtak, periode) ->
             vedtak.valgteTiltaksdeltakelser?.hentVerdiForDag(periode.tilOgMed)?.internDeltakelseId == tiltaksdeltakerId
         }
         .maxByOrNull { it.periode.tilOgMed }
-        ?: return ManueltBehandlesGrunn.FORLENGELSE_FANT_IKKE_GJELDENDE_VEDTAK.left()
-
-    val sisteInnvilgedeDag = gjeldendePeriode.tilOgMed
+    if (gjeldende == null) {
+        grunner.add(ManueltBehandlesGrunn.FORLENGELSE_FANT_IKKE_GJELDENDE_VEDTAK)
+    }
+    val tidligereDeltakelse = gjeldende?.let { (vedtak, periode) -> vedtak.valgteTiltaksdeltakelser!!.hentVerdiForDag(periode.tilOgMed)!! }
 
     // Er slutten av innvilgelsen erstattet av et senere vedtak, er vedtaket stanset, opphørt eller omgjort.
-    if (sisteInnvilgedeDag != gjeldendeVedtak.innvilgelsesperioder!!.tilOgMed) {
-        return ManueltBehandlesGrunn.FORLENGELSE_VEDTAKET_ER_STANSET_ELLER_OPPHORT.left()
+    val erStansetEllerOpphørt = gjeldende != null && gjeldende.periode.tilOgMed != gjeldende.verdi.innvilgelsesperioder!!.tilOgMed
+    if (erStansetEllerOpphørt) {
+        grunner.add(ManueltBehandlesGrunn.FORLENGELSE_VEDTAKET_ER_STANSET_ELLER_OPPHORT)
     }
-
-    val tidligereDeltakelse = gjeldendeVedtak.valgteTiltaksdeltakelser!!.hentVerdiForDag(sisteInnvilgedeDag)!!
-    if (tidligereDeltakelse.deltakelseTilOgMed != sisteInnvilgedeDag) {
-        return ManueltBehandlesGrunn.FORLENGELSE_INNVILGELSEN_SLUTTER_FOR_DELTAKELSEN.left()
+    // Er vedtaket stanset eller opphørt, slutter innvilgelsen alltid før deltakelsen, og det er ikke en egen grunn.
+    val slutterFørDeltakelsen = gjeldende != null && !erStansetEllerOpphørt && tidligereDeltakelse!!.deltakelseTilOgMed != gjeldende.periode.tilOgMed
+    if (slutterFørDeltakelsen) {
+        grunner.add(ManueltBehandlesGrunn.FORLENGELSE_INNVILGELSEN_SLUTTER_FOR_DELTAKELSEN)
     }
+    // Forlengelsen innvilges fra dagen etter, så den kan bare utledes når innvilgelsen gikk helt frem til deltakelsens tidligere sluttdato.
+    val sisteInnvilgedeDag = gjeldende?.periode?.tilOgMed?.takeUnless { erStansetEllerOpphørt || slutterFørDeltakelsen }
 
     val nåtilstand = saksopplysninger.getTiltaksdeltakelse(tiltaksdeltakerId)
-        ?: return ManueltBehandlesGrunn.FORLENGELSE_FANT_IKKE_TILTAKSDELTAKELSE.left()
-
-    if (!nåtilstand.deltakelseStatus.deltarEllerHarDeltatt()) {
-        return ManueltBehandlesGrunn.FORLENGELSE_DELTAKELSEN_HAR_UGYLDIG_STATUS.left()
+    if (nåtilstand == null) {
+        grunner.add(ManueltBehandlesGrunn.FORLENGELSE_FANT_IKKE_TILTAKSDELTAKELSE)
     }
 
-    if (!nåtilstand.rettPåTiltakspenger) {
-        return ManueltBehandlesGrunn.FORLENGELSE_TILTAKET_GIR_IKKE_RETT.left()
+    if (nåtilstand != null && !nåtilstand.deltakelseStatus.deltarEllerHarDeltatt()) {
+        grunner.add(ManueltBehandlesGrunn.FORLENGELSE_DELTAKELSEN_HAR_UGYLDIG_STATUS)
     }
 
-    val nySluttdato = nåtilstand.deltakelseTilOgMed
-        ?: return ManueltBehandlesGrunn.FORLENGELSE_DELTAKELSEN_MANGLER_SLUTTDATO.left()
-
-    if (!nySluttdato.isAfter(sisteInnvilgedeDag)) {
-        return ManueltBehandlesGrunn.FORLENGELSE_SLUTTDATO_ER_IKKE_ETTER_INNVILGELSEN.left()
+    if (nåtilstand != null && !nåtilstand.rettPåTiltakspenger) {
+        grunner.add(ManueltBehandlesGrunn.FORLENGELSE_TILTAKET_GIR_IKKE_RETT)
     }
 
-    if (nåtilstand.deltakelseFraOgMed != tidligereDeltakelse.deltakelseFraOgMed) {
-        return ManueltBehandlesGrunn.FORLENGELSE_ENDRET_STARTDATO.left()
+    val nySluttdato = nåtilstand?.deltakelseTilOgMed
+    if (nåtilstand != null && nySluttdato == null) {
+        grunner.add(ManueltBehandlesGrunn.FORLENGELSE_DELTAKELSEN_MANGLER_SLUTTDATO)
     }
 
-    if (!tidligereDeltakelse.tilDeltakelsestilstand().harSammeDeltakelsesmengde(nåtilstand.tilDeltakelsestilstand())) {
-        return ManueltBehandlesGrunn.FORLENGELSE_ENDRET_DELTAKELSESMENGDE.left()
+    if (sisteInnvilgedeDag != null && nySluttdato != null && !nySluttdato.isAfter(sisteInnvilgedeDag)) {
+        grunner.add(ManueltBehandlesGrunn.FORLENGELSE_SLUTTDATO_ER_IKKE_ETTER_INNVILGELSEN)
     }
 
-    val innvilgelsesperiode = sisteInnvilgedeDag.plusDays(1) til nySluttdato
-
-    if (rammevedtaksliste.tidslinje.overlapper(innvilgelsesperiode)) {
-        return ManueltBehandlesGrunn.FORLENGELSE_OVERLAPPER_ANDRE_VEDTAK.left()
+    if (tidligereDeltakelse != null && nåtilstand != null && nåtilstand.deltakelseFraOgMed != tidligereDeltakelse.deltakelseFraOgMed) {
+        grunner.add(ManueltBehandlesGrunn.FORLENGELSE_ENDRET_STARTDATO)
     }
 
-    if (saksopplysninger.harOverlappendeTiltaksdeltakelse(tiltaksdeltakerId, innvilgelsesperiode)) {
-        return ManueltBehandlesGrunn.FORLENGELSE_OVERLAPPENDE_TILTAK.left()
+    if (tidligereDeltakelse != null && nåtilstand != null &&
+        !tidligereDeltakelse.tilDeltakelsestilstand().harSammeDeltakelsesmengde(nåtilstand.tilDeltakelsestilstand())
+    ) {
+        grunner.add(ManueltBehandlesGrunn.FORLENGELSE_ENDRET_DELTAKELSESMENGDE)
+    }
+
+    val innvilgelsesperiode = if (sisteInnvilgedeDag != null && nySluttdato != null && nySluttdato.isAfter(sisteInnvilgedeDag)) {
+        sisteInnvilgedeDag.plusDays(1) til nySluttdato
+    } else {
+        null
+    }
+
+    if (innvilgelsesperiode != null && rammevedtaksliste.tidslinje.overlapper(innvilgelsesperiode)) {
+        grunner.add(ManueltBehandlesGrunn.FORLENGELSE_OVERLAPPER_ANDRE_VEDTAK)
+    }
+
+    if (innvilgelsesperiode != null && saksopplysninger.harOverlappendeTiltaksdeltakelse(tiltaksdeltakerId, innvilgelsesperiode)) {
+        grunner.add(ManueltBehandlesGrunn.FORLENGELSE_OVERLAPPENDE_TILTAK)
     }
 
     if (saksopplysninger.harAndreYtelserEnnTiltakspenger()) {
-        return ManueltBehandlesGrunn.FORLENGELSE_ANDRE_YTELSER.left()
+        grunner.add(ManueltBehandlesGrunn.FORLENGELSE_ANDRE_YTELSER)
     }
 
     if (saksopplysninger.harTiltakspengevedtakFraArena()) {
-        return ManueltBehandlesGrunn.FORLENGELSE_VEDTAK_I_ARENA.left()
+        grunner.add(ManueltBehandlesGrunn.FORLENGELSE_VEDTAK_I_ARENA)
     }
 
-    val antallBarnIVedtaket = rammevedtaksliste.barnetilleggsperioder.hentVerdiForDag(sisteInnvilgedeDag) ?: AntallBarn.ZERO
-    val antallBarn = utledAntallBarn(
-        tiltaksdeltakerId = tiltaksdeltakerId,
-        sisteInnvilgedeDag = sisteInnvilgedeDag,
-        antallBarnIVedtaket = antallBarnIVedtaket,
-        innvilgelsesperiode = innvilgelsesperiode,
-    ).getOrElse { return it.left() }
+    val antallBarnIVedtaket = sisteInnvilgedeDag?.let { rammevedtaksliste.barnetilleggsperioder.hentVerdiForDag(it) } ?: AntallBarn.ZERO
+    val antallBarn = innvilgelsesperiode?.let {
+        utledAntallBarn(
+            tiltaksdeltakerId = tiltaksdeltakerId,
+            sisteInnvilgedeDag = sisteInnvilgedeDag!!,
+            antallBarnIVedtaket = antallBarnIVedtaket,
+            innvilgelsesperiode = it,
+        ).onLeft { grunn -> grunner.add(grunn) }.getOrNull()
+    }
 
+    grunner.toNonEmptyListOrNull()?.let { return it.left() }
+
+    // Uten grunner til manuell behandling er alle verdiene utledet.
     return AutomatiskForlengelse(
-        innvilgelsesperiode = innvilgelsesperiode,
-        antallDagerPerMeldeperiode = gjeldendeVedtak.antallDagerPerMeldeperiode!!.hentVerdiForDag(sisteInnvilgedeDag)!!,
-        antallBarn = antallBarn,
+        innvilgelsesperiode = innvilgelsesperiode!!,
+        antallDagerPerMeldeperiode = gjeldende!!.verdi.antallDagerPerMeldeperiode!!.hentVerdiForDag(sisteInnvilgedeDag!!)!!,
+        antallBarn = antallBarn!!,
         tiltaksdeltakerId = tiltaksdeltakerId,
         begrunnelse = lagBegrunnelse(
-            nySluttdato = nySluttdato,
+            nySluttdato = nySluttdato!!,
             antallBarnIVedtaket = antallBarnIVedtaket,
             antallBarn = antallBarn,
         ),

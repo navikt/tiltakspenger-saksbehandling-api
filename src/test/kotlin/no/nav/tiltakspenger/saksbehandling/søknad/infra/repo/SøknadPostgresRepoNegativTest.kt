@@ -191,7 +191,7 @@ class SøknadPostgresRepoNegativTest {
                   "fornavn": "Manuelt",
                   "mellomnavn": null,
                   "etternavn": "Barnesen",
-                  "oppholdInnenforEøs": {"svar": "NEI"},
+                  "oppholdssted": {"svar": "IKKE_EØS_LAND"},
                   "fnr": null
                 }]
             """.trimIndent()

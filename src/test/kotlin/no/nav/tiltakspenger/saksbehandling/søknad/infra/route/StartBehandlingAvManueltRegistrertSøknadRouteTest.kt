@@ -69,7 +69,7 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
                       "fornavn": "Manuelt",
                       "mellomnavn": "Registrert",
                       "etternavn": "Barnesen",
-                      "oppholdInnenforEøs": {"svar": "NEI"},
+                      "oppholdssted": {"svar": "IKKE_BESVART"},
                       "fnr": null
                     }]
                 """.trimIndent(),
@@ -106,7 +106,7 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
                     fnr = barnFnr,
                 ),
                 BarnetilleggFraSøknad.Manuell(
-                    oppholderSegIEØS = Søknad.JaNeiSpm.Nei,
+                    oppholderSegIEØS = Søknad.JaNeiSpm.IkkeBesvart,
                     oppholdssted = null,
                     fornavn = "Manuelt",
                     mellomnavn = "Registrert",
@@ -260,6 +260,40 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
 
             tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
                 .søknader.none { it.journalpostId == "journalpost-uten-mottatt-dato" } shouldBe true
+        }
+    }
+
+    @Test
+    fun `avviser barn uten oppholdssted`() = runTest {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _) = opprettSakOgSøknad(tac)
+
+            startBehandlingAvManueltRegistrertSøknad(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                journalpostId = "journalpost-uten-oppholdssted",
+                // Det gamle ja/nei-spørsmålet tas ikke lenger imot i stedet for oppholdssted.
+                barnetilleggManuelleJson = """
+                    [{
+                      "fødselsdato": "2018-09-12",
+                      "fornavn": "Manuelt",
+                      "mellomnavn": null,
+                      "etternavn": "Barnesen",
+                      "oppholdInnenforEøs": {"svar": "JA"},
+                      "fnr": null
+                    }]
+                """.trimIndent(),
+                forventet = ForventetRespons(
+                    status = 400,
+                    contentType = "application/json; charset=UTF-8",
+                    body = ForventetBody.Json(
+                        """{"melding":"Kunne ikke deserialisere request","kode":"ugyldig_request"}""",
+                    ),
+                ),
+            )
+
+            tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
+                .søknader.none { it.journalpostId == "journalpost-uten-oppholdssted" } shouldBe true
         }
     }
 }

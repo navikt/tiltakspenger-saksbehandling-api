@@ -81,10 +81,10 @@ class DelautomatiskStansServiceTest {
     private fun TestApplicationContextMedPostgres.hentRevurdering(sak: Sak, revurdering: Revurdering): Revurdering =
         sakContext.sakRepo.hentForSakId(sak.id)!!.hentRammebehandling(revurdering.id).shouldBeInstanceOf<Revurdering>()
 
-    private fun Revurdering.skalVæreOverlattTilSaksbehandler(grunn: ManueltBehandlesGrunn) {
+    private fun Revurdering.skalVæreOverlattTilSaksbehandler(vararg grunner: ManueltBehandlesGrunn) {
         status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
         saksbehandler.shouldBeNull()
-        manueltBehandlesGrunner shouldBe listOf(grunn)
+        manueltBehandlesGrunner shouldBe grunner.toList()
         resultat shouldBe Revurderingsresultat.Stans.empty
     }
 
@@ -226,7 +226,7 @@ class DelautomatiskStansServiceTest {
     }
 
     @Test
-    fun `deltakelsen er tatt opp igjen før stansen behandles - overlates til saksbehandler`() {
+    fun `deltakelsen er tatt opp igjen før stansen behandles - overlates til saksbehandler med begge grunnene`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
             val (sak) = iverksettSøknadsbehandling(
@@ -243,7 +243,10 @@ class DelautomatiskStansServiceTest {
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
-            tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.STANS_DELTAKELSEN_ER_IKKE_AVSLUTTET)
+            tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(
+                ManueltBehandlesGrunn.STANS_DELTAKELSEN_ER_IKKE_AVSLUTTET,
+                ManueltBehandlesGrunn.STANS_SLUTTDATO_ER_IKKE_PASSERT,
+            )
         }
     }
 
@@ -306,6 +309,32 @@ class DelautomatiskStansServiceTest {
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.ANNET_APEN_BEHANDLING)
+        }
+    }
+
+    @Test
+    fun `annen åpen behandling og sluttdato i fremtiden - overlates til saksbehandler med begge grunnene`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+            )
+            val revurdering = tac.opprettAutomatiskStans(
+                sak = sak,
+                tiltaksdeltakelse = deltakelse,
+                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 20.april(2025)),
+            )
+            startRevurderingInnvilgelse(tac, sak.id).shouldNotBeNull()
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 2.mai(2025)))
+
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+
+            tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(
+                ManueltBehandlesGrunn.ANNET_APEN_BEHANDLING,
+                ManueltBehandlesGrunn.STANS_SLUTTDATO_ER_IKKE_PASSERT,
+            )
         }
     }
 

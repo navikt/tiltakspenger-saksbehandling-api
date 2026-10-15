@@ -98,10 +98,10 @@ class DelautomatiskForlengelseServiceTest {
     private fun TestApplicationContextMedPostgres.hentRevurdering(sak: Sak, revurdering: Revurdering): Revurdering =
         sakContext.sakRepo.hentForSakId(sak.id)!!.hentRammebehandling(revurdering.id).shouldBeInstanceOf<Revurdering>()
 
-    private fun Revurdering.skalVæreOverlattTilSaksbehandler(grunn: ManueltBehandlesGrunn) {
+    private fun Revurdering.skalVæreOverlattTilSaksbehandler(vararg grunner: ManueltBehandlesGrunn) {
         status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
         saksbehandler.shouldBeNull()
-        manueltBehandlesGrunner shouldBe listOf(grunn)
+        manueltBehandlesGrunner shouldBe grunner.toList()
         resultat shouldBe Revurderingsresultat.Innvilgelse.empty
     }
 
@@ -369,6 +369,71 @@ class DelautomatiskForlengelseServiceTest {
     }
 
     /**
+     * Grunnene som kan vurderes uavhengig av hverandre, samles, slik at saksbehandler ser alt som hindret automatisk behandling.
+     */
+    @Test
+    fun `flere grunner til manuell behandling - overlates til saksbehandler med alle grunnene`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(
+                tac,
+                nåtilstand = {
+                    it.copy(
+                        deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell,
+                        deltakelseFraOgMed = 6.januar(2025),
+                        antallDagerPerUke = 2.5F,
+                        deltakelseProsent = 50F,
+                    )
+                },
+                etterInnvilgelse = { sak ->
+                    tac.leggTilYtelserFraUtbetaldata(
+                        fnr = sak.fnr,
+                        ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(1.juni(2025) til 30.juni(2025)))),
+                    )
+                    tac.leggTilTiltakspengevedtakFraArena(
+                        fnr = sak.fnr,
+                        vedtak = listOf(
+                            ArenaTPVedtak(
+                                fraOgMed = 1.juni(2025),
+                                tilOgMed = 30.juni(2025),
+                                rettighet = ArenaTPVedtak.Rettighet.TILTAKSPENGER,
+                                vedtakId = 1,
+                            ),
+                        ),
+                    )
+                },
+            ).skalVæreOverlattTilSaksbehandler(
+                ManueltBehandlesGrunn.FORLENGELSE_DELTAKELSEN_HAR_UGYLDIG_STATUS,
+                ManueltBehandlesGrunn.FORLENGELSE_ENDRET_STARTDATO,
+                ManueltBehandlesGrunn.FORLENGELSE_ENDRET_DELTAKELSESMENGDE,
+                ManueltBehandlesGrunn.FORLENGELSE_ANDRE_YTELSER,
+                ManueltBehandlesGrunn.FORLENGELSE_VEDTAK_I_ARENA,
+            )
+        }
+    }
+
+    /**
+     * Uten innvilgelsesperiode hoppes sjekkene som bygger på den over, men grunnene som ikke bygger på den, tas fortsatt med.
+     */
+    @Test
+    fun `innvilgelsen sluttet før deltakelsen og bruker har andre ytelser - overlates til saksbehandler med begge grunnene`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(
+                tac,
+                innvilgetTilOgMed = 30.april(2025),
+                etterInnvilgelse = { sak ->
+                    tac.leggTilYtelserFraUtbetaldata(
+                        fnr = sak.fnr,
+                        ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(1.juni(2025) til 30.juni(2025)))),
+                    )
+                },
+            ).skalVæreOverlattTilSaksbehandler(
+                ManueltBehandlesGrunn.FORLENGELSE_INNVILGELSEN_SLUTTER_FOR_DELTAKELSEN,
+                ManueltBehandlesGrunn.FORLENGELSE_ANDRE_YTELSER,
+            )
+        }
+    }
+
+    /**
      * Et vedtak som overlapper forlengelsen før den opprettes, gir oppgave i stedet for forlengelse.
      * Her iverksettes vedtaket mens forlengelsen venter på automatisk behandling.
      */
@@ -387,7 +452,10 @@ class DelautomatiskForlengelseServiceTest {
                         innvilgelsesperioder = innvilgelsesperioder(annenDeltakelse.periode!!, annenDeltakelse),
                     )
                 },
-            ).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.FORLENGELSE_OVERLAPPER_ANDRE_VEDTAK)
+            ).skalVæreOverlattTilSaksbehandler(
+                ManueltBehandlesGrunn.FORLENGELSE_OVERLAPPER_ANDRE_VEDTAK,
+                ManueltBehandlesGrunn.FORLENGELSE_OVERLAPPENDE_TILTAK,
+            )
         }
     }
 
@@ -723,6 +791,20 @@ class DelautomatiskForlengelseServiceTest {
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.ANNET_APEN_BEHANDLING)
+        }
+    }
+
+    @Test
+    fun `annen åpen behandling og endret startdato - overlates til saksbehandler med begge grunnene`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(
+                tac,
+                nåtilstand = { it.copy(deltakelseFraOgMed = 6.januar(2025)) },
+                førBehandling = { sak -> startRevurderingInnvilgelse(tac, sak.id).shouldNotBeNull() },
+            ).skalVæreOverlattTilSaksbehandler(
+                ManueltBehandlesGrunn.ANNET_APEN_BEHANDLING,
+                ManueltBehandlesGrunn.FORLENGELSE_ENDRET_STARTDATO,
+            )
         }
     }
 

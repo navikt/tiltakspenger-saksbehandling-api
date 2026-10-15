@@ -1,8 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
+import arrow.core.toNonEmptyListOrNull
+import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
@@ -31,7 +35,8 @@ private val avsluttedeDeltakerstatuser = setOf(
 
 /**
  * Utleder verdiene for å fylle ut en stans av [tiltaksdeltakerId] uten saksbehandler.
- * Gir grunnen til at stansen må behandles manuelt dersom verdiene ikke kan utledes med stor sikkerhet.
+ * Gir alle grunnene til at stansen må behandles manuelt dersom verdiene ikke kan utledes med stor sikkerhet.
+ * Sjekker som bygger på en verdi som ikke kunne utledes, hoppes over, slik at saksbehandler ikke får følgefeil.
  *
  * Foreløpig støttes kun [HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak], utledet fra at deltakelsen er avsluttet.
  * De andre hjemlene for stans får vi ikke nok informasjon om til å kunne automatisere.
@@ -49,25 +54,28 @@ fun Sak.utledAutomatiskStans(
     tiltaksdeltakerId: TiltaksdeltakerId,
     nåtilstand: TiltaksdeltakelseIntern?,
     iDag: LocalDate,
-): Either<ManueltBehandlesGrunn, AutomatiskStans> {
+): Either<NonEmptyList<ManueltBehandlesGrunn>, AutomatiskStans> {
     if (nåtilstand == null) {
-        return ManueltBehandlesGrunn.STANS_FANT_IKKE_TILTAKSDELTAKELSE.left()
+        return nonEmptyListOf(ManueltBehandlesGrunn.STANS_FANT_IKKE_TILTAKSDELTAKELSE).left()
     }
+    val grunner = mutableListOf<ManueltBehandlesGrunn>()
+
     val status = nåtilstand.deltakelseStatus
     if (status !in avsluttedeDeltakerstatuser) {
-        return ManueltBehandlesGrunn.STANS_DELTAKELSEN_ER_IKKE_AVSLUTTET.left()
+        grunner.add(ManueltBehandlesGrunn.STANS_DELTAKELSEN_ER_IKKE_AVSLUTTET)
     }
     val sluttdato = nåtilstand.deltakelseTilOgMed
-        ?: return ManueltBehandlesGrunn.STANS_DELTAKELSEN_MANGLER_SLUTTDATO.left()
+        ?: return (grunner + ManueltBehandlesGrunn.STANS_DELTAKELSEN_MANGLER_SLUTTDATO).toNonEmptyListOrThrow().left()
+    // Stansdatoen utledes fra sluttdatoen, og en sluttdato i fremtiden kan fortsatt endres.
     if (sluttdato.isAfter(iDag)) {
-        return ManueltBehandlesGrunn.STANS_SLUTTDATO_ER_IKKE_PASSERT.left()
+        return (grunner + ManueltBehandlesGrunn.STANS_SLUTTDATO_ER_IKKE_PASSERT).toNonEmptyListOrThrow().left()
     }
 
     val innvilgedePerioder = rammevedtaksliste.valgteTiltaksdeltakelser.perioderMedVerdi
     val innvilgedePerioderForDeltakelsen = innvilgedePerioder.filter { it.verdi.internDeltakelseId == tiltaksdeltakerId }
     val dagenEtterSluttdato = sluttdato.plusDays(1)
     if (innvilgedePerioderForDeltakelsen.all { it.periode.tilOgMed.isBefore(dagenEtterSluttdato) }) {
-        return ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SLUTTDATO.left()
+        return (grunner + ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SLUTTDATO).toNonEmptyListOrThrow().left()
     }
 
     // TODO: Kanskje utlede denne fra simuleringen isteden, slik at utbetalinger som ikke er fullført i OS/UR fortsatt kan stanses.
@@ -77,14 +85,16 @@ fun Sak.utledAutomatiskStans(
     val stansFraOgMed = innvilgedePerioderForDeltakelsen
         .firstOrNull { !it.periode.tilOgMed.isBefore(tidligsteStansdato) }
         ?.let { maxOf(it.periode.fraOgMed, tidligsteStansdato) }
-        ?: return ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SISTE_UTBETALING.left()
+        ?: return (grunner + ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SISTE_UTBETALING).toNonEmptyListOrThrow().left()
 
     val harAndreDeltakelserInnvilgetEtterStans = innvilgedePerioder.any {
         !it.periode.tilOgMed.isBefore(stansFraOgMed) && it.verdi.internDeltakelseId != tiltaksdeltakerId
     }
     if (harAndreDeltakelserInnvilgetEtterStans) {
-        return ManueltBehandlesGrunn.STANS_ANDRE_DELTAKELSER_INNVILGET_ETTER_SLUTTDATO.left()
+        grunner.add(ManueltBehandlesGrunn.STANS_ANDRE_DELTAKELSER_INNVILGET_ETTER_SLUTTDATO)
     }
+
+    grunner.toNonEmptyListOrNull()?.let { return it.left() }
 
     return AutomatiskStans(
         hjemmel = HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak,

@@ -1,9 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
+import arrow.core.toNonEmptyListOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
@@ -150,24 +153,47 @@ class DelautomatiskRevurderingSteg(
     }
 
     /**
+     * Legger [ManueltBehandlesGrunn.ANNET_APEN_BEHANDLING] først i grunnene dersom saken har en annen åpen behandling enn [revurdering].
+     * Slik ser saksbehandler både den åpne behandlingen og de andre grunnene til at revurderingen ikke kunne behandles automatisk.
+     */
+    fun <T> medAnnenÅpenBehandling(
+        sak: Sak,
+        revurdering: Revurdering,
+        utledet: Either<NonEmptyList<ManueltBehandlesGrunn>, T>,
+    ): Either<NonEmptyList<ManueltBehandlesGrunn>, T> {
+        if (sak.rammebehandlinger.åpneBehandlinger.none { it.id != revurdering.id }) {
+            return utledet
+        }
+        val annenÅpenBehandling = nonEmptyListOf(ManueltBehandlesGrunn.ANNET_APEN_BEHANDLING)
+        return utledet.fold(
+            ifLeft = { annenÅpenBehandling + it },
+            ifRight = { annenÅpenBehandling },
+        ).left()
+    }
+
+    /**
      * Validerer den utfylte revurderingen og sender den til beslutning, uten å lagre noe.
-     * Gir grunnen til at revurderingen må behandles manuelt dersom den ikke kan sendes til beslutning.
+     * Gir alle grunnene til at revurderingen må behandles manuelt dersom den ikke kan sendes til beslutning.
      */
     fun sendTilBeslutning(
         sak: Sak,
         utfylt: Rammebehandling,
         correlationId: CorrelationId,
         grunner: GrunnerVedSendTilBeslutning,
-    ): Either<ManueltBehandlesGrunn, Revurdering> {
+    ): Either<NonEmptyList<ManueltBehandlesGrunn>, Revurdering> {
+        val manueltBehandlesGrunner = mutableListOf<ManueltBehandlesGrunn>()
+
         utfylt.validerKanIverksetteUtbetaling().onLeft {
             it.logg(log) { "Utbetalingen på automatisk revurdering kan ikke iverksettes - ${utfylt.loggkontekst(correlationId)}" }
-            return grunner.forUtbetaling(it).left()
+            manueltBehandlesGrunner.add(grunner.forUtbetaling(it))
         }
 
         if (!sak.oppdaterRammebehandling(utfylt).meldeperioderErGyldigeForHelg(utfylt.id, clock)) {
             log.warn { "Automatisk revurdering gir ugyldige meldeperioder for helg - ${utfylt.loggkontekst(correlationId)}" }
-            return grunner.ugyldigeMeldeperioderForHelg.left()
+            manueltBehandlesGrunner.add(grunner.ugyldigeMeldeperioderForHelg)
         }
+
+        manueltBehandlesGrunner.toNonEmptyListOrNull()?.let { return it.left() }
 
         return (
             utfylt.tilBeslutning(
@@ -180,7 +206,7 @@ class DelautomatiskRevurderingSteg(
                 clock = clock,
             ).getOrElse {
                 log.warn { "Kunne ikke sende automatisk revurdering til beslutning: $it - ${utfylt.loggkontekst(correlationId)}" }
-                return grunner.kanIkkeSendesTilBeslutning.left()
+                return nonEmptyListOf(grunner.kanIkkeSendesTilBeslutning).left()
             } as Revurdering
             ).right()
     }
@@ -201,9 +227,9 @@ class DelautomatiskRevurderingSteg(
 
     suspend fun lagreTilManuellBehandling(
         revurdering: Revurdering,
-        grunn: ManueltBehandlesGrunn,
+        grunner: NonEmptyList<ManueltBehandlesGrunn>,
     ) {
-        val tilManuellBehandling = revurdering.tilManuellBehandling(listOf(grunn), clock)
+        val tilManuellBehandling = revurdering.tilManuellBehandling(grunner, clock)
         val statistikk = statistikkService.generer(
             Statistikkhendelser(tilManuellBehandling.genererSaksstatistikk(StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER)),
         )
