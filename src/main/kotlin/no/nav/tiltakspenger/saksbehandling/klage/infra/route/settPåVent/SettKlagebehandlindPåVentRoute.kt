@@ -43,6 +43,7 @@ private data class SettKlagebehandlingPåVentBody(
             sakId = sakId,
             klagebehandlingId = klagebehandlingId,
             saksbehandler = saksbehandler,
+            oppdaterPåVent = false,
             begrunnelse = begrunnelse,
             frist = frist,
         )
@@ -117,6 +118,11 @@ fun KanIkkeSetteKlagebehandlingPåVent.toStatusAndErrorJson(): Pair<HttpStatusCo
             behandlingenEiesAvAnnenSaksbehandler(
                 this.forventetSaksbehandler,
             ),
+        )
+
+        KanIkkeSetteKlagebehandlingPåVent.KlagenMåVæreSattPåVentForÅKunneOppdateres -> HttpStatusCode.BadRequest to ErrorJson(
+            melding = "Behandlingen må være satt på vent for å kunne oppdateres.",
+            kode = "må_være_satt_på_vent",
         )
     }
 }

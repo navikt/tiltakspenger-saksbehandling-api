@@ -110,6 +110,7 @@ private fun Rammebehandling.oppdaterKlagebehandling(
             sakId = kommando.sakId,
             klagebehandlingId = klage.id,
             saksbehandler = kommando.saksbehandler,
+            oppdaterPåVent = kommando.oppdaterPåVent,
             begrunnelse = kommando.begrunnelse,
             frist = kommando.frist,
         ),

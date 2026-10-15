@@ -249,4 +249,100 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
             }
         }
     }
+
+    @Test
+    fun `kan oppdatere begrunnelse og frist på rammebehandling med klagebehandling som er klar til behandling og satt på vent`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
+            val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
+            val annenSaksbehandler = ObjectMother.saksbehandler("annenSaksbehandler")
+            val (sak, rammebehandling, _) = opprettetSøknadsbehandlingForKlage(
+                tac = tac,
+                saksbehandlerKlagebehandling = saksbehandler,
+            )!!
+            settRammebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                rammebehandlingId = rammebehandling.id,
+                saksbehandler = saksbehandler,
+            )!!
+
+            val (_, _, oppdatertRammebehandling, sakJson) = settRammebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                rammebehandlingId = rammebehandling.id,
+                saksbehandler = annenSaksbehandler,
+                begrunnelse = "Oppdatert begrunnelse",
+                frist = 21.januar(2025),
+                oppdaterSattPåVent = true,
+            )!!
+            val oppdatertKlagebehandling = requireNotNull(oppdatertRammebehandling.klagebehandling)
+
+            oppdatertRammebehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+            oppdatertRammebehandling.saksbehandler shouldBe null
+            oppdatertKlagebehandling.status shouldBe Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
+            oppdatertKlagebehandling.saksbehandler shouldBe null
+
+            sakJson.rammebehandlingJson(oppdatertRammebehandling.id).shouldHaSisteVentestatus(
+                sattPåVentAv = annenSaksbehandler.navIdent,
+                begrunnelse = "Oppdatert begrunnelse",
+                status = "KLAR_TIL_BEHANDLING",
+                frist = 21.januar(2025),
+                forventetAntallHendelser = 2,
+            )
+            sakJson.klagebehandlingJson(oppdatertKlagebehandling.id).shouldHaSisteVentestatus(
+                sattPåVentAv = annenSaksbehandler.navIdent,
+                begrunnelse = "Oppdatert begrunnelse",
+                status = "KLAR_TIL_BEHANDLING",
+                frist = 21.januar(2025),
+                forventetAntallHendelser = 2,
+            )
+        }
+    }
+
+    @Test
+    fun `kan oppdatere begrunnelse og frist på rammebehandling med klagebehandling som er klar til beslutning og satt på vent`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
+            val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
+            val annenBeslutter = ObjectMother.beslutter("annenBeslutter")
+            val (sak, rammebehandling, _) =
+                iverksettSøknadsbehandlingOgSettRammebehandlingMedKlagebehandlingPåVentFraUnderBeslutning(
+                    tac = tac,
+                    saksbehandler = saksbehandler,
+                )!!
+
+            val (_, _, oppdatertRammebehandling, sakJson) = settRammebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                rammebehandlingId = rammebehandling.id,
+                saksbehandler = annenBeslutter,
+                begrunnelse = "Oppdatert begrunnelse fra beslutter",
+                frist = 21.januar(2025),
+                oppdaterSattPåVent = true,
+            )!!
+            val oppdatertKlagebehandling = requireNotNull(oppdatertRammebehandling.klagebehandling)
+
+            oppdatertRammebehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+            oppdatertRammebehandling.saksbehandler shouldBe saksbehandler.navIdent
+            oppdatertRammebehandling.beslutter shouldBe null
+            oppdatertKlagebehandling.status shouldBe Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
+            oppdatertKlagebehandling.saksbehandler shouldBe null
+
+            sakJson.rammebehandlingJson(oppdatertRammebehandling.id).shouldHaSisteVentestatus(
+                sattPåVentAv = annenBeslutter.navIdent,
+                begrunnelse = "Oppdatert begrunnelse fra beslutter",
+                status = "KLAR_TIL_BESLUTNING",
+                frist = 21.januar(2025),
+                forventetAntallHendelser = 2,
+            )
+            sakJson.klagebehandlingJson(oppdatertKlagebehandling.id).shouldHaSisteVentestatus(
+                sattPåVentAv = annenBeslutter.navIdent,
+                begrunnelse = "Oppdatert begrunnelse fra beslutter",
+                status = "KLAR_TIL_BEHANDLING",
+                frist = 21.januar(2025),
+                forventetAntallHendelser = 2,
+            )
+        }
+    }
 }

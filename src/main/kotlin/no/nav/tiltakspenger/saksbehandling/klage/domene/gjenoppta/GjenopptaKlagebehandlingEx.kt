@@ -46,10 +46,13 @@ fun Klagebehandling.gjenopptaKlagebehandling(
     ).onLeft {
         return KanIkkeGjenopptaKlagebehandling.KanIkkeOppdateres(it).left()
     }
+
     if (!ventestatus.erSattPåVent) {
         return KanIkkeGjenopptaKlagebehandling.MåVæreSattPåVent.left()
     }
+
     val nå = nå(clock)
+
     val oppdatertKlagebehandling = this.copy(
         sistEndret = nå,
         ventestatus = ventestatus.gjenoppta(
