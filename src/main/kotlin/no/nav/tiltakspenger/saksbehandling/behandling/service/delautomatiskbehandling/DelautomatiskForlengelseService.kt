@@ -42,7 +42,7 @@ import java.time.LocalTime
  *
  * [opprett] bygger forlengelsen under automatisk behandling, tildelt [AUTOMATISK_SAKSBEHANDLER].
  * [forsøkAutomatiskForlengelse] utleder verdiene for forlengelsen, fyller den ut og sender den til beslutning.
- * Starter forlengelsen [DAGER_FØR_STARTDATO] dager eller mer frem i tid, settes den i stedet på vent til det er færre dager igjen, og vurderes på nytt da.
+ * Starter forlengelsen [DAGER_FØR_STARTDATO] dager eller mer frem i tid, fylles den ut og settes på vent til det er færre dager igjen, og vurderes på nytt da.
  * Stegene som er felles med andre automatiske revurderinger, ligger i [DelautomatiskRevurderingSteg].
  *
  * Kan forlengelsen ikke behandles automatisk, overlates den til en saksbehandler med alle grunnene lagret på revurderingen.
@@ -91,7 +91,7 @@ class DelautomatiskForlengelseService(
         val (oppdatertSak, oppdatertRevurdering) = steg.oppdaterSaksopplysninger(sak, revurdering, correlationId)
 
         oppdatertSak.startdatoForLangtFremITid(oppdatertRevurdering)?.let { startdato ->
-            settPåVentTilNærStartdato(oppdatertRevurdering, startdato, correlationId)
+            oppdatertSak.fyllUtOgSettPåVent(oppdatertRevurdering, startdato, correlationId)
             return
         }
 
@@ -129,38 +129,67 @@ class DelautomatiskForlengelseService(
     private fun tidligsteBehandlingsdato(startdato: LocalDate): LocalDate = startdato.minusDays(DAGER_FØR_STARTDATO - 1)
 
     /**
-     * Setter forlengelsen på vent til det er færre enn [DAGER_FØR_STARTDATO] dager til [startdato], eller flytter ventetiden dersom den allerede er på vent.
-     * Revurderingen lagres med de oppdaterte saksopplysningene.
+     * Fyller ut forlengelsen og setter den på vent til det er færre enn [DAGER_FØR_STARTDATO] dager til [startdato], eller flytter ventetiden dersom den allerede er på vent.
+     * Slik ser saksbehandler hva forlengelsen blir mens den venter.
+     * Den fylles ut på nytt med ferske saksopplysninger når den tas av vent.
+     * Feiler utfyllingen, settes den på vent uten utfylling, og vente-begrunnelsen sier fra om det.
      */
-    private suspend fun settPåVentTilNærStartdato(
+    private suspend fun Sak.fyllUtOgSettPåVent(
         revurdering: Revurdering,
         startdato: LocalDate,
         correlationId: CorrelationId,
     ) {
+        val utfylling = fyllUtFørVent(revurdering, correlationId)
+        val (utfylt, simuleringMedMetadata) = utfylling ?: (revurdering to null)
+        val begrunnelse = if (utfylling == null) BEGRUNNELSE_UTFYLLING_FEILET else BEGRUNNELSE_STARTER_FREM_I_TID
         val venterTil = tidligsteBehandlingsdato(startdato).atTime(VENTER_TIL_KLOKKESLETT)
-        if (revurdering.ventestatus.erSattPåVent) {
+
+        val (påVent, statistikkhendelser) = if (utfylt.ventestatus.erSattPåVent && utfylt.ventestatus.sattPåVentBegrunnelse == begrunnelse) {
             // Siden vi ikke sender ventestatusen til statistikk, trenger vi ikke sende ny statistikk her.
-            steg.lagre(revurdering.oppdaterVenterTil(nyVenterTil = venterTil, clock = clock), Statistikkhendelser.empty())
-            log.info { "Forlengelsen starter $startdato og var allerede på vent, venter til $venterTil - ${revurdering.loggkontekst(correlationId)}" }
-            return
+            utfylt.oppdaterVenterTil(nyVenterTil = venterTil, clock = clock) to Statistikkhendelser.empty()
+        } else {
+            utfylt.settPåVent(
+                kommando = SettRammebehandlingPåVentKommando(
+                    sakId = revurdering.sakId,
+                    rammebehandlingId = revurdering.id,
+                    begrunnelse = begrunnelse,
+                    oppdaterPåVent = utfylt.ventestatus.erSattPåVent,
+                    saksbehandler = AUTOMATISK_SAKSBEHANDLER,
+                    venterTil = venterTil,
+                    frist = null,
+                ),
+                clock = clock,
+            ).getOrElse {
+                throw IllegalStateException("Kunne ikke sette automatisk forlengelse på vent: $it - ${revurdering.loggkontekst(correlationId)}")
+            }.let { (påVent, statistikkhendelser) -> (påVent as Revurdering) to statistikkhendelser }
         }
-        val (påVent, statistikkhendelser) = revurdering.settPåVent(
-            kommando = SettRammebehandlingPåVentKommando(
-                sakId = revurdering.sakId,
-                rammebehandlingId = revurdering.id,
-                begrunnelse = "Forlengelsen starter frem i tid",
-                oppdaterPåVent = false,
-                saksbehandler = AUTOMATISK_SAKSBEHANDLER,
-                venterTil = venterTil,
-                frist = null,
-            ),
-            clock = clock,
-        ).getOrElse {
-            throw IllegalStateException("Kunne ikke sette automatisk forlengelse på vent: $it - ${revurdering.loggkontekst(correlationId)}")
+
+        if (utfylling == null) {
+            steg.lagre(påVent, statistikkhendelser)
+        } else {
+            steg.lagreUtfylt(påVent, simuleringMedMetadata, statistikkhendelser)
         }
-        steg.lagre(påVent as Revurdering, statistikkhendelser)
-        log.info { "Forlengelsen starter $startdato, satt på vent til $venterTil - ${revurdering.loggkontekst(correlationId)}" }
+        log.info { "Forlengelsen starter $startdato, venter til $venterTil (${if (utfylling == null) "ikke utfylt" else "utfylt"}) - ${revurdering.loggkontekst(correlationId)}" }
     }
+
+    /**
+     * Gir den utfylte forlengelsen, eller null dersom den ikke kan fylles ut nå.
+     * Feil, også tekniske, svelges her, siden forlengelsen uansett fylles ut på nytt når den tas av vent.
+     */
+    private suspend fun Sak.fyllUtFørVent(
+        revurdering: Revurdering,
+        correlationId: CorrelationId,
+    ): Pair<Revurdering, SimuleringMedMetadata?>? = Either.catch { fyllUt(revurdering, correlationId) }.fold(
+        ifLeft = {
+            log.warn(it) { "Utfyllingen av forlengelsen feilet før vent, prøves på nytt når den tas av vent - ${revurdering.loggkontekst(correlationId)}" }
+            null
+        },
+        ifRight = { utfylling ->
+            utfylling.onLeft {
+                log.info { "Kunne ikke fylle ut forlengelsen før vent ($it), prøves på nytt når den tas av vent - ${revurdering.loggkontekst(correlationId)}" }
+            }.getOrNull()
+        },
+    )
 
     /**
      * Gjenopptar forlengelsen dersom den er på vent, slik at den kan fylles ut og sendes til beslutning eller overlates til saksbehandler.
@@ -194,6 +223,22 @@ class DelautomatiskForlengelseService(
      * Gir revurderingen klar for lagring som sendt til beslutning, eller alle grunnene til at den må behandles manuelt.
      */
     private suspend fun Sak.fyllUtOgSendTilBeslutning(
+        revurdering: Revurdering,
+        correlationId: CorrelationId,
+    ): Either<NonEmptyList<ManueltBehandlesGrunn>, Pair<Revurdering, SimuleringMedMetadata?>> {
+        val (utfylt, simuleringMedMetadata) = fyllUt(revurdering, correlationId).getOrElse { return it.left() }
+
+        val sendtTilBeslutning = steg.sendTilBeslutning(this, utfylt, correlationId, GrunnerVedSendTilBeslutning.forlengelse)
+            .getOrElse { return it.left() }
+
+        return (sendtTilBeslutning to simuleringMedMetadata).right()
+    }
+
+    /**
+     * Fyller ut forlengelsen med de utledede verdiene og simulerer utbetalingen, uten å lagre noe.
+     * Gir alle grunnene til at forlengelsen må behandles manuelt dersom den ikke kan fylles ut.
+     */
+    private suspend fun Sak.fyllUt(
         revurdering: Revurdering,
         correlationId: CorrelationId,
     ): Either<NonEmptyList<ManueltBehandlesGrunn>, Pair<Revurdering, SimuleringMedMetadata?>> {
@@ -255,12 +300,9 @@ class DelautomatiskForlengelseService(
         }.oppdaterUtbetalingskontroll(
             oppdatertKontroll = simulertUtbetaling?.utbetalingskontroll,
             clock = clock,
-        )
+        ) as Revurdering
 
-        val sendtTilBeslutning = steg.sendTilBeslutning(this, utfylt, correlationId, GrunnerVedSendTilBeslutning.forlengelse)
-            .getOrElse { return it.left() }
-
-        return (sendtTilBeslutning to simulertUtbetaling?.simuleringMedMetadata).right()
+        return (utfylt to simulertUtbetaling?.simuleringMedMetadata).right()
     }
 
     companion object {
@@ -271,5 +313,9 @@ class DelautomatiskForlengelseService(
          * Øvrige settes på vent til det er færre dager igjen til startdatoen.
          */
         private const val DAGER_FØR_STARTDATO: Long = 5
+
+        const val BEGRUNNELSE_STARTER_FREM_I_TID = "Forlengelsen starter frem i tid"
+        const val BEGRUNNELSE_UTFYLLING_FEILET =
+            "Forlengelsen starter frem i tid. Utfyllingen feilet, og prøves på nytt når forlengelsen tas av vent."
     }
 }

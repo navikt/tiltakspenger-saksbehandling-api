@@ -219,9 +219,22 @@ class DelautomatiskRevurderingSteg(
         simuleringMedMetadata: SimuleringMedMetadata?,
         tidligereStatistikkhendelser: Statistikkhendelser = Statistikkhendelser.empty(),
     ) {
-        val statistikk = statistikkService.generer(
-            tidligereStatistikkhendelser.leggTil(revurdering.genererSaksstatistikk(StatistikkhendelseType.SENDT_TIL_BESLUTTER)),
+        lagreUtfylt(
+            revurdering = revurdering,
+            simuleringMedMetadata = simuleringMedMetadata,
+            statistikkhendelser = tidligereStatistikkhendelser.leggTil(revurdering.genererSaksstatistikk(StatistikkhendelseType.SENDT_TIL_BESLUTTER)),
         )
+    }
+
+    /**
+     * Lagrer den utfylte revurderingen, simuleringen den ble fylt ut med og statistikken i samme transaksjon.
+     */
+    suspend fun lagreUtfylt(
+        revurdering: Revurdering,
+        simuleringMedMetadata: SimuleringMedMetadata?,
+        statistikkhendelser: Statistikkhendelser,
+    ) {
+        val statistikk = statistikkService.generer(statistikkhendelser)
         sessionFactory.withTransactionContext { tx ->
             rammebehandlingRepo.lagre(revurdering, tx)
             rammebehandlingRepo.oppdaterSimuleringMetadata(revurdering.id, simuleringMedMetadata?.originalResponseBody, tx)
