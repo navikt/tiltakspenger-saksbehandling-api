@@ -40,6 +40,7 @@ suspend fun Sak.settKlagebehandlingPåVent(
                 SettMeldekortbehandlingPåVentKommando(
                     sakId = kommando.sakId,
                     meldekortId = tilknyttetBehandling.meldekortbehandling.id,
+                    oppdaterPåVent = false,
                     begrunnelse = kommando.begrunnelse,
                     frist = kommando.frist,
                     saksbehandler = kommando.saksbehandler,

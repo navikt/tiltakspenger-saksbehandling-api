@@ -276,6 +276,38 @@ class BenkGyldigeKommandoerTest {
             )
             rad.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(OvertaSaksbehandler)
         }
+
+        @Test
+        fun `klar til behandling på vent kan oppdateres og gjenopptas av en saksbehandler`() {
+            meldekort(
+                BenkBehandlingsstatus.KLAR_TIL_BEHANDLING,
+                felles(erSattPåVent = true),
+            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(TildelSaksbehandler, OppdaterSettPåVent, Gjenoppta)
+        }
+
+        @Test
+        fun `klar til behandling på vent kan ikke oppdateres av en beslutter`() {
+            meldekort(
+                BenkBehandlingsstatus.KLAR_TIL_BEHANDLING,
+                felles(erSattPåVent = true),
+            ).finnGyldigeKommandoer(beslutter) shouldBe emptyList()
+        }
+
+        @Test
+        fun `klar til beslutning på vent kan oppdateres og gjenopptas av en beslutter`() {
+            meldekort(
+                BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
+                felles(saksbehandler = saksbehandler.navIdent, erSattPåVent = true),
+            ).finnGyldigeKommandoer(beslutter) shouldBe listOf(TildelBeslutter, OppdaterSettPåVent, Gjenoppta)
+        }
+
+        @Test
+        fun `klar til beslutning på vent kan ikke oppdateres av saksbehandleren på saken`() {
+            meldekort(
+                BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
+                felles(saksbehandler = saksbehandler.navIdent, erSattPåVent = true),
+            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(Avbryt, AngreSendTilBeslutning)
+        }
     }
 
     @Nested

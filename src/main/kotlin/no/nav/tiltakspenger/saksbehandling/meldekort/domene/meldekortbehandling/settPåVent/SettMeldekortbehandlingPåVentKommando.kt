@@ -10,6 +10,7 @@ import java.time.LocalDate
 data class SettMeldekortbehandlingPåVentKommando(
     val sakId: SakId,
     val meldekortId: MeldekortId,
+    val oppdaterPåVent: Boolean,
     val begrunnelse: String,
     val frist: LocalDate?,
     override val saksbehandler: Saksbehandler,

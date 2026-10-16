@@ -94,6 +94,7 @@ interface SettMeldekortbehandlingPåVentBuilder {
 
     /**
      * Forventer at meldekortbehandlingen er i status UNDER_BEHANDLING eller UNDER_BESLUTNING.
+     * Med [oppdaterPåVent] forventes det i stedet at behandlingen allerede er satt på vent, og begrunnelse og frist oppdateres.
      */
     suspend fun ApplicationTestBuilder.settMeldekortbehandlingPåVent(
         tac: TestApplicationContext,
@@ -102,6 +103,7 @@ interface SettMeldekortbehandlingPåVentBuilder {
         saksbehandlerEllerBeslutter: Saksbehandler = ObjectMother.saksbehandlerOgBeslutter("saksbehandlerOgBeslutter"),
         begrunnelse: String = "Begrunnelse for å sette meldekortbehandling på vent",
         frist: LocalDate? = 1.januar(2026),
+        oppdaterPåVent: Boolean = false,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Meldekortbehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
@@ -118,7 +120,8 @@ interface SettMeldekortbehandlingPåVentBuilder {
             """
                     {
                       "begrunnelse": "$begrunnelse",
-                      "frist": $fristJson
+                      "frist": $fristJson,
+                      "oppdaterSattPåVent": $oppdaterPåVent
                     }
             """.trimIndent(),
         ).apply {

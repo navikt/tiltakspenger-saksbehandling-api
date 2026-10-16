@@ -201,6 +201,14 @@ private fun finnGyldigeMeldekortKommandoer(
         }
         if (erSattPåVent && when (status) {
                 KLAR_TIL_BEHANDLING -> erSaksbehandler
+                KLAR_TIL_BESLUTNING -> erBeslutter
+                else -> false
+            }
+        ) {
+            add(OppdaterSettPåVent)
+        }
+        if (erSattPåVent && when (status) {
+                KLAR_TIL_BEHANDLING -> erSaksbehandler
                 BenkBehandlingsstatus.UNDER_BEHANDLING -> erSaksbehandler && felles.saksbehandler == navIdent
                 KLAR_TIL_BESLUTNING -> erBeslutter && felles.saksbehandler != navIdent
                 else -> false

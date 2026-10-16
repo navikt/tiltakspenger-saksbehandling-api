@@ -1,11 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.settPåVent
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.SettKlagebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.settPåVentOgNullstillSaksbehandler
@@ -25,15 +25,36 @@ fun Meldekortbehandling.settPåVent(
     kommando: SettMeldekortbehandlingPåVentKommando,
     clock: Clock,
 ): Either<KanIkkeSetteMeldekortbehandlingPåVent, Meldekortbehandling> {
-    kanSettePåVent(kommando.saksbehandler).onLeft { return it.left() }
+    if (kommando.oppdaterPåVent) {
+        kanOppdaterePåVent(kommando.saksbehandler).onLeft { return it.left() }
+    } else {
+        kanSettePåVent(kommando.saksbehandler).onLeft { return it.left() }
+    }
 
     val endretAv = kommando.saksbehandler
 
     return when (status) {
-        UNDER_BEHANDLING -> {
+        UNDER_BEHANDLING,
+        KLAR_TIL_BEHANDLING,
+        -> {
             require(this is MeldekortUnderBehandling) { "Meldekortbehandling med status $status må være MeldekortUnderBehandling" }
-
             val tidspunktSattPåVent = nå(clock)
+            val oppdatertKlagebehandling = klagebehandling?.let { klage ->
+                klage.settPåVentOgNullstillSaksbehandler(
+                    kommando = SettKlagebehandlingPåVentKommando(
+                        sakId = sakId,
+                        klagebehandlingId = klage.id,
+                        saksbehandler = kommando.saksbehandler,
+                        oppdaterPåVent = kommando.oppdaterPåVent,
+                        begrunnelse = kommando.begrunnelse,
+                        frist = kommando.frist,
+                    ),
+                    clock = clock,
+                    sjekkSaksbehandler = true,
+                ).getOrElse {
+                    return KanIkkeSetteMeldekortbehandlingPåVent.KunneIkkeSetteKlagebehandlingenPåVent(it).left()
+                }.first
+            }
             this.copy(
                 ventestatus = ventestatus.settPåVent(
                     tidspunktSattPåVent = tidspunktSattPåVent,
@@ -45,27 +66,32 @@ fun Meldekortbehandling.settPåVent(
                 saksbehandler = null,
                 status = KLAR_TIL_BEHANDLING,
                 sistEndret = tidspunktSattPåVent,
-                klagebehandling = klagebehandling?.let { klage ->
-                    klage.settPåVentOgNullstillSaksbehandler(
-                        kommando = SettKlagebehandlingPåVentKommando(
-                            sakId = sakId,
-                            klagebehandlingId = klage.id,
-                            saksbehandler = kommando.saksbehandler,
-                            oppdaterPåVent = false,
-                            begrunnelse = kommando.begrunnelse,
-                            frist = kommando.frist,
-                        ),
-                        clock = clock,
-                        sjekkSaksbehandler = true,
-                    ).getOrThrow().first
-                },
+                klagebehandling = oppdatertKlagebehandling,
             ).right()
         }
 
-        UNDER_BESLUTNING -> {
+        UNDER_BESLUTNING,
+        KLAR_TIL_BESLUTNING,
+        -> {
             require(this is MeldekortbehandlingManuell) { "Meldekortbehandling med status $status må være MeldekortbehandlingManuell" }
 
             val tidspunktSattPåVent = nå(clock)
+            val oppdatertKlagebehandling = klagebehandling?.let { klage ->
+                klage.settPåVent(
+                    kommando = SettKlagebehandlingPåVentKommando(
+                        sakId = sakId,
+                        klagebehandlingId = klage.id,
+                        saksbehandler = kommando.saksbehandler,
+                        oppdaterPåVent = kommando.oppdaterPåVent,
+                        begrunnelse = kommando.begrunnelse,
+                        frist = kommando.frist,
+                    ),
+                    clock = clock,
+                    sjekkSaksbehandler = false,
+                ).getOrElse {
+                    return KanIkkeSetteMeldekortbehandlingPåVent.KunneIkkeSetteKlagebehandlingenPåVent(it).left()
+                }.first
+            }
             this.copy(
                 ventestatus = ventestatus.settPåVent(
                     tidspunktSattPåVent = tidspunktSattPåVent,
@@ -77,25 +103,10 @@ fun Meldekortbehandling.settPåVent(
                 beslutter = null,
                 status = KLAR_TIL_BESLUTNING,
                 sistEndret = tidspunktSattPåVent,
-                klagebehandling = klagebehandling?.let { klage ->
-                    klage.settPåVent(
-                        kommando = SettKlagebehandlingPåVentKommando(
-                            sakId = sakId,
-                            klagebehandlingId = klage.id,
-                            saksbehandler = kommando.saksbehandler,
-                            oppdaterPåVent = false,
-                            begrunnelse = kommando.begrunnelse,
-                            frist = kommando.frist,
-                        ),
-                        clock = clock,
-                        sjekkSaksbehandler = false,
-                    ).getOrThrow().first
-                },
+                klagebehandling = oppdatertKlagebehandling,
             ).right()
         }
 
-        KLAR_TIL_BEHANDLING,
-        KLAR_TIL_BESLUTNING,
         GODKJENT,
         AUTOMATISK_BEHANDLET,
         AVBRUTT,
@@ -141,6 +152,47 @@ fun Meldekortbehandling.kanSettePåVent(
 
         KLAR_TIL_BEHANDLING,
         KLAR_TIL_BESLUTNING,
+        GODKJENT,
+        AUTOMATISK_BEHANDLET,
+        AVBRUTT,
+        -> KanIkkeSetteMeldekortbehandlingPåVent.UgyldigStatus(status).left()
+    }
+}
+
+/**
+ * Avgjør om [saksbehandler] kan oppdatere begrunnelse og frist på en meldekortbehandling som allerede er satt på vent.
+ *
+ * Tilgangen er rollebasert, siden en behandling på vent ikke er tildelt noen i den fasen den venter i:
+ *  - behandlingen må være satt på vent
+ *  - [KLAR_TIL_BEHANDLING]: kan oppdateres av en saksbehandler
+ *  - [KLAR_TIL_BESLUTNING]: kan oppdateres av en beslutter
+ */
+fun Meldekortbehandling.kanOppdaterePåVent(
+    saksbehandler: Saksbehandler,
+): Either<KanIkkeSetteMeldekortbehandlingPåVent, Unit> {
+    if (!ventestatus.erSattPåVent) {
+        return KanIkkeSetteMeldekortbehandlingPåVent.BehandlingMåVæreSattPåVentForÅKunneOppdateres.left()
+    }
+
+    return when (status) {
+        KLAR_TIL_BEHANDLING -> {
+            if (!saksbehandler.erSaksbehandler) {
+                KanIkkeSetteMeldekortbehandlingPåVent.MåVæreSaksbehandler.left()
+            } else {
+                Unit.right()
+            }
+        }
+
+        KLAR_TIL_BESLUTNING -> {
+            if (!saksbehandler.erBeslutter) {
+                KanIkkeSetteMeldekortbehandlingPåVent.MåVæreBeslutter.left()
+            } else {
+                Unit.right()
+            }
+        }
+
+        UNDER_BEHANDLING,
+        UNDER_BESLUTNING,
         GODKJENT,
         AUTOMATISK_BEHANDLET,
         AVBRUTT,

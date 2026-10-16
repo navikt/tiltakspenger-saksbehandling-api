@@ -1,11 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.settPåVent
 
+import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.KanIkkeSetteKlagebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 
 /**
  * Mulige grunner til at en meldekortbehandling ikke kan settes på vent.
  *
- * Se `Meldekortbehandling.kanSettePåVent`.
+ * Se `Meldekortbehandling.kanSettePåVent` og `Meldekortbehandling.kanOppdaterePåVent`.
  */
 sealed interface KanIkkeSetteMeldekortbehandlingPåVent {
     /** Behandlingen er allerede satt på vent. */
@@ -28,4 +29,12 @@ sealed interface KanIkkeSetteMeldekortbehandlingPåVent {
 
     /** Behandlingen er ikke lenger under beslutning hos utøvende beslutter. */
     data object BehandlingenErIkkeLengerUnderBeslutning : KanIkkeSetteMeldekortbehandlingPåVent
+
+    /** Behandlingen er ikke satt på vent og kan derfor ikke oppdateres. */
+    data object BehandlingMåVæreSattPåVentForÅKunneOppdateres : KanIkkeSetteMeldekortbehandlingPåVent
+
+    /** Klagebehandlingen som henger på meldekortbehandlingen kunne ikke settes på vent eller oppdateres. */
+    data class KunneIkkeSetteKlagebehandlingenPåVent(
+        val underliggende: KanIkkeSetteKlagebehandlingPåVent,
+    ) : KanIkkeSetteMeldekortbehandlingPåVent
 }

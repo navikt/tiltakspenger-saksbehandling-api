@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.gjenoppta.kanGjenoppta
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.leggTilbake.kanLeggeTilbake
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.kanOverta
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.settPåVent.kanOppdaterePåVent
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.settPåVent.kanSettePåVent
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ta.kanTaMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando
@@ -28,6 +29,7 @@ fun Meldekortbehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): Lis
         if (kanLeggeTilbakeSaksbehandler(saksbehandler)) add(SaksbehandlerBehandlingKommando.LeggTilbakeSaksbehandler)
         if (kanLeggeTilbakeBeslutter(saksbehandler)) add(SaksbehandlerBehandlingKommando.LeggTilbakeBeslutter)
         if (kanSettePåVent(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.SettPåVent)
+        if (kanOppdaterePåVent(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.OppdaterSettPåVent)
         if (kanGjenoppta(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.Gjenoppta)
         if (kanAvbryte(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.Avbryt)
         if (kanAngreMeldekortbehandling(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.AngreSendTilBeslutning)
