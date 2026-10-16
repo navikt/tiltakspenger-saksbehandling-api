@@ -349,6 +349,18 @@ class BenkPostgresRepo(
     private companion object {
 
         /**
+         * Fristen saksbehandler satte, eller tidspunktet en automatisk behandling venter til.
+         * Den automatiske behandlingen setter seg på vent med `venter_til` og uten frist, og datoen den vekkes er da det benken skal vise og sortere på.
+         * `venter_til` brukes bare når behandlingen er på vent, slik at et gammelt tidspunkt ikke henger igjen etter at den er gjenopptatt.
+         */
+        const val RAMMEBEHANDLING_VENTE_FRIST = """
+            coalesce(
+                (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date,
+                case when (b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean then b.venter_til::date end
+            )
+        """
+
+        /**
          * Fellesfeltene hver fane må produsere, i tillegg til sine egne.
          * Aliasene er kontrakten mellom spørringene og [tilFelles].
          *
@@ -370,7 +382,7 @@ class BenkPostgresRepo(
                 coalesce(b.attesteringer->'attesteringer'->-1->>'status' = 'SENDT_TILBAKE', false) as er_underkjent,
                 coalesce((b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean, false) as er_satt_på_vent,
                 b.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'   as vente_begrunnelse,
-                (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as vente_frist,
+                $RAMMEBEHANDLING_VENTE_FRIST as vente_frist,
                 b.status::text              as status,
                 sø.soknadstype::text        as søknadstype,
                 sø.mottatt                as kravtidspunkt,
@@ -399,7 +411,7 @@ class BenkPostgresRepo(
                 coalesce(b.attesteringer->'attesteringer'->-1->>'status' = 'SENDT_TILBAKE', false) as er_underkjent,
                 coalesce((b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean, false) as er_satt_på_vent,
                 b.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'   as vente_begrunnelse,
-                (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as vente_frist,
+                $RAMMEBEHANDLING_VENTE_FRIST as vente_frist,
                 b.status::text              as status,
                 b.resultat::text            as resultat,
                 b.prioritering_begrunnelse  as prioritering_begrunnelse,
@@ -408,7 +420,8 @@ class BenkPostgresRepo(
                 join sak sa on b.sak_id = sa.id
             where b.avbrutt is null
               and b.behandlingstype = 'REVURDERING'
-              and b.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING')
+              and b.status in ('UNDER_AUTOMATISK_BEHANDLING', 'KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING',
+                               'KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING')
         """
 
         /**
