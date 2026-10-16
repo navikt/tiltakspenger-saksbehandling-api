@@ -42,7 +42,7 @@ import java.time.LocalTime
  *
  * [opprett] bygger forlengelsen under automatisk behandling, tildelt [AUTOMATISK_SAKSBEHANDLER].
  * [forsøkAutomatiskForlengelse] utleder verdiene for forlengelsen, fyller den ut og sender den til beslutning.
- * Starter forlengelsen frem i tid, settes den i stedet på vent til startdatoen, og vurderes på nytt da.
+ * Starter forlengelsen [DAGER_FØR_STARTDATO] dager eller mer frem i tid, settes den i stedet på vent til det er færre dager igjen, og vurderes på nytt da.
  * Stegene som er felles med andre automatiske revurderinger, ligger i [DelautomatiskRevurderingSteg].
  *
  * Kan forlengelsen ikke behandles automatisk, overlates den til en saksbehandler med alle grunnene lagret på revurderingen.
@@ -90,8 +90,8 @@ class DelautomatiskForlengelseService(
 
         val (oppdatertSak, oppdatertRevurdering) = steg.oppdaterSaksopplysninger(sak, revurdering, correlationId)
 
-        oppdatertSak.startdatoFremITid(oppdatertRevurdering)?.let { startdato ->
-            settPåVentTilStartdato(oppdatertRevurdering, startdato, correlationId)
+        oppdatertSak.startdatoForLangtFremITid(oppdatertRevurdering)?.let { startdato ->
+            settPåVentTilNærStartdato(oppdatertRevurdering, startdato, correlationId)
             return
         }
 
@@ -110,29 +110,34 @@ class DelautomatiskForlengelseService(
     }
 
     /**
-     * Gir startdatoen for forlengelsen dersom den er frem i tid.
-     * Da venter vi med å behandle forlengelsen til startdatoen, slik at senere endringer i deltakelsen kommer med.
+     * Gir startdatoen for forlengelsen dersom den er [DAGER_FØR_STARTDATO] dager eller mer frem i tid.
+     * Da venter vi med å behandle forlengelsen til det er færre dager igjen, slik at senere endringer i deltakelsen kommer med.
      * Kan ikke forlengelsen utledes, gis null, siden den uansett skal overlates til saksbehandler.
      */
-    private fun Sak.startdatoFremITid(revurdering: Revurdering): LocalDate? {
+    private fun Sak.startdatoForLangtFremITid(revurdering: Revurdering): LocalDate? {
         val tiltaksdeltakerId = revurdering.automatiskOpprettetGrunn?.tiltaksdeltakerId ?: return null
         val startdato = utledAutomatiskForlengelse(
             tiltaksdeltakerId = tiltaksdeltakerId,
             saksopplysninger = revurdering.saksopplysninger,
         ).getOrNull()?.innvilgelsesperiode?.fraOgMed ?: return null
-        return startdato.takeIf { it.isAfter(LocalDate.now(clock)) }
+        return startdato.takeIf { tidligsteBehandlingsdato(it).isAfter(LocalDate.now(clock)) }
     }
 
     /**
-     * Setter forlengelsen på vent til [startdato], eller flytter ventetiden dersom den allerede er på vent.
+     * Første dag det er færre enn [DAGER_FØR_STARTDATO] dager til [startdato].
+     */
+    private fun tidligsteBehandlingsdato(startdato: LocalDate): LocalDate = startdato.minusDays(DAGER_FØR_STARTDATO - 1)
+
+    /**
+     * Setter forlengelsen på vent til det er færre enn [DAGER_FØR_STARTDATO] dager til [startdato], eller flytter ventetiden dersom den allerede er på vent.
      * Revurderingen lagres med de oppdaterte saksopplysningene.
      */
-    private suspend fun settPåVentTilStartdato(
+    private suspend fun settPåVentTilNærStartdato(
         revurdering: Revurdering,
         startdato: LocalDate,
         correlationId: CorrelationId,
     ) {
-        val venterTil = startdato.atTime(VENTER_TIL_KLOKKESLETT)
+        val venterTil = tidligsteBehandlingsdato(startdato).atTime(VENTER_TIL_KLOKKESLETT)
         if (revurdering.ventestatus.erSattPåVent) {
             // Siden vi ikke sender ventestatusen til statistikk, trenger vi ikke sende ny statistikk her.
             steg.lagre(revurdering.oppdaterVenterTil(nyVenterTil = venterTil, clock = clock), Statistikkhendelser.empty())
@@ -260,5 +265,11 @@ class DelautomatiskForlengelseService(
 
     companion object {
         private val VENTER_TIL_KLOKKESLETT: LocalTime = LocalTime.of(6, 0)
+
+        /**
+         * Forlengelser som starter færre enn så mange dager frem i tid, behandles med en gang.
+         * Øvrige settes på vent til det er færre dager igjen til startdatoen.
+         */
+        private const val DAGER_FØR_STARTDATO: Long = 5
     }
 }

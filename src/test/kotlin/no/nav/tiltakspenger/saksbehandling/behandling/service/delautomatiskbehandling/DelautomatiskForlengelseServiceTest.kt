@@ -883,8 +883,11 @@ class DelautomatiskForlengelseServiceTest {
         }
     }
 
+    /**
+     * Forlengelsen starter 6. mai, og klokka står 1. mai, altså nøyaktig fem dager før.
+     */
     @Test
-    fun `forlengelsen starter frem i tid - settes på vent til startdatoen og behandles da`() {
+    fun `forlengelsen starter fem dager frem i tid - settes på vent til det er færre enn fem dager igjen og behandles da`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
             val (sak) = iverksettSøknadsbehandling(
@@ -900,14 +903,42 @@ class DelautomatiskForlengelseServiceTest {
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
-            tac.hentRevurdering(sak, revurdering).skalVæreSattPåVentTilStartdatoen()
+            tac.hentRevurdering(sak, revurdering).skalVæreSattPåVentTilFireDagerFørStartdatoen()
 
-            // Før startdatoen hoppes forlengelsen over.
-            tac.clock.spolTil(6.mai(2025).atTime(5, 0))
+            // Før ventetiden har passert hoppes forlengelsen over.
+            tac.clock.spolTil(2.mai(2025).atTime(5, 0))
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
-            tac.hentRevurdering(sak, revurdering).skalVæreSattPåVentTilStartdatoen()
+            tac.hentRevurdering(sak, revurdering).skalVæreSattPåVentTilFireDagerFørStartdatoen()
 
-            tac.clock.spolTil(6.mai(2025).atTime(7, 0))
+            tac.clock.spolTil(2.mai(2025).atTime(7, 0))
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+
+            tac.hentRevurdering(sak, revurdering).also {
+                it.ventestatus.erSattPåVent shouldBe false
+                it.venterTil.shouldBeNull()
+                it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10)
+            }
+        }
+    }
+
+    /**
+     * Forlengelsen starter 6. mai, og klokka står 2. mai, altså fire dager før.
+     */
+    @Test
+    fun `forlengelsen starter færre enn fem dager frem i tid - behandles med en gang uten å settes på vent`() {
+        withTestApplicationContextAndPostgres(clock = TikkendeKlokke(fixedClockAt(2.mai(2025)))) { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+            )
+            val revurdering = tac.opprettAutomatiskForlengelse(
+                sak = sak,
+                tiltaksdeltakelse = deltakelse,
+                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 30.juni(2025)),
+            )
+
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).also {
@@ -937,7 +968,7 @@ class DelautomatiskForlengelseServiceTest {
                 nåtilstand = deltakelse.copy(deltakelseTilOgMed = 30.juni(2025)),
             )
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
-            tac.hentRevurdering(sak, revurdering).skalVæreSattPåVentTilStartdatoen()
+            tac.hentRevurdering(sak, revurdering).skalVæreSattPåVentTilFireDagerFørStartdatoen()
 
             val forlengetIgjen = deltakelse.copy(deltakelseTilOgMed = 31.juli(2025))
             tac.behandleEndring(sak, deltakelse, forlengetIgjen).shouldBeInstanceOf<IngenRelevantEndring>()
@@ -945,18 +976,18 @@ class DelautomatiskForlengelseServiceTest {
             val fremskyndetVenterTil = tac.hentRevurdering(sak, revurdering).also {
                 it.ventestatus.erSattPåVent shouldBe true
             }.venterTil.shouldNotBeNull()
-            fremskyndetVenterTil.isBefore(6.mai(2025).atTime(6, 0)) shouldBe true
+            fremskyndetVenterTil.isBefore(2.mai(2025).atTime(6, 0)) shouldBe true
 
             tac.clock.spolTil(fremskyndetVenterTil.plusMinutes(1))
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurderinger()
 
             tac.hentRevurdering(sak, revurdering).also {
-                it.skalVæreSattPåVentTilStartdatoen()
+                it.skalVæreSattPåVentTilFireDagerFørStartdatoen()
                 it.saksopplysninger.getTiltaksdeltakelse(deltakelse.internDeltakelseId).shouldNotBeNull()
                     .deltakelseTilOgMed shouldBe 31.juli(2025)
             }
 
-            tac.clock.spolTil(6.mai(2025).atTime(7, 0))
+            tac.clock.spolTil(2.mai(2025).atTime(7, 0))
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurderinger()
 
             tac.hentRevurdering(sak, revurdering).also {
@@ -969,11 +1000,14 @@ class DelautomatiskForlengelseServiceTest {
         }
     }
 
-    private fun Revurdering.skalVæreSattPåVentTilStartdatoen() {
+    /**
+     * Forlengelsen starter 6. mai, og venter til 2. mai, da det er færre enn fem dager igjen.
+     */
+    private fun Revurdering.skalVæreSattPåVentTilFireDagerFørStartdatoen() {
         status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
         saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
         ventestatus.erSattPåVent shouldBe true
-        venterTil shouldBe 6.mai(2025).atTime(6, 0)
+        venterTil shouldBe 2.mai(2025).atTime(6, 0)
         resultat shouldBe Revurderingsresultat.Innvilgelse.empty
     }
 

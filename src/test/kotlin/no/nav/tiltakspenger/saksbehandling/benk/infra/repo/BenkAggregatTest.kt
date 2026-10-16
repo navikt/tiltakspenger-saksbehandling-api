@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.benk.infra.repo
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -8,10 +9,15 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
+import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkAntallPerFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandlingsstatus
@@ -51,6 +57,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.Companion.MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.finnGyldigeKommandoer
@@ -73,6 +80,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgSettPåVent
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderAutomatiskBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedAvslag
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilBehandling
@@ -89,6 +97,8 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tildelT
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.underkjenn
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.konsumerTilbakekrevingshendelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -137,9 +147,12 @@ class BenkAggregatTest {
         saksbehandler: String? = null,
         skjulPåVent: Boolean = false,
         skjulVenterPåAnnenSaksbehandler: Boolean = false,
+        kolonne: BenkRevurderingerKolonne = BenkRevurderingerKolonne.STARTET,
+        retning: BenkSorteringRetning = BenkSorteringRetning.ASC,
     ) = command(
         BenkRevurderingerFiltrering(status, resultat, saksbehandler, skjulPåVent, skjulVenterPåAnnenSaksbehandler),
-        BenkRevurderingerKolonne.STARTET,
+        kolonne,
+        retning,
     )
 
     private fun meldekortCommand(
@@ -563,6 +576,34 @@ class BenkAggregatTest {
         }
     }
 
+    /**
+     * Tiltaket har ikke startet, så den automatiske behandlingen settes på vent med `venter_til` og uten frist.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `søknadsfanen viser datoen en automatisk behandling venter til som frist`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
+                tac = tac,
+                tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
+                    fom = 1.juni(2025),
+                    tom = 30.juni(2025),
+                    status = TiltakDeltakerstatus.VenterPåOppstart,
+                ),
+            )
+            tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(
+                behandling = behandling,
+                correlationId = CorrelationId.generate(),
+            )
+            val venterTil = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).venterTil.shouldNotBeNull()
+
+            tac.benkContext.benkRepo.hentSøknader(søknaderCommand()).behandlinger.single().felles.ventestatus.let {
+                it.erSattPåVent shouldBe true
+                it.frist shouldBe venterTil.toLocalDate()
+            }
+        }
+    }
+
     @Test
     @IsolatedDatabaseTest
     fun `søknadsfanen sorterer på sist endret`() {
@@ -637,6 +678,95 @@ class BenkAggregatTest {
                 revurderingerCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT_SAKSBEHANDLER),
             ).totalAntall shouldBe 0
         }
+    }
+
+    /**
+     * Jobben for endringer i tiltaksdeltakelse oppretter stansen under automatisk behandling.
+     * Den skal vises på benken på samme måte som en søknadsbehandling under automatisk behandling.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `revurderingsfanen viser revurderinger under automatisk behandling`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val revurdering = opprettAutomatiskRevurdering(tac) {
+                it.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 20.april(2025))
+            }
+            val repo = tac.benkContext.benkRepo
+
+            repo.hentRevurderinger(revurderingerCommand()).let { oversikt ->
+                oversikt.totalAntall shouldBe 1
+                oversikt.behandlinger.single().let {
+                    it.id shouldBe revurdering.id
+                    it.felles.sakId shouldBe revurdering.sakId
+                    it.felles.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
+                    it.status shouldBe BenkBehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                    it.resultat shouldBe BenkRevurderingResultat.STANS
+                    // Kommandoene på raden er de samme reglene som på selve behandlingen — dette pinner speilingen.
+                    it.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe
+                        revurdering.finnGyldigeKommandoer(ObjectMother.saksbehandler())
+                }
+            }
+            repo.hentRevurderinger(
+                revurderingerCommand(status = BenkBehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING),
+            ).totalAntall shouldBe 1
+            repo.hentPersoner(BenkFane.REVURDERINGER) shouldBe listOf(revurdering.fnr)
+            repo.hentAntallPerFane(ObjectMother.saksbehandler().navIdent).revurderinger shouldBe 1
+        }
+    }
+
+    /**
+     * Den automatiske forlengelsen starter 6. mai og settes på vent til 2. mai uten frist.
+     * Den manuelle revurderingen er satt på vent av saksbehandler med frist 10. mai.
+     * Benken skal vise og sortere på datoen den automatiske behandlingen venter til, på lik linje med fristen.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `revurderingsfanen viser og sorterer på datoen en automatisk behandling venter til`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sakManuell, _, _, manuell) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac = tac)
+            settRammebehandlingPåVent(tac = tac, sakId = sakManuell.id, rammebehandlingId = manuell.id, frist = 10.mai(2025))!!
+            val automatisk = opprettAutomatiskRevurdering(tac) { it.copy(deltakelseTilOgMed = 30.juni(2025)) }
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(automatisk.id)
+            val (sakIkkePåVent) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac = tac)
+            val repo = tac.benkContext.benkRepo
+
+            repo.hentRevurderinger(revurderingerCommand()).behandlinger.single { it.id == automatisk.id }.let {
+                it.status shouldBe BenkBehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                it.felles.ventestatus.erSattPåVent shouldBe true
+                it.felles.ventestatus.frist shouldBe 2.mai(2025)
+            }
+
+            fun sorterteSaker(retning: BenkSorteringRetning) =
+                repo.hentRevurderinger(revurderingerCommand(kolonne = BenkRevurderingerKolonne.VENTESTATUS_FRIST, retning = retning))
+                    .behandlinger.map { it.felles.sakId }
+
+            sorterteSaker(BenkSorteringRetning.ASC) shouldBe listOf(automatisk.sakId, sakManuell.id, sakIkkePåVent.id)
+            sorterteSaker(BenkSorteringRetning.DESC) shouldBe listOf(sakManuell.id, automatisk.sakId, sakIkkePåVent.id)
+        }
+    }
+
+    /**
+     * Iverksetter en innvilgelse og lar jobben for endringer i tiltaksdeltakelse opprette en revurdering under automatisk behandling når deltakelsen endres til [nåtilstand].
+     */
+    private suspend fun ApplicationTestBuilder.opprettAutomatiskRevurdering(
+        tac: TestApplicationContextMedPostgres,
+        nåtilstand: (TiltaksdeltakelseIntern) -> TiltaksdeltakelseIntern,
+    ): Rammebehandling {
+        val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
+        val (sak) = iverksettSøknadsbehandling(
+            tac = tac,
+            tiltaksdeltakelse = deltakelse,
+            innvilgelsesperioder = ObjectMother.innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+        )
+        tac.oppdaterTiltaksdeltakelse(sak.fnr, nåtilstand(deltakelse))
+        tac.tiltakContext.tiltaksdeltakerRepo.registrerUbehandletEndring(
+            id = deltakelse.internDeltakelseId,
+            sakId = sak.id,
+            tidspunkt = nå(tac.clock).minusMinutes(20),
+        )
+        tac.oppdatertTiltaksdeltakelseJobb.håndterUbehandledeEndringer()
+        return tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
+            .also { it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING }
     }
 
     @Test

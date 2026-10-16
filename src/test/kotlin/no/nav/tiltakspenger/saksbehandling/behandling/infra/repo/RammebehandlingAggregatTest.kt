@@ -97,16 +97,17 @@ class RammebehandlingAggregatTest {
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurderinger()
 
-            // Forlengelsen starter 6. mai, så den settes på vent og faller ut av køen til `venter_til` har passert.
+            // Forlengelsen starter 6. mai, fem dager frem i tid.
+            // Den settes derfor på vent til 2. mai og faller ut av køen til `venter_til` har passert.
             repo.hentAutomatiskeRevurderingIder(limit = 10).shouldBeEmpty()
             tac.sakContext.sakRepo.hentForSakId(eldst.sakId)!!.hentRammebehandling(eldst.id)!!.status shouldBe
                 Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
             tac.sakContext.sakRepo.hentForSakId(nyest.sakId)!!.hentRammebehandling(nyest.id)!!.also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
-                it.venterTil shouldBe 6.mai(2025).atTime(6, 0)
+                it.venterTil shouldBe 2.mai(2025).atTime(6, 0)
             }
 
-            tac.clock.spolTil(6.mai(2025).atTime(7, 0))
+            tac.clock.spolTil(2.mai(2025).atTime(7, 0))
             repo.hentAutomatiskeRevurderingIder(limit = 10) shouldBe listOf(nyest.id)
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurderinger()
