@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.gjenoppta.GjenopptaMeldekortbehandlingKommando
@@ -112,6 +113,173 @@ class MeldekortbehandlingSettPåVentTest {
         ).leftOrNull()
 
         feil shouldBe KanIkkeSetteMeldekortbehandlingPåVent.UgyldigStatus(MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET)
+    }
+
+    @Test
+    fun `oppdaterer begrunnelse og frist på meldekortbehandling klar til behandling på vent`() {
+        val clock = TikkendeKlokke()
+        val saksbehandler = ObjectMother.saksbehandler()
+        val annenSaksbehandler = ObjectMother.saksbehandler(navIdent = "Z99999")
+        val frist = LocalDate.now(clock).plusDays(7)
+        val meldekortbehandling = meldekortUnderBehandlingSattPåVent(saksbehandler, clock)
+
+        val oppdatert = meldekortbehandling.settPåVent(
+            kommando = settPåVentKommando(
+                sakId = meldekortbehandling.sakId,
+                meldekortId = meldekortbehandling.id,
+                begrunnelse = "Oppdatert begrunnelse",
+                frist = frist,
+                saksbehandler = annenSaksbehandler,
+                oppdaterPåVent = true,
+            ),
+            clock = clock,
+        ).getOrFail()
+
+        oppdatert.shouldBeInstanceOf<MeldekortUnderBehandling>()
+        oppdatert.status shouldBe MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING
+        oppdatert.saksbehandler shouldBe null
+        oppdatert.ventestatus.erSattPåVent shouldBe true
+        oppdatert.ventestatus.ventestatusHendelser.size shouldBe 2
+        oppdatert.ventestatus.ventestatusHendelser.last().let { hendelse ->
+            hendelse.endretAv shouldBe annenSaksbehandler.navIdent
+            hendelse.begrunnelse shouldBe "Oppdatert begrunnelse"
+            hendelse.frist shouldBe frist
+            hendelse.status shouldBe "KLAR_TIL_BEHANDLING"
+        }
+    }
+
+    @Test
+    fun `oppdaterer begrunnelse og frist på meldekortbehandling klar til beslutning på vent`() {
+        val clock = TikkendeKlokke()
+        val beslutter = ObjectMother.beslutter()
+        val annenBeslutter = ObjectMother.beslutter(navIdent = "B99999")
+        val meldekortbehandling = meldekortUnderBeslutningSattPåVent(beslutter, clock)
+
+        val oppdatert = meldekortbehandling.settPåVent(
+            kommando = settPåVentKommando(
+                sakId = meldekortbehandling.sakId,
+                meldekortId = meldekortbehandling.id,
+                begrunnelse = "Oppdatert begrunnelse fra beslutter",
+                saksbehandler = annenBeslutter,
+                oppdaterPåVent = true,
+            ),
+            clock = clock,
+        ).getOrFail()
+
+        oppdatert.shouldBeInstanceOf<MeldekortbehandlingManuell>()
+        oppdatert.status shouldBe MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING
+        oppdatert.saksbehandler shouldBe meldekortbehandling.saksbehandler
+        oppdatert.beslutter shouldBe null
+        oppdatert.ventestatus.ventestatusHendelser.size shouldBe 2
+        oppdatert.ventestatus.ventestatusHendelser.last().let { hendelse ->
+            hendelse.endretAv shouldBe annenBeslutter.navIdent
+            hendelse.begrunnelse shouldBe "Oppdatert begrunnelse fra beslutter"
+            hendelse.status shouldBe "KLAR_TIL_BESLUTNING"
+        }
+    }
+
+    @Test
+    fun `kan ikke oppdatere meldekortbehandling som ikke er satt på vent`() {
+        val saksbehandler = ObjectMother.saksbehandler()
+        val meldekortbehandling = ObjectMother.meldekortUnderBehandling(
+            saksbehandler = saksbehandler.navIdent,
+            status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
+        )
+
+        val feil = meldekortbehandling.settPåVent(
+            kommando = settPåVentKommando(
+                sakId = meldekortbehandling.sakId,
+                meldekortId = meldekortbehandling.id,
+                saksbehandler = saksbehandler,
+                oppdaterPåVent = true,
+            ),
+            clock = fixedClock,
+        ).leftOrNull()
+
+        feil shouldBe KanIkkeSetteMeldekortbehandlingPåVent.BehandlingMåVæreSattPåVentForÅKunneOppdateres
+    }
+
+    @Test
+    fun `kan ikke sette meldekortbehandling på vent på nytt uten å oppdatere`() {
+        val clock = TikkendeKlokke()
+        val saksbehandler = ObjectMother.saksbehandler()
+        val meldekortbehandling = meldekortUnderBehandlingSattPåVent(saksbehandler, clock)
+
+        val feil = meldekortbehandling.settPåVent(
+            kommando = settPåVentKommando(
+                sakId = meldekortbehandling.sakId,
+                meldekortId = meldekortbehandling.id,
+                saksbehandler = saksbehandler,
+                oppdaterPåVent = false,
+            ),
+            clock = clock,
+        ).leftOrNull()
+
+        feil shouldBe KanIkkeSetteMeldekortbehandlingPåVent.BehandlingenErAlleredePåVent
+    }
+
+    @Test
+    fun `en bruker uten saksbehandlerrolle kan ikke oppdatere meldekortbehandling klar til behandling på vent`() {
+        val clock = TikkendeKlokke()
+        val meldekortbehandling = meldekortUnderBehandlingSattPåVent(ObjectMother.saksbehandler(), clock)
+
+        val feil = meldekortbehandling.settPåVent(
+            kommando = settPåVentKommando(
+                sakId = meldekortbehandling.sakId,
+                meldekortId = meldekortbehandling.id,
+                saksbehandler = ObjectMother.beslutter(),
+                oppdaterPåVent = true,
+            ),
+            clock = clock,
+        ).leftOrNull()
+
+        feil shouldBe KanIkkeSetteMeldekortbehandlingPåVent.MåVæreSaksbehandler
+    }
+
+    @Test
+    fun `en bruker uten beslutterrolle kan ikke oppdatere meldekortbehandling klar til beslutning på vent`() {
+        val clock = TikkendeKlokke()
+        val meldekortbehandling = meldekortUnderBeslutningSattPåVent(ObjectMother.beslutter(), clock)
+
+        val feil = meldekortbehandling.settPåVent(
+            kommando = settPåVentKommando(
+                sakId = meldekortbehandling.sakId,
+                meldekortId = meldekortbehandling.id,
+                saksbehandler = ObjectMother.saksbehandler(),
+                oppdaterPåVent = true,
+            ),
+            clock = clock,
+        ).leftOrNull()
+
+        feil shouldBe KanIkkeSetteMeldekortbehandlingPåVent.MåVæreBeslutter
+    }
+
+    @Test
+    fun `kan ikke oppdatere meldekortbehandling under behandling selv om den står på vent`() {
+        val clock = TikkendeKlokke()
+        val saksbehandler = ObjectMother.saksbehandler()
+        val meldekortbehandling = ObjectMother.meldekortUnderBehandling(
+            saksbehandler = saksbehandler.navIdent,
+            status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
+        ).copy(
+            ventestatus = ventestatusSattPåVent(
+                endretAv = saksbehandler.navIdent,
+                status = MeldekortbehandlingStatus.UNDER_BEHANDLING.toString(),
+                clock = clock,
+            ),
+        )
+
+        val feil = meldekortbehandling.settPåVent(
+            kommando = settPåVentKommando(
+                sakId = meldekortbehandling.sakId,
+                meldekortId = meldekortbehandling.id,
+                saksbehandler = saksbehandler,
+                oppdaterPåVent = true,
+            ),
+            clock = clock,
+        ).leftOrNull()
+
+        feil shouldBe KanIkkeSetteMeldekortbehandlingPåVent.UgyldigStatus(MeldekortbehandlingStatus.UNDER_BEHANDLING)
     }
 
     @Test
@@ -295,10 +463,12 @@ class MeldekortbehandlingSettPåVentTest {
         begrunnelse: String = "Venter på dokumentasjon",
         frist: LocalDate? = null,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        oppdaterPåVent: Boolean = false,
         correlationId: CorrelationId = CorrelationId.generate(),
     ) = SettMeldekortbehandlingPåVentKommando(
         sakId = sakId,
         meldekortId = meldekortId,
+        oppdaterPåVent = oppdaterPåVent,
         begrunnelse = begrunnelse,
         frist = frist,
         saksbehandler = saksbehandler,
@@ -328,4 +498,41 @@ class MeldekortbehandlingSettPåVentTest {
         status = status,
         frist = null,
     )
+
+    private fun meldekortUnderBehandlingSattPåVent(
+        saksbehandler: Saksbehandler,
+        clock: TikkendeKlokke,
+    ): Meldekortbehandling {
+        val meldekortbehandling = ObjectMother.meldekortUnderBehandling(
+            saksbehandler = saksbehandler.navIdent,
+            status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
+        )
+        return meldekortbehandling.settPåVent(
+            kommando = settPåVentKommando(
+                sakId = meldekortbehandling.sakId,
+                meldekortId = meldekortbehandling.id,
+                saksbehandler = saksbehandler,
+            ),
+            clock = clock,
+        ).getOrFail()
+    }
+
+    private fun meldekortUnderBeslutningSattPåVent(
+        beslutter: Saksbehandler,
+        clock: TikkendeKlokke,
+    ): Meldekortbehandling {
+        val meldekortbehandling = ObjectMother.meldekortBehandletManuelt(
+            status = MeldekortbehandlingStatus.UNDER_BESLUTNING,
+            beslutter = beslutter.navIdent,
+            iverksattTidspunkt = null,
+        )
+        return meldekortbehandling.settPåVent(
+            kommando = settPåVentKommando(
+                sakId = meldekortbehandling.sakId,
+                meldekortId = meldekortbehandling.id,
+                saksbehandler = beslutter,
+            ),
+            clock = clock,
+        ).getOrFail()
+    }
 }

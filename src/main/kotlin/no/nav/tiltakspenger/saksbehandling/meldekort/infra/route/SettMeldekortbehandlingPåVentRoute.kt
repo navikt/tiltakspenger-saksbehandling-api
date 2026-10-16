@@ -37,8 +37,8 @@ private const val SETT_MELDEKORTBEHANDLING_PÅ_VENT_PATH = "/sak/{sakId}/meldeko
 private data class SettMeldekortbehandlingPåVentBody(
     val begrunnelse: String,
     val frist: LocalDate?,
-    //TODO - slett når frontend sender flaget
-    val oppdaterPåVent: Boolean = false
+    // TODO - slett standardverdien når frontend sender flagget
+    val oppdaterSattPåVent: Boolean = false,
 ) {
     fun tilKommando(
         sakId: SakId,
@@ -49,7 +49,7 @@ private data class SettMeldekortbehandlingPåVentBody(
         sakId = sakId,
         meldekortId = meldekortId,
         saksbehandler = saksbehandler,
-        oppdaterPåVent = oppdaterPåVent,
+        oppdaterPåVent = oppdaterSattPåVent,
         begrunnelse = begrunnelse,
         frist = frist,
         correlationId = correlationId,
@@ -141,9 +141,14 @@ private suspend fun ApplicationCall.respondSettPåVentError(
             kode = "ugyldig_status_for_sett_paa_vent",
         )
 
-        KanIkkeSetteMeldekortbehandlingPåVent.BehandlingMåVæreSattPåVentForÅKunneOppdateres -> HttpStatusCode.BadRequest to ErrorJson(
-            melding = "Meldekortbehandlingen må være satt på vent for å kunne oppdateres",
-            kode = "må_være_satt_på_vent"
+        KanIkkeSetteMeldekortbehandlingPåVent.BehandlingMåVæreSattPåVentForÅKunneOppdateres -> respond400BadRequest(
+            melding = "Meldekortbehandlingen må være satt på vent for å kunne oppdateres.",
+            kode = "må_være_satt_på_vent",
+        )
+
+        is KanIkkeSetteMeldekortbehandlingPåVent.KunneIkkeSetteKlagebehandlingenPåVent -> respond400BadRequest(
+            melding = "Klagebehandlingen som henger på meldekortbehandlingen kunne ikke settes på vent.",
+            kode = "kunne_ikke_sette_klagebehandlingen_paa_vent",
         )
     }
 }

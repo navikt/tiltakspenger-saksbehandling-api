@@ -91,15 +91,25 @@ fun Klagebehandling.settPåVent(
         return Pair(this, Statistikkhendelser(emptyList())).right()
     }
 
-    kanOppdatereIDenneStatusen(null, kanVæreMottattFraKA = true, kanVæreOmgjørEtterKA = true).onLeft {
-        return KanIkkeSetteKlagebehandlingPåVent.KanIkkeOppdateres(it).left()
+    if (kommando.oppdaterPåVent) {
+        if (!ventestatus.erSattPåVent) {
+            return KanIkkeSetteKlagebehandlingPåVent.KlagenMåVæreSattPåVentForÅKunneOppdateres.left()
+        }
+        kanOppdatereIDenneStatusen(null, kanVæreSattPåVent = true, kanVæreKlarTilBehandling = true).onLeft {
+            return KanIkkeSetteKlagebehandlingPåVent.KanIkkeOppdateres(it).left()
+        }
+    } else {
+        kanOppdatereIDenneStatusen(null, kanVæreMottattFraKA = true, kanVæreOmgjørEtterKA = true).onLeft {
+            return KanIkkeSetteKlagebehandlingPåVent.KanIkkeOppdateres(it).left()
+        }
+        if (sjekkSaksbehandler && saksbehandler != kommando.saksbehandler.navIdent) {
+            return KanIkkeSetteKlagebehandlingPåVent.SaksbehandlerMismatch(
+                forventetSaksbehandler = kommando.saksbehandler.navIdent,
+                faktiskSaksbehandler = saksbehandler,
+            ).left()
+        }
     }
-    if (sjekkSaksbehandler && saksbehandler != kommando.saksbehandler.navIdent) {
-        return KanIkkeSetteKlagebehandlingPåVent.SaksbehandlerMismatch(
-            forventetSaksbehandler = kommando.saksbehandler.navIdent,
-            faktiskSaksbehandler = saksbehandler,
-        ).left()
-    }
+
     val nå = nå(clock)
     val oppdatertKlagebehandling = this.copy(
         ventestatus = ventestatus.settPåVent(
