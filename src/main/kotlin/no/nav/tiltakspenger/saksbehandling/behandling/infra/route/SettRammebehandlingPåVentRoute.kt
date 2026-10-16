@@ -34,8 +34,7 @@ private const val SETT_BEHANDLING_PÅ_VENT_PATH = "/sak/{sakId}/behandling/{beha
 private data class SettPåVentBody(
     val begrunnelse: String,
     val frist: LocalDate?,
-    // TODO: Fjern standardverdien når frontend sender flagget.
-    val oppdaterSattPåVent: Boolean = false,
+    val oppdaterSattPåVent: Boolean,
 ) {
     fun toKommando(
         sakId: SakId,
