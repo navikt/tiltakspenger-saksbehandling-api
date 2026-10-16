@@ -25,7 +25,12 @@ fun Meldekortbehandling.settPåVent(
     kommando: SettMeldekortbehandlingPåVentKommando,
     clock: Clock,
 ): Either<KanIkkeSetteMeldekortbehandlingPåVent, Meldekortbehandling> {
-    kanSettePåVent(kommando.saksbehandler).onLeft { return it.left() }
+
+    if(kommando.oppdaterPåVent){
+        kanOppdaterePåVent(kommando.saksbehandler).onLeft { return it.left() }
+    } else {
+        kanSettePåVent(kommando.saksbehandler).onLeft { return it.left() }
+    }
 
     val endretAv = kommando.saksbehandler
 
@@ -145,5 +150,38 @@ fun Meldekortbehandling.kanSettePåVent(
         AUTOMATISK_BEHANDLET,
         AVBRUTT,
         -> KanIkkeSetteMeldekortbehandlingPåVent.UgyldigStatus(status).left()
+    }
+}
+
+fun Meldekortbehandling.kanOppdaterePåVent(
+    saksbehandler: Saksbehandler,
+): Either<KanIkkeSetteMeldekortbehandlingPåVent, Unit>{
+    if(!ventestatus.erSattPåVent){
+        return KanIkkeSetteMeldekortbehandlingPåVent.BehandlingMåVæreSattPåVentForÅKunneOppdateres.left()
+    }
+
+    return when (status) {
+        KLAR_TIL_BEHANDLING -> {
+            if (!saksbehandler.erSaksbehandler) {
+                KanIkkeSetteMeldekortbehandlingPåVent.MåVæreSaksbehandler.left()
+            } else {
+                Unit.right()
+            }
+        }
+
+        KLAR_TIL_BESLUTNING -> {
+            if (!saksbehandler.erBeslutter) {
+                KanIkkeSetteMeldekortbehandlingPåVent.MåVæreBeslutter.left()
+            } else {
+                Unit.right()
+            }
+        }
+
+        UNDER_BEHANDLING,
+        UNDER_BESLUTNING,
+        GODKJENT,
+        AUTOMATISK_BEHANDLET,
+        AVBRUTT
+            -> KanIkkeSetteMeldekortbehandlingPåVent.UgyldigStatus(status).left()
     }
 }

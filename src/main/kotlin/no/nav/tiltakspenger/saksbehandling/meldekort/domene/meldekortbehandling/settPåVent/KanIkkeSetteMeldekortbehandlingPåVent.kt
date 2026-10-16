@@ -28,4 +28,7 @@ sealed interface KanIkkeSetteMeldekortbehandlingPåVent {
 
     /** Behandlingen er ikke lenger under beslutning hos utøvende beslutter. */
     data object BehandlingenErIkkeLengerUnderBeslutning : KanIkkeSetteMeldekortbehandlingPåVent
+
+    /** Behandlingen er ikke satt på vent og kan derfor ikke oppdateres. */
+    data object BehandlingMåVæreSattPåVentForÅKunneOppdateres : KanIkkeSetteMeldekortbehandlingPåVent
 }
