@@ -5,8 +5,8 @@ import arrow.core.right
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.SakId
@@ -30,7 +30,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRev
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import org.junit.jupiter.api.Test
-import java.util.concurrent.atomic.AtomicBoolean
 
 class SendTilMeldekortApiServiceTest {
 
@@ -86,14 +85,13 @@ class SendTilMeldekortApiServiceTest {
                 rammevedtakSæknad.rammebehandling.id,
             )
 
-            // Lag en MeldekortApiKlient som venter til vi har iverksatt revurderingen
-            val revurderingIverksatt = AtomicBoolean(false)
+            // Lag en MeldekortApiKlient som signaliserer at saken er hentet, og deretter venter til vi har iverksatt revurderingen.
+            val sakHentet = CompletableDeferred<Unit>()
+            val revurderingIverksatt = CompletableDeferred<Unit>()
             val slowMeldekortApiKlient = object : MeldekortApiKlient {
                 override suspend fun sendSak(sak: Sak): Either<HttpKlientError, Unit> {
-                    // Vent til revurderingen er iverksatt
-                    while (!revurderingIverksatt.get()) {
-                        delay(10)
-                    }
+                    sakHentet.complete(Unit)
+                    revurderingIverksatt.await()
                     return Unit.right()
                 }
             }
@@ -109,11 +107,14 @@ class SendTilMeldekortApiServiceTest {
                     sendTilMeldekortApiService.sendSak(sak.id)
                 }
 
+                // Saken må være hentet før vi iverksetter, ellers kan sendSak lese saken med det nye vedtaket.
+                sakHentet.await()
+
                 // Iverksett revurderingen mens sendSak venter
                 iverksettForBehandlingId(tac, sak.id, revurdering.id)
 
                 // Signal at revurderingen er iverksatt, så sendSak kan fortsette
-                revurderingIverksatt.set(true)
+                revurderingIverksatt.complete(Unit)
 
                 // Vent på at sendSak fullføres
                 sendJob.join()
