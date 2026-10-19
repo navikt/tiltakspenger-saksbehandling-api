@@ -159,7 +159,7 @@ data class Revurdering(
         require(status == UNDER_AUTOMATISK_BEHANDLING && saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID) {
             "Kun behandlinger under automatisk behandling kan oppdatere venterTil-tidspunkt"
         }
-        require(ventestatus.erSattPåVent && venterTil != null) {
+        require(ventestatus.erSattPåVent) {
             "Kan ikke oppdatere venterTil hvis behandlingen ikke allerede er satt på vent"
         }
         return this.copy(

@@ -44,6 +44,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settRammebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.toggleKanSendeHelgForMeldekort
@@ -1031,6 +1032,55 @@ class DelautomatiskForlengelseServiceTest {
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe
                 listOf(sak.rammebehandlinger.single().id, revurdering.id)
             tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>().opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
+        }
+    }
+
+    /**
+     * Saksbehandler endrer fristen på forlengelsen mens den venter, uten å endre begrunnelsen.
+     * Tidspunktet forlengelsen venter til skal stå seg, og en senere endring i deltakelsen skal fortsatt kunne flytte det.
+     */
+    @Test
+    fun `saksbehandler endrer fristen mens forlengelsen venter - venter fortsatt og kan flyttes ved endring i deltakelsen`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+            )
+            val revurdering = tac.opprettAutomatiskForlengelse(
+                sak = sak,
+                tiltaksdeltakelse = deltakelse,
+                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 30.juni(2025)),
+            )
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+
+            settRammebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                rammebehandlingId = revurdering.id,
+                begrunnelse = DelautomatiskForlengelseService.BEGRUNNELSE_STARTER_FREM_I_TID,
+                frist = 10.mai(2025),
+                oppdaterSattPåVent = true,
+            ).shouldNotBeNull()
+
+            tac.hentRevurdering(sak, revurdering).also {
+                it.skalVæreSattPåVentTilFireDagerFørStartdatoen()
+                it.ventestatus.sattPåVentFrist shouldBe 10.mai(2025)
+            }
+
+            val forlengetIgjen = deltakelse.copy(deltakelseTilOgMed = 31.juli(2025))
+            tac.behandleEndring(sak, deltakelse, forlengetIgjen).shouldBeInstanceOf<IngenRelevantEndring>()
+            val fremskyndetVenterTil = tac.hentRevurdering(sak, revurdering).venterTil.shouldNotBeNull()
+            fremskyndetVenterTil.isBefore(2.mai(2025).atTime(6, 0)) shouldBe true
+
+            tac.clock.spolTil(fremskyndetVenterTil.plusMinutes(1))
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+
+            tac.hentRevurdering(sak, revurdering).also {
+                it.skalVæreSattPåVentTilFireDagerFørStartdatoen(tilOgMed = 31.juli(2025))
+                it.ventestatus.sattPåVentFrist shouldBe 10.mai(2025)
+            }
         }
     }
 

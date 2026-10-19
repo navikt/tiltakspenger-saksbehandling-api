@@ -54,6 +54,9 @@ fun Rammebehandling.settPåVent(
 
     val nå = nå(clock)
 
+    // Når en saksbehandler endrer begrunnelse eller frist, skal ikke tidspunktet den automatiske behandlingen venter til forsvinne.
+    val oppdatertVenterTil = kommando.venterTil ?: venterTil.takeIf { kommando.oppdaterPåVent }
+
     val oppdatertVentestatus = ventestatus.settPåVent(
         tidspunktSattPåVent = nå,
         endretAv = endretAv.navIdent,
@@ -73,7 +76,7 @@ fun Rammebehandling.settPåVent(
                 saksbehandler = oppdatertSaksbehandler,
                 beslutter = null,
                 status = oppdatertStatus,
-                venterTil = kommando.venterTil,
+                venterTil = oppdatertVenterTil,
                 sistEndret = nå,
                 klagebehandling = oppdatertKlagebehandling,
             )
@@ -85,7 +88,7 @@ fun Rammebehandling.settPåVent(
                 saksbehandler = oppdatertSaksbehandler,
                 beslutter = null,
                 status = oppdatertStatus,
-                venterTil = kommando.venterTil,
+                venterTil = oppdatertVenterTil,
                 sistEndret = nå,
                 klagebehandling = oppdatertKlagebehandling,
             )
