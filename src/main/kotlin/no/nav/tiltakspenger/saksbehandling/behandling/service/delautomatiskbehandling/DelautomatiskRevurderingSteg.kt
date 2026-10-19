@@ -72,11 +72,15 @@ class DelautomatiskRevurderingSteg(
      * Bygger statistikken for den opprettede revurderingen uten å lagre noe.
      * Kalleren lagrer med [no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService.lagre], i samme transaksjon som egne endringer.
      */
-    suspend fun forbered(sak: Sak, revurdering: Revurdering): ForberedtRevurdering {
+    suspend fun forbered(
+        sak: Sak,
+        revurdering: Revurdering,
+        simuleringMedMetadata: SimuleringMedMetadata? = null,
+    ): ForberedtRevurdering {
         val statistikk = statistikkService.generer(
             Statistikkhendelser(revurdering.genererSaksstatistikk(StatistikkhendelseType.OPPRETTET_REVURDERING)),
         )
-        return ForberedtRevurdering(sak, revurdering, statistikk)
+        return ForberedtRevurdering(sak, revurdering, statistikk, simuleringMedMetadata)
     }
 
     /**

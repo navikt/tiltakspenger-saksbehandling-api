@@ -249,6 +249,36 @@ data class Revurdering(
             )
         }
 
+        /**
+         * En omgjøring som opprettes av systemet klar til behandling for en saksbehandler.
+         * Den behandles ikke automatisk, men systemet kan fylle den ut før den lagres, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.fyllUtAutomatiskOpprettetOpphør].
+         *
+         * @param omgjørRammevedtak Rammevedtaket som erstattes helt eller delvis
+         */
+        fun opprettAutomatiskOmgjøring(
+            revurderingId: RammebehandlingId = RammebehandlingId.random(),
+            saksopplysninger: Saksopplysninger,
+            omgjørRammevedtak: Rammevedtak,
+            opprettet: LocalDateTime,
+            automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn,
+        ): Revurdering {
+            return opprett(
+                revurderingId = revurderingId,
+                sakId = omgjørRammevedtak.sakId,
+                saksnummer = omgjørRammevedtak.saksnummer,
+                fnr = omgjørRammevedtak.fnr,
+                status = KLAR_TIL_BEHANDLING,
+                saksbehandler = null,
+                saksopplysninger = saksopplysninger,
+                opprettet = opprettet,
+                resultat = Omgjøringsresultat.OmgjøringIkkeValgt(
+                    omgjørRammevedtak = OmgjørRammevedtak.create(omgjørRammevedtak),
+                ),
+                klagebehandling = null,
+                automatiskOpprettetGrunn = automatiskOpprettetGrunn,
+            )
+        }
+
         fun opprettInnvilgelse(
             sakId: SakId,
             saksnummer: Saksnummer,

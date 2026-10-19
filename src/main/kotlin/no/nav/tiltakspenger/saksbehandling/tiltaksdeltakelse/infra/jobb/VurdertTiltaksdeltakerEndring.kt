@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb
 
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 
 /**
  * Utfallet av å vurdere nå-tilstanden til en tiltaksdeltakelse mot de gjeldende vedtakene på saken.
@@ -25,24 +24,19 @@ sealed interface VurdertTiltaksdeltakerEndring {
 }
 
 /**
- * Revurderingen som kan opprettes automatisk for en endret tiltaksdeltakelse, med én implementasjon per revurderingstype.
+ * Revurderingen som kan opprettes automatisk for en endret tiltaksdeltakelse.
  * Hver type får på sikt egne attributter når mer av saksbehandlingen automatiseres.
  */
 sealed interface AutomatiskRevurderingAvEndring {
-    val type: StartRevurderingType
-
     /**
-     * Stansen opprettes under automatisk behandling, og verdiene for å fylle den ut utledes når den behandles.
+     * Avbruddet gir en stans eller et opphør, som avgjøres ut fra simuleringen når revurderingen opprettes.
+     * En stans opprettes under automatisk behandling, og verdiene for å fylle den ut utledes når den behandles.
+     * Et opphør fylles ut når det opprettes, og overlates til en saksbehandler.
+     * Se [no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskStansService.opprettStansEllerOpphør].
      */
-    data object Stans : AutomatiskRevurderingAvEndring {
-        override val type = StartRevurderingType.STANS
-    }
+    data object StansEllerOpphør : AutomatiskRevurderingAvEndring
 
-    data object Innvilgelse : AutomatiskRevurderingAvEndring {
-        override val type = StartRevurderingType.INNVILGELSE
-    }
+    data object Innvilgelse : AutomatiskRevurderingAvEndring
 
-    data class Omgjøring(val vedtakIdSomOmgjøres: VedtakId) : AutomatiskRevurderingAvEndring {
-        override val type = StartRevurderingType.OMGJØRING
-    }
+    data class Omgjøring(val vedtakIdSomOmgjøres: VedtakId) : AutomatiskRevurderingAvEndring
 }

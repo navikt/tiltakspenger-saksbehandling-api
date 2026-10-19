@@ -8,6 +8,7 @@ import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import java.time.LocalDate
 
@@ -43,6 +44,12 @@ data class MeldeperiodeBeregningerVedtatt private constructor(
             .filter { it.totalBeløp > 0 }
             .maxOfOrNull { it.dato }
     }
+
+    /** Antall dager i [periode] med et beløp (ordinært eller barnetillegg) i de gjeldende beregningene. */
+    fun antallDagerMedUtbetaling(periode: Periode): Int =
+        gjeldendeBeregninger
+            .flatMap { it.dager }
+            .count { it.totalBeløp > 0 && periode.inneholder(it.dato) }
 
     fun hentSisteForKjedeId(kjedeId: MeldeperiodeKjedeId): MeldeperiodeBeregning? {
         return gjeldendeBeregningPerKjede[kjedeId]

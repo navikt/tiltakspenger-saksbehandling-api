@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.ForberedtRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
@@ -185,7 +186,7 @@ class OppdatertTiltaksdeltakelseJobb(
 
         val revurderingSomSkalOpprettes = vurdertEndring.automatiskRevurdering
 
-        return if (revurderingSomSkalOpprettes != null) {
+        if (revurderingSomSkalOpprettes != null) {
             log.info { "Tiltaksdeltakelse er endret, oppretter revurdering ($logIder)" }
             forberedRevurdering(
                 sak,
@@ -193,11 +194,12 @@ class OppdatertTiltaksdeltakelseJobb(
                 AutomatiskOpprettetRevurderingGrunn(endring = endring, tiltaksdeltakerId = deltaker.id),
                 oppdatertDeltakelse,
                 logIder,
-            ).right()
+            )?.let { return it.right() }
+            log.info { "Kunne ikke opprette revurdering for endringen, oppretter oppgave ($logIder)" }
         } else {
             log.info { "Tiltaksdeltakelse er endret uten å opprette revurdering, oppretter oppgave ($logIder)" }
-            opprettOppgave(sak, endring, oppdatertDeltakelse, sisteUbehandletEndringTidspunkt, logIder)
         }
+        return opprettOppgave(sak, endring, oppdatertDeltakelse, sisteUbehandletEndringTidspunkt, logIder)
     }
 
     /**
@@ -228,6 +230,9 @@ class OppdatertTiltaksdeltakelseJobb(
     /**
      * En stans eller forlengelse opprettes under automatisk behandling og behandles videre av [DelautomatiskRevurderingJobb].
      * Omgjøringer opprettes klare til behandling for en saksbehandler.
+     * En stans kan i stedet bli et utfylt opphør klart til behandling, se [DelautomatiskStansService.opprettStansEllerOpphør].
+     *
+     * @return null dersom revurderingen ikke kan opprettes, og endringen må følges opp med en oppgave.
      */
     private suspend fun forberedRevurdering(
         sak: Sak,
@@ -235,10 +240,11 @@ class OppdatertTiltaksdeltakelseJobb(
         automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn,
         oppdatertTiltaksdeltakelse: Tiltaksdeltakelse.GirRett,
         logIder: String,
-    ): TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet {
+    ): TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet? {
         val correlationId = CorrelationId.generate()
         val forberedtRevurdering = when (revurderingSomSkalOpprettes) {
-            AutomatiskRevurderingAvEndring.Stans -> delautomatiskStansService.opprett(sak, automatiskOpprettetGrunn, correlationId)
+            AutomatiskRevurderingAvEndring.StansEllerOpphør -> delautomatiskStansService.opprettStansEllerOpphør(sak, automatiskOpprettetGrunn, correlationId)
+                ?: return null
 
             AutomatiskRevurderingAvEndring.Innvilgelse -> delautomatiskForlengelseService.opprett(sak, automatiskOpprettetGrunn, correlationId)
 
@@ -247,7 +253,7 @@ class OppdatertTiltaksdeltakelseJobb(
                     sakId = sak.id,
                     correlationId = correlationId,
                     saksbehandler = null,
-                    revurderingType = revurderingSomSkalOpprettes.type,
+                    revurderingType = StartRevurderingType.OMGJØRING,
                     vedtakIdSomOmgjøres = revurderingSomSkalOpprettes.vedtakIdSomOmgjøres,
                     klagebehandlingId = null,
                     automatiskOpprettetGrunn = automatiskOpprettetGrunn,

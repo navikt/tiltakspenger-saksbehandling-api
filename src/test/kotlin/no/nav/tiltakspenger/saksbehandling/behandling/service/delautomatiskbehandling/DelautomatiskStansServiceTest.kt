@@ -8,18 +8,23 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -32,6 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
@@ -42,7 +48,9 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.IngenRelevantEndring
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.junit.jupiter.api.Test
 
 class DelautomatiskStansServiceTest {
@@ -90,6 +98,28 @@ class DelautomatiskStansServiceTest {
         resultat shouldBe Revurderingsresultat.Stans.empty
     }
 
+    /**
+     * Innvilger hele deltakelsen og utbetaler første meldeperiode, 6.–17. januar 2025.
+     * Gir saken slik den var før meldekortet, og søknadsvedtaket.
+     */
+    private suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingMedUtbetaling(
+        tac: TestApplicationContextMedPostgres,
+        deltakelse: TiltaksdeltakelseIntern,
+    ): Pair<Sak, Rammevedtak> {
+        val (sak, _, søknadsvedtak) = iverksettSøknadsbehandling(
+            tac = tac,
+            tiltaksdeltakelse = deltakelse,
+            innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+        )
+        val (sakMedUtbetaling) = opprettOgIverksettMeldekortbehandling(
+            tac = tac,
+            sakId = sak.id,
+            kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+        )!!
+        sakMedUtbetaling.meldeperiodeBeregninger.sisteDagMedUtbetaling shouldBe 17.januar(2025)
+        return sak to søknadsvedtak
+    }
+
     @Test
     fun `avbrutt deltakelse med sluttdato i fortiden - fylles ut og sendes til beslutning av tp-sak`() {
         withTestApplicationContextAndPostgres { tac ->
@@ -124,27 +154,18 @@ class DelautomatiskStansServiceTest {
 
     /**
      * Stans støtter ikke feilutbetaling, så dager som oppdragssystemet allerede har utbetalt etter sluttdatoen skal ikke stanses.
-     * Simuleringen fra sluttdatoen viser feilutbetaling, og stansen flyttes til dagen etter siste dag med feilutbetaling.
+     * Simuleringen fra sluttdatoen viser feilutbetaling for 13.–17. januar, og stansen flyttes til dagen etter siste dag med feilutbetaling.
+     * Fem utbetalte dager er det meste som stanses, flere gir opphør.
      */
     @Test
-    fun `utbetalt etter sluttdato - stanses fra dagen etter siste dag med feilutbetaling`() {
+    fun `utbetalt fem dager etter sluttdato - stanses fra dagen etter siste dag med feilutbetaling`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakelse = tac.tiltaksdeltakelse(6.januar(2025) til 5.mai(2025))
-            val (sak) = iverksettSøknadsbehandling(
-                tac = tac,
-                tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
-            )
-            val (sakMedUtbetaling) = opprettOgIverksettMeldekortbehandling(
-                tac = tac,
-                sakId = sak.id,
-                kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
-            )!!
-            sakMedUtbetaling.meldeperiodeBeregninger.sisteDagMedUtbetaling shouldBe 17.januar(2025)
+            val (sak) = iverksettSøknadsbehandlingMedUtbetaling(tac, deltakelse)
             val revurdering = tac.opprettAutomatiskStans(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 7.januar(2025)),
+                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 10.januar(2025)),
             )
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
@@ -160,6 +181,102 @@ class DelautomatiskStansServiceTest {
         }
     }
 
+    @Test
+    fun `avbrutt tilbake i tid i en innvilgelse som er passert - fylles ut og sendes til beslutning`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(6.januar(2025) til 31.mars(2025))
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+            )
+            val revurdering = tac.opprettAutomatiskStans(
+                sak = sak,
+                tiltaksdeltakelse = deltakelse,
+                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 20.februar(2025)),
+            )
+
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+
+            tac.hentRevurdering(sak, revurdering).also {
+                it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+                it.manueltBehandlesGrunner.shouldBeEmpty()
+                it.resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>().stansperiode shouldBe (21.februar(2025) til 31.mars(2025))
+            }
+        }
+    }
+
+    /**
+     * Simuleringen fra sluttdatoen viser feilutbetaling for seks utbetalingsdager, 10. og 13.–17. januar.
+     * Da opprettes et utfylt og prioritert opphør fra dagen etter sluttdatoen, som overlates til en saksbehandler uten å behandles automatisk.
+     * Innvilgelsen er passert, så opphøret gjelder i sin helhet tilbake i tid.
+     */
+    @Test
+    fun `utbetalt mer enn fem dager etter sluttdato - opprettes opphør som overlates til saksbehandler`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(6.januar(2025) til 31.mars(2025))
+            val (sak) = iverksettSøknadsbehandlingMedUtbetaling(tac, deltakelse)
+
+            tac.behandleEndring(
+                sak = sak,
+                tiltaksdeltakelse = deltakelse,
+                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 9.januar(2025)),
+            ).shouldBeInstanceOf<RevurderingOpprettet>()
+
+            val opphør = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(opphør.id)
+
+            tac.hentRevurdering(sak, opphør).also {
+                it shouldBe opphør
+                it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+                it.saksbehandler.shouldBeNull()
+                it.erUnderAutomatiskBehandling shouldBe false
+                it.manueltBehandlesGrunner.shouldBeEmpty()
+                it.automatiskOpprettetGrunn.shouldNotBeNull().tiltaksdeltakerId shouldBe deltakelse.internDeltakelseId
+                it.skalSendeVedtaksbrev shouldBe true
+                val resultat = it.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringOpphør>()
+                resultat.vedtaksperiode shouldBe (10.januar(2025) til 31.mars(2025))
+                resultat.valgteHjemler shouldBe nonEmptySetOf(HjemmelForOpphør.DeltarIkkePåArbeidsmarkedstiltak)
+                resultat.omgjørRammevedtak.rammevedtakIDer shouldBe listOf(sak.rammevedtaksliste.single().id)
+                it.begrunnelseVilkårsvurdering!!.verdi shouldBe
+                    "Automatisk opprettet. Tiltaksdeltakelsen er avbrutt, og tiltakspengene opphøres fra og med 10. januar 2025 fordi bruker ikke lenger deltar på arbeidsmarkedstiltak. " +
+                    "Oppdragssystemet har allerede utbetalt tiltakspenger for 6 dager fra og med 10. januar 2025, og utbetalingen for disse dagene blir feilutbetaling."
+                it.prioritering shouldBe Prioritering.create(
+                    "Opphør må behandles omgående for å begrense feilutbetaling. " +
+                        "Oppdragssystemet har allerede utbetalt tiltakspenger for 6 dager etter at deltakelsen ble avbrutt.",
+                )
+                it.utbetaling.shouldNotBeNull().simulering.shouldNotBeNull().harFeilutbetaling shouldBe true
+            }
+        }
+    }
+
+    /**
+     * Et opphør over 10. januar–5. mai ville omgjort både søknadsvedtaket og omgjøringen fra 1. februar.
+     */
+    @Test
+    fun `utbetalt mer enn fem dager og opphøret ville omgjort flere vedtak - oppretter oppgave`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(6.januar(2025) til 5.mai(2025))
+            val (sak, søknadsvedtak) = iverksettSøknadsbehandlingMedUtbetaling(tac, deltakelse)
+            iverksettOmgjøringInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = søknadsvedtak.id,
+                vedtaksperiode = 1.februar(2025) til 5.mai(2025),
+                innvilgelsesperioder = innvilgelsesperioder(1.februar(2025) til 5.mai(2025), deltakelse),
+            )
+
+            tac.behandleEndring(
+                sak = sak,
+                tiltaksdeltakelse = deltakelse,
+                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 9.januar(2025)),
+            ).shouldBeInstanceOf<OppgaveOpprettet>()
+
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.filterIsInstance<Revurdering>()
+                .filter { it.automatiskOpprettetGrunn != null }.shouldBeEmpty()
+        }
+    }
+
     /**
      * Fram til oppdragssystemet har utbetalt, viser ikke simuleringen feilutbetaling, og stansen gjelder fra dagen etter sluttdatoen.
      * Den prioriteres, siden den må iverksettes før oppdragssystemet utbetaler.
@@ -168,17 +285,7 @@ class DelautomatiskStansServiceTest {
     fun `sendt utbetaling som oppdragssystemet ikke har utbetalt - stanses fra dagen etter sluttdato og prioriteres`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakelse = tac.tiltaksdeltakelse(6.januar(2025) til 5.mai(2025))
-            val (sak) = iverksettSøknadsbehandling(
-                tac = tac,
-                tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
-            )
-            val (sakMedUtbetaling) = opprettOgIverksettMeldekortbehandling(
-                tac = tac,
-                sakId = sak.id,
-                kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
-            )!!
-            sakMedUtbetaling.meldeperiodeBeregninger.sisteDagMedUtbetaling shouldBe 17.januar(2025)
+            val (sak) = iverksettSøknadsbehandlingMedUtbetaling(tac, deltakelse)
             tac.utbetalingFakeKlient.sakUtbetaltAvOppdrag = sak
             val revurdering = tac.opprettAutomatiskStans(
                 sak = sak,

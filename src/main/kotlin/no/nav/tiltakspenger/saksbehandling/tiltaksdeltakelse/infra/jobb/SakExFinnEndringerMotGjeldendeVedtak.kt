@@ -271,9 +271,11 @@ private fun GjeldendeInnvilgelse.finnEndringer(
  * Vurderer hvilken revurdering som kan opprettes automatisk for endringen, eller null dersom den må følges opp manuelt.
  * Det opprettes ikke revurdering dersom saken mangler førstegangsvedtak eller har åpne behandlinger.
  *
- * - Avbrudd gir stans, så lenge deltakelsen er innvilget fra og med i dag og ingen andre deltakelser er innvilget etter avbruddet.
+ * - Avbrudd gir stans eller opphør, så lenge deltakelsen er innvilget etter avbruddet og ingen andre deltakelser er innvilget etter avbruddet.
+ * Avbruddet kan gjelde tilbake i tid, også i en innvilgelse som er passert.
  * Er andre deltakelser innvilget etter avbruddet, vurderes omgjøring i stedet, siden en stans også ville stanset dem.
- * Stansen behandles automatisk etter at den er opprettet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.utledAutomatiskStans].
+ * En stans behandles automatisk etter at den er opprettet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.utledAutomatiskStans].
+ * Har oppdragssystemet allerede utbetalt for mange dager etter avbruddet, opprettes et opphør i stedet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.vurderOpphørIStedenforStans].
  * - Forlengelse gir innvilgelse dersom ny sluttdato er etter siste dag med rett på saken.
  * Ellers vurderes omgjøring dersom deltakelsesmengden er endret samtidig.
  * Forlengelsen behandles automatisk etter at den er opprettet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskForlengelse.utledAutomatiskForlengelse].
@@ -321,7 +323,8 @@ private fun Sak.vurderAutomatiskRevurdering(
 
 /**
  * Avbruddet gjelder fra dagen etter ny sluttdato dersom den er avkortet inn i de innvilgede periodene, og ellers fra i dag.
- * Avbrudd i innvilgelser som er passert følges opp manuelt.
+ * Er ingen dager innvilget fra avbruddet, er det ingenting å stanse eller opphøre, og avbruddet følges opp manuelt.
+ * Det gjelder når en innvilgelse som er passert avbrytes uten at sluttdatoen avkortes.
  */
 private fun Sak.vurderRevurderingForAvbrudd(
     tiltaksdeltakerId: TiltaksdeltakerId,
@@ -329,15 +332,14 @@ private fun Sak.vurderRevurderingForAvbrudd(
     gjeldendeInnvilgelse: GjeldendeInnvilgelse,
     iDag: LocalDate,
 ): AutomatiskRevurderingAvEndring? {
-    if (gjeldendeInnvilgelse.sisteInnvilgedeDag.isBefore(iDag)) {
-        return null
-    }
-
     val nySluttdato = oppdatertTilstand.deltakelseTilOgMed
     val avbruttFraOgMed = if (nySluttdato != null && nySluttdato.isBefore(gjeldendeInnvilgelse.sisteInnvilgedeDag)) {
         maxOf(nySluttdato.plusDays(1), gjeldendeInnvilgelse.førsteInnvilgedeDag)
     } else {
         iDag
+    }
+    if (avbruttFraOgMed.isAfter(gjeldendeInnvilgelse.sisteInnvilgedeDag)) {
+        return null
     }
 
     val harAndreDeltakelserInnvilgetEtterAvbruddet = rammevedtaksliste.valgteTiltaksdeltakelser.perioderMedVerdi.any {
@@ -350,7 +352,7 @@ private fun Sak.vurderRevurderingForAvbrudd(
         )
     }
 
-    return AutomatiskRevurderingAvEndring.Stans
+    return AutomatiskRevurderingAvEndring.StansEllerOpphør
 }
 
 /** De gjeldende vedtakene som innvilger periodene endret startdato, sluttdato eller deltakelsesmengde berører. */
