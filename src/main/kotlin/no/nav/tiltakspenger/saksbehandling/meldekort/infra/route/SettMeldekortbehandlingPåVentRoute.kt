@@ -37,8 +37,7 @@ private const val SETT_MELDEKORTBEHANDLING_PÅ_VENT_PATH = "/sak/{sakId}/meldeko
 private data class SettMeldekortbehandlingPåVentBody(
     val begrunnelse: String,
     val frist: LocalDate?,
-    // TODO - slett standardverdien når frontend sender flagget
-    val oppdaterSattPåVent: Boolean = false,
+    val oppdaterSattPåVent: Boolean,
 ) {
     fun tilKommando(
         sakId: SakId,
