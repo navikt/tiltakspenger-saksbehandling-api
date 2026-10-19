@@ -11,12 +11,17 @@ import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdetTekst
+import no.nav.tiltakspenger.saksbehandling.infra.route.klagebehandlingJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldHaSisteVentestatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.KanIkkeSetteKlagebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder.Vurderingstype
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandlingTilVurdering
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettKlagebehandlingMedRammebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettKlagebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.leggKlagebehandlingTilbake
@@ -114,6 +119,97 @@ class SettKlagebehandlingPåVentRouteTest {
                 //language=json
                 ventestatus = listOf("""{"sattPåVentAv": "saksbehandlerKlagebehandling","status": "MOTTATT_FRA_KLAGEINSTANS","tidspunkt": "TIMESTAMP","begrunnelse": {"verdi": "begrunnelse for å sette klage på vent", "erSladdet": false},"erSattPåVent": true,"frist": "2025-01-14"}"""),
             )
+        }
+    }
+
+    @Test
+    fun `kan oppdatere begrunnelse og frist på en klagebehandling som er satt på vent`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
+            val annenSaksbehandler = ObjectMother.saksbehandler("annenSaksbehandler")
+            val (sak, _, _, klagebehandling, _) = iverksettSøknadsbehandlingOgSettKlagebehandlingPåVent(
+                tac = tac,
+            )!!
+
+            val (_, oppdatertKlagebehandling, sakJson) = settKlagebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                saksbehandler = annenSaksbehandler,
+                begrunnelse = "Oppdatert begrunnelse",
+                frist = 21.januar(2025),
+                oppdaterSattPåVent = true,
+            )!!
+
+            oppdatertKlagebehandling.status shouldBe Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
+            oppdatertKlagebehandling.saksbehandler shouldBe null
+            sakJson.klagebehandlingJson(klagebehandling.id).shouldHaSisteVentestatus(
+                sattPåVentAv = annenSaksbehandler.navIdent,
+                begrunnelse = "Oppdatert begrunnelse",
+                status = "KLAR_TIL_BEHANDLING",
+                frist = 21.januar(2025),
+                forventetAntallHendelser = 2,
+            )
+        }
+    }
+
+    @Test
+    fun `kan ikke oppdatere en klagebehandling som ikke er satt på vent`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
+            val (sak, _, _, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettKlagebehandlingTilVurdering(
+                tac = tac,
+            )!!
+
+            settKlagebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                oppdaterSattPåVent = true,
+                forventet = ForventetRespons.json(
+                    400,
+                    """
+                    {
+                      "melding": "Behandlingen må være satt på vent for å kunne oppdateres.",
+                      "kode": "må_være_satt_på_vent"
+                    }
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
+            ) shouldBe null
+
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+                .hentKlagebehandling(klagebehandling.id).ventestatus.ventestatusHendelser shouldBe emptyList()
+        }
+    }
+
+    @Test
+    fun `kan ikke sette en klagebehandling på vent på nytt uten å oppdatere`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
+            val (sak, _, _, klagebehandling, _) = iverksettSøknadsbehandlingOgSettKlagebehandlingPåVent(
+                tac = tac,
+            )!!
+
+            settKlagebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                oppdaterSattPåVent = false,
+                forventet = ForventetRespons.json(
+                    400,
+                    """
+                    {
+                      "melding": "Klagebehandlingen er satt på vent. Den må gjenopptas før den kan behandles videre.",
+                      "kode": "klagebehandling_er_satt_på_vent"
+                    }
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
+            ) shouldBe null
+
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+                .hentKlagebehandling(klagebehandling.id).ventestatus.ventestatusHendelser.size shouldBe 1
         }
     }
 

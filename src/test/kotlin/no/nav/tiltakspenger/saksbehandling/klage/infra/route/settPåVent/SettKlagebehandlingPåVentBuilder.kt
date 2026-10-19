@@ -64,7 +64,11 @@ interface SettKlagebehandlingPåVentBuilder {
         return Tuple5(oppdatertSak, søknad, rammevedtakSøknadsbehandling, oppdatertKlagebehandling, json)
     }
 
-    /** Forventer at det allerede finnes en sak og åpen klagebehandling. */
+    /**
+     * Forventer at det allerede finnes en sak og åpen klagebehandling.
+     *
+     * Med [oppdaterSattPåVent] forventes det i stedet at klagebehandlingen allerede er satt på vent, og begrunnelse og frist oppdateres.
+     */
     suspend fun ApplicationTestBuilder.settKlagebehandlingPåVent(
         tac: TestApplicationContext,
         sakId: SakId,
@@ -72,6 +76,7 @@ interface SettKlagebehandlingPåVentBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         begrunnelse: String = "begrunnelse for å sette klage på vent",
         frist: LocalDate = LocalDate.of(2025, 1, 14),
+        oppdaterSattPåVent: Boolean = false,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Klagebehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
@@ -86,7 +91,8 @@ interface SettKlagebehandlingPåVentBuilder {
             """
                 {
                     "begrunnelse": "$begrunnelse",
-                    "frist": "$frist"
+                    "frist": "$frist",
+                    "oppdaterSattPåVent": $oppdaterSattPåVent
                 }
             """.trimIndent(),
         ).apply {
