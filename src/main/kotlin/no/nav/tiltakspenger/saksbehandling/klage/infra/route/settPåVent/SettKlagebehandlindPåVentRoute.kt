@@ -33,8 +33,7 @@ import java.time.LocalDate
 private data class SettKlagebehandlingPåVentBody(
     val begrunnelse: String,
     val frist: LocalDate?,
-    // TODO - fjern standardverdien fra flagget når frontend sender det
-    val oppdaterSattPåVent: Boolean = false,
+    val oppdaterSattPåVent: Boolean,
 ) {
     fun tilKommando(
         sakId: SakId,
