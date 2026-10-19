@@ -33,6 +33,8 @@ import java.time.LocalDate
 private data class SettKlagebehandlingPåVentBody(
     val begrunnelse: String,
     val frist: LocalDate?,
+    // TODO - fjern standardverdien fra flagget når frontend sender det
+    val oppdaterSattPåVent: Boolean = false,
 ) {
     fun tilKommando(
         sakId: SakId,
@@ -43,7 +45,7 @@ private data class SettKlagebehandlingPåVentBody(
             sakId = sakId,
             klagebehandlingId = klagebehandlingId,
             saksbehandler = saksbehandler,
-            oppdaterPåVent = false,
+            oppdaterPåVent = oppdaterSattPåVent,
             begrunnelse = begrunnelse,
             frist = frist,
         )
@@ -86,7 +88,7 @@ fun Route.settKlagebehandlingPåVentRoute(
                                 sakId = sakId,
                                 navIdent = saksbehandler.navIdent,
                                 action = AuditLogEvent.Action.UPDATE,
-                                contextMessage = "Overtar klagebehandling på sak $sakId",
+                                contextMessage = "Setter klagebehandling på sak $sakId på vent",
                                 correlationId = correlationId,
                                 behandlingId = behandlingId,
                             )
@@ -123,6 +125,11 @@ fun KanIkkeSetteKlagebehandlingPåVent.toStatusAndErrorJson(): Pair<HttpStatusCo
         KanIkkeSetteKlagebehandlingPåVent.KlagenMåVæreSattPåVentForÅKunneOppdateres -> HttpStatusCode.BadRequest to ErrorJson(
             melding = "Behandlingen må være satt på vent for å kunne oppdateres.",
             kode = "må_være_satt_på_vent",
+        )
+
+        KanIkkeSetteKlagebehandlingPåVent.MåVæreBeslutterForÅKunneSetteKlagenPåVent -> HttpStatusCode.Forbidden to ErrorJson(
+            melding = "Du må være beslutter for å sette denne behandlingen på vent.",
+            kode = "maa_vaere_beslutter",
         )
     }
 }

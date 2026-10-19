@@ -29,7 +29,7 @@ suspend fun Sak.settKlagebehandlingPåVent(
                 SettRammebehandlingPåVentKommando(
                     sakId = kommando.sakId,
                     rammebehandlingId = tilknyttetBehandling.rammebehandling.id,
-                    oppdaterPåVent = false,
+                    oppdaterPåVent = kommando.oppdaterPåVent,
                     begrunnelse = kommando.begrunnelse,
                     frist = kommando.frist,
                     saksbehandler = kommando.saksbehandler,
@@ -40,7 +40,7 @@ suspend fun Sak.settKlagebehandlingPåVent(
                 SettMeldekortbehandlingPåVentKommando(
                     sakId = kommando.sakId,
                     meldekortId = tilknyttetBehandling.meldekortbehandling.id,
-                    oppdaterPåVent = false,
+                    oppdaterPåVent = kommando.oppdaterPåVent,
                     begrunnelse = kommando.begrunnelse,
                     frist = kommando.frist,
                     saksbehandler = kommando.saksbehandler,

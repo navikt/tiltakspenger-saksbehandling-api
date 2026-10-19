@@ -40,7 +40,21 @@ class SettKlagebehandlingPåVentService(
                         KanIkkeSetteRammebehandlingPåVent.BehandlingenErIkkeLengerUnderBeslutning ->
                             KanIkkeSetteKlagebehandlingPåVent.BehandlingenErIkkeLengerUnderBeslutning
 
-                        else -> throw IllegalStateException(
+                        KanIkkeSetteRammebehandlingPåVent.BehandlingMåVæreSattPåVentForÅKunneOppdateres ->
+                            KanIkkeSetteKlagebehandlingPåVent.KlagenMåVæreSattPåVentForÅKunneOppdateres
+
+                        KanIkkeSetteRammebehandlingPåVent.MåVæreBeslutter ->
+                            KanIkkeSetteKlagebehandlingPåVent.MåVæreBeslutterForÅKunneSetteKlagenPåVent
+
+                        is KanIkkeSetteRammebehandlingPåVent.KunneIkkeSetteKlagebehandlingenPåVent ->
+                            it.underliggende
+
+                        KanIkkeSetteRammebehandlingPåVent.BehandlingenErAlleredePåVent,
+                        KanIkkeSetteRammebehandlingPåVent.MåVæreSaksbehandler,
+                        KanIkkeSetteRammebehandlingPåVent.MåVæreSaksbehandlerForBehandlingen,
+                        KanIkkeSetteRammebehandlingPåVent.MåVæreBeslutterForBehandlingen,
+                        is KanIkkeSetteRammebehandlingPåVent.UgyldigStatus,
+                        -> throw IllegalStateException(
                             "Kunne ikke sette rammebehandling ${settPåVentKommando.rammebehandlingId} tilknyttet klagebehandling ${kommando.klagebehandlingId} på vent: $it",
                         )
                     }
@@ -52,7 +66,21 @@ class SettKlagebehandlingPåVentService(
                         KanIkkeSetteMeldekortbehandlingPåVent.BehandlingenErIkkeLengerUnderBeslutning ->
                             KanIkkeSetteKlagebehandlingPåVent.BehandlingenErIkkeLengerUnderBeslutning
 
-                        else -> throw IllegalStateException(
+                        KanIkkeSetteMeldekortbehandlingPåVent.BehandlingMåVæreSattPåVentForÅKunneOppdateres ->
+                            KanIkkeSetteKlagebehandlingPåVent.KlagenMåVæreSattPåVentForÅKunneOppdateres
+
+                        KanIkkeSetteMeldekortbehandlingPåVent.MåVæreBeslutter ->
+                            KanIkkeSetteKlagebehandlingPåVent.MåVæreBeslutterForÅKunneSetteKlagenPåVent
+
+                        is KanIkkeSetteMeldekortbehandlingPåVent.KunneIkkeSetteKlagebehandlingenPåVent ->
+                            it.underliggende
+
+                        KanIkkeSetteMeldekortbehandlingPåVent.BehandlingenErAlleredePåVent,
+                        KanIkkeSetteMeldekortbehandlingPåVent.MåVæreSaksbehandler,
+                        KanIkkeSetteMeldekortbehandlingPåVent.MåVæreSaksbehandlerForMeldekortet,
+                        KanIkkeSetteMeldekortbehandlingPåVent.MåVæreBeslutterForMeldekortet,
+                        is KanIkkeSetteMeldekortbehandlingPåVent.UgyldigStatus,
+                        -> throw IllegalStateException(
                             "Kunne ikke sette meldekortbehandling ${settPåVentKommando.meldekortId} tilknyttet klagebehandling ${kommando.klagebehandlingId} på vent: $it",
                         )
                     }

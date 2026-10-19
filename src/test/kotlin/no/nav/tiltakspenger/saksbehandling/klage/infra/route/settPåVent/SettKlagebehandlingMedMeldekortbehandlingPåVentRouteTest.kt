@@ -3,18 +3,24 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.settPåVent
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.VentestatusHendelse
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.klagebehandlingJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLocalDateTime
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldHaSisteVentestatus
 import no.nav.tiltakspenger.saksbehandling.infra.route.sladdbarVerdi
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.meldekortbehandlingMedKlageSattPåVentFraKlageRoute
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.meldekortbehandlingMedKlagebehandlingSattPåVentFraMeldekortRoute
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.meldekortbehandlingUnderBeslutningMedKlagebehandlingSattPåVentFraMeldekortRoute
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settKlagebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settMeldekortbehandlingPåVent
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -358,6 +364,120 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
                 hendelse.erSattPåVent shouldBe true
                 hendelse.status shouldBe "KLAR_TIL_BEHANDLING"
             }
+        }
+    }
+
+    @Test
+    fun `kan oppdatere begrunnelse og frist på klagebehandling med meldekortbehandling fra klagebehandlingen`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
+            val annenSaksbehandler = ObjectMother.saksbehandler("annenSaksbehandler")
+            val (sak, meldekortPåVent, _) = meldekortbehandlingMedKlageSattPåVentFraKlageRoute(
+                tac = tac,
+            )!!
+            val klagebehandlingId = meldekortPåVent.klagebehandling!!.id
+
+            val (oppdatertSak, oppdatertKlagebehandling, sakJson) = settKlagebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandlingId,
+                saksbehandler = annenSaksbehandler,
+                begrunnelse = "Oppdatert begrunnelse",
+                frist = 21.januar(2025),
+                oppdaterSattPåVent = true,
+            )!!
+            val oppdatertMeldekortbehandling = oppdatertSak.hentMeldekortbehandling(meldekortPåVent.id)!!
+
+            oppdatertMeldekortbehandling.status shouldBe MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING
+            oppdatertMeldekortbehandling.saksbehandler shouldBe null
+            oppdatertKlagebehandling.status shouldBe Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
+            oppdatertKlagebehandling.saksbehandler shouldBe null
+
+            sakJson.get("meldekortbehandlinger").get(meldekortPåVent.id.toString()).shouldHaSisteVentestatus(
+                sattPåVentAv = annenSaksbehandler.navIdent,
+                begrunnelse = "Oppdatert begrunnelse",
+                status = "KLAR_TIL_BEHANDLING",
+                frist = 21.januar(2025),
+                forventetAntallHendelser = 2,
+            )
+            sakJson.klagebehandlingJson(klagebehandlingId).shouldHaSisteVentestatus(
+                sattPåVentAv = annenSaksbehandler.navIdent,
+                begrunnelse = "Oppdatert begrunnelse",
+                status = "KLAR_TIL_BEHANDLING",
+                frist = 21.januar(2025),
+                forventetAntallHendelser = 2,
+            )
+        }
+    }
+
+    @Test
+    fun `kan ikke oppdatere klagebehandling når tilknyttet meldekortbehandling ikke er satt på vent`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
+            val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
+            val (sak, klagebehandling, meldekortbehandling) = opprettMeldekortbehandlingForKlage(
+                tac = tac,
+                saksbehandlerKlagebehandling = saksbehandler,
+            )
+
+            settKlagebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                saksbehandler = saksbehandler,
+                oppdaterSattPåVent = true,
+                forventet = ForventetRespons.json(
+                    400,
+                    """
+                    {
+                      "melding": "Behandlingen må være satt på vent for å kunne oppdateres.",
+                      "kode": "må_være_satt_på_vent"
+                    }
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
+            ) shouldBe null
+
+            val lagretSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+            lagretSak.hentMeldekortbehandling(meldekortbehandling.id)!!.ventestatus.ventestatusHendelser shouldBe emptyList()
+            lagretSak.hentKlagebehandling(klagebehandling.id).ventestatus.ventestatusHendelser shouldBe emptyList()
+        }
+    }
+
+    @Test
+    fun `saksbehandler uten beslutterrolle kan ikke oppdatere klagebehandling når tilknyttet meldekortbehandling er klar til beslutning`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
+            val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
+            val (sak, meldekortPåVent, _) = meldekortbehandlingUnderBeslutningMedKlagebehandlingSattPåVentFraMeldekortRoute(
+                tac = tac,
+                saksbehandler = saksbehandler,
+            )!!
+            val klagebehandlingId = meldekortPåVent.klagebehandling!!.id
+
+            settKlagebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandlingId,
+                saksbehandler = saksbehandler,
+                begrunnelse = "Oppdatert begrunnelse",
+                frist = 21.januar(2025),
+                oppdaterSattPåVent = true,
+                forventet = ForventetRespons.json(
+                    403,
+                    """
+                    {
+                      "melding": "Du må være beslutter for å sette denne behandlingen på vent.",
+                      "kode": "maa_vaere_beslutter"
+                    }
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
+            ) shouldBe null
+
+            val lagretSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+            lagretSak.hentMeldekortbehandling(meldekortPåVent.id)!!.ventestatus.ventestatusHendelser.size shouldBe 1
+            lagretSak.hentKlagebehandling(klagebehandlingId).ventestatus.ventestatusHendelser.size shouldBe 1
         }
     }
 }

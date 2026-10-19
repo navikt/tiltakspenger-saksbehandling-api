@@ -15,4 +15,10 @@ sealed interface KanIkkeSetteKlagebehandlingPåVent {
     ) : KanIkkeSetteKlagebehandlingPåVent
 
     data object KlagenMåVæreSattPåVentForÅKunneOppdateres : KanIkkeSetteKlagebehandlingPåVent
+
+    /**
+     * Den tilknyttede ramme- eller meldekortbehandlingen venter hos beslutter, og utøvende bruker mangler beslutterrolle.
+     * Klagen følger den tilknyttede behandlingen, så det er den behandlingens tilgangsregler som gjelder.
+     */
+    data object MåVæreBeslutterForÅKunneSetteKlagenPåVent : KanIkkeSetteKlagebehandlingPåVent
 }
