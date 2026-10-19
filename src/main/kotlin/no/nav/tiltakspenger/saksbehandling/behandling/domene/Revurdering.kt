@@ -149,6 +149,25 @@ data class Revurdering(
         return this.copy(klagebehandling = klagebehandling)
     }
 
+    /**
+     * Flytter tidspunktet en automatisk revurdering på vent skal vurderes på nytt.
+     */
+    fun oppdaterVenterTil(
+        nyVenterTil: LocalDateTime,
+        clock: Clock,
+    ): Revurdering {
+        require(status == UNDER_AUTOMATISK_BEHANDLING && saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID) {
+            "Kun behandlinger under automatisk behandling kan oppdatere venterTil-tidspunkt"
+        }
+        require(ventestatus.erSattPåVent) {
+            "Kan ikke oppdatere venterTil hvis behandlingen ikke allerede er satt på vent"
+        }
+        return this.copy(
+            venterTil = nyVenterTil,
+            sistEndret = nå(clock),
+        )
+    }
+
     companion object {
         fun opprettStans(
             sakId: SakId,

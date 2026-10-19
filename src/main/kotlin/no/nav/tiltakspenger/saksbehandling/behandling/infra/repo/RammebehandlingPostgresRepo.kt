@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotliquery.Session
-import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -66,12 +65,10 @@ class RammebehandlingPostgresRepo(
     ) {
         sessionContext.withSession { session ->
             session.run(
-                queryOf(
+                sqlQuery(
                     """update behandling set simulering_metadata = :simulering_metadata where id = :id""",
-                    mapOf(
-                        "id" to behandlingId.toString(),
-                        "simulering_metadata" to originalResponseBody,
-                    ),
+                    "id" to behandlingId.toString(),
+                    "simulering_metadata" to originalResponseBody,
                 ).asUpdate,
             )
         }
@@ -180,12 +177,13 @@ class RammebehandlingPostgresRepo(
     ): Boolean {
         return sessionFactory.withTransaction(transactionContext) { tx ->
             val oppdatert = tx.run(
-                queryOf(
+                sqlQuery(
                     """
                     $OPPDATER_RAMMEBEHANDLING
                     where id = :id and status = 'UNDER_BESLUTNING' and beslutter = :forventet_beslutter and sendt_til_beslutning = :sendt_til_beslutning
                     """.trimIndent(),
-                    rammebehandling.tilDbParams() + ("forventet_beslutter" to utøvendeBeslutter.navIdent),
+                    "forventet_beslutter" to utøvendeBeslutter.navIdent,
+                    *rammebehandling.tilDbParams(),
                 ).asUpdate,
             ) > 0
             // Klagebehandlingen lagres bare når vakten slapp gjennom, slik at et avvist kappløp ikke etterlater endringer.
@@ -260,7 +258,7 @@ class RammebehandlingPostgresRepo(
     override fun hentBehandlingerTilDatadeling(limit: Int): List<Rammebehandling> {
         return sessionFactory.withSession { session ->
             session.run(
-                queryOf(
+                sqlQuery(
                     // language=SQL
                     """
                     select b.*,sak.saksnummer,sak.fnr
@@ -270,9 +268,7 @@ class RammebehandlingPostgresRepo(
                     order by b.opprettet
                     limit :limit
                     """.trimIndent(),
-                    mapOf(
-                        "limit" to limit,
-                    ),
+                    "limit" to limit,
                 ).map { it.toBehandling(session) }.asList,
             )
         }
@@ -281,14 +277,12 @@ class RammebehandlingPostgresRepo(
     override fun markerSendtTilDatadeling(id: RammebehandlingId, tidspunkt: LocalDateTime) {
         sessionFactory.withSession { session ->
             session.run(
-                queryOf(
+                sqlQuery(
                     """
                     update behandling set sendt_til_datadeling = :tidspunkt where id = :id
                     """.trimIndent(),
-                    mapOf(
-                        "id" to id.toString(),
-                        "tidspunkt" to tidspunkt,
-                    ),
+                    "id" to id.toString(),
+                    "tidspunkt" to tidspunkt,
                 ).asUpdate,
             )
         }
@@ -297,7 +291,7 @@ class RammebehandlingPostgresRepo(
     override fun hentAutomatiskeSoknadsbehandlingIder(limit: Int): List<RammebehandlingId> {
         return sessionFactory.withSession { session ->
             session.run(
-                queryOf(
+                sqlQuery(
                     //language=SQL
                     """
                     select b.id
@@ -309,10 +303,8 @@ class RammebehandlingPostgresRepo(
                     order by b.opprettet
                     limit :limit
                     """.trimIndent(),
-                    mapOf(
-                        "now" to nå(clock),
-                        "limit" to limit,
-                    ),
+                    "now" to nå(clock),
+                    "limit" to limit,
                 ).map { RammebehandlingId.fromString(it.string("id")) }.asList,
             )
         }
@@ -321,18 +313,20 @@ class RammebehandlingPostgresRepo(
     override fun hentAutomatiskeRevurderingIder(limit: Int): List<RammebehandlingId> {
         return sessionFactory.withSession { session ->
             session.run(
-                queryOf(
+                sqlQuery(
                     //language=SQL
                     """
                     select b.id
                     from behandling b
                     where
                       b.behandlingstype = 'REVURDERING' and
-                      b.status = 'UNDER_AUTOMATISK_BEHANDLING'
+                      b.status = 'UNDER_AUTOMATISK_BEHANDLING' and
+                      (b.venter_til is null or b.venter_til < :now)
                     order by b.opprettet
                     limit :limit
                     """.trimIndent(),
-                    mapOf("limit" to limit),
+                    "now" to nå(clock),
+                    "limit" to limit,
                 ).map { RammebehandlingId.fromString(it.string("id")) }.asList,
             )
         }
@@ -389,13 +383,11 @@ class RammebehandlingPostgresRepo(
             session: Session,
         ): Rammebehandling? =
             session.run(
-                queryOf(
+                sqlQuery(
                     """
                     select b.*,s.fnr, s.saksnummer from behandling b join sak s on s.id = b.sak_id where b.id = :id
                     """.trimIndent(),
-                    mapOf(
-                        "id" to behandlingId.toString(),
-                    ),
+                    "id" to behandlingId.toString(),
                 ).map { it.toBehandling(session) }.asSingle,
             )
 
@@ -419,12 +411,12 @@ class RammebehandlingPostgresRepo(
             log.info { "Oppdaterer behandling ${behandling.id} ${behandling.behandlingstype}" }
 
             session.run(
-                queryOf(
+                sqlQuery(
                     """
                     $OPPDATER_RAMMEBEHANDLING
                     where id = :id
                     """.trimIndent(),
-                    behandling.tilDbParams(),
+                    *behandling.tilDbParams(),
                 ).asUpdate,
             )
         }
@@ -436,7 +428,7 @@ class RammebehandlingPostgresRepo(
             log.info { "Oppretter behandling ${behandling.id} ${behandling.behandlingstype}" }
 
             session.run(
-                queryOf(
+                sqlQuery(
                     """
                     insert into behandling (
                         id,
@@ -522,7 +514,7 @@ class RammebehandlingPostgresRepo(
                         :skal_journalfore_notat::jsonb
                     )
                     """.trimIndent(),
-                    behandling.tilDbParams(),
+                    *behandling.tilDbParams(),
                 ).asUpdate,
             )
         }
@@ -534,11 +526,9 @@ class RammebehandlingPostgresRepo(
         ): Boolean =
             // `select exists` gir alltid nøyaktig én rad, så `asSingle` kan ikke gi null.
             session.run(
-                queryOf(
+                sqlQuery(
                     "select exists(select 1 from behandling where id = :id)",
-                    mapOf(
-                        "id" to behandlingId.toString(),
-                    ),
+                    "id" to behandlingId.toString(),
                 ).map { it.boolean(1) }.asSingle,
             )!!
     }

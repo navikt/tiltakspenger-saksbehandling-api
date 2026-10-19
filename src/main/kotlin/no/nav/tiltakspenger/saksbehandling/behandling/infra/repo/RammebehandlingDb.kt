@@ -267,7 +267,7 @@ fun saksopplysningerMedOppdatertEksternDeltakselseId(
     return saksopplysninger.copy(tiltaksdeltakelser = Tiltaksdeltakelser(oppdaterteTiltaksdeltakelser))
 }
 
-fun Rammebehandling.tilDbParams(): Map<String, Any?> {
+fun Rammebehandling.tilDbParams(): Array<Pair<String, Any?>> {
     val søknadId = when (this) {
         is Søknadsbehandling -> this.søknad.id.toString()
         is Revurdering -> null
@@ -283,7 +283,7 @@ fun Rammebehandling.tilDbParams(): Map<String, Any?> {
     }
     // let-formen er bevisst: kjeden `x?.f()?.g()` kompilerer til en ekstra null-sjekk som aldri kan slå til, og den ville stått som en permanent udekket gren i grendekningsgaten.
     @Suppress("SimpleRedundantLet")
-    return mapOf(
+    return arrayOf(
         "id" to this.id.toString(),
         "status" to this.status.toDb(),
         "sist_endret" to this.sistEndret,

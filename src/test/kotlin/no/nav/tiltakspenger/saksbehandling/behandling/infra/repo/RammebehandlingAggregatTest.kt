@@ -75,13 +75,13 @@ class RammebehandlingAggregatTest {
     }
 
     /**
-     * Køen for automatiske revurderinger har to kriterier: behandlingstypen revurdering og statusen `UNDER_AUTOMATISK_BEHANDLING`.
+     * Køen for automatiske revurderinger har tre kriterier: behandlingstypen revurdering, statusen `UNDER_AUTOMATISK_BEHANDLING`, og at revurderingen ikke venter på noe.
      * Den rommer både stans og forlengelse, som opprettes av jobben for endringer i tiltaksdeltakelse.
      * Jobben som konsumerer køen testes i `DelautomatiskStansServiceTest` og `DelautomatiskForlengelseServiceTest`.
      */
     @Test
     @IsolatedDatabaseTest
-    fun `revurderingskøen tar kun revurderinger under automatisk behandling, sorterer eldst først og respekterer limit`() {
+    fun `revurderingskøen tar kun revurderinger under automatisk behandling som ikke venter, sorterer eldst først og respekterer limit`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val eldst = opprettAutomatiskRevurdering(tac) { it.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 20.april(2025)) }
             val nyest = opprettAutomatiskRevurdering(tac) { it.copy(deltakelseTilOgMed = 30.juni(2025)) }
@@ -97,11 +97,24 @@ class RammebehandlingAggregatTest {
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurderinger()
 
+            // Forlengelsen starter 6. mai, fem dager frem i tid.
+            // Den settes derfor på vent til 2. mai og faller ut av køen til `venter_til` har passert.
             repo.hentAutomatiskeRevurderingIder(limit = 10).shouldBeEmpty()
-            listOf(eldst, nyest).forEach {
-                tac.sakContext.sakRepo.hentForSakId(it.sakId)!!.hentRammebehandling(it.id)!!.status shouldBe
-                    Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+            tac.sakContext.sakRepo.hentForSakId(eldst.sakId)!!.hentRammebehandling(eldst.id)!!.status shouldBe
+                Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+            tac.sakContext.sakRepo.hentForSakId(nyest.sakId)!!.hentRammebehandling(nyest.id)!!.also {
+                it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                it.venterTil shouldBe 2.mai(2025).atTime(6, 0)
             }
+
+            tac.clock.spolTil(2.mai(2025).atTime(7, 0))
+            repo.hentAutomatiskeRevurderingIder(limit = 10) shouldBe listOf(nyest.id)
+
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurderinger()
+
+            repo.hentAutomatiskeRevurderingIder(limit = 10).shouldBeEmpty()
+            tac.sakContext.sakRepo.hentForSakId(nyest.sakId)!!.hentRammebehandling(nyest.id)!!.status shouldBe
+                Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
             eldst.resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>()
             nyest.resultat.shouldBeInstanceOf<Revurderingsresultat.Innvilgelse>()
         }
