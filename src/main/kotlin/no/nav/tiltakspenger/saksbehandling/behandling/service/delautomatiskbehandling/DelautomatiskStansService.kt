@@ -12,9 +12,11 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.AutomatiskStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.utledAutomatiskStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando
@@ -34,6 +36,7 @@ import java.time.LocalDate
  *
  * [opprett] bygger stansen under automatisk behandling, tildelt [AUTOMATISK_SAKSBEHANDLER].
  * [forsøkAutomatiskStans] utleder verdiene for stansen, fyller den ut og sender den til beslutning.
+ * Stansen simuleres først fra sluttdatoen, og stansdatoen flyttes bare dersom simuleringen viser feilutbetaling, se [utledAutomatiskStans].
  * Stegene som er felles med andre automatiske revurderinger, ligger i [DelautomatiskRevurderingSteg].
  *
  * Kan stansen ikke behandles automatisk, overlates den til en saksbehandler med alle grunnene lagret på revurderingen.
@@ -101,44 +104,36 @@ class DelautomatiskStansService(
                 nonEmptyListOf(ManueltBehandlesGrunn.STANS_FANT_IKKE_TILTAKSDELTAKELSE).left(),
             )
 
-        val automatiskStans = steg.medAnnenÅpenBehandling(
+        val nåtilstand = revurdering.getTiltaksdeltakelse(tiltaksdeltakerId)
+        val iDag = LocalDate.now(clock)
+        val utledetFraSluttdato = steg.medAnnenÅpenBehandling(
             this,
             revurdering,
-            utledAutomatiskStans(
-                tiltaksdeltakerId = tiltaksdeltakerId,
-                nåtilstand = revurdering.getTiltaksdeltakelse(tiltaksdeltakerId),
-                iDag = LocalDate.now(clock),
-            ),
+            utledAutomatiskStans(tiltaksdeltakerId = tiltaksdeltakerId, nåtilstand = nåtilstand, iDag = iDag),
         ).getOrElse { return it.left() }
+        val simulertFraSluttdato = simulerStans(revurdering, utledetFraSluttdato, correlationId)
 
-        val kommando = OppdaterRevurderingKommando.Stans(
-            sakId = id,
-            behandlingId = revurdering.id,
-            saksbehandler = AUTOMATISK_SAKSBEHANDLER,
-            correlationId = correlationId,
-            begrunnelseVilkårsvurdering = automatiskStans.begrunnelse,
-            fritekstTilVedtaksbrev = null,
-            valgteHjemler = nonEmptySetOf(automatiskStans.hjemmel),
-            stansFraOgMed = automatiskStans.stansFraOgMed,
-            skalSendeVedtaksbrev = true,
-            prioritering = revurdering.prioritering,
-            skalJournalføreNotat = SkalJournalføreNotat.INGEN,
-        )
-        // Saken har innvilgede perioder, ellers kunne ikke stansen utledes.
-        val førsteDagSomGirRett = førsteDagSomGirRett!!
-        val sisteDagSomGirRett = sisteDagSomGirRett!!
-        val stansperiode = kommando.utledStansperiode(førsteDagSomGirRett, sisteDagSomGirRett)
-
-        val simulertUtbetaling = beregnRevurderingStans(
-            behandlingId = revurdering.id,
-            stansperiode = stansperiode,
-            beregningstidspunkt = nå(clock),
-        )?.let { steg.simuler(this, revurdering, it) }
+        // En utbetaling vi har sendt kan stanses fram til oppdragssystemet har utbetalt den, og det er bare simuleringen som vet om det har skjedd.
+        val sisteDagMedFeilutbetaling = simulertFraSluttdato.simulertUtbetaling?.utbetaling?.simulering?.sisteDagMedFeilutbetaling
+        val simulertStans = if (sisteDagMedFeilutbetaling == null) {
+            simulertFraSluttdato
+        } else {
+            val flyttetForbiFeilutbetaling = utledAutomatiskStans(
+                tiltaksdeltakerId = tiltaksdeltakerId,
+                nåtilstand = nåtilstand,
+                iDag = iDag,
+                sisteDagMedFeilutbetaling = sisteDagMedFeilutbetaling,
+            ).getOrElse { return it.left() }
+            log.info { "Simuleringen viser feilutbetaling til og med $sisteDagMedFeilutbetaling, stansdatoen flyttes til ${flyttetForbiFeilutbetaling.stansFraOgMed} - ${revurdering.loggkontekst(correlationId)}" }
+            simulerStans(revurdering, flyttetForbiFeilutbetaling, correlationId)
+        }
+        val (kommando, stansperiode, simulertUtbetaling) = simulertStans
 
         val utfylt = revurdering.oppdaterStans(
             kommando = kommando,
-            førsteDagSomGirRett = førsteDagSomGirRett,
-            sisteDagSomGirRett = sisteDagSomGirRett,
+            // Saken har innvilgede perioder, ellers kunne ikke stansen utledes.
+            førsteDagSomGirRett = førsteDagSomGirRett!!,
+            sisteDagSomGirRett = sisteDagSomGirRett!!,
             utbetaling = simulertUtbetaling?.utbetaling,
             omgjørRammevedtak = vedtaksliste.finnRammevedtakSomOmgjøres(stansperiode),
             clock = clock,
@@ -155,4 +150,43 @@ class DelautomatiskStansService(
 
         return (sendtTilBeslutning to simulertUtbetaling?.simuleringMedMetadata).right()
     }
+
+    /**
+     * Bygger kommandoen for [automatiskStans] og simulerer utbetalingen for stansperioden, uten å lagre noe.
+     * Er det ingenting å beregne i stansperioden, er det heller ingenting å simulere.
+     */
+    private suspend fun Sak.simulerStans(
+        revurdering: Revurdering,
+        automatiskStans: AutomatiskStans,
+        correlationId: CorrelationId,
+    ): SimulertStans {
+        val kommando = OppdaterRevurderingKommando.Stans(
+            sakId = id,
+            behandlingId = revurdering.id,
+            saksbehandler = AUTOMATISK_SAKSBEHANDLER,
+            correlationId = correlationId,
+            begrunnelseVilkårsvurdering = automatiskStans.begrunnelse,
+            fritekstTilVedtaksbrev = null,
+            valgteHjemler = nonEmptySetOf(automatiskStans.hjemmel),
+            stansFraOgMed = automatiskStans.stansFraOgMed,
+            skalSendeVedtaksbrev = true,
+            prioritering = automatiskStans.prioritering ?: revurdering.prioritering,
+            skalJournalføreNotat = SkalJournalføreNotat.INGEN,
+        )
+        val stansperiode = kommando.utledStansperiode(førsteDagSomGirRett!!, sisteDagSomGirRett!!)
+
+        val simulertUtbetaling = beregnRevurderingStans(
+            behandlingId = revurdering.id,
+            stansperiode = stansperiode,
+            beregningstidspunkt = nå(clock),
+        )?.let { steg.simuler(this, revurdering, it) }
+
+        return SimulertStans(kommando, stansperiode, simulertUtbetaling)
+    }
+
+    private data class SimulertStans(
+        val kommando: OppdaterRevurderingKommando.Stans,
+        val stansperiode: Periode,
+        val simulertUtbetaling: SimulertUtbetaling?,
+    )
 }

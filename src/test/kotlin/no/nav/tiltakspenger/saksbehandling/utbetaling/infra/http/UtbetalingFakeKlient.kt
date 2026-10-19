@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldepe
 import no.nav.tiltakspenger.saksbehandling.objectmothers.DevSimuleringsscenario
 import no.nav.tiltakspenger.saksbehandling.objectmothers.genererSimuleringFraBeregning
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingFakeProducer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeUtbetale
@@ -55,6 +56,12 @@ class UtbetalingFakeKlient(
      * Simuleringen kalles synkront fra behandlingens egne ruter og ikke fra en jobb som går gjennom hele skjemaet, så testen trenger ikke kjøre isolert.
      */
     var simulerFeil: KunneIkkeSimulere? = null,
+    /**
+     * Settes av tester som trenger utbetalinger vi har sendt, men som oppdragssystemet ikke har utbetalt ennå.
+     * Simuleringen regnes da ut fra saken slik den var da oppdragssystemet sist utbetalte, slik at de senere utbetalingene verken er tidligere utbetalt eller gir feilutbetaling.
+     * Simuleringen kalles synkront, som for [simulerFeil], så testen trenger ikke kjøre isolert.
+     */
+    var sakUtbetaltAvOppdrag: Sak? = null,
 ) : Utbetalingsklient {
 
     override suspend fun iverksett(
@@ -99,7 +106,7 @@ class UtbetalingFakeKlient(
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
         simulerFeil?.let { return it.left() }
 
-        val sak = sakRepo.hentForSakId(sakId)!!
+        val sak = sakUtbetaltAvOppdrag ?: sakRepo.hentForSakId(sakId)!!
         return sak.genererSimuleringFraBeregning(
             beregning = beregning,
             clock = clock,

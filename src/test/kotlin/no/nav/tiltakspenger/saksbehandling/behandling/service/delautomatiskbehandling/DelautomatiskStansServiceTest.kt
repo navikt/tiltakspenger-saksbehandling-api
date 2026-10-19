@@ -6,6 +6,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.getOrFail
@@ -16,6 +17,7 @@ import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
@@ -121,10 +123,11 @@ class DelautomatiskStansServiceTest {
     }
 
     /**
-     * Stans støtter ikke feilutbetaling, så dager som allerede er utbetalt etter sluttdatoen skal ikke stanses.
+     * Stans støtter ikke feilutbetaling, så dager som oppdragssystemet allerede har utbetalt etter sluttdatoen skal ikke stanses.
+     * Simuleringen fra sluttdatoen viser feilutbetaling, og stansen flyttes til dagen etter siste dag med feilutbetaling.
      */
     @Test
-    fun `utbetalt etter sluttdato - stanses fra dagen etter siste dag med utbetaling`() {
+    fun `utbetalt etter sluttdato - stanses fra dagen etter siste dag med feilutbetaling`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakelse = tac.tiltaksdeltakelse(6.januar(2025) til 5.mai(2025))
             val (sak) = iverksettSøknadsbehandling(
@@ -150,7 +153,51 @@ class DelautomatiskStansServiceTest {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
                 it.manueltBehandlesGrunner.shouldBeEmpty()
                 it.resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>().stansperiode shouldBe (18.januar(2025) til 5.mai(2025))
-                it.begrunnelseVilkårsvurdering!!.verdi shouldContain "Det er allerede utbetalt tiltakspenger til og med"
+                it.begrunnelseVilkårsvurdering!!.verdi shouldContain "Oppdragssystemet har allerede utbetalt tiltakspenger til og med 17. januar 2025"
+                it.utbetaling.shouldNotBeNull().simulering.shouldNotBeNull().harFeilutbetaling shouldBe false
+                it.prioritering.shouldBeNull()
+            }
+        }
+    }
+
+    /**
+     * Fram til oppdragssystemet har utbetalt, viser ikke simuleringen feilutbetaling, og stansen gjelder fra dagen etter sluttdatoen.
+     * Den prioriteres, siden den må iverksettes før oppdragssystemet utbetaler.
+     */
+    @Test
+    fun `sendt utbetaling som oppdragssystemet ikke har utbetalt - stanses fra dagen etter sluttdato og prioriteres`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(6.januar(2025) til 5.mai(2025))
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+            )
+            val (sakMedUtbetaling) = opprettOgIverksettMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+            )!!
+            sakMedUtbetaling.meldeperiodeBeregninger.sisteDagMedUtbetaling shouldBe 17.januar(2025)
+            tac.utbetalingFakeKlient.sakUtbetaltAvOppdrag = sak
+            val revurdering = tac.opprettAutomatiskStans(
+                sak = sak,
+                tiltaksdeltakelse = deltakelse,
+                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 7.januar(2025)),
+            )
+
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+
+            tac.hentRevurdering(sak, revurdering).also {
+                it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+                it.manueltBehandlesGrunner.shouldBeEmpty()
+                it.resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>().stansperiode shouldBe (8.januar(2025) til 5.mai(2025))
+                it.begrunnelseVilkårsvurdering!!.verdi shouldNotContain "Oppdragssystemet har allerede utbetalt"
+                it.prioritering shouldBe Prioritering.create(
+                    "Det er sendt utbetaling av tiltakspenger til og med 17. januar 2025 som oppdragssystemet ikke har utbetalt ennå. " +
+                        "Oppdragssystemet utbetaler dagen etter at utbetalingen er mottatt, pluss en ventedag. " +
+                        "Stansen må iverksettes før det, ellers blir det feilutbetaling og stansen må behandles på nytt.",
+                )
             }
         }
     }

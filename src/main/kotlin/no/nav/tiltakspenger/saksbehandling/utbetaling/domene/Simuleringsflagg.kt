@@ -50,9 +50,7 @@ data class Simuleringsflagg(
                 harJustering = harJustering,
                 justeringGårOppINull = harJustering && !harUbalansertJustering,
                 justeringPåTversAvMeldeperiodeEllerMåned = harUbalansertJustering,
-                harFeilutbetaling = posteringer.any {
-                    it.type == Posteringstype.FEILUTBETALING && it.klassekode == OppsummeringGenerator.KLASSEKODE_FEILUTBETALING && it.beløp > 0
-                },
+                harFeilutbetaling = posteringer.any { it.erFeilutbetaling },
                 harTrekk = posteringer.any { it.type == Posteringstype.TREKK },
             )
         }

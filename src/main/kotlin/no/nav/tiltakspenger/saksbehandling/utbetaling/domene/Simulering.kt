@@ -21,6 +21,12 @@ sealed interface Simulering {
     val harJustering: Boolean get() = this is Endring && harJustering
     val harFeilutbetaling: Boolean get() = this is Endring && harFeilutbetaling
 
+    /**
+     * Siste dag i en periode oppdragssystemet har postert feilutbetaling for, eller null dersom simuleringen ikke viser feilutbetaling.
+     * Feilutbetaling betyr at dagen allerede er utbetalt av oppdragssystemet, og at utbetalingen reduseres.
+     */
+    val sisteDagMedFeilutbetaling: LocalDate?
+
     data class Endring(
         val simuleringPerMeldeperiode: NonEmptyList<SimuleringForMeldeperiode>,
         val datoBeregnet: LocalDate,
@@ -49,6 +55,13 @@ sealed interface Simulering {
 
         override val harFeilutbetaling: Boolean by lazy {
             simuleringPerMeldeperiode.any { it.harFeilutbetaling }
+        }
+
+        override val sisteDagMedFeilutbetaling: LocalDate? by lazy {
+            simuleringPerMeldeperiode
+                .flatMap { it.posteringer }
+                .filter { it.erFeilutbetaling }
+                .maxOfOrNull { it.periode.tilOgMed }
         }
 
         /**
@@ -82,6 +95,8 @@ sealed interface Simulering {
     }
 
     data class IngenEndring(override val simuleringstidspunkt: LocalDateTime) : Simulering {
+        override val sisteDagMedFeilutbetaling: LocalDate? = null
+
         override fun hentDag(dato: LocalDate) = null
     }
 }
@@ -272,6 +287,10 @@ data class Postering(
      * OS har sendt samme begrep både som `FEILUTBETALING` og som `JUSTERING` med denne klassekoden, mens klassekoden har ligget fast i alt materiale vi har sett.
      */
     val erJustering: Boolean = klassekode == OppsummeringGenerator.KLASSEKODE_JUSTERING
+
+    /** Se [Simuleringsflagg.harFeilutbetaling] for hvorfor bare positive posteringer teller. */
+    val erFeilutbetaling: Boolean =
+        type == Posteringstype.FEILUTBETALING && klassekode == OppsummeringGenerator.KLASSEKODE_FEILUTBETALING && beløp > 0
 
     /**
      * Fordeler beløpet på dagene i perioden uten å miste resten.

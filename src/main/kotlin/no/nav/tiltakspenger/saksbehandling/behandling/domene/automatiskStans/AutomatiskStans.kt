@@ -10,6 +10,7 @@ import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -20,11 +21,15 @@ import java.time.LocalDate
 
 /**
  * Det systemet har utledet for å kunne fylle ut en automatisk opprettet stans-revurdering uten saksbehandler.
+ *
+ * @param prioritering Satt når stansen gjelder dager det er sendt utbetaling for, men som oppdragssystemet ikke har utbetalt ennå.
+ * Da må stansen besluttes før oppdragssystemet utbetaler, ellers blir det feilutbetaling.
  */
 data class AutomatiskStans(
     val hjemmel: HjemmelForStans,
     val stansFraOgMed: ValgtStansFraOgMed,
     val begrunnelse: Begrunnelse,
+    val prioritering: Prioritering?,
 )
 
 private val avsluttedeDeltakerstatuser = setOf(
@@ -44,16 +49,23 @@ private val avsluttedeDeltakerstatuser = setOf(
  * Deltakelsen må ha en avsluttet status og en sluttdato som er passert, siden en sluttdato i fremtiden fortsatt kan endres.
  * Stansen gjelder fra første innvilgede dag for deltakelsen etter sluttdatoen, slik at den ikke starter i en periode som allerede er stanset eller opphørt.
  * Er det ingen innvilgede dager etter sluttdatoen, er det ingenting å stanse.
- * Stansen gjelder tidligst fra dagen etter siste dag med utbetaling på saken, siden stans ikke støtter feilutbetaling.
+ *
+ * Stans støtter ikke feilutbetaling, men en utbetaling vi har sendt kan fortsatt stanses fram til oppdragssystemet har utbetalt den.
+ * Derfor simuleres stansen først fra sluttdatoen, og utledes på nytt med [sisteDagMedFeilutbetaling] bare dersom simuleringen viser feilutbetaling.
+ * Stansen gjelder da tidligst fra dagen etter siste dag med feilutbetaling.
  * Er alle innvilgede dager etter sluttdatoen allerede utbetalt, overlates stansen til saksbehandler.
  * Er andre deltakelser innvilget fra stansdatoen, vil stansen berøre mer enn denne deltakelsen.
  *
+ * Gjelder stansen dager vi har sendt utbetaling for, er utbetalingen ikke utbetalt av oppdragssystemet ennå, og stansen prioriteres.
+ *
  * @param nåtilstand Deltakelsen slik den er registrert nå, typisk fra saksopplysningene til revurderingen.
+ * @param sisteDagMedFeilutbetaling Siste dag simuleringen av stansen viser feilutbetaling for, eller null før stansen er simulert.
  */
 fun Sak.utledAutomatiskStans(
     tiltaksdeltakerId: TiltaksdeltakerId,
     nåtilstand: TiltaksdeltakelseIntern?,
     iDag: LocalDate,
+    sisteDagMedFeilutbetaling: LocalDate? = null,
 ): Either<NonEmptyList<ManueltBehandlesGrunn>, AutomatiskStans> {
     if (nåtilstand == null) {
         return nonEmptyListOf(ManueltBehandlesGrunn.STANS_FANT_IKKE_TILTAKSDELTAKELSE).left()
@@ -72,20 +84,21 @@ fun Sak.utledAutomatiskStans(
     }
 
     val innvilgedePerioder = rammevedtaksliste.valgteTiltaksdeltakelser.perioderMedVerdi
-    val innvilgedePerioderForDeltakelsen = innvilgedePerioder.filter { it.verdi.internDeltakelseId == tiltaksdeltakerId }
+    val innvilgedePerioderForDeltakelsen =
+        innvilgedePerioder.filter { it.verdi.internDeltakelseId == tiltaksdeltakerId }
     val dagenEtterSluttdato = sluttdato.plusDays(1)
     if (innvilgedePerioderForDeltakelsen.all { it.periode.tilOgMed.isBefore(dagenEtterSluttdato) }) {
-        return (grunner + ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SLUTTDATO).toNonEmptyListOrThrow().left()
+        return (grunner + ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SLUTTDATO).toNonEmptyListOrThrow()
+            .left()
     }
 
-    // TODO: Kanskje utlede denne fra simuleringen isteden, slik at utbetalinger som ikke er fullført i OS/UR fortsatt kan stanses.
-    // Det blir en "hastesak" å få besluttet den isåfall... :thinking:
-    val utbetaltEtterSluttdatoTilOgMed = meldeperiodeBeregninger.sisteDagMedUtbetaling?.takeIf { it.isAfter(sluttdato) }
+    val utbetaltEtterSluttdatoTilOgMed = sisteDagMedFeilutbetaling?.takeIf { it.isAfter(sluttdato) }
     val tidligsteStansdato = utbetaltEtterSluttdatoTilOgMed?.plusDays(1) ?: dagenEtterSluttdato
     val stansFraOgMed = innvilgedePerioderForDeltakelsen
         .firstOrNull { !it.periode.tilOgMed.isBefore(tidligsteStansdato) }
         ?.let { maxOf(it.periode.fraOgMed, tidligsteStansdato) }
-        ?: return (grunner + ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SISTE_UTBETALING).toNonEmptyListOrThrow().left()
+        ?: return (grunner + ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SISTE_UTBETALING).toNonEmptyListOrThrow()
+            .left()
 
     val harAndreDeltakelserInnvilgetEtterStans = innvilgedePerioder.any {
         !it.periode.tilOgMed.isBefore(stansFraOgMed) && it.verdi.internDeltakelseId != tiltaksdeltakerId
@@ -94,7 +107,9 @@ fun Sak.utledAutomatiskStans(
         grunner.add(ManueltBehandlesGrunn.STANS_ANDRE_DELTAKELSER_INNVILGET_ETTER_SLUTTDATO)
     }
 
-    grunner.toNonEmptyListOrNull()?.let { return it.left() }
+    grunner.toNonEmptyListOrNull()?.also { return it.left() }
+
+    val sendtUtbetalingTilOgMed = meldeperiodeBeregninger.sisteDagMedUtbetaling?.takeIf { !it.isBefore(stansFraOgMed) }
 
     return AutomatiskStans(
         hjemmel = HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak,
@@ -108,10 +123,25 @@ fun Sak.utledAutomatiskStans(
                 append("Automatisk behandlet. Tiltaksdeltakelsen er registrert med status $status ")
                 append("og sluttdato ${sluttdato.format(norskDatoFormatter)}. ")
                 if (utbetaltEtterSluttdatoTilOgMed != null) {
-                    append("Det er allerede utbetalt tiltakspenger til og med ${utbetaltEtterSluttdatoTilOgMed.format(norskDatoFormatter)}, så stansen gjelder tidligst fra dagen etter. ")
+                    append(
+                        "Oppdragssystemet har allerede utbetalt tiltakspenger til og med ${
+                            utbetaltEtterSluttdatoTilOgMed.format(
+                                norskDatoFormatter,
+                            )
+                        }, så stansen gjelder tidligst fra dagen etter. ",
+                    )
                 }
                 append("Tiltakspengene stanses fra og med ${stansFraOgMed.format(norskDatoFormatter)} fordi bruker ikke lenger deltar på arbeidsmarkedstiltak.")
             },
         )!!,
+        prioritering = sendtUtbetalingTilOgMed?.let {
+            Prioritering.create(
+                "Stans må behandles omgående for å hindre feilutbetaling. Det er sendt utbetaling av tiltakspenger til og med ${
+                    it.format(
+                        norskDatoFormatter,
+                    )
+                } som oppdragssystemet ikke har utbetalt ennå.",
+            )
+        },
     ).right()
 }

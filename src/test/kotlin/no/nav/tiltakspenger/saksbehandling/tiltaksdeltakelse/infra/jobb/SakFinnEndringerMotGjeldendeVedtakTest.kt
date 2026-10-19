@@ -317,6 +317,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
                 "Automatisk behandlet. Tiltaksdeltakelsen er registrert med status Avbrutt og sluttdato ${sluttdato.format(norskDatoFormatter)}. " +
                     "Tiltakspengene stanses fra og med ${sluttdato.plusDays(1).format(norskDatoFormatter)} fordi bruker ikke lenger deltar på arbeidsmarkedstiltak.",
             )!!,
+            prioritering = null,
         ).right()
         listOf(TiltakDeltakerstatus.HarSluttet, TiltakDeltakerstatus.Fullført).forEach { status ->
             sakMedInnvilgelse().utledStans(deltakelse.copy(deltakelseStatus = status, deltakelseTilOgMed = sluttdato))
