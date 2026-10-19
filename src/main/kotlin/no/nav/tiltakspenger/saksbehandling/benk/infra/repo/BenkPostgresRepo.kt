@@ -349,14 +349,22 @@ class BenkPostgresRepo(
     private companion object {
 
         /**
-         * Fristen saksbehandler satte, eller tidspunktet en automatisk behandling venter til.
-         * Den automatiske behandlingen setter seg på vent med `venter_til` og uten frist, og datoen den vekkes er da det benken skal vise og sortere på.
+         * Tidspunktet en automatisk behandling venter til, før jobben tar den opp igjen.
+         * Det vises adskilt fra fristen saksbehandler setter.
          * `venter_til` brukes bare når behandlingen er på vent, slik at et gammelt tidspunkt ikke henger igjen etter at den er gjenopptatt.
          */
-        const val RAMMEBEHANDLING_VENTE_FRIST = """
+        const val RAMMEBEHANDLING_VENTER_TIL = """
+            case when (b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean then b.venter_til end
+        """
+
+        /**
+         * Datoen rammebehandlingen venter til, som ventestatuskolonnen sorteres på.
+         * Det er fristen saksbehandler satte, eller ellers datoen den automatiske behandlingen vekkes.
+         */
+        const val RAMMEBEHANDLING_VENTE_DATO = """
             coalesce(
                 (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date,
-                case when (b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean then b.venter_til::date end
+                ($RAMMEBEHANDLING_VENTER_TIL)::date
             )
         """
 
@@ -382,7 +390,9 @@ class BenkPostgresRepo(
                 coalesce(b.attesteringer->'attesteringer'->-1->>'status' = 'SENDT_TILBAKE', false) as er_underkjent,
                 coalesce((b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean, false) as er_satt_på_vent,
                 b.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'   as vente_begrunnelse,
-                $RAMMEBEHANDLING_VENTE_FRIST as vente_frist,
+                (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as vente_frist,
+                $RAMMEBEHANDLING_VENTER_TIL as venter_til,
+                $RAMMEBEHANDLING_VENTE_DATO as vente_dato,
                 b.status::text              as status,
                 sø.soknadstype::text        as søknadstype,
                 sø.mottatt                as kravtidspunkt,
@@ -411,7 +421,9 @@ class BenkPostgresRepo(
                 coalesce(b.attesteringer->'attesteringer'->-1->>'status' = 'SENDT_TILBAKE', false) as er_underkjent,
                 coalesce((b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean, false) as er_satt_på_vent,
                 b.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'   as vente_begrunnelse,
-                $RAMMEBEHANDLING_VENTE_FRIST as vente_frist,
+                (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as vente_frist,
+                $RAMMEBEHANDLING_VENTER_TIL as venter_til,
+                $RAMMEBEHANDLING_VENTE_DATO as vente_dato,
                 b.status::text              as status,
                 b.resultat::text            as resultat,
                 b.prioritering_begrunnelse  as prioritering_begrunnelse,
@@ -442,6 +454,7 @@ class BenkPostgresRepo(
                 coalesce((m.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean, false) as er_satt_på_vent,
                 m.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'   as vente_begrunnelse,
                 (m.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as vente_frist,
+                null::timestamptz               as venter_til,
                 m.status::text                  as status,
                 'MELDEKORTBEHANDLING'::text     as type,
                 (
@@ -479,6 +492,7 @@ class BenkPostgresRepo(
                 false,
                 null::text,
                 null::date,
+                null::timestamptz,
                 'KLAR_TIL_BEHANDLING'::text,
                 case when exists (
                     select 1 from meldekort_bruker tidligere
@@ -552,6 +566,7 @@ class BenkPostgresRepo(
                 coalesce((k.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean, false) as er_satt_på_vent,
                 k.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'   as vente_begrunnelse,
                 (k.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as vente_frist,
+                null::timestamptz           as venter_til,
                 case when k.status = 'MOTTATT_FRA_KLAGEINSTANS'
                     then 'KLAR_TIL_FERDIGSTILLING'::text
                     else k.status::text
@@ -587,6 +602,7 @@ class BenkPostgresRepo(
                 (tb.venter is not null)         as er_satt_på_vent,
                 tb.venter->>'grunn'             as vente_begrunnelse,
                 (tb.venter->>'gjenopptas')::date as vente_frist,
+                null::timestamptz               as venter_til,
                 case
                     when tb.status = 'OPPRETTET' then 'OPPRETTET'
                     when tb.status = 'TIL_FORHÅNDSVARSEL' and tb.saksbehandler_ident is not null then 'UNDER_FORHÅNDSVARSLING'
@@ -790,6 +806,7 @@ private fun Row.tilFelles(): BenkBehandlingsfelles = BenkBehandlingsfelles(
         erSattPåVent = boolean("er_satt_på_vent"),
         begrunnelse = stringOrNull("vente_begrunnelse"),
         frist = localDateOrNull("vente_frist"),
+        venterTil = localDateTimeOrNull("venter_til"),
     ),
 )
 

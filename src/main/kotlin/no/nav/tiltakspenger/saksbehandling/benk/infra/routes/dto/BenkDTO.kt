@@ -179,6 +179,7 @@ data class BenkVentestatusDTO(
     val erSattPåVent: Boolean,
     val begrunnelse: SladdbarVerdi<String?>,
     val frist: String?,
+    val venterTil: String?,
 )
 
 sealed interface BenkBehandlingDTO {
@@ -338,6 +339,7 @@ fun BenkVentestatus.toDTO(): BenkVentestatusDTO = BenkVentestatusDTO(
     erSattPåVent = erSattPåVent,
     begrunnelse = begrunnelse.ikkeSladdet(),
     frist = frist?.toString(),
+    venterTil = venterTil?.toString(),
 )
 
 fun BenkBehandlingsstatus.toDTO(): BenkBehandlingsstatusDTO = when (this) {

@@ -103,6 +103,7 @@ class BenkDTOSladdingTest {
                                 erSattPåVent = false,
                                 begrunnelse = null.ikkeSladdet(),
                                 frist = null,
+                                venterTil = null,
                             ),
                         ),
                     ),
@@ -291,5 +292,6 @@ class BenkDTOSladdingTest {
         erSattPåVent = true,
         begrunnelse = "Venter på dokumentasjon fra bostedet".ikkeSladdet(),
         frist = 1.januar(2025).toString(),
+        venterTil = null,
     )
 }

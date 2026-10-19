@@ -47,6 +47,7 @@ fun String.shouldBeRevurderingDTO(
     tilbakekrevingId: String? = null,
     utbetaling: String? = null,
     ventestatus: List<String> = emptyList(),
+    venterTil: String? = null,
     internDeltakelseId: String,
     innvilgelsesperiode: Boolean = true,
     antallDagerPerMeldeperiode: Int = 10,
@@ -125,6 +126,7 @@ fun String.shouldBeRevurderingDTO(
           "tilbakekrevingId": ${tilbakekrevingId?.let { "\"$it\"" }},
           "utbetaling": ${utbetaling?.let { "\"$it\"" }},
           "ventestatus": ${ventestatus.let { "[${it.joinToString(",")}]" }},
+          "venterTil": ${venterTil?.let { "\"$it\"" }},
           $valgtHjemmelJson
           $harValgtStansJson
           ${
@@ -227,6 +229,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
     tilbakekrevingId: String? = null,
     utbetaling: String? = null,
     ventestatus: List<String> = emptyList(),
+    venterTil: String? = null,
     internDeltakelseId: String,
     innvilgelsesperiode: Boolean = true,
     antallDagerPerMeldeperiode: Int = 10,
@@ -330,6 +333,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
           "tilbakekrevingId": ${tilbakekrevingId?.let { "\"$it\"" }},
           "kanInnvilges": $kanInnvilges,
           "ventestatus": ${ventestatus.let { "[${it.joinToString(",")}]" }},
+          "venterTil": ${venterTil?.let { "\"$it\"" }},
           $avslagsgrunnerJson
           ${
         if (visInnvilgelsesperiode) {

@@ -14,11 +14,17 @@ import java.time.LocalDateTime
 
 /**
  * Ventestatusen slik benken viser den: er den satt på vent, og i så fall hvorfor og til når.
+ *
+ * @param frist Fristen saksbehandler har satt.
+ * Den er bare til informasjon og styrer ikke når behandlingen tas opp igjen.
+ * @param venterTil Tidspunktet en behandling under automatisk behandling venter til, før jobben tar den opp igjen.
+ * Finnes bare for rammebehandlinger som er satt på vent.
  */
 data class BenkVentestatus(
     val erSattPåVent: Boolean,
     val begrunnelse: String?,
     val frist: LocalDate?,
+    val venterTil: LocalDateTime?,
 )
 
 /**

@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnGyldigeKommandoer
@@ -53,6 +54,13 @@ sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
      * hendelsene er sortert desc
      */
     val ventestatus: List<VentestatusHendelseDTO>
+
+    /**
+     * Tidspunktet en behandling under automatisk behandling er satt på vent til, før jobben tar den opp igjen.
+     * Er noe annet enn fristen i [ventestatus], som saksbehandler setter og som ikke styrer noe.
+     * Null når behandlingen ikke er satt på vent.
+     */
+    val venterTil: LocalDateTime?
     val utbetaling: BehandlingUtbetalingDTO?
     val utbetalingskontroll: UtbetalingskontrollDTO?
     val klagebehandlingId: String?
@@ -83,6 +91,7 @@ data class SøknadsbehandlingDTO(
     override val sistEndret: LocalDateTime,
     override val iverksattTidspunkt: LocalDateTime?,
     override val ventestatus: List<VentestatusHendelseDTO>,
+    override val venterTil: LocalDateTime?,
     override val utbetaling: BehandlingUtbetalingDTO?,
     override val utbetalingskontroll: UtbetalingskontrollDTO?,
     override val klagebehandlingId: String?,
@@ -122,6 +131,7 @@ data class RevurderingDTO(
     override val sistEndret: LocalDateTime,
     override val iverksattTidspunkt: LocalDateTime?,
     override val ventestatus: List<VentestatusHendelseDTO>,
+    override val venterTil: LocalDateTime?,
     override val utbetaling: BehandlingUtbetalingDTO?,
     override val utbetalingskontroll: UtbetalingskontrollDTO?,
     override val klagebehandlingId: String?,
@@ -205,6 +215,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         automatiskSaksbehandlet = this.automatiskSaksbehandlet,
         manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
         ventestatus = ventestatus.ventestatusHendelser.tilDto(),
+        venterTil = venterTilNårPåVent(),
         utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger, tilbakekrevingId),
         utbetalingskontroll = utbetalingskontroll?.tilUtbetalingskontrollDTO(utbetaling, beregninger),
         resultatDTO = this.resultat.tilSøknadsbehandlingResultatDTO(),
@@ -243,6 +254,7 @@ fun Revurdering.tilRevurderingDTO(
         sistEndret = this.sistEndret,
         iverksattTidspunkt = this.iverksattTidspunkt,
         ventestatus = ventestatus.ventestatusHendelser.tilDto(),
+        venterTil = venterTilNårPåVent(),
         utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger, tilbakekrevingId),
         utbetalingskontroll = utbetalingskontroll?.tilUtbetalingskontrollDTO(utbetaling, beregninger),
         resultatDTO = this.resultat.tilRevurderingResultatDTO(),
@@ -256,3 +268,9 @@ fun Revurdering.tilRevurderingDTO(
         gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
     )
 }
+
+/**
+ * Tidspunktet vises bare når behandlingen er på vent, slik at et gammelt tidspunkt ikke henger igjen etter at den er gjenopptatt.
+ * Benken gjør samme avgrensning i `BenkPostgresRepo`.
+ */
+private fun Rammebehandling.venterTilNårPåVent(): LocalDateTime? = venterTil.takeIf { ventestatus.erSattPåVent }

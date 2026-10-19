@@ -578,10 +578,11 @@ class BenkAggregatTest {
 
     /**
      * Tiltaket har ikke startet, så den automatiske behandlingen settes på vent med `venter_til` og uten frist.
+     * Benken viser tidspunktet den venter til adskilt fra fristen.
      */
     @Test
     @IsolatedDatabaseTest
-    fun `søknadsfanen viser datoen en automatisk behandling venter til som frist`() {
+    fun `søknadsfanen viser tidspunktet en automatisk behandling venter til adskilt fra fristen`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                 tac = tac,
@@ -599,7 +600,8 @@ class BenkAggregatTest {
 
             tac.benkContext.benkRepo.hentSøknader(søknaderCommand()).behandlinger.single().felles.ventestatus.let {
                 it.erSattPåVent shouldBe true
-                it.frist shouldBe venterTil.toLocalDate()
+                it.frist shouldBe null
+                it.venterTil shouldBe venterTil
             }
         }
     }
@@ -717,7 +719,8 @@ class BenkAggregatTest {
     /**
      * Den automatiske forlengelsen starter 6. mai og settes på vent til 2. mai uten frist.
      * Den manuelle revurderingen er satt på vent av saksbehandler med frist 10. mai.
-     * Benken skal vise og sortere på datoen den automatiske behandlingen venter til, på lik linje med fristen.
+     * Benken viser tidspunktet den automatiske behandlingen venter til adskilt fra fristen.
+     * Ventestatuskolonnen sorterer på datoen den automatiske behandlingen venter til, på lik linje med fristen.
      */
     @Test
     @IsolatedDatabaseTest
@@ -733,7 +736,12 @@ class BenkAggregatTest {
             repo.hentRevurderinger(revurderingerCommand()).behandlinger.single { it.id == automatisk.id }.let {
                 it.status shouldBe BenkBehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                 it.felles.ventestatus.erSattPåVent shouldBe true
-                it.felles.ventestatus.frist shouldBe 2.mai(2025)
+                it.felles.ventestatus.frist shouldBe null
+                it.felles.ventestatus.venterTil?.toLocalDate() shouldBe 2.mai(2025)
+            }
+            repo.hentRevurderinger(revurderingerCommand()).behandlinger.single { it.id == manuell.id }.felles.ventestatus.let {
+                it.frist shouldBe 10.mai(2025)
+                it.venterTil shouldBe null
             }
 
             fun sorterteSaker(retning: BenkSorteringRetning) =

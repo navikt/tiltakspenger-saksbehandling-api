@@ -81,7 +81,7 @@ class BenkGyldigeKommandoerTest {
         saksbehandler = saksbehandler,
         beslutter = beslutter,
         erUnderkjent = false,
-        ventestatus = BenkVentestatus(erSattPåVent = erSattPåVent, begrunnelse = null, frist = null),
+        ventestatus = BenkVentestatus(erSattPåVent = erSattPåVent, begrunnelse = null, frist = null, venterTil = null),
     )
 
     private fun søknadsbehandling(

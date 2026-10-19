@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgAvbryt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderAutomatiskBehandling
@@ -26,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import java.time.LocalDateTime
 
 /**
  * Tilstanden bygges gjennom prodstiene: søknaden kommer inn på søknadsruta, og jobben kjøres slik den kjøres i nais.
@@ -177,6 +179,13 @@ class DelautomatiskSoknadsbehandlingJobbTest {
             påVent.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
             påVent.ventestatus.erSattPåVent shouldBe true
             påVent.venterTil shouldBe 1.juni(2025).atTime(6, 0)
+            hentSakForSaksnummer(tac = tac, saksnummer = påVent.saksnummer)!!
+                .getJSONArray("rammebehandlinger")
+                .getJSONObject(0)
+                .also { behandlingJson ->
+                    LocalDateTime.parse(behandlingJson.getString("venterTil")) shouldBe 1.juni(2025).atTime(6, 0)
+                    behandlingJson.getJSONArray("ventestatus").getJSONObject(0).isNull("frist") shouldBe true
+                }
 
             tac.delautomatiskSøknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(behandling.id)
 

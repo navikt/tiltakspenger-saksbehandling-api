@@ -24,7 +24,7 @@ fun BenkSøknaderKolonne.toDbString(): String = when (this) {
     BenkSøknaderKolonne.SIST_ENDRET -> "sist_endret"
     BenkSøknaderKolonne.SAKSBEHANDLER -> "saksbehandler"
     BenkSøknaderKolonne.BESLUTTER -> "beslutter"
-    BenkSøknaderKolonne.VENTESTATUS_FRIST -> "vente_frist"
+    BenkSøknaderKolonne.VENTESTATUS_FRIST -> "vente_dato"
 }
 
 fun BenkRevurderingerKolonne.toDbString(): String = when (this) {
@@ -35,7 +35,7 @@ fun BenkRevurderingerKolonne.toDbString(): String = when (this) {
     BenkRevurderingerKolonne.SIST_ENDRET -> "sist_endret"
     BenkRevurderingerKolonne.SAKSBEHANDLER -> "saksbehandler"
     BenkRevurderingerKolonne.BESLUTTER -> "beslutter"
-    BenkRevurderingerKolonne.VENTESTATUS_FRIST -> "vente_frist"
+    BenkRevurderingerKolonne.VENTESTATUS_FRIST -> "vente_dato"
 }
 
 fun BenkMeldekortKolonne.toDbString(): String = when (this) {

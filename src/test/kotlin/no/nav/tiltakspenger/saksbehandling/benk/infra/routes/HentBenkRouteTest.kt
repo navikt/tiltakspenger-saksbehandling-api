@@ -77,7 +77,8 @@ class HentBenkRouteTest {
                         "ventestatus": {
                           "erSattPåVent": false,
                           "begrunnelse": {"verdi": null, "erSladdet": false},
-                          "frist": null
+                          "frist": null,
+                          "venterTil": null
                         },
                         "tilgang": {
                           "vurdering": "HAR_TILGANG",

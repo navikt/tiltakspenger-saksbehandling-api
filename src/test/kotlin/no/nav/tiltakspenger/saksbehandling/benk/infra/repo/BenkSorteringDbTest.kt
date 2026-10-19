@@ -26,7 +26,7 @@ class BenkSorteringDbTest {
             BenkSøknaderKolonne.SIST_ENDRET to "sist_endret",
             BenkSøknaderKolonne.SAKSBEHANDLER to "saksbehandler",
             BenkSøknaderKolonne.BESLUTTER to "beslutter",
-            BenkSøknaderKolonne.VENTESTATUS_FRIST to "vente_frist",
+            BenkSøknaderKolonne.VENTESTATUS_FRIST to "vente_dato",
         )
     }
 
@@ -40,7 +40,7 @@ class BenkSorteringDbTest {
             BenkRevurderingerKolonne.SIST_ENDRET to "sist_endret",
             BenkRevurderingerKolonne.SAKSBEHANDLER to "saksbehandler",
             BenkRevurderingerKolonne.BESLUTTER to "beslutter",
-            BenkRevurderingerKolonne.VENTESTATUS_FRIST to "vente_frist",
+            BenkRevurderingerKolonne.VENTESTATUS_FRIST to "vente_dato",
         )
     }
 
