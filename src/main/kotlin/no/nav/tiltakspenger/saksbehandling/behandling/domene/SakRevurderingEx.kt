@@ -119,6 +119,24 @@ suspend fun Sak.startAutomatiskStans(
     return Pair(this.leggTilRevurdering(revurdering), revurdering)
 }
 
+/**
+ * Starter en omgjøring av [omgjørRammevedtak] som systemet fyller ut før den overlates til en saksbehandler.
+ */
+fun Sak.startAutomatiskOmgjøring(
+    omgjørRammevedtak: Rammevedtak,
+    saksopplysninger: Saksopplysninger,
+    automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn,
+    clock: Clock,
+): Pair<Sak, Revurdering> {
+    val revurdering = Revurdering.opprettAutomatiskOmgjøring(
+        saksopplysninger = saksopplysninger,
+        omgjørRammevedtak = omgjørRammevedtak,
+        opprettet = nå(clock),
+        automatiskOpprettetGrunn = automatiskOpprettetGrunn,
+    )
+    return Pair(this.leggTilRevurdering(revurdering), revurdering)
+}
+
 private suspend fun Sak.hentSaksopplysningerForStans(
     hentSaksopplysninger: HentSaksopplysninger,
     correlationId: CorrelationId,

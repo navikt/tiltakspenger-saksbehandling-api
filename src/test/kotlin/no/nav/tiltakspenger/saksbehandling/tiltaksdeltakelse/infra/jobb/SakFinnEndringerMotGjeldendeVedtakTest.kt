@@ -295,13 +295,13 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
     }
 
     @Test
-    fun `avbrudd gir stans`() {
+    fun `avbrudd gir stans eller opphør`() {
         val sak = sakMedInnvilgelse()
 
         sak.vurder(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)).automatiskRevurdering shouldBe
-            AutomatiskRevurderingAvEndring.Stans
+            AutomatiskRevurderingAvEndring.StansEllerOpphør
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(1))).automatiskRevurdering shouldBe
-            AutomatiskRevurderingAvEndring.Stans
+            AutomatiskRevurderingAvEndring.StansEllerOpphør
     }
 
     @Test
@@ -395,10 +395,21 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
     }
 
     @Test
-    fun `avbrudd i en innvilgelse som er passert følges opp manuelt`() {
+    fun `avbrudd tilbake i tid i en innvilgelse som er passert gir stans eller opphør`() {
         val sak = sakMedInnvilgelse(innvilgelsesperiode = deltakelse.deltakelseFraOgMed!! til iDag.minusMonths(1))
 
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(6))) shouldBe
+            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.StansEllerOpphør)
+    }
+
+    /**
+     * Uten en sluttdato som avkorter innvilgelsen gjelder avbruddet fra i dag, og da er det ingen innvilgede dager å stanse eller opphøre.
+     */
+    @Test
+    fun `avbrudd uten avkortet sluttdato i en innvilgelse som er passert følges opp manuelt`() {
+        val sak = sakMedInnvilgelse(innvilgelsesperiode = deltakelse.deltakelseFraOgMed!! til iDag.minusMonths(1))
+
+        sak.vurder(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)) shouldBe
             Endret(AvbruttDeltakelse, automatiskRevurdering = null)
     }
 
@@ -581,7 +592,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val sluttdatoIStansen = iDag.minusWeeks(3)
 
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = sluttdatoIStansen)) shouldBe
-            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
+            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.StansEllerOpphør)
         sak.utledStans(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = sluttdatoIStansen))
             .getOrFail().stansFraOgMed shouldBe ValgtStansFraOgMed.StansFraOgMed(iDag.minusWeeks(2))
     }
@@ -617,11 +628,11 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         sak.vurder(deltakelse.copy(deltakelseProsent = 60F)).automatiskRevurdering shouldBe
             AutomatiskRevurderingAvEndring.Omgjøring(nyInnvilgelse.id)
         sak.vurder(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)) shouldBe
-            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
+            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.StansEllerOpphør)
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag)) shouldBe
-            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
+            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.StansEllerOpphør)
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(2))) shouldBe
-            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
+            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.StansEllerOpphør)
         sak.utledStans(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = iDag))
             .getOrFail().stansFraOgMed shouldBe ValgtStansFraOgMed.StansFraOgMed(iDag.plusWeeks(1))
     }

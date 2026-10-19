@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import java.time.Clock
 
 class StartRevurderingService(
@@ -84,6 +85,9 @@ class StartRevurderingService(
 
     fun lagre(forberedt: ForberedtRevurdering, tx: TransactionContext) {
         rammebehandlingRepo.lagre(forberedt.revurdering, tx)
+        forberedt.simuleringMedMetadata?.let {
+            rammebehandlingRepo.oppdaterSimuleringMetadata(forberedt.revurdering.id, it.originalResponseBody, tx)
+        }
         statistikkService.lagre(forberedt.statistikk, tx)
     }
 }
@@ -96,4 +100,6 @@ class ForberedtRevurdering(
     val sak: Sak,
     val revurdering: Revurdering,
     val statistikk: StatistikkDTO,
+    /** Simuleringen revurderingen ble fylt ut med, dersom den er fylt ut når den opprettes. */
+    val simuleringMedMetadata: SimuleringMedMetadata? = null,
 )

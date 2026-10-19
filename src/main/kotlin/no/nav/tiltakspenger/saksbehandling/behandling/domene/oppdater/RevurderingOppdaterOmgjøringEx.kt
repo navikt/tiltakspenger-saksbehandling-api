@@ -34,23 +34,13 @@ fun Revurdering.oppdaterOmgjøring(
             clock = clock,
         )
 
-        is OppdaterOmgjøringKommando.OmgjøringOpphør -> {
-            val måHaFritekst = kommando.skalSendeVedtaksbrev && kommando.valgteHjemler.any {
-                Omgjøringsresultat.OmgjøringOpphør.hjemlerSomMåHaFritekst.contains(it)
-            }
-
-            if (måHaFritekst && kommando.fritekstTilVedtaksbrev == null) {
-                return KanIkkeOppdatereOmgjøring.MåHaFritekstForValgteHjemler(kommando.valgteHjemler).left()
-            }
-
-            oppdaterOmgjøringOpphør(
-                kommando = kommando,
-                utbetaling = utbetaling,
-                finnRammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres,
-                omgjortVedtak = omgjortVedtak,
-                clock = clock,
-            )
-        }
+        is OppdaterOmgjøringKommando.OmgjøringOpphør -> oppdaterOmgjøringOpphør(
+            kommando = kommando,
+            utbetaling = utbetaling,
+            finnRammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres,
+            omgjortVedtak = omgjortVedtak,
+            clock = clock,
+        )
 
         is OppdaterOmgjøringKommando.OmgjøringIkkeValgt -> oppdaterOmgjøringIkkeValgt(
             kommando = kommando,
@@ -106,6 +96,29 @@ private fun Revurdering.oppdaterOmgjøringInnvilgelse(
     ).right()
 }
 
+/**
+ * Fyller ut et opphør som systemet har opprettet klart til behandling, før det overlates til en saksbehandler.
+ * Behandlingen er ikke tildelt noen, så det sjekkes ikke hvem som oppdaterer den, men opphøret valideres som ved [oppdaterOmgjøring].
+ */
+fun Revurdering.fyllUtAutomatiskOpprettetOpphør(
+    kommando: OppdaterOmgjøringKommando.OmgjøringOpphør,
+    utbetaling: BehandlingUtbetaling?,
+    finnRammevedtakSomOmgjøres: (vedtaksperiode: Periode) -> OmgjørRammevedtak,
+    omgjortVedtak: Rammevedtak,
+    clock: Clock,
+): Either<KanIkkeOppdatereBehandling, Revurdering> {
+    require(automatiskOpprettetGrunn != null && erKlarTilBehandling && resultat is Omgjøringsresultat.OmgjøringIkkeValgt) {
+        "Kun automatisk opprettede omgjøringer som ikke er påbegynt kan fylles ut automatisk. Status: $status, resultat: ${resultat::class.simpleName}"
+    }
+    return oppdaterOmgjøringOpphør(
+        kommando = kommando,
+        utbetaling = utbetaling,
+        finnRammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres,
+        omgjortVedtak = omgjortVedtak,
+        clock = clock,
+    )
+}
+
 // TODO abn: sjekkene her bør også kjøres ved iverksetting
 private fun Revurdering.oppdaterOmgjøringOpphør(
     kommando: OppdaterOmgjøringKommando.OmgjøringOpphør,
@@ -114,6 +127,14 @@ private fun Revurdering.oppdaterOmgjøringOpphør(
     omgjortVedtak: Rammevedtak,
     clock: Clock,
 ): Either<KanIkkeOppdatereBehandling, Revurdering> {
+    val måHaFritekst = kommando.skalSendeVedtaksbrev && kommando.valgteHjemler.any {
+        Omgjøringsresultat.OmgjøringOpphør.hjemlerSomMåHaFritekst.contains(it)
+    }
+
+    if (måHaFritekst && kommando.fritekstTilVedtaksbrev == null) {
+        return KanIkkeOppdatereOmgjøring.MåHaFritekstForValgteHjemler(kommando.valgteHjemler).left()
+    }
+
     val opphørtPeriode = kommando.vedtaksperiode
 
     val rammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres(opphørtPeriode)
