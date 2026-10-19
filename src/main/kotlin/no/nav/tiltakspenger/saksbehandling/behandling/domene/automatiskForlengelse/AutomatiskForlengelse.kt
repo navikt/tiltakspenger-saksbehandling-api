@@ -151,11 +151,11 @@ fun Sak.utledAutomatiskForlengelse(
         grunner.add(ManueltBehandlesGrunn.FORLENGELSE_OVERLAPPENDE_TILTAK)
     }
 
-    if (saksopplysninger.harAndreYtelserEnnTiltakspenger()) {
+    if (innvilgelsesperiode != null && saksopplysninger.harAndreYtelserEnnTiltakspengerSomOverlapper(innvilgelsesperiode)) {
         grunner.add(ManueltBehandlesGrunn.FORLENGELSE_ANDRE_YTELSER)
     }
 
-    if (saksopplysninger.harTiltakspengevedtakFraArena()) {
+    if (innvilgelsesperiode != null && saksopplysninger.harTiltakspengevedtakFraArenaSomOverlapper(innvilgelsesperiode)) {
         grunner.add(ManueltBehandlesGrunn.FORLENGELSE_VEDTAK_I_ARENA)
     }
 

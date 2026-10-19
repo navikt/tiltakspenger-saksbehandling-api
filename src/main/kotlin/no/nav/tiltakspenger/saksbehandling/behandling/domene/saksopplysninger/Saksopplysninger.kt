@@ -58,14 +58,19 @@ data class Saksopplysninger(
         return tiltaksdeltakelserSomFratarRett.filter { it.overlapperMed(periode) != Overlapp.Nei }
     }
 
-    fun harAndreYtelserEnnTiltakspenger(): Boolean {
-        if (ytelser.isNotEmpty()) {
-            return ytelser.value.any { it.ytelsetype != Ytelsetype.TILTAKSPENGER }
-        }
-        return false
+    /**
+     * Tiltakspenger fra utbetaldata regnes ikke som en annen ytelse.
+     */
+    fun harAndreYtelserEnnTiltakspengerSomOverlapper(periode: Periode): Boolean {
+        return ytelser.any { it.ytelsetype != Ytelsetype.TILTAKSPENGER && it.overlapperMed(periode) }
     }
 
-    fun harTiltakspengevedtakFraArena(): Boolean = tiltakspengevedtakFraArena.isNotEmpty()
+    /**
+     * Siden denne kun brukes av den del-automatiske behandlingen ønsker vi å behandle vedtak uten sluttdato som om de kan overlappe.
+     */
+    fun harTiltakspengevedtakFraArenaSomOverlapper(periode: Periode): Boolean {
+        return tiltakspengevedtakFraArena.any { it.overlapperMed(periode) != Overlapp.Nei }
+    }
 }
 
 typealias HentSaksopplysninger = suspend (

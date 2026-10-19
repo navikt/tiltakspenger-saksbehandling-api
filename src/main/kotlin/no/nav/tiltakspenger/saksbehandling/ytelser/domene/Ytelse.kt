@@ -8,6 +8,8 @@ data class Ytelse(
     val ytelsetype: Ytelsetype,
     val perioder: List<Periode>,
 ) {
+    fun overlapperMed(periode: Periode): Boolean = perioder.any { it.overlapperMed(periode) }
+
     fun toDTO(): YtelseDTO {
         return YtelseDTO(
             ytelsetype = if (ytelsetype == Ytelsetype.UNGDOMSPROGRAMYTELSE) {

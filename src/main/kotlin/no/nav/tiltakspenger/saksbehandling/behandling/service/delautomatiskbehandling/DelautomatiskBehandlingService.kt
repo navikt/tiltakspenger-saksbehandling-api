@@ -341,9 +341,8 @@ class DelautomatiskBehandlingService(
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_MINDRE_ENN_14_DAGER_MELLOM_TILTAK_OG_SOKNAD)
         }
 
-        val tiltakSomFratarRett = behandling.saksopplysninger.tiltaksdeltakelserSomFratarRettSomOverlapper(
-            behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm(),
-        )
+        val periodeDetErSøktOm = behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm()
+        val tiltakSomFratarRett = behandling.saksopplysninger.tiltaksdeltakelserSomFratarRettSomOverlapper(periodeDetErSøktOm)
         if (tiltakSomFratarRett.any { it.erLønnstilskudd }) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_HAR_LONNSTILSKUDD)
         }
@@ -351,11 +350,11 @@ class DelautomatiskBehandlingService(
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_HAR_TILTAK_SOM_FRATAR_RETT)
         }
 
-        if (behandling.saksopplysninger.harAndreYtelserEnnTiltakspenger()) {
+        if (behandling.saksopplysninger.harAndreYtelserEnnTiltakspengerSomOverlapper(periodeDetErSøktOm)) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_ANDRE_YTELSER)
         }
 
-        if (behandling.saksopplysninger.harTiltakspengevedtakFraArena()) {
+        if (behandling.saksopplysninger.harTiltakspengevedtakFraArenaSomOverlapper(periodeDetErSøktOm)) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_VEDTAK_I_ARENA)
         }
 

@@ -385,6 +385,57 @@ class DelautomatiskForlengelseServiceTest {
         }
     }
 
+    @Test
+    fun `bruker har tiltakspengevedtak i Arena uten sluttdato som startet før forlengelsen - overlates til saksbehandler`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(
+                tac,
+                etterInnvilgelse = { sak ->
+                    tac.leggTilTiltakspengevedtakFraArena(
+                        fnr = sak.fnr,
+                        vedtak = listOf(
+                            ArenaTPVedtak(
+                                fraOgMed = 1.april(2025),
+                                tilOgMed = null,
+                                rettighet = ArenaTPVedtak.Rettighet.TILTAKSPENGER,
+                                vedtakId = 1,
+                            ),
+                        ),
+                    )
+                },
+            ).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.FORLENGELSE_VEDTAK_I_ARENA)
+        }
+    }
+
+    /**
+     * Bare ytelser og vedtak som overlapper perioden som forlenges, hindrer automatisk behandling.
+     */
+    @Test
+    fun `bruker har andre ytelser og tiltakspengevedtak i Arena før forlengelsen - sendes til beslutning`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(
+                tac,
+                etterInnvilgelse = { sak ->
+                    tac.leggTilYtelserFraUtbetaldata(
+                        fnr = sak.fnr,
+                        ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(1.april(2025) til 5.mai(2025)))),
+                    )
+                    tac.leggTilTiltakspengevedtakFraArena(
+                        fnr = sak.fnr,
+                        vedtak = listOf(
+                            ArenaTPVedtak(
+                                fraOgMed = 1.april(2025),
+                                tilOgMed = 5.mai(2025),
+                                rettighet = ArenaTPVedtak.Rettighet.TILTAKSPENGER,
+                                vedtakId = 1,
+                            ),
+                        ),
+                    )
+                },
+            ).skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10)
+        }
+    }
+
     /**
      * Grunnene som kan vurderes uavhengig av hverandre, samles, slik at saksbehandler ser alt som hindret automatisk behandling.
      */
@@ -429,14 +480,15 @@ class DelautomatiskForlengelseServiceTest {
     }
 
     /**
-     * Uten innvilgelsesperiode hoppes sjekkene som bygger på den over, men grunnene som ikke bygger på den, tas fortsatt med.
+     * Uten innvilgelsesperiode hoppes sjekkene som bygger på den over, også andre ytelser, men grunnene som ikke bygger på den, tas fortsatt med.
      */
     @Test
-    fun `innvilgelsen sluttet før deltakelsen og bruker har andre ytelser - overlates til saksbehandler med begge grunnene`() {
+    fun `innvilgelsen sluttet før deltakelsen og startdatoen er endret - overlates til saksbehandler med begge grunnene`() {
         withTestApplicationContextAndPostgres { tac ->
             forlengOgBehandleAutomatisk(
                 tac,
                 innvilgetTilOgMed = 30.april(2025),
+                nåtilstand = { it.copy(deltakelseFraOgMed = 6.januar(2025)) },
                 etterInnvilgelse = { sak ->
                     tac.leggTilYtelserFraUtbetaldata(
                         fnr = sak.fnr,
@@ -445,7 +497,7 @@ class DelautomatiskForlengelseServiceTest {
                 },
             ).skalVæreOverlattTilSaksbehandler(
                 ManueltBehandlesGrunn.FORLENGELSE_INNVILGELSEN_SLUTTER_FOR_DELTAKELSEN,
-                ManueltBehandlesGrunn.FORLENGELSE_ANDRE_YTELSER,
+                ManueltBehandlesGrunn.FORLENGELSE_ENDRET_STARTDATO,
             )
         }
     }

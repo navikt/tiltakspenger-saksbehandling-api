@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling
 
+import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -10,11 +11,14 @@ import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.utenBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
@@ -33,6 +37,8 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -528,4 +534,60 @@ class DelautomatiskBehandlingServiceTest {
             oppdatertBehandling.manueltBehandlesGrunner.find { it == ManueltBehandlesGrunn.SOKNAD_INSTITUSJONSOPPHOLD } shouldNotBe null
         }
     }
+
+    @Test
+    fun `behandleAutomatisk - har andre ytelser og vedtak i Arena som overlapper søknadsperioden - manuell behandling`() {
+        withTestApplicationContext { tac ->
+            val fnr = Fnr.random()
+            tac.leggTilYtelserFraUtbetaldata(
+                fnr = fnr,
+                ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(1.desember(2022) til 1.januar(2023)))),
+            )
+            tac.leggTilTiltakspengevedtakFraArena(
+                fnr = fnr,
+                vedtak = listOf(arenavedtak(fraOgMed = 1.desember(2022), tilOgMed = null)),
+            )
+            val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac, fnr = fnr)
+
+            tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
+
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id) as Søknadsbehandling
+            oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+            oppdatertBehandling.manueltBehandlesGrunner shouldBe listOf(
+                ManueltBehandlesGrunn.SAKSOPPLYSNING_ANDRE_YTELSER,
+                ManueltBehandlesGrunn.SAKSOPPLYSNING_VEDTAK_I_ARENA,
+            )
+        }
+    }
+
+    @Test
+    fun `behandleAutomatisk - har andre ytelser og vedtak i Arena før søknadsperioden - sendes til beslutning`() {
+        withTestApplicationContext { tac ->
+            val fnr = Fnr.random()
+            tac.leggTilYtelserFraUtbetaldata(
+                fnr = fnr,
+                ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(1.desember(2022) til 31.desember(2022)))),
+            )
+            tac.leggTilTiltakspengevedtakFraArena(
+                fnr = fnr,
+                vedtak = listOf(arenavedtak(fraOgMed = 1.desember(2022), tilOgMed = 31.desember(2022))),
+            )
+            val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac, fnr = fnr)
+
+            tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
+
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id) as Søknadsbehandling
+            oppdatertBehandling.saksopplysninger.ytelser.shouldNotBeEmpty()
+            oppdatertBehandling.saksopplysninger.tiltakspengevedtakFraArena.shouldNotBeEmpty()
+            oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+            oppdatertBehandling.manueltBehandlesGrunner shouldBe emptyList()
+        }
+    }
+
+    private fun arenavedtak(fraOgMed: LocalDate, tilOgMed: LocalDate?) = ArenaTPVedtak(
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
+        rettighet = ArenaTPVedtak.Rettighet.TILTAKSPENGER,
+        vedtakId = 1,
+    )
 }
