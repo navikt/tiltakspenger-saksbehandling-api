@@ -194,9 +194,8 @@ class DelautomatiskStansServiceTest {
                 it.resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>().stansperiode shouldBe (8.januar(2025) til 5.mai(2025))
                 it.begrunnelseVilkårsvurdering!!.verdi shouldNotContain "Oppdragssystemet har allerede utbetalt"
                 it.prioritering shouldBe Prioritering.create(
-                    "Det er sendt utbetaling av tiltakspenger til og med 17. januar 2025 som oppdragssystemet ikke har utbetalt ennå. " +
-                        "Oppdragssystemet utbetaler dagen etter at utbetalingen er mottatt, pluss en ventedag. " +
-                        "Stansen må iverksettes før det, ellers blir det feilutbetaling og stansen må behandles på nytt.",
+                    "Stans må behandles omgående for å hindre feilutbetaling. " +
+                        "Det er sendt utbetaling av tiltakspenger til og med 17. januar 2025 som oppdragssystemet ikke har utbetalt ennå.",
                 )
             }
         }
