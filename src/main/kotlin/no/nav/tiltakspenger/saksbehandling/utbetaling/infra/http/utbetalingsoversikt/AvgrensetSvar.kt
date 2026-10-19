@@ -1,10 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt
 
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Avgrensningsårsak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktavgrensning
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktgrunnlag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.sha256
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
 
 /** Svaret slik det lagres og mappes, og tallene på det som ble tatt bort. */
 data class AvgrensetSvar(
@@ -50,7 +52,14 @@ private fun UtbetalingsoversiktDto.YtelseDto.avgrensningsårsak(grunnlag: Utbeta
     if (ytelsesperiode.fom.isAfter(ytelsesperiode.tom)) {
         null
     } else {
-        grunnlag.avgrensningsårsak(ytelsestype, Periode(ytelsesperiode.fom, ytelsesperiode.tom), rettighetshaver?.ident)
+        grunnlag.avgrensningsårsak(
+            ytelsestype = ytelsestype?.tilYtelsetype(),
+            periode = Periode(ytelsesperiode.fom, ytelsesperiode.tom),
+            rettighetshaver = rettighetshaver?.ident?.let { Fnr.tryFromString(it) },
+        )
     }
+
+/** Tjenesten sender beskrivelsen av ytelsen, ikke en kode, og en beskrivelse vi ikke kjenner, blir [Ytelsetype.UKJENT]. */
+private fun String.tilYtelsetype(): Ytelsetype = Ytelsetype.entries.find { it.tekstverdi == this } ?: Ytelsetype.UKJENT
 
 private fun UtbetalingsoversiktDto.AktoerDto.utenNavn() = copy(navn = null)

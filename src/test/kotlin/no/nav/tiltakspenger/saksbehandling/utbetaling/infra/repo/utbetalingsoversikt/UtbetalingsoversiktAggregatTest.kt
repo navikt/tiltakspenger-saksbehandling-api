@@ -1,7 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.utbetalingsoversikt
 
+import io.github.oshai.kotlinlogging.Level
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
@@ -10,6 +13,8 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
+import no.nav.tiltakspenger.saksbehandling.common.Loggfanger
+import no.nav.tiltakspenger.saksbehandling.common.Sikkerloggfanger
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -165,7 +170,10 @@ class UtbetalingsoversiktAggregatTest {
         }
     }
 
-    /** Når lagringen kaster, vet vi ikke hvorfor, og da skal ikke neste sak gi et nytt kall mot tjenesten. */
+    /**
+     * Når lagringen kaster, vet vi ikke hvorfor, og da skal ikke neste sak gi et nytt kall mot tjenesten.
+     * Oppslaget logges først etter lagringen, slik at feilen gir én error-linje og ingen info-linje om et oppslag som ikke ble lagret.
+     */
     @Test
     @IsolatedDatabaseTest
     fun `kjøringen stopper når lagringen kaster, uten å kalle tjenesten for neste sak`() {
@@ -177,6 +185,9 @@ class UtbetalingsoversiktAggregatTest {
                 override fun lagre(oversikt: Utbetalingsoversikt, metadata: UtbetalingsoversiktMetadata) = throw IllegalStateException("databasen svarer ikke")
             }
 
+            val loggfanger = Loggfanger(OppdaterUtbetalingsoversiktJobb::class.java.name)
+            val sikkerloggfanger = Sikkerloggfanger()
+
             OppdaterUtbetalingsoversiktJobb(
                 sakRepo = tac.sakContext.sakRepo,
                 utbetalingsoversiktRepo = repoSomKasterVedLagring,
@@ -184,10 +195,17 @@ class UtbetalingsoversiktAggregatTest {
                 clock = tac.clock,
                 meterRegistry = SimpleMeterRegistry(),
                 limit = 10,
+                logger = loggfanger,
+                sikkerlogg = sikkerloggfanger,
             ).oppdaterUtbetalingsoversikter()
 
             tac.utbetalingsoversiktFakeKlient.sisteOppslagFor(første.fnr).shouldNotBeNull()
             tac.utbetalingsoversiktFakeKlient.sisteOppslagFor(andre.fnr) shouldBe null
+            val linje = loggfanger.logglinjer.single()
+            linje.nivå shouldBe Level.ERROR
+            linje.melding!! shouldContain "Uventet feil ved oppdatering av utbetalingsoversikt"
+            linje.feil!!.message shouldBe "databasen svarer ikke"
+            sikkerloggfanger.sikkerlogglinjer.shouldBeEmpty()
         }
     }
 

@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.dato.november
 import no.nav.tiltakspenger.libs.dato.oktober
 import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
@@ -307,6 +308,23 @@ class UtbetalingsoversiktHttpKlientTest {
 
             utbetaling.ytelser.single().periode shouldBe Periode(5.desember(2025), 26.desember(2025))
             utbetaling.nettobeløp shouldBe "6854.00".toBigDecimal()
+        }
+    }
+
+    @Test
+    fun `fredagen før en periode som starter i helgen, beholdes når den kommer som egen ytelse i måneden før`() {
+        val grunnlag = Utbetalingsoversiktgrunnlag(fnr, listOf(Periode(1.november(2025), 31.desember(2025))))
+        val svar = UtbetalingsoversiktDtoTestEx.svarMedFredagenFørHelgestartIMånedenFør(fnr)
+
+        runTest {
+            val resultat = hent(transportMed(svar), grunnlag = grunnlag).getOrFail()
+
+            resultat.utbetalinger.single().ytelser.map { it.periode } shouldBe listOf(
+                Periode(31.oktober(2025), 31.oktober(2025)),
+                Periode(3.november(2025), 28.november(2025)),
+            )
+            resultat.utbetalinger.single().nettobeløp shouldBe "8940.00".toBigDecimal()
+            resultat.avgrensning.fjernedeYtelserPerÅrsak shouldBe emptyMap()
         }
     }
 

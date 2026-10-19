@@ -212,6 +212,33 @@ object UtbetalingsoversiktDtoTestEx {
         """.trimIndent()
     }
 
+    /**
+     * Et svar bygd som [svarMedYtelseSomBegynnerFørGrunnlaget], for en vedtaksperiode som starter lørdag 1. november 2025.
+     * Helgen 1.–2. november er utbetalt på fredag 31. oktober, og tjenesten deler ytelsene per kalendermåned.
+     */
+    fun svarMedFredagenFørHelgestartIMånedenFør(fnr: Fnr): String {
+        // language=json
+        return """
+        [
+          {
+            "ytelseListe": [
+              ${ytelseFraDev("2025-10-31", "2025-10-31", "596.00", listOf("Tiltakspenger" to "596.00"), fnr.verdi)},
+              ${ytelseFraDev("2025-11-03", "2025-11-28", "8344.00", listOf("Tiltakspenger" to "8344.00"), fnr.verdi)}
+            ],
+            "utbetaltTil": { "aktoertype": "PERSON", "ident": "${fnr.verdi}", "navn": null },
+            "utbetalingsmetode": "Norsk bankkonto",
+            "utbetalingsstatus": "Utbetalt",
+            "posteringsdato": "2025-12-01",
+            "forfallsdato": "2025-12-01",
+            "utbetalingsdato": "2025-12-01",
+            "utbetalingNettobeloep": 8940.00,
+            "utbetalingsmelding": null,
+            "utbetaltTilKonto": null
+          }
+        ]
+        """.trimIndent()
+    }
+
     private fun ytelseFraDev(
         fom: String,
         tom: String,

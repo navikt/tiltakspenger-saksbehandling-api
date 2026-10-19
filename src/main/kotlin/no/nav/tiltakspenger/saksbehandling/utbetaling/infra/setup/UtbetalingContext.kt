@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
@@ -120,6 +122,8 @@ open class UtbetalingContext(
             meterRegistry = meterRegistry,
             // Lavt i dev til vi har målt hva et oppslag koster; justeres før jobben slås på i prod.
             limit = if (erDev) 2 else 10,
+            logger = KotlinLogging.logger(OppdaterUtbetalingsoversiktJobb::class.java.name),
+            sikkerlogg = Sikkerlogg,
         )
     }
 }

@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Avgrensningsårsak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.KunneIkkeHenteUtbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Oppslag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Oppslagsperiodetype
@@ -27,6 +28,13 @@ class UtbetalingsoversiktFakeKlient : Utbetalingsoversiktklient {
     /** Settes når en test trenger at flere svar har samme tidspunkt. */
     @Volatile
     var responsMottatt: LocalDateTime? = null
+
+    /**
+     * Settes når en test trenger et avgrenset svar.
+     * Utbetalingene i svaret er uendret.
+     */
+    @Volatile
+    var fjernedeYtelserPerÅrsak: Map<Avgrensningsårsak, Int> = emptyMap()
 
     fun leggTilUtbetalinger(fnr: Fnr, utbetalinger: List<RegistrertUtbetaling>) {
         svar[fnr] = utbetalinger.right()
@@ -56,7 +64,7 @@ class UtbetalingsoversiktFakeKlient : Utbetalingsoversiktklient {
                     perioder = grunnlag.perioder,
                     antallUtbetalingerMottatt = it.size,
                     antallYtelserMottatt = it.sumOf { utbetaling -> utbetaling.ytelser.size },
-                    fjernedeYtelserPerÅrsak = emptyMap(),
+                    fjernedeYtelserPerÅrsak = fjernedeYtelserPerÅrsak,
                     antallFjernedeUtbetalinger = 0,
                     mottattSvarSha256 = AVGRENSET_SVAR.sha256(),
                     mottattSvarLengde = AVGRENSET_SVAR.length,
