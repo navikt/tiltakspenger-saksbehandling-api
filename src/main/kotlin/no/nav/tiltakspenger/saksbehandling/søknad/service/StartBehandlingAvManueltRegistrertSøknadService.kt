@@ -1,5 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.søknad.service
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -15,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.KanIkkeStarteBehandlingenAvManueltRegistrertSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.StartBehandlingAvManueltRegistrertSøknadCommand
 import java.time.Clock
@@ -37,20 +41,24 @@ class StartBehandlingAvManueltRegistrertSøknadService(
         saksnummer: Saksnummer,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Pair<Sak, Søknadsbehandling> {
+    ): Either<KanIkkeStarteBehandlingenAvManueltRegistrertSøknad, Pair<Sak, Søknadsbehandling>> {
+        if (kommando.manueltSattSøknadMottattDato == null && !kommando.erOverførtFraArena) {
+            return KanIkkeStarteBehandlingenAvManueltRegistrertSøknad.EnManuellDatoKrevesNårDetIkkeErMigreringFraArena.left()
+        }
+
         val sak = sakService.hentForSaksnummer(saksnummer)
         val journalpostValidering = journalpostService.hentOgValiderJournalpost(sak.fnr, kommando.journalpostId)
 
         if (!journalpostValidering.journalpostFinnes) {
-            throw IllegalArgumentException("Journalpost ${kommando.journalpostId} finnes ikke")
+            return KanIkkeStarteBehandlingenAvManueltRegistrertSøknad.JournalpostFinnesIkke(kommando.journalpostId).left()
         }
 
         if (journalpostValidering.datoOpprettet == null) {
-            throw IllegalArgumentException("Journalpost ${kommando.journalpostId} mangler datoOpprettet")
+            return KanIkkeStarteBehandlingenAvManueltRegistrertSøknad.JournalpostManglerOpprettsdato(kommando.journalpostId).left()
         }
 
         if (journalpostValidering.gjelderInnsendtFnr == false) {
-            throw IllegalArgumentException("Journalpost ${kommando.journalpostId} tilhører en annen bruker")
+            return KanIkkeStarteBehandlingenAvManueltRegistrertSøknad.JournalpostTilhørerEnAnnenBruker(kommando.journalpostId).left()
         }
 
         val personopplysninger = personService.hentPersonopplysninger(sak.fnr)
@@ -59,7 +67,7 @@ class StartBehandlingAvManueltRegistrertSøknadService(
             sak = sak,
             journalpostId = kommando.journalpostId.toString(),
             opprettet = nå(clock),
-            mottatt = kommando.manueltSattSøknadMottattDato.atStartOfDay(),
+            mottatt = kommando.manueltSattSøknadMottattDato?.atStartOfDay() ?: journalpostValidering.datoOpprettet,
             personopplysninger = Søknad.Personopplysninger(
                 fnr = personopplysninger.fnr,
                 fornavn = personopplysninger.fornavn,
@@ -112,6 +120,6 @@ class StartBehandlingAvManueltRegistrertSøknadService(
                 sessionContext = tx,
             )
         }
-        return (oppdatertSak to søknadsbehandling)
+        return (oppdatertSak to søknadsbehandling).right()
     }
 }

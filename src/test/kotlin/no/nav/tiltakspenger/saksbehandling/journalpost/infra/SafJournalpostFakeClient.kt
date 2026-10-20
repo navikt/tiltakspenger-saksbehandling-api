@@ -10,11 +10,14 @@ import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalpost.HentDokumentCommand
 import java.time.Clock
+import java.time.LocalDateTime
 
 class SafJournalpostFakeClient(
     private val clock: Clock,
 ) : SafJournalpostClient {
-    val data = arrow.atomic.Atomic(mutableMapOf<JournalpostId, Fnr>())
+    private data class RegistrertJournalpost(val fnr: Fnr, val datoOpprettet: LocalDateTime?)
+
+    private val data = arrow.atomic.Atomic(mutableMapOf<JournalpostId, RegistrertJournalpost>())
 
     override suspend fun hentJournalpost(
         journalpostId: JournalpostId,
@@ -56,12 +59,12 @@ class SafJournalpostFakeClient(
         return data.get()[journalpostId]?.let {
             Journalpost(
                 avsenderMottaker = AvsenderMottaker(
-                    id = it.verdi,
+                    id = it.fnr.verdi,
                     type = "FNR",
                 ),
-                datoOpprettet = nå(clock).toString(),
+                datoOpprettet = (it.datoOpprettet ?: nå(clock)).toString(),
                 bruker = Bruker(
-                    id = it.verdi,
+                    id = it.fnr.verdi,
                     type = "FNR",
                 ),
             )
@@ -87,7 +90,8 @@ class SafJournalpostFakeClient(
         return PdfA(pdf.toByteArray()).right()
     }
 
-    fun addJournalpost(journalpostId: JournalpostId, fnr: Fnr) {
-        data.get()[journalpostId] = fnr
+    /** @param datoOpprettet `null` gir klokkas nå-tidspunkt ved oppslag. */
+    fun addJournalpost(journalpostId: JournalpostId, fnr: Fnr, datoOpprettet: LocalDateTime? = null) {
+        data.get()[journalpostId] = RegistrertJournalpost(fnr, datoOpprettet)
     }
 }

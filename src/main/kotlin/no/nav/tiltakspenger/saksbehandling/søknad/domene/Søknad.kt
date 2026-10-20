@@ -17,6 +17,7 @@ import java.time.LocalDateTime
  * [opprettet] Dette er tidspunktet hvor søknaden er opprettet i saksbehandlingsapiet
  * [mottatt] For digitale søknder er dette tidspunktet hvor søknaden er opprettet i søknadsapiet.
  *           For manuelt registrerte søknader settes denne av saksbehandler.
+ *           Er søknaden overført fra Arena og saksbehandler ikke har satt dato, brukes tidspunktet journalposten ble opprettet.
  */
 
 sealed interface Søknad {

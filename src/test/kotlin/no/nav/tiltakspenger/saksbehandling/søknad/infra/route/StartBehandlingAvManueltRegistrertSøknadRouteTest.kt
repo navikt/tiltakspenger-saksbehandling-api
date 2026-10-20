@@ -6,6 +6,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
+import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mai
@@ -28,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Oppholdssted
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.StartBehandlingAvManueltRegistrertSøknadRouteBuilder.JournalpostISaf
 import org.junit.jupiter.api.Test
 
 /**
@@ -240,7 +243,7 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
     }
 
     @Test
-    fun `avviser søknad uten mottatt dato`() = runTest {
+    fun `avviser søknad uten mottatt dato når den ikke er overført fra Arena`() = runTest {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, _) = opprettSakOgSøknad(tac)
 
@@ -249,17 +252,120 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
                 saksnummer = sak.saksnummer,
                 journalpostId = "journalpost-uten-mottatt-dato",
                 manueltSattSøknadMottattDato = null,
+                behandlingsarsak = null,
                 forventet = ForventetRespons(
                     status = 400,
                     contentType = "application/json; charset=UTF-8",
                     body = ForventetBody.Json(
-                        """{"melding":"Kunne ikke deserialisere request","kode":"ugyldig_request"}""",
+                        """{"melding":"En manuell registrert søknad må ha en dato når den ikke overføres fra Arena.","kode":"mangler_manuell_dato"}""",
                     ),
                 ),
             )
 
             tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
                 .søknader.none { it.journalpostId == "journalpost-uten-mottatt-dato" } shouldBe true
+        }
+    }
+
+    /**
+     * Saksbehandler ser ikke datofeltet når søknaden er overført fra Arena.
+     * Mottatt-tidspunktet blir da tidspunktet journalposten ble opprettet, slik kravtidspunktet var før saksbehandler kunne sette dato.
+     */
+    @Test
+    fun `søknad overført fra Arena uten mottatt dato får journalpostens opprettelsestidspunkt som mottatt-tidspunkt`() = runTest {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _) = opprettSakOgSøknad(tac)
+            val journalpostOpprettet = 3.mars(2023).atTime(10, 15)
+
+            startBehandlingAvManueltRegistrertSøknad(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                journalpostId = "journalpost-arena-uten-dato",
+                manueltSattSøknadMottattDato = null,
+                behandlingsarsak = "SOKNADSBEHANDLING_FRA_ARENA",
+                journalpost = JournalpostISaf.PåSakensBruker(datoOpprettet = journalpostOpprettet),
+            )
+
+            val oppdatertSak = tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
+            val søknad = oppdatertSak.søknader.single { it.journalpostId == "journalpost-arena-uten-dato" }
+            val behandling = oppdatertSak.rammebehandlinger.søknadsbehandlinger.single { it.søknad.id == søknad.id }
+
+            søknad.mottatt shouldBe journalpostOpprettet
+            søknad.opprettet shouldNotBe journalpostOpprettet
+            behandling.kravtidspunkt shouldBe journalpostOpprettet
+
+            val saksstatistikk = tac.sessionFactory.hentSaksstatistikk(sak.id)
+                .filter { it.behandlingId == behandling.id.toString() }
+            saksstatistikk shouldHaveAtLeastSize 1
+            saksstatistikk.forEach { it.mottattTidspunkt shouldBe journalpostOpprettet }
+        }
+    }
+
+    @Test
+    fun `søknad overført fra Arena med mottatt dato bruker datoen fra saksbehandler`() = runTest {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _) = opprettSakOgSøknad(tac)
+
+            startBehandlingAvManueltRegistrertSøknad(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                journalpostId = "journalpost-arena-med-dato",
+                manueltSattSøknadMottattDato = 14.februar(2025),
+                behandlingsarsak = "FORLENGELSE_FRA_ARENA",
+                journalpost = JournalpostISaf.PåSakensBruker(datoOpprettet = 3.mars(2023).atTime(10, 15)),
+            )
+
+            tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
+                .søknader.single { it.journalpostId == "journalpost-arena-med-dato" }
+                .mottatt shouldBe 14.februar(2025).atStartOfDay()
+        }
+    }
+
+    @Test
+    fun `avviser søknad når journalposten ikke finnes`() = runTest {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _) = opprettSakOgSøknad(tac)
+
+            startBehandlingAvManueltRegistrertSøknad(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                journalpostId = "journalpost-finnes-ikke",
+                journalpost = JournalpostISaf.FinnesIkke,
+                forventet = ForventetRespons(
+                    status = 400,
+                    contentType = "application/json; charset=UTF-8",
+                    body = ForventetBody.Json(
+                        """{"melding":"Journalpost journalpost-finnes-ikke finnes ikke.","kode":"journalpost_finnes_ikke"}""",
+                    ),
+                ),
+            )
+
+            tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
+                .søknader.none { it.journalpostId == "journalpost-finnes-ikke" } shouldBe true
+        }
+    }
+
+    @Test
+    fun `avviser søknad når journalposten tilhører en annen bruker`() = runTest {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _) = opprettSakOgSøknad(tac)
+
+            startBehandlingAvManueltRegistrertSøknad(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                journalpostId = "journalpost-annen-bruker",
+                journalpost = JournalpostISaf.PåAnnenBruker(fnr = Fnr.random()),
+                forventet = ForventetRespons(
+                    status = 400,
+                    contentType = "application/json; charset=UTF-8",
+                    body = ForventetBody.Json(
+                        """{"melding":"Journalpost journalpost-annen-bruker tilhører en annen bruker.","kode":"journalpost_tilhører_en_annen_bruker"}""",
+                    ),
+                ),
+            )
+
+            tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
+                .søknader.none { it.journalpostId == "journalpost-annen-bruker" } shouldBe true
         }
     }
 
