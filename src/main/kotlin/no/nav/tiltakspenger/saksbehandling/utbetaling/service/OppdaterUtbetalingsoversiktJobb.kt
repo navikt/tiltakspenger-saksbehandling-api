@@ -142,10 +142,11 @@ class OppdaterUtbetalingsoversiktJobb(
     }
 
     private fun Avgrensningsårsak.tilMetrikkverdi(): String = when (this) {
-        Avgrensningsårsak.UTEN_YTELSESTYPE -> "uten_ytelsestype"
-        Avgrensningsårsak.ANNEN_YTELSESTYPE -> "annen_ytelsestype"
+        Avgrensningsårsak.MANGLER_YTELSESTYPE -> "uten_ytelsestype"
+        Avgrensningsårsak.UTELATT_YTELSESTYPE -> "annen_ytelsestype"
+        Avgrensningsårsak.UKJENT_YTELSESTYPE -> "ukjent_ytelsestype"
         Avgrensningsårsak.UTENFOR_PERIODENE -> "utenfor_periodene"
-        Avgrensningsårsak.ANNEN_RETTIGHETSHAVER -> "annen_rettighetshaver"
+        Avgrensningsårsak.ANNEN_ELLER_MANGLENDE_RETTIGHETSHAVER -> "annen_rettighetshaver"
     }
 
     private fun Oppslagsfeiltype.tilMetrikkverdi(): String = when (this) {

@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsove
 
 import arrow.core.Either
 import arrow.core.flatMap
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.UriSynlighet
@@ -22,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktgrunnlag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktsvar
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
 import java.net.URI
 import java.time.Clock
 import kotlin.time.Duration
@@ -49,11 +51,14 @@ import kotlin.time.Duration.Companion.seconds
  * - Tjenesten har ingen rate limiting og ingen timeout mot databasene sine, og eierteamet varsles ved mer enn to 4xx eller 5xx på tre minutter.
  *
  * Kalleren må derfor holde seg innenfor åpningstidene og stoppe ved første feil som rammer alle saker.
+ *
+ * Ytelsestyper vi ikke kjenner, telles per type ved vellykket oppslag, uten sak, så vi ser hvilke typer som mangler i [Ytelsetype] eller [utelatteYtelsestyper].
  */
 class UtbetalingsoversiktHttpKlient(
     baseUrl: String,
     clock: Clock,
     authTokenProvider: AuthTokenProvider,
+    private val meterRegistry: MeterRegistry,
     connectTimeout: Duration = 5.seconds,
     timeout: Duration = 20.seconds,
     transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
@@ -96,6 +101,7 @@ class UtbetalingsoversiktHttpKlient(
             avgrenset.utbetalinger.tilRegistrerteUtbetalinger()
                 .mapLeft { KunneIkkeHenteUtbetalingsoversikt.UgyldigInnhold(feil = it, metadata = response.metadata) }
                 .map { utbetalinger ->
+                    registrerUkjenteYtelsestyper(avgrenset.ukjenteYtelsestyper)
                     Utbetalingsoversiktsvar(
                         utbetalinger = utbetalinger,
                         avgrensetSvar = serialize(avgrenset.utbetalinger),
@@ -103,6 +109,13 @@ class UtbetalingsoversiktHttpKlient(
                         metadata = response.metadata,
                     )
                 }
+        }
+    }
+
+    private fun registrerUkjenteYtelsestyper(ukjenteYtelsestyper: Map<String, Int>) {
+        ukjenteYtelsestyper.forEach { (ytelsestype, antall) ->
+            meterRegistry.counter("tpts_saksbehandlingapi_utbetalingsoversikt_ukjente_ytelser", "ytelsestype", ytelsestype)
+                .increment(antall.toDouble())
         }
     }
 

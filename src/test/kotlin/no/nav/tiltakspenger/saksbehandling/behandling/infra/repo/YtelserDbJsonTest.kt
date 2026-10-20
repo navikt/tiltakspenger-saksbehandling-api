@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
 import org.junit.jupiter.api.Test
@@ -65,5 +66,22 @@ class YtelserDbJsonTest {
         )
 
         treff.toDbJson().toDomain() shouldBe treff
+    }
+
+    @Test
+    fun `barnepensjon i lagrede saksopplysninger hoppes over`() {
+        fun lagret(vararg typer: String) = YtelserDbJson(
+            ytelser = typer.map { YtelserDbJson.YtelseDbJson(ytelsetype = it, perioder = listOf(oppslagsperiode.toDbJson())) },
+            type = YtelserDbJson.Type.Treff,
+            oppslagstidspunkt = oppslagstidspunkt,
+            oppslagsperiode = oppslagsperiode.toDbJson(),
+        )
+
+        lagret("Barnepensjon", "Dagpenger").toDomain() shouldBe Ytelser.Treff(
+            value = nonEmptyListOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(oppslagsperiode))),
+            oppslagsperiode = oppslagsperiode,
+            oppslagstidspunkt = oppslagstidspunkt,
+        )
+        lagret("Barnepensjon").toDomain() shouldBe Ytelser.IngenTreff(oppslagsperiode = oppslagsperiode, oppslagstidspunkt = oppslagstidspunkt)
     }
 }

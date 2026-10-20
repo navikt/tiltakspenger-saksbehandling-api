@@ -6,6 +6,8 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -51,6 +53,8 @@ class UtbetalingsoversiktHttpKlientTest {
     private val periode = Periode(fraOgMed = 1.august(2025), tilOgMed = 30.september(2025))
     private val grunnlag = Utbetalingsoversiktgrunnlag(fnr, listOf(periode))
 
+    private val meterRegistry = SimpleMeterRegistry()
+
     private val authTokenProvider = object : AuthTokenProvider {
         override suspend fun hentToken(skipCache: Boolean) = AccessToken("token", Instant.MAX)
     }
@@ -58,10 +62,12 @@ class UtbetalingsoversiktHttpKlientTest {
     private fun klient(
         transport: FakeHttpTransport,
         authTokenProvider: AuthTokenProvider = this.authTokenProvider,
+        meterRegistry: MeterRegistry = this.meterRegistry,
     ) = UtbetalingsoversiktHttpKlient(
         baseUrl = baseUrl,
         clock = ObjectMother.clock,
         authTokenProvider = authTokenProvider,
+        meterRegistry = meterRegistry,
         transport = transport,
     )
 
@@ -80,7 +86,7 @@ class UtbetalingsoversiktHttpKlientTest {
 
     @Test
     fun `klienten kan bygges med standardtransporten`() {
-        UtbetalingsoversiktHttpKlient(baseUrl = baseUrl, clock = ObjectMother.clock, authTokenProvider = authTokenProvider)
+        UtbetalingsoversiktHttpKlient(baseUrl = baseUrl, clock = ObjectMother.clock, authTokenProvider = authTokenProvider, meterRegistry = meterRegistry)
     }
 
     /**
@@ -221,7 +227,7 @@ class UtbetalingsoversiktHttpKlientTest {
     }
 
     /**
-     * Første utbetaling har én ytelse innenfor, én uten type, én av en type vi ikke samordner med, én utenfor periodene og én med annen rettighetshaver.
+     * Første utbetaling har én ytelse innenfor, én uten type, én av en utelatt type, én av en type vi ikke kjenner, én utenfor periodene og én med annen rettighetshaver.
      * Andre utbetaling har bare én ytelse uten type.
      */
     @Test
@@ -235,18 +241,35 @@ class UtbetalingsoversiktHttpKlientTest {
             resultat.utbetalinger.map { it.ytelser.map { ytelse -> ytelse.ytelsestype } } shouldBe listOf(listOf("Dagpenger"))
             resultat.utbetalinger.single().nettobeløp shouldBe null
             resultat.avgrensning.antallUtbetalingerMottatt shouldBe 2
-            resultat.avgrensning.antallYtelserMottatt shouldBe 6
+            resultat.avgrensning.antallYtelserMottatt shouldBe 7
             resultat.avgrensning.antallFjernedeUtbetalinger shouldBe 1
             resultat.avgrensning.fjernedeYtelserPerÅrsak shouldBe mapOf(
-                Avgrensningsårsak.UTEN_YTELSESTYPE to 2,
-                Avgrensningsårsak.ANNEN_YTELSESTYPE to 1,
+                Avgrensningsårsak.MANGLER_YTELSESTYPE to 2,
+                Avgrensningsårsak.UTELATT_YTELSESTYPE to 1,
+                Avgrensningsårsak.UKJENT_YTELSESTYPE to 1,
                 Avgrensningsårsak.UTENFOR_PERIODENE to 1,
-                Avgrensningsårsak.ANNEN_RETTIGHETSHAVER to 1,
+                Avgrensningsårsak.ANNEN_ELLER_MANGLENDE_RETTIGHETSHAVER to 1,
             )
             resultat.avgrensetSvar shouldEqualJson UtbetalingsoversiktDtoTestEx.avgrensetSvarMedYtelserUtenforGrunnlaget(fnr)
             resultat.avgrensetSvar shouldNotContain annenPerson.verdi
             resultat.avgrensetSvar shouldNotContain "navn\":\"F"
             resultat.avgrensetSvar shouldNotContain "kontonummer"
+        }
+    }
+
+    @Test
+    fun `ytelsestyper vi ikke kjenner, telles per type, og utelatte typer telles ikke`() {
+        val svar = UtbetalingsoversiktDtoTestEx.svarMedYtelserUtenforGrunnlaget(fnr, Fnr.random())
+
+        // Eget register, siden testene i klassen deler instans og dermed klassens register.
+        val meterRegistry = SimpleMeterRegistry()
+
+        runTest {
+            val transport = transportMed(svar)
+            hent(transport, klient = klient(transport, meterRegistry = meterRegistry)).getOrFail()
+
+            meterRegistry.find("tpts_saksbehandlingapi_utbetalingsoversikt_ukjente_ytelser").counters()
+                .associate { it.id.getTag("ytelsestype") to it.count() } shouldBe mapOf("Bidragsforskudd" to 1.0)
         }
     }
 

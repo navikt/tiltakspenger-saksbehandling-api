@@ -3,15 +3,21 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsove
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Avgrensningsårsak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.MottattYtelsestype
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktavgrensning
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktgrunnlag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.sha256
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
 
-/** Svaret slik det lagres og mappes, og tallene på det som ble tatt bort. */
+/**
+ * Svaret slik det lagres og mappes, og tallene på det som ble tatt bort.
+ *
+ * @param ukjenteYtelsestyper Antall ytelser per ytelsestype vi ikke kjenner, til metrikker; lagres ikke, siden typen sier noe om personen.
+ */
 data class AvgrensetSvar(
     val utbetalinger: List<UtbetalingsoversiktDto>,
     val avgrensning: Utbetalingsoversiktavgrensning,
+    val ukjenteYtelsestyper: Map<String, Int>,
 )
 
 /**
@@ -33,6 +39,7 @@ fun List<UtbetalingsoversiktDto>.avgrensTil(grunnlag: Utbetalingsoversiktgrunnla
             utbetalingNettobeloep = utbetaling.utbetalingNettobeloep.takeIf { beholdte.size == ytelser.size },
         )
     }
+    val fjernede = vurderte.flatMap { (_, ytelser) -> ytelser.mapNotNull { (ytelse, årsak) -> årsak?.let { ytelse to it } } }
     return AvgrensetSvar(
         utbetalinger = utbetalinger,
         avgrensning = Utbetalingsoversiktavgrensning(
@@ -40,11 +47,16 @@ fun List<UtbetalingsoversiktDto>.avgrensTil(grunnlag: Utbetalingsoversiktgrunnla
             perioder = grunnlag.perioder,
             antallUtbetalingerMottatt = size,
             antallYtelserMottatt = sumOf { it.ytelseListe.size },
-            fjernedeYtelserPerÅrsak = vurderte.flatMap { (_, ytelser) -> ytelser.mapNotNull { (_, årsak) -> årsak } }.groupingBy { it }.eachCount(),
+            fjernedeYtelserPerÅrsak = fjernede.groupingBy { (_, årsak) -> årsak }.eachCount(),
             antallFjernedeUtbetalinger = size - utbetalinger.size,
             mottattSvarSha256 = mottattSvar.sha256(),
             mottattSvarLengde = mottattSvar.length,
         ),
+        ukjenteYtelsestyper = fjernede
+            .filter { (_, årsak) -> årsak == Avgrensningsårsak.UKJENT_YTELSESTYPE }
+            .mapNotNull { (ytelse, _) -> ytelse.ytelsestype }
+            .groupingBy { it }
+            .eachCount(),
     )
 }
 
@@ -53,13 +65,20 @@ private fun UtbetalingsoversiktDto.YtelseDto.avgrensningsårsak(grunnlag: Utbeta
         null
     } else {
         grunnlag.avgrensningsårsak(
-            ytelsestype = ytelsestype?.tilYtelsetype(),
+            ytelsestype = ytelsestype?.tilMottattYtelsestype(),
             periode = Periode(ytelsesperiode.fom, ytelsesperiode.tom),
             rettighetshaver = rettighetshaver?.ident?.let { Fnr.tryFromString(it) },
         )
     }
 
-/** Tjenesten sender beskrivelsen av ytelsen, ikke en kode, og en beskrivelse vi ikke kjenner, blir [Ytelsetype.UKJENT]. */
-private fun String.tilYtelsetype(): Ytelsetype = Ytelsetype.entries.find { it.tekstverdi == this } ?: Ytelsetype.UKJENT
+/** Tjenesten sender beskrivelsen av ytelsen, ikke en kode. */
+private fun String.tilMottattYtelsestype(): MottattYtelsestype {
+    val ytelsetype = Ytelsetype.entries.find { it != Ytelsetype.UKJENT && it.tekstverdi == this }
+    return when {
+        ytelsetype != null -> MottattYtelsestype.Relevant(ytelsetype)
+        this in utelatteYtelsestyper -> MottattYtelsestype.Utelatt(this)
+        else -> MottattYtelsestype.Ukjent(this)
+    }
+}
 
 private fun UtbetalingsoversiktDto.AktoerDto.utenNavn() = copy(navn = null)

@@ -86,7 +86,7 @@ object UtbetalingsoversiktDtoTestEx {
 
     /**
      * To utbetalinger til [fnr] i august 2025.
-     * Den første har fem ytelser: dagpenger innenfor, én uten type, én av typen «Bidragsforskudd», én for mai og én med [annenPerson] som rettighetshaver.
+     * Den første har seks ytelser: dagpenger innenfor, én uten type, én av typen «Barnetrygd», som er utelatt, én av typen «Bidragsforskudd», som vi ikke kjenner, én for mai og én med [annenPerson] som rettighetshaver.
      * Den andre har bare én ytelse uten type.
      */
     fun svarMedYtelserUtenforGrunnlaget(fnr: Fnr, annenPerson: Fnr): String {
@@ -103,6 +103,7 @@ object UtbetalingsoversiktDtoTestEx {
             "ytelseListe": [
               ${ytelse("Dagpenger", "2025-08-01", "2025-08-14", fnr.verdi)},
               ${ytelse(null, "2025-08-01", "2025-08-14", fnr.verdi)},
+              ${ytelse("Barnetrygd", "2025-08-01", "2025-08-14", fnr.verdi)},
               ${ytelse("Bidragsforskudd", "2025-08-01", "2025-08-14", fnr.verdi)},
               ${ytelse("Dagpenger", "2025-05-01", "2025-05-14", fnr.verdi)},
               ${ytelse("Dagpenger", "2025-08-01", "2025-08-14", annenPerson.verdi)}

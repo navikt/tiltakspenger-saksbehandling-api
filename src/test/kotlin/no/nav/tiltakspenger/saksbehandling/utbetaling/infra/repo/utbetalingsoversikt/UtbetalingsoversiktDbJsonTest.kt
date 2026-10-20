@@ -169,7 +169,7 @@ class UtbetalingsoversiktDbJsonTest {
                 "perioder": [{"fraOgMed": "2025-08-01", "tilOgMed": "2025-08-31"}],
                 "antallUtbetalingerMottatt": 3,
                 "antallYtelserMottatt": 5,
-                "fjernedeYtelserPerÅrsak": {"UTEN_YTELSESTYPE": 1, "ANNEN_YTELSESTYPE": 2, "UTENFOR_PERIODENE": 3, "ANNEN_RETTIGHETSHAVER": 4},
+                "fjernedeYtelserPerÅrsak": {"UTEN_YTELSESTYPE": 1, "ANNEN_YTELSESTYPE": 2, "UKJENT_YTELSESTYPE": 3, "UTENFOR_PERIODENE": 4, "ANNEN_RETTIGHETSHAVER": 5},
                 "antallFjernedeUtbetalinger": 2
               }
             }

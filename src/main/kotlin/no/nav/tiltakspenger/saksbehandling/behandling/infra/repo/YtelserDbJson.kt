@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
-import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
@@ -35,8 +34,9 @@ data class YtelserDbJson(
 
     fun toDomain(): Ytelser {
         return when (type) {
-            Type.Treff -> Ytelser.Treff(
-                value = ytelser.map { it.toDomain() }.toNonEmptyListOrNull()!!,
+            // Et lagret Treff som bare hadde fjernede ytelsetyper, blir IngenTreff, slik et nytt oppslag i dag ville gitt.
+            Type.Treff -> Ytelser.fromList(
+                ytelser = ytelser.filter { it.ytelsetype !in fjernedeYtelsetyper }.map { it.toDomain() },
                 oppslagsperiode = oppslagsperiode!!.toDomain(),
                 oppslagstidspunkt = oppslagstidspunkt!!,
             )
@@ -52,6 +52,14 @@ data class YtelserDbJson(
         }
     }
 }
+
+/**
+ * Ytelsetyper som finnes i lagrede saksopplysninger, men som aldri skulle vært hentet, hoppes over ved lesing.
+ * Barnepensjon skulle ikke ligget i [Ytelsetype]: den hindrer ikke tiltakspenger (tiltakspengeforskriften § 7 første ledd), men ble hentet og vist til saksbehandler fram til 2026-10-20.
+ * Alle vedtak om avslag, stans og opphør med denne opplysningen er gjennomgått, og ingen bygde på barnepensjon.
+ * Det kan senere vurderes om typen skal fjernes fra de lagrede dataene.
+ */
+private val fjernedeYtelsetyper = setOf("Barnepensjon")
 
 fun Ytelser.toDbJson(): YtelserDbJson {
     return YtelserDbJson(

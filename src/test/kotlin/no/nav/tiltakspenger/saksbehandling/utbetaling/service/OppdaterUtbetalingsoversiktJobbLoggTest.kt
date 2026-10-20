@@ -50,22 +50,23 @@ class OppdaterUtbetalingsoversiktJobbLoggTest {
         withTestApplicationContextAndPostgres { tac ->
             val sak = sakMedOkUtbetaling(tac)
             tac.utbetalingsoversiktFakeKlient.fjernedeYtelserPerÅrsak = mapOf(
-                Avgrensningsårsak.ANNEN_YTELSESTYPE to 3,
-                Avgrensningsårsak.ANNEN_RETTIGHETSHAVER to 1,
+                Avgrensningsårsak.UTELATT_YTELSESTYPE to 3,
+                Avgrensningsårsak.ANNEN_ELLER_MANGLENDE_RETTIGHETSHAVER to 1,
             )
             val (jobb, loggfanger, _, meterRegistry) = jobbMedFangere(tac)
 
             jobb.oppdaterForSak(sak.id)
 
             fun antall(årsak: String) =
-                meterRegistry.counter("tpts_saksbehandlingapi_utbetalingsoversikt_fjernede_ytelser", "aarsak", årsak).count()
+                meterRegistry.get("tpts_saksbehandlingapi_utbetalingsoversikt_fjernede_ytelser").tag("aarsak", årsak).counter().count()
             antall("annen_ytelsestype") shouldBe 3.0
             antall("annen_rettighetshaver") shouldBe 1.0
             antall("uten_ytelsestype") shouldBe 0.0
+            antall("ukjent_ytelsestype") shouldBe 0.0
             antall("utenfor_periodene") shouldBe 0.0
             val linje = loggfanger.logglinjer.single()
             linje.nivå shouldBe Level.INFO
-            linje.melding!! shouldContain "fjernedeYtelserPerÅrsak={ANNEN_YTELSESTYPE=3, ANNEN_RETTIGHETSHAVER=1}"
+            linje.melding!! shouldContain "fjernedeYtelserPerÅrsak={UTELATT_YTELSESTYPE=3, ANNEN_ELLER_MANGLENDE_RETTIGHETSHAVER=1}"
         }
     }
 

@@ -22,19 +22,22 @@ class UtbetalingsoversiktgrunnlagTest {
     private val august = Periode(1.august(2025), 31.august(2025))
     private val grunnlag = Utbetalingsoversiktgrunnlag(fnr, listOf(august))
 
+    private fun relevant(ytelsetype: Ytelsetype) = MottattYtelsestype.Relevant(ytelsetype)
+
     @Test
-    fun `en ytelse vi samordner med, i perioden, med personen som rettighetshaver, er innenfor`() {
-        grunnlag.avgrensningsårsak(Ytelsetype.DAGPENGER, Periode(25.august(2025), 7.september(2025)), fnr) shouldBe null
-        grunnlag.avgrensningsårsak(Ytelsetype.TILTAKSPENGER, august, fnr) shouldBe null
+    fun `en relevant ytelse i perioden, med personen som rettighetshaver, er innenfor`() {
+        grunnlag.avgrensningsårsak(relevant(Ytelsetype.DAGPENGER), Periode(25.august(2025), 7.september(2025)), fnr) shouldBe null
+        grunnlag.avgrensningsårsak(relevant(Ytelsetype.TILTAKSPENGER), august, fnr) shouldBe null
     }
 
     @Test
     fun `årsakene prøves i fast rekkefølge`() {
-        grunnlag.avgrensningsårsak(null, august, fnr) shouldBe Avgrensningsårsak.UTEN_YTELSESTYPE
-        grunnlag.avgrensningsårsak(Ytelsetype.UKJENT, august, fnr) shouldBe Avgrensningsårsak.ANNEN_YTELSESTYPE
-        grunnlag.avgrensningsårsak(Ytelsetype.DAGPENGER, Periode(1.juli(2025), 31.juli(2025)), fnr) shouldBe Avgrensningsårsak.UTENFOR_PERIODENE
-        grunnlag.avgrensningsårsak(Ytelsetype.DAGPENGER, august, ObjectMother.gyldigFnr()) shouldBe Avgrensningsårsak.ANNEN_RETTIGHETSHAVER
-        grunnlag.avgrensningsårsak(Ytelsetype.DAGPENGER, august, null) shouldBe Avgrensningsårsak.ANNEN_RETTIGHETSHAVER
+        grunnlag.avgrensningsårsak(null, august, fnr) shouldBe Avgrensningsårsak.MANGLER_YTELSESTYPE
+        grunnlag.avgrensningsårsak(MottattYtelsestype.Utelatt("Barnetrygd"), august, fnr) shouldBe Avgrensningsårsak.UTELATT_YTELSESTYPE
+        grunnlag.avgrensningsårsak(MottattYtelsestype.Ukjent("Bidragsforskudd"), august, fnr) shouldBe Avgrensningsårsak.UKJENT_YTELSESTYPE
+        grunnlag.avgrensningsårsak(relevant(Ytelsetype.DAGPENGER), Periode(1.juli(2025), 31.juli(2025)), fnr) shouldBe Avgrensningsårsak.UTENFOR_PERIODENE
+        grunnlag.avgrensningsårsak(relevant(Ytelsetype.DAGPENGER), august, ObjectMother.gyldigFnr()) shouldBe Avgrensningsårsak.ANNEN_ELLER_MANGLENDE_RETTIGHETSHAVER
+        grunnlag.avgrensningsårsak(relevant(Ytelsetype.DAGPENGER), august, null) shouldBe Avgrensningsårsak.ANNEN_ELLER_MANGLENDE_RETTIGHETSHAVER
     }
 
     @Test
@@ -42,8 +45,8 @@ class UtbetalingsoversiktgrunnlagTest {
         val grunnlagFraLørdag = Utbetalingsoversiktgrunnlag(fnr, listOf(Periode(1.november(2025), 30.november(2025))))
         val grunnlagFraSøndag = Utbetalingsoversiktgrunnlag(fnr, listOf(Periode(1.februar(2026), 28.februar(2026))))
 
-        grunnlagFraLørdag.avgrensningsårsak(Ytelsetype.TILTAKSPENGER, Periode(31.oktober(2025), 31.oktober(2025)), fnr) shouldBe null
-        grunnlagFraSøndag.avgrensningsårsak(Ytelsetype.TILTAKSPENGER, Periode(30.januar(2026), 30.januar(2026)), fnr) shouldBe null
+        grunnlagFraLørdag.avgrensningsårsak(relevant(Ytelsetype.TILTAKSPENGER), Periode(31.oktober(2025), 31.oktober(2025)), fnr) shouldBe null
+        grunnlagFraSøndag.avgrensningsårsak(relevant(Ytelsetype.TILTAKSPENGER), Periode(30.januar(2026), 30.januar(2026)), fnr) shouldBe null
         grunnlagFraLørdag.perioder shouldBe listOf(Periode(1.november(2025), 30.november(2025)))
     }
 
@@ -51,17 +54,22 @@ class UtbetalingsoversiktgrunnlagTest {
     fun `hver periode som starter i helgen, tar med fredagen før`() {
         val grunnlag = Utbetalingsoversiktgrunnlag(fnr, listOf(Periode(1.september(2025), 10.september(2025)), Periode(20.september(2025), 30.september(2025))))
 
-        grunnlag.avgrensningsårsak(Ytelsetype.TILTAKSPENGER, Periode(19.september(2025), 19.september(2025)), fnr) shouldBe null
-        grunnlag.avgrensningsårsak(Ytelsetype.TILTAKSPENGER, Periode(18.september(2025), 18.september(2025)), fnr) shouldBe Avgrensningsårsak.UTENFOR_PERIODENE
+        grunnlag.avgrensningsårsak(relevant(Ytelsetype.TILTAKSPENGER), Periode(19.september(2025), 19.september(2025)), fnr) shouldBe null
+        grunnlag.avgrensningsårsak(relevant(Ytelsetype.TILTAKSPENGER), Periode(18.september(2025), 18.september(2025)), fnr) shouldBe Avgrensningsårsak.UTENFOR_PERIODENE
     }
 
     @Test
     fun `fredagen før tas bare med for tiltakspenger og bare når perioden starter i helgen`() {
         val grunnlagFraSøndag = Utbetalingsoversiktgrunnlag(fnr, listOf(Periode(1.februar(2026), 28.februar(2026))))
 
-        grunnlagFraSøndag.avgrensningsårsak(Ytelsetype.DAGPENGER, Periode(30.januar(2026), 30.januar(2026)), fnr) shouldBe Avgrensningsårsak.UTENFOR_PERIODENE
-        grunnlagFraSøndag.avgrensningsårsak(Ytelsetype.TILTAKSPENGER, Periode(29.januar(2026), 29.januar(2026)), fnr) shouldBe Avgrensningsårsak.UTENFOR_PERIODENE
-        grunnlag.avgrensningsårsak(Ytelsetype.TILTAKSPENGER, Periode(31.juli(2025), 31.juli(2025)), fnr) shouldBe Avgrensningsårsak.UTENFOR_PERIODENE
+        grunnlagFraSøndag.avgrensningsårsak(relevant(Ytelsetype.DAGPENGER), Periode(30.januar(2026), 30.januar(2026)), fnr) shouldBe Avgrensningsårsak.UTENFOR_PERIODENE
+        grunnlagFraSøndag.avgrensningsårsak(relevant(Ytelsetype.TILTAKSPENGER), Periode(29.januar(2026), 29.januar(2026)), fnr) shouldBe Avgrensningsårsak.UTENFOR_PERIODENE
+        grunnlag.avgrensningsårsak(relevant(Ytelsetype.TILTAKSPENGER), Periode(31.juli(2025), 31.juli(2025)), fnr) shouldBe Avgrensningsårsak.UTENFOR_PERIODENE
+    }
+
+    @Test
+    fun `en ukjent ytelsestype er ikke relevant`() {
+        shouldThrow<IllegalArgumentException> { MottattYtelsestype.Relevant(Ytelsetype.UKJENT) }
     }
 
     @Test

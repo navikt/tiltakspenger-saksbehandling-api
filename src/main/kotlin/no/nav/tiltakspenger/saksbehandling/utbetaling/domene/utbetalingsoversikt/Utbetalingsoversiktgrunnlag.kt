@@ -8,7 +8,7 @@ import java.time.DayOfWeek
 
 /**
  * Det vi har behandlingsgrunnlag for å lagre om en persons utbetalinger fra økonomisystemet.
- * En ytelse beholdes bare når typen er en tiltakspenger samordnes med, perioden overlapper sakens perioder, og personen er rettighetshaver.
+ * En ytelse beholdes bare når typen står i [Ytelsetype], perioden overlapper sakens perioder, og personen er rettighetshaver.
  * Oppslaget mot tjenesten er bredere enn dette, og det som faller utenfor, tas bort før lagring og telles per årsak.
  * For tiltakspenger regnes en periode som starter i helgen, fra fredagen før, fordi vi utbetaler helgedagene på fredagen i samme uke.
  * Økonomisystemet deler ytelsene per kalendermåned, så den fredagen kan komme som en egen ytelse i måneden før.
@@ -28,15 +28,21 @@ data class Utbetalingsoversiktgrunnlag(
     /**
      * Finner årsaken til at en ytelse faller utenfor grunnlaget, eller null når ytelsen skal beholdes.
      *
-     * @param ytelsestype null når ytelsestype mangler, og [Ytelsetype.UKJENT] når vi ikke samordner med den.
+     * @param ytelsestype null når ytelsestype mangler.
      * @param rettighetshaver null når rettighetshaveren mangler eller ikke har et fødselsnummer.
      */
-    fun avgrensningsårsak(ytelsestype: Ytelsetype?, periode: Periode, rettighetshaver: Fnr?): Avgrensningsårsak? = when {
-        ytelsestype == null -> Avgrensningsårsak.UTEN_YTELSESTYPE
-        ytelsestype == Ytelsetype.UKJENT -> Avgrensningsårsak.ANNEN_YTELSESTYPE
-        !periode.overlapperMed(perioderFor(ytelsestype)) -> Avgrensningsårsak.UTENFOR_PERIODENE
-        rettighetshaver != fnr -> Avgrensningsårsak.ANNEN_RETTIGHETSHAVER
-        else -> null
+    fun avgrensningsårsak(ytelsestype: MottattYtelsestype?, periode: Periode, rettighetshaver: Fnr?): Avgrensningsårsak? = when (ytelsestype) {
+        null -> Avgrensningsårsak.MANGLER_YTELSESTYPE
+
+        is MottattYtelsestype.Utelatt -> Avgrensningsårsak.UTELATT_YTELSESTYPE
+
+        is MottattYtelsestype.Ukjent -> Avgrensningsårsak.UKJENT_YTELSESTYPE
+
+        is MottattYtelsestype.Relevant -> when {
+            !periode.overlapperMed(perioderFor(ytelsestype.ytelsetype)) -> Avgrensningsårsak.UTENFOR_PERIODENE
+            rettighetshaver != fnr -> Avgrensningsårsak.ANNEN_ELLER_MANGLENDE_RETTIGHETSHAVER
+            else -> null
+        }
     }
 
     private fun perioderFor(ytelsestype: Ytelsetype): List<Periode> =
@@ -69,8 +75,18 @@ private fun Periode.utvidetMedFredagFørHelg(): Periode = when (fraOgMed.dayOfWe
 
 /** Årsaken til at en mottatt ytelse tas bort før lagring. */
 enum class Avgrensningsårsak {
-    UTEN_YTELSESTYPE,
-    ANNEN_YTELSESTYPE,
+    /** Ytelsen mangler ytelsestype i svaret fra økonomisystemet. */
+    MANGLER_YTELSESTYPE,
+
+    /** Ytelsestypen er kjent, men står blant de utelatte ytelsestypene. */
+    UTELATT_YTELSESTYPE,
+
+    /** Ytelsestypen er ukjent og finnes verken blant typene som hentes eller dem som utelates. */
+    UKJENT_YTELSESTYPE,
+
+    /** Ytelsens periode overlapper ikke sakens behandlingsgrunnlagsperioder. */
     UTENFOR_PERIODENE,
-    ANNEN_RETTIGHETSHAVER,
+
+    /** Rettighetshaveren er en annen person enn den saken gjelder, eller mangler gyldig fødselsnummer. */
+    ANNEN_ELLER_MANGLENDE_RETTIGHETSHAVER,
 }

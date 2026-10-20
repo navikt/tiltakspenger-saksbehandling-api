@@ -62,6 +62,7 @@ open class UtbetalingContext(
                 texasClient = texasClient,
                 audienceTarget = Configuration.sokosUtbetaldataScope,
             ),
+            meterRegistry = meterRegistry,
         )
     }
     open val meldekortvedtakRepo: MeldekortvedtakRepo by lazy {

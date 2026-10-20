@@ -58,8 +58,9 @@ private fun Utbetalingsoversiktavgrensning.toDbJson() = AvgrensningDbJson(
 )
 
 private fun Avgrensningsårsak.toDb(): String = when (this) {
-    Avgrensningsårsak.UTEN_YTELSESTYPE -> "UTEN_YTELSESTYPE"
-    Avgrensningsårsak.ANNEN_YTELSESTYPE -> "ANNEN_YTELSESTYPE"
+    Avgrensningsårsak.MANGLER_YTELSESTYPE -> "UTEN_YTELSESTYPE"
+    Avgrensningsårsak.UTELATT_YTELSESTYPE -> "ANNEN_YTELSESTYPE"
+    Avgrensningsårsak.UKJENT_YTELSESTYPE -> "UKJENT_YTELSESTYPE"
     Avgrensningsårsak.UTENFOR_PERIODENE -> "UTENFOR_PERIODENE"
-    Avgrensningsårsak.ANNEN_RETTIGHETSHAVER -> "ANNEN_RETTIGHETSHAVER"
+    Avgrensningsårsak.ANNEN_ELLER_MANGLENDE_RETTIGHETSHAVER -> "ANNEN_RETTIGHETSHAVER"
 }
