@@ -59,11 +59,6 @@ fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, Erro
         "vedtaksperiode_må_inneholde_innvilgelsesperiodene",
     )
 
-    KanIkkeOppdatereOmgjøring.KanIkkeOpphøreOverStansEllerOpphør -> HttpStatusCode.BadRequest to ErrorJson(
-        "Kan ikke opphøre over en periode som allerede er stanset eller opphørt",
-        "kan_ikke_opphøre_over_stans_eller_opphør",
-    )
-
     is KanIkkeOppdatereOmgjøring.UgyldigPeriodeForOpphør -> HttpStatusCode.BadRequest to ErrorJson(
         "Ugyldig periode for opphør: ${this.årsak}",
         "ugyldig_periode_for_opphør",

@@ -117,7 +117,7 @@ fun Revurdering.fyllUtAutomatiskOpprettetOpphør(
 
 /**
  * Opphøret kan gå over flere vedtak og over hull, men må starte og slutte i en gjeldende innvilgelsesperiode på saken.
- * Det kan gå over vedtak som er delvis opphørt (omgjøring til innvilgelse), men ikke over stans eller rent opphør.
+ * Det kan dermed gå over stans og tidligere opphør, så lenge det er innvilgelse både før og etter dem.
  */
 // TODO abn: sjekkene her bør også kjøres ved iverksetting
 private fun Revurdering.oppdaterOmgjøringOpphør(
@@ -140,14 +140,6 @@ private fun Revurdering.oppdaterOmgjøringOpphør(
     val rammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres(opphørtPeriode)
 
     validerRammevedtakSomOmgjøres(rammevedtakSomOmgjøres).onLeft { return it.left() }
-
-    val omgjørStansEllerOpphør = rammevedtakSomOmgjøres.rammevedtakIDer
-        .map { rammevedtaksliste.hentRammevedtakForId(it) }
-        .any { it.erStans || it.erOpphør }
-
-    if (omgjørStansEllerOpphør) {
-        return KanIkkeOppdatereOmgjøring.KanIkkeOpphøreOverStansEllerOpphør.left()
-    }
 
     val gjeldendeInnvilgetPerioder = rammevedtaksliste.innvilgetTidslinje.perioder
 

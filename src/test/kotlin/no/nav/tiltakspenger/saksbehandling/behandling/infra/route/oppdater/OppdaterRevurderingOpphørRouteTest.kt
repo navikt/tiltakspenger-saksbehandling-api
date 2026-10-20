@@ -163,7 +163,7 @@ class OppdaterRevurderingOpphørRouteTest {
     }
 
     @Test
-    fun `skal ikke kunne opphøre over en stans`() {
+    fun `skal ikke kunne opphøre inn i en stans uten innvilgelse etter`() {
         withTestApplicationContext { tac ->
             val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
             val stansetPeriode = 15.februar(2025) til 31.mars(2025)
@@ -192,7 +192,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 vedtaksperiode = innvilgelsesperiode,
                 forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             ).also { (_, _, response) ->
-                response harKode "kan_ikke_opphøre_over_stans_eller_opphør"
+                response harKode "ugyldig_periode_for_opphør"
             }
 
             oppdaterOmgjøringOpphør(
@@ -202,7 +202,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 vedtaksperiode = stansetPeriode,
                 forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             ).also { (_, _, response) ->
-                response harKode "kan_ikke_opphøre_over_stans_eller_opphør"
+                response harKode "ugyldig_periode_for_opphør"
             }
         }
     }
@@ -237,13 +237,13 @@ class OppdaterRevurderingOpphørRouteTest {
                 vedtaksperiode = stansetPeriode,
                 forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             ).also { (_, _, response) ->
-                response harKode "kan_ikke_opphøre_over_stans_eller_opphør"
+                response harKode "ugyldig_periode_for_opphør"
             }
         }
     }
 
     @Test
-    fun `skal ikke kunne opphøre over et rent opphør`() {
+    fun `skal ikke kunne opphøre inn i et opphør uten innvilgelse etter`() {
         withTestApplicationContext { tac ->
             val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
 
@@ -272,7 +272,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 vedtaksperiode = innvilgelsesperiode,
                 forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             ).also { (_, _, response) ->
-                response harKode "kan_ikke_opphøre_over_stans_eller_opphør"
+                response harKode "ugyldig_periode_for_opphør"
             }
         }
     }
