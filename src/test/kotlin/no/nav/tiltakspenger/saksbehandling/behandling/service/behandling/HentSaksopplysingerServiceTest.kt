@@ -191,7 +191,7 @@ class HentSaksopplysingerServiceTest {
                 oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
             )
             result.tiltakspengevedtakFraArena shouldBeEqual TiltakspengevedtakFraArena.IngenTreff(
-                oppslagsperiode = 2 til 30.januar(2023),
+                oppslagsperiode = 2.desember(2022) til 30.januar(2023),
                 oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
             )
         }
@@ -487,7 +487,7 @@ class HentSaksopplysingerServiceTest {
                         vedtakId = 123L,
                     ),
                 ).toNonEmptyListOrThrow(),
-                oppslagsperiode = 2 til 30.januar(2023),
+                oppslagsperiode = 2.desember(2022) til 30.januar(2023),
                 oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
             )
         }
@@ -664,7 +664,7 @@ class HentSaksopplysingerServiceTest {
                 oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
             )
             result.tiltakspengevedtakFraArena shouldBeEqual TiltakspengevedtakFraArena.IngenTreff(
-                oppslagsperiode = 3.januar(2023) til 15.februar(2023),
+                oppslagsperiode = 3.desember(2022) til 15.februar(2023),
                 oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
             )
         }
@@ -842,7 +842,7 @@ class HentSaksopplysingerServiceTest {
                 oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
             )
             result.tiltakspengevedtakFraArena shouldBeEqual TiltakspengevedtakFraArena.IngenTreff(
-                oppslagsperiode = 3.januar(2023) til 15.februar(2023),
+                oppslagsperiode = 3.desember(2022) til 15.februar(2023),
                 oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
             )
         }

@@ -73,6 +73,14 @@ data class Saksopplysninger(
     }
 }
 
+private const val ANTALL_DAGER_PADDING_FOR_ANDRE_YTELSER = 31L
+
+/**
+ * Perioden utvidet med 31 dager tilbake i tid, for andre ytelser og tiltakspengevedtak fra Arena.
+ * Brukes både når de hentes inn, og når den del-automatiske behandlingen sjekker om de overlapper perioden den innvilger.
+ */
+fun Periode.medPaddingForAndreYtelser(): Periode = Periode(fraOgMed.minusDays(ANTALL_DAGER_PADDING_FOR_ANDRE_YTELSER), tilOgMed)
+
 typealias HentSaksopplysninger = suspend (
     fnr: Fnr,
     correlationId: CorrelationId,

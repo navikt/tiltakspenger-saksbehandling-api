@@ -37,6 +37,7 @@ import java.time.LocalDate
  *
  * Klassen pinner også perioden vi spør utbetaldata om, som svart boks.
  * Den er ikke saksopplysningsperioden: den strekkes bakover til første dag i måneden før, fordi forrige måned ikke nødvendigvis er utbetalt enda, og fram til siste dag i måneden saksopplysningsperioden slutter i.
+ * Den strekkes likevel aldri kortere bakover enn 31 dager, som er paddingen for andre ytelser.
  * Utbetaldata godtar ikke datoer frem i tid, så bak-kanten kappes mot dagens dato.
  * Perioden ligger ikke i behandlingsresponsen, så den leses av `oppslagsperiode` i kolonnen.
  */
@@ -146,6 +147,24 @@ class YtelserSaksopplysningTest {
             //language=json
             ytelser.getJSONObject("oppslagsperiode").toString() shouldEqualJson """
                 { "fraOgMed": "2023-01-01", "tilOgMed": "2023-03-31" }
+            """.trimIndent()
+        }
+    }
+
+    /**
+     * Februar 2023 har 28 dager, så første dag i måneden før er bare 28 dager før deltakelsen.
+     * Da strekkes fram-kanten til 31 dager før, slik at paddingen for andre ytelser er dekket.
+     */
+    @Test
+    fun `fram-kanten er aldri mindre enn 31 dager før saksopplysningsperioden`() {
+        pinnPeriodejustering(
+            idag = 1.mai(2025),
+            tiltaksperiode = 1.mars(2023) til 31.mars(2023),
+        ) { ytelser, _ ->
+            ytelser.getString("type") shouldBe "IngenTreff"
+            //language=json
+            ytelser.getJSONObject("oppslagsperiode").toString() shouldEqualJson """
+                { "fraOgMed": "2023-01-29", "tilOgMed": "2023-03-31" }
             """.trimIndent()
         }
     }

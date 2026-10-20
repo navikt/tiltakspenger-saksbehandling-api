@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.medPaddingForAndreYtelser
 import no.nav.tiltakspenger.saksbehandling.felles.min
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
@@ -216,9 +217,13 @@ class HentSaksopplysingerService(
         behandlingId: RammebehandlingId? = null,
     ): Ytelser {
         // Gjør et unntak for sokosperioden, siden måneden ikke nødvendigvis er utbetalt enda, henter vi fra 1. forrige måned.
+        // Vi henter likevel aldri kortere tilbake i tid enn paddingen for andre ytelser.
         // Vi henter også hele inneværende måned (men ikke lenger enn dagens dato, siden det er en begrensing de har).
         // Klienten fikser det sistnevnte.
-        val utbetaldataFraOgMed = saksopplysningsperiode.fraOgMed.minusMonths(1).withDayOfMonth(1)
+        val utbetaldataFraOgMed = min(
+            saksopplysningsperiode.fraOgMed.minusMonths(1).withDayOfMonth(1),
+            saksopplysningsperiode.medPaddingForAndreYtelser().fraOgMed,
+        )
         // Utbetaldata støtter senest dagens dato.
         val utbetaldataTilOgMed = saksopplysningsperiode.tilOgMed.let {
             min(LocalDate.now(clock), it.withDayOfMonth(it.lengthOfMonth()))
@@ -264,9 +269,10 @@ class HentSaksopplysingerService(
         saksnummer: Saksnummer? = null,
         behandlingId: RammebehandlingId? = null,
     ): TiltakspengevedtakFraArena {
+        val arenaPeriode = saksopplysningsperiode.medPaddingForAndreYtelser()
         val arenaTpVedtak = tiltakspengerArenaClient.hentTiltakspengevedtakFraArena(
             fnr,
-            saksopplysningsperiode,
+            arenaPeriode,
             correlationId,
         ).fold(
             ifLeft = { error ->
@@ -286,7 +292,7 @@ class HentSaksopplysingerService(
         )
         return TiltakspengevedtakFraArena.fromList(
             arenaTpVedtak = arenaTpVedtak,
-            oppslagsperiode = saksopplysningsperiode,
+            oppslagsperiode = arenaPeriode,
             oppslagstidspunkt = nå(clock),
         )
     }

@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.november
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
@@ -535,17 +536,20 @@ class DelautomatiskBehandlingServiceTest {
         }
     }
 
+    /**
+     * Søknadsperioden starter 1. januar 2023, så andre ytelser og vedtak i Arena sjekkes fra og med 1. desember 2022.
+     */
     @Test
-    fun `behandleAutomatisk - har andre ytelser og vedtak i Arena som overlapper søknadsperioden - manuell behandling`() {
+    fun `behandleAutomatisk - har andre ytelser og vedtak i Arena inntil 31 dager før søknadsperioden - manuell behandling`() {
         withTestApplicationContext { tac ->
             val fnr = Fnr.random()
             tac.leggTilYtelserFraUtbetaldata(
                 fnr = fnr,
-                ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(1.desember(2022) til 1.januar(2023)))),
+                ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(1.november(2022) til 1.desember(2022)))),
             )
             tac.leggTilTiltakspengevedtakFraArena(
                 fnr = fnr,
-                vedtak = listOf(arenavedtak(fraOgMed = 1.desember(2022), tilOgMed = null)),
+                vedtak = listOf(arenavedtak(fraOgMed = 1.november(2022), tilOgMed = 1.desember(2022))),
             )
             val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac, fnr = fnr)
 
@@ -561,16 +565,16 @@ class DelautomatiskBehandlingServiceTest {
     }
 
     @Test
-    fun `behandleAutomatisk - har andre ytelser og vedtak i Arena før søknadsperioden - sendes til beslutning`() {
+    fun `behandleAutomatisk - har andre ytelser og vedtak i Arena mer enn 31 dager før søknadsperioden - sendes til beslutning`() {
         withTestApplicationContext { tac ->
             val fnr = Fnr.random()
             tac.leggTilYtelserFraUtbetaldata(
                 fnr = fnr,
-                ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(1.desember(2022) til 31.desember(2022)))),
+                ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(1.november(2022) til 30.november(2022)))),
             )
             tac.leggTilTiltakspengevedtakFraArena(
                 fnr = fnr,
-                vedtak = listOf(arenavedtak(fraOgMed = 1.desember(2022), tilOgMed = 31.desember(2022))),
+                vedtak = listOf(arenavedtak(fraOgMed = 1.november(2022), tilOgMed = 30.november(2022))),
             )
             val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac, fnr = fnr)
 

@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juli
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
@@ -27,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
+import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
@@ -408,32 +410,47 @@ class DelautomatiskForlengelseServiceTest {
     }
 
     /**
-     * Bare ytelser og vedtak som overlapper perioden som forlenges, hindrer automatisk behandling.
+     * Forlengelsen innvilges fra og med 6. mai, så andre ytelser og vedtak i Arena sjekkes fra og med 5. april.
      */
     @Test
-    fun `bruker har andre ytelser og tiltakspengevedtak i Arena før forlengelsen - sendes til beslutning`() {
+    fun `bruker har andre ytelser og tiltakspengevedtak i Arena inntil 31 dager før forlengelsen - overlates til saksbehandler`() {
         withTestApplicationContextAndPostgres { tac ->
             forlengOgBehandleAutomatisk(
                 tac,
-                etterInnvilgelse = { sak ->
-                    tac.leggTilYtelserFraUtbetaldata(
-                        fnr = sak.fnr,
-                        ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(1.april(2025) til 5.mai(2025)))),
-                    )
-                    tac.leggTilTiltakspengevedtakFraArena(
-                        fnr = sak.fnr,
-                        vedtak = listOf(
-                            ArenaTPVedtak(
-                                fraOgMed = 1.april(2025),
-                                tilOgMed = 5.mai(2025),
-                                rettighet = ArenaTPVedtak.Rettighet.TILTAKSPENGER,
-                                vedtakId = 1,
-                            ),
-                        ),
-                    )
-                },
+                etterInnvilgelse = { sak -> sak.leggTilAndreYtelserOgArenavedtak(tac, tilOgMed = 5.april(2025)) },
+            ).skalVæreOverlattTilSaksbehandler(
+                ManueltBehandlesGrunn.FORLENGELSE_ANDRE_YTELSER,
+                ManueltBehandlesGrunn.FORLENGELSE_VEDTAK_I_ARENA,
+            )
+        }
+    }
+
+    @Test
+    fun `bruker har andre ytelser og tiltakspengevedtak i Arena mer enn 31 dager før forlengelsen - sendes til beslutning`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(
+                tac,
+                etterInnvilgelse = { sak -> sak.leggTilAndreYtelserOgArenavedtak(tac, tilOgMed = 4.april(2025)) },
             ).skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10)
         }
+    }
+
+    private fun Sak.leggTilAndreYtelserOgArenavedtak(tac: TestApplicationContextMedPostgres, tilOgMed: LocalDate) {
+        tac.leggTilYtelserFraUtbetaldata(
+            fnr = fnr,
+            ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(1.mars(2025) til tilOgMed))),
+        )
+        tac.leggTilTiltakspengevedtakFraArena(
+            fnr = fnr,
+            vedtak = listOf(
+                ArenaTPVedtak(
+                    fraOgMed = 1.mars(2025),
+                    tilOgMed = tilOgMed,
+                    rettighet = ArenaTPVedtak.Rettighet.TILTAKSPENGER,
+                    vedtakId = 1,
+                ),
+            ),
+        )
     }
 
     /**
@@ -1039,10 +1056,12 @@ class DelautomatiskForlengelseServiceTest {
     /**
      * En ny endring i deltakelsen gir ingen ny revurdering så lenge forlengelsen er åpen.
      * I stedet vekkes forlengelsen, som henter deltakelsen på nytt og settes på vent igjen med den oppdaterte deltakelsen.
+     * Testen kjører jobben som tømmer hele køen, og må derfor kjøre isolert for ikke å behandle revurderinger fra andre tester.
      */
     @Test
+    @IsolatedDatabaseTest
     fun `deltakelsen endres mens forlengelsen venter - forlengelsen oppdateres med den nye deltakelsen`() {
-        withTestApplicationContextAndPostgres { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,

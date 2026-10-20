@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGru
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.medPaddingForAndreYtelser
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -151,11 +152,11 @@ fun Sak.utledAutomatiskForlengelse(
         grunner.add(ManueltBehandlesGrunn.FORLENGELSE_OVERLAPPENDE_TILTAK)
     }
 
-    if (innvilgelsesperiode != null && saksopplysninger.harAndreYtelserEnnTiltakspengerSomOverlapper(innvilgelsesperiode)) {
+    if (innvilgelsesperiode != null && saksopplysninger.harAndreYtelserEnnTiltakspengerSomOverlapper(innvilgelsesperiode.medPaddingForAndreYtelser())) {
         grunner.add(ManueltBehandlesGrunn.FORLENGELSE_ANDRE_YTELSER)
     }
 
-    if (innvilgelsesperiode != null && saksopplysninger.harTiltakspengevedtakFraArenaSomOverlapper(innvilgelsesperiode)) {
+    if (innvilgelsesperiode != null && saksopplysninger.harTiltakspengevedtakFraArenaSomOverlapper(innvilgelsesperiode.medPaddingForAndreYtelser())) {
         grunner.add(ManueltBehandlesGrunn.FORLENGELSE_VEDTAK_I_ARENA)
     }
 

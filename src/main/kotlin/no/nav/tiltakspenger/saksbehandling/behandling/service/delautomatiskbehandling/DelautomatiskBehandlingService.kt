@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.Gjenoppta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.gjenoppta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdater
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.medPaddingForAndreYtelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter.SendBehandlingTilBeslutningKommando
@@ -350,11 +351,11 @@ class DelautomatiskBehandlingService(
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_HAR_TILTAK_SOM_FRATAR_RETT)
         }
 
-        if (behandling.saksopplysninger.harAndreYtelserEnnTiltakspengerSomOverlapper(periodeDetErSøktOm)) {
+        if (behandling.saksopplysninger.harAndreYtelserEnnTiltakspengerSomOverlapper(periodeDetErSøktOm.medPaddingForAndreYtelser())) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_ANDRE_YTELSER)
         }
 
-        if (behandling.saksopplysninger.harTiltakspengevedtakFraArenaSomOverlapper(periodeDetErSøktOm)) {
+        if (behandling.saksopplysninger.harTiltakspengevedtakFraArenaSomOverlapper(periodeDetErSøktOm.medPaddingForAndreYtelser())) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_VEDTAK_I_ARENA)
         }
 
