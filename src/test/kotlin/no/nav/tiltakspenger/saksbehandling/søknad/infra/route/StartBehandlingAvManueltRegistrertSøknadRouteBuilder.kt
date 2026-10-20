@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
@@ -11,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 /**
  * Registrerer en søknad manuelt, slik en saksbehandler gjør med en papirsøknad.
@@ -23,7 +25,9 @@ interface StartBehandlingAvManueltRegistrertSøknadRouteBuilder {
     /**
      * @param svarJson Hele `svar`-objektet, slik at testen kan variere spørsmålstypene og barnetillegget.
      * @param tiltakJson `null` gir en søknad uten tiltak, altså en `IkkeInnvilgbarSøknad`.
-     * @param manueltSattSøknadMottattDato `null` sendes som `null` i bodyen, for å teste at feltet er obligatorisk.
+     * @param manueltSattSøknadMottattDato `null` sendes som `null` i bodyen.
+     * Feltet er påkrevd med mindre søknaden er overført fra Arena, altså har en [behandlingsarsak].
+     * @param journalpost Hvordan journalposten skal se ut i SAF-faken.
      */
     suspend fun ApplicationTestBuilder.startBehandlingAvManueltRegistrertSøknad(
         tac: TestApplicationContext,
@@ -40,14 +44,24 @@ interface StartBehandlingAvManueltRegistrertSøknadRouteBuilder {
         barnetilleggManuelleJson: String = "[]",
         svarJson: String = alleSpørsmålNei(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        journalpost: JournalpostISaf = JournalpostISaf.PåSakensBruker(),
         forventet: ForventetRespons = ForventetRespons(status = 200),
     ): String? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
 
-        // Tjenesten validerer journalposten mot SAF før den oppretter søknaden, så den må finnes på sakens fnr.
-        val fnr = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!.fnr
-        tac.leggTilJournalpost(JournalpostId(journalpostId), fnr)
+        // Tjenesten validerer journalposten mot SAF før den oppretter søknaden.
+        when (journalpost) {
+            is JournalpostISaf.PåSakensBruker -> tac.leggTilJournalpost(
+                journalpostId = JournalpostId(journalpostId),
+                fnr = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!.fnr,
+                datoOpprettet = journalpost.datoOpprettet,
+            )
+
+            is JournalpostISaf.PåAnnenBruker -> tac.leggTilJournalpost(JournalpostId(journalpostId), journalpost.fnr)
+
+            JournalpostISaf.FinnesIkke -> Unit
+        }
 
         val respons = defaultRequestWithAssertions(
             HttpMethod.POST,
@@ -118,4 +132,14 @@ interface StartBehandlingAvManueltRegistrertSøknadRouteBuilder {
 
     fun fraOgMedDatoSpm(svar: String, fraOgMed: String? = null): String =
         """{"svar": "$svar", "fraOgMed": ${fraOgMed?.let { "\"$it\"" }}}"""
+
+    /** Tilstanden journalposten har i SAF-faken når søknaden registreres. */
+    sealed interface JournalpostISaf {
+        /** @param datoOpprettet `null` gir klokkas nå-tidspunkt. */
+        data class PåSakensBruker(val datoOpprettet: LocalDateTime? = null) : JournalpostISaf
+
+        data class PåAnnenBruker(val fnr: Fnr) : JournalpostISaf
+
+        data object FinnesIkke : JournalpostISaf
+    }
 }

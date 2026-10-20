@@ -16,7 +16,7 @@ import java.time.LocalDate
 data class ManueltRegistrertSøknadBody(
     val journalpostId: String,
     val manueltSattSøknadsperiode: PeriodeDTO?,
-    val manueltSattSøknadMottattDato: LocalDate,
+    val manueltSattSøknadMottattDato: LocalDate?,
     val manueltSattTiltak: String?,
     val antallVedlegg: Int,
     val søknadstype: SøknadstypeDTO,

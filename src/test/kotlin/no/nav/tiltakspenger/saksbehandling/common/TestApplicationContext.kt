@@ -88,6 +88,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsover
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFakeClient
+import java.time.LocalDateTime
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse as LibsTiltaksdeltakelse
 
 /**
@@ -544,9 +545,12 @@ sealed class TestApplicationContext(
         tiltaksdeltakelseFakeKlient.lagreTiltaksdeltakelseSomFratarRett(fnr = fnr, deltakelse = deltakelse)
     }
 
-    /** Registrerer en journalpost i [SafJournalpostFakeClient] knyttet til gitt [fnr]. */
-    fun leggTilJournalpost(journalpostId: JournalpostId, fnr: Fnr) {
-        safJournalpostFakeClient.addJournalpost(journalpostId, fnr)
+    /**
+     * Registrerer en journalpost i [SafJournalpostFakeClient] knyttet til gitt [fnr].
+     * [datoOpprettet] `null` gir klokkas nå-tidspunkt ved oppslag.
+     */
+    fun leggTilJournalpost(journalpostId: JournalpostId, fnr: Fnr, datoOpprettet: LocalDateTime? = null) {
+        safJournalpostFakeClient.addJournalpost(journalpostId, fnr, datoOpprettet)
     }
 
     /** Registrerer vedtakene [TiltakspengerArenaFakeClient] skal svare med for [fnr]. */
