@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -86,6 +87,9 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     val erUnderBeslutning: Boolean get() = status == UNDER_BESLUTNING
     val erUnderBehandlingEllerBeslutning: Boolean get() = erUnderBehandling || erUnderBeslutning
     val erUnderAktivBehandling: Boolean get() = erKlarTilBehandling || erUnderBehandling || erKlarTIlBeslutning || erUnderBeslutning || erUnderkjent
+
+    /** Bare den delautomatiske søknadsbehandlingen setter flagget, og den innstiller alltid til innvilgelse. */
+    val erDelautomatiskInnstiltTilInnvilgelse: Boolean get() = this is Søknadsbehandling && automatiskSaksbehandlet
 
     override val erAvbrutt: Boolean get() = status == AVBRUTT
     val erVedtatt: Boolean get() = status == VEDTATT
@@ -268,4 +272,12 @@ sealed interface Rammebehandling : AttesterbarBehandling {
      * Alle andre operasjoner som endrer rammebehandlingen skal oppdatere [sistEndret].
      */
     fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling
+
+    /**
+     * Om [saksbehandler] kan ta behandlingen til beslutning og underkjenne den.
+     * En delautomatisk innstilling har ikke vært hos en saksbehandler, så en saksbehandler uten beslutterrolle kan også ta og underkjenne den.
+     * Godkjenning krever fortsatt beslutterrolle.
+     */
+    fun kanTaOgUnderkjenneSomBeslutter(saksbehandler: Saksbehandler): Boolean =
+        saksbehandler.erBeslutter || (erDelautomatiskInnstiltTilInnvilgelse && saksbehandler.erSaksbehandler)
 }
