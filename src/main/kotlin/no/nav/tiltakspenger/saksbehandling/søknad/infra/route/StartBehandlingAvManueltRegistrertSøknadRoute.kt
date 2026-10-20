@@ -59,7 +59,9 @@ data class StartBehandlingAvManueltRegistrertSøknadCommand(
     val supplerendeStønadFlyktning: Søknad.PeriodeSpm,
     val jobbsjansen: Søknad.PeriodeSpm,
     val trygdOgPensjon: Søknad.PeriodeSpm,
-)
+) {
+    val erOverførtFraArena: Boolean = behandlingsarsak != null
+}
 
 fun Route.startBehandlingAvManueltRegistrertSøknadRoute(
     auditService: AuditService,

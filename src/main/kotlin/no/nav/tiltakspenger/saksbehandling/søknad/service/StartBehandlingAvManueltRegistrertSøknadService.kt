@@ -42,7 +42,7 @@ class StartBehandlingAvManueltRegistrertSøknadService(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): Either<KanIkkeStarteBehandlingenAvManueltRegistrertSøknad, Pair<Sak, Søknadsbehandling>> {
-        if (kommando.manueltSattSøknadMottattDato == null && kommando.behandlingsarsak == null) {
+        if (kommando.manueltSattSøknadMottattDato == null && !kommando.erOverførtFraArena) {
             return KanIkkeStarteBehandlingenAvManueltRegistrertSøknad.EnManuellDatoKrevesNårDetIkkeErMigreringFraArena.left()
         }
 
