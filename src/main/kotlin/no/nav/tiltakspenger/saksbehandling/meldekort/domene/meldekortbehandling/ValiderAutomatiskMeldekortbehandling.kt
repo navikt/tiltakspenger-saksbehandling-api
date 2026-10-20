@@ -56,7 +56,8 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort: Bruk
 private fun Sak.validerTilstanderSomKanPrøvesPåNytt(brukersMeldekort: BrukersMeldekort): Either<MeldekortBehandletAutomatiskStatus, Unit> {
     val kjedeId = brukersMeldekort.kjedeId
 
-    if (revurderinger.harÅpenRevurdering()) {
+    // Meldekort skal ikke behandles automatisk så lenge det finnes en åpen revurdering som kan fjerne retten til TP.
+    if (revurderinger.harÅpenRevurderingSomKanFjerneRett()) {
         return MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING.left()
     }
 

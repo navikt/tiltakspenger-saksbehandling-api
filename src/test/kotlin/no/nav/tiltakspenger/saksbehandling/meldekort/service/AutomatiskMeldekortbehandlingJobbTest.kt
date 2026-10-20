@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
@@ -14,7 +15,10 @@ import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
+import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
@@ -29,8 +33,12 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.søknadsbehandlingIverksattMedMeldeperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgBehandleMeldekortAutomatisk
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.mottaMeldekortRequest
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tilUtfyltFraBruker
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import org.junit.jupiter.api.Test
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -972,5 +980,76 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun `skal behandle automatisk når saken har en åpen revurdering til forlengelse`() {
+        // Hverdag innenfor økonomisystemets åpningstider, ellers hopper jobben over alle meldekort.
+        withTestApplicationContext(clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0)))) { tac ->
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(tac = tac)
+
+            revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Innvilgelse>()
+            revurdering.erAvsluttet shouldBe false
+
+            val brukersMeldekort = mottaMeldekortOgKjørJobb(tac, sak)
+
+            val sisteMeldekortbehandling = tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!.sisteGodkjenteMeldekort
+            sisteMeldekortbehandling.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
+            sisteMeldekortbehandling.brukersMeldekort.id shouldBe brukersMeldekort.id
+
+            tac.meldekortContext.brukersMeldekortRepo
+                .hentForMeldekortId(brukersMeldekort.id)!!
+                .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
+        }
+    }
+
+    @Test
+    fun `skal ikke behandle automatisk når saken har en åpen revurdering til stans`() {
+        withTestApplicationContext(clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0)))) { tac ->
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac = tac)
+
+            revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>()
+
+            val brukersMeldekort = mottaMeldekortOgKjørJobb(tac, sak)
+
+            tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+            tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.let {
+                it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING
+                it.behandlesAutomatisk shouldBe true
+            }
+        }
+    }
+
+    @Test
+    fun `skal ikke behandle automatisk når saken har en åpen omgjøring`() {
+        withTestApplicationContext(clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0)))) { tac ->
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac = tac)!!
+
+            // En omgjøring kan ende med opphør, selv om den starter som innvilgelse.
+            revurdering.resultat.shouldBeInstanceOf<Omgjøringsresultat>()
+
+            val brukersMeldekort = mottaMeldekortOgKjørJobb(tac, sak)
+
+            tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+            tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.let {
+                it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING
+                it.behandlesAutomatisk shouldBe true
+            }
+        }
+    }
+
+    private suspend fun ApplicationTestBuilder.mottaMeldekortOgKjørJobb(
+        tac: TestApplicationContext,
+        sak: Sak,
+    ): BrukersMeldekort {
+        val meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode()
+        val (_, brukersMeldekort) = mottaMeldekortRequest(
+            tac = tac,
+            meldeperiodeId = meldeperiode.id,
+            sakId = sak.id,
+            dager = meldeperiode.tilUtfyltFraBruker(kanSendeInnHelgForMeldekort = sak.kanSendeInnHelgForMeldekort),
+        )
+        tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+        return brukersMeldekort!!
     }
 }
