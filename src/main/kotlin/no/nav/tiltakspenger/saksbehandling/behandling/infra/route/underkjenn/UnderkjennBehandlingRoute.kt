@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.underkjenn.KanIkkeU
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.RammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
-import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 
 private const val PATH = "/sak/{sakId}/behandling/{behandlingId}/underkjenn"
@@ -43,7 +43,7 @@ fun Route.underkjennRammebehandlingRoute(
                 call.withBody<BegrunnelseDTO> { body ->
                     val begrunnelse = body.begrunnelse
                     val correlationId = call.correlationId()
-                    krevBeslutterRolle(saksbehandler)
+                    krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
                     tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
                     behandlingService.underkjennBehandling(
                         sakId = sakId,

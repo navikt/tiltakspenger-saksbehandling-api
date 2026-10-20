@@ -26,7 +26,9 @@ import java.time.Clock
  * Underkjenner rammebehandlingen og sender den tilbake til saksbehandler.
  * Forutsetningene håndheves av [kanUnderkjenne], og feilene derfra returneres som venstre-verdi.
  *
- * Hvis saken har blitt behandlet automatisk fjernes automatisk saksbehandler og flagget som sier at den har blitt behandlet automatisk ved underkjenning.
+ * Hvis saken er delautomatisk innstilt til innvilgelse og den som underkjenner har saksbehandlerrollen, tildeles hen saken som saksbehandler, og beslutteren fjernes.
+ * Mangler hen saksbehandlerrollen, blir saken klar til behandling uten saksbehandler.
+ * Resultatet og flagget som sier at den har blitt behandlet automatisk nullstilles, slik at saksbehandler tar stilling på nytt.
  */
 fun Rammebehandling.underkjenn(
     utøvendeBeslutter: Saksbehandler,
@@ -38,22 +40,25 @@ fun Rammebehandling.underkjenn(
     val attesteringer = attesteringer.leggTil(attestering)
 
     val oppdatertRammebehandling = when (this) {
-        is Søknadsbehandling -> this.copy(
-            status = if (automatiskSaksbehandlet) {
-                KLAR_TIL_BEHANDLING
-            } else {
-                UNDER_BEHANDLING
-            },
-            attesteringer = attesteringer,
-            saksbehandler = if (automatiskSaksbehandlet) {
-                null
-            } else {
-                saksbehandler
-            },
-            automatiskSaksbehandlet = false,
-            sistEndret = nå(clock),
-            resultat = if (automatiskSaksbehandlet) null else resultat,
-        )
+        is Søknadsbehandling -> {
+            // En delautomatisk innstilling har ingen menneskelig saksbehandler å sende saken tilbake til, så den som underkjenner tildeles saken.
+            // Det krever saksbehandlerrollen, ellers blir saken klar til behandling uten saksbehandler.
+            val tildelUnderkjenner = automatiskSaksbehandlet && utøvendeBeslutter.erSaksbehandler
+            this.copy(
+                status = if (automatiskSaksbehandlet && !tildelUnderkjenner) KLAR_TIL_BEHANDLING else UNDER_BEHANDLING,
+                attesteringer = attesteringer,
+                saksbehandler = when {
+                    tildelUnderkjenner -> utøvendeBeslutter.navIdent
+                    automatiskSaksbehandlet -> null
+                    else -> saksbehandler
+                },
+                // Den som underkjente blir saksbehandler, og kan ikke samtidig være beslutter.
+                beslutter = if (tildelUnderkjenner) null else beslutter,
+                automatiskSaksbehandlet = false,
+                sistEndret = nå(clock),
+                resultat = if (automatiskSaksbehandlet) null else resultat,
+            )
+        }
 
         is Revurdering -> this.copy(
             status = UNDER_BEHANDLING,
@@ -71,7 +76,8 @@ fun Rammebehandling.underkjenn(
 
 /**
  * Avgjør om [utøvendeBeslutter] kan underkjenne behandlingen.
- * Krever at [utøvendeBeslutter] har rollen beslutter, og kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
+ * Krever at [utøvendeBeslutter] kan opptre som beslutter, se [Rammebehandling.kanTaOgUnderkjenneSomBeslutter].
+ * Kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
  *
  * Betingelsene speiler hvilke tilstander [underkjenn] faktisk håndterer, og sjekkes i denne rekkefølgen:
  *  - behandlingen må være [UNDER_BESLUTNING]
@@ -83,7 +89,9 @@ fun Rammebehandling.underkjenn(
  * Da er beslutteren fjernet fra behandlingen, og beslutteren skal få vite at behandlingen ikke lenger er under beslutning.
  */
 private fun Rammebehandling.kanUnderkjenne(utøvendeBeslutter: Saksbehandler): Either<KanIkkeUnderkjenne, Unit> {
-    krevBeslutterRolle(utøvendeBeslutter)
+    if (!kanTaOgUnderkjenneSomBeslutter(utøvendeBeslutter)) {
+        krevBeslutterRolle(utøvendeBeslutter)
+    }
 
     when (status) {
         UNDER_BESLUTNING -> Unit
