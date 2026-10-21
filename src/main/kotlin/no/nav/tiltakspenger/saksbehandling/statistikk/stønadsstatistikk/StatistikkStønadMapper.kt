@@ -50,8 +50,10 @@ fun genererStønadsstatistikkForRammevedtak(
             vedtaksperiodeFraOgMed = vedtak.periode.fraOgMed,
             vedtaksperiodeTilOgMed = vedtak.periode.tilOgMed,
             innvilgelsesperioder = innvilgelsesperioder ?: emptyList(),
+            // Ved omgjøring av flere vedtak sender vi det eldste, slik at kontrakten er bakoverkompatibel.
+            // Den fullstendige oversikten ligger i [StatistikkStønadDTO.omgjørRammevedtak].
             omgjørRammevedtakId = if (vedtak.rammebehandlingsresultat is OmgjøringInnvilgelse) {
-                vedtak.rammebehandlingsresultat.omgjørRammevedtak.single().rammevedtakId.toString()
+                vedtak.rammebehandlingsresultat.omgjørRammevedtak.rammevedtakIDer.first().toString()
             } else {
                 null
             },

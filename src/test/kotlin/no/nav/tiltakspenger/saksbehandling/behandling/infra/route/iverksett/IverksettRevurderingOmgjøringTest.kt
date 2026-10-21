@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 
+import io.kotest.assertions.json.shouldEqualSpecifiedJson
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
@@ -12,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.omgjøringsgrunnlagetErEndretForBeslutter
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.toDatadelingJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
@@ -31,6 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
+import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.genererStønadsstatistikkForRammevedtak
 import org.junit.jupiter.api.Test
 
 class IverksettRevurderingOmgjøringTest {
@@ -94,6 +97,111 @@ class IverksettRevurderingOmgjøringTest {
             )
 
             // TODO jah: Fullfør etter vi har tilstrekkelig route-builder/verktøy i meldekort
+        }
+    }
+
+    @Test
+    fun `kan omgjøre flere vedtak med én omgjøring`() {
+        withTestApplicationContext { tac ->
+            val førsteInnvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+
+            val (sakMedSøknadsbehandling, _, søknadsbehandlingVedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(førsteInnvilgelsesperiode),
+            )
+
+            val sakId = sakMedSøknadsbehandling.id
+
+            val (_, stansvedtak) = iverksettRevurderingStans(
+                tac = tac,
+                sakId = sakId,
+                stansFraOgMed = 1.mars(2025),
+            )
+
+            val (sakMedOmgjøring, omgjøringsvedtak) = iverksettOmgjøringInnvilgelse(
+                tac = tac,
+                sakId = sakId,
+                rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
+                vedtaksperiode = førsteInnvilgelsesperiode,
+                innvilgelsesperioder = innvilgelsesperioder(førsteInnvilgelsesperiode),
+            )
+
+            omgjøringsvedtak.omgjørRammevedtak shouldBe OmgjørRammevedtak(
+                Omgjøringsperiode(
+                    rammevedtakId = søknadsbehandlingVedtak.id,
+                    periode = 1.januar(2025) til 28.februar(2025),
+                    omgjøringsgrad = Omgjøringsgrad.DELVIS,
+                ),
+                Omgjøringsperiode(
+                    rammevedtakId = stansvedtak.id,
+                    periode = 1.mars(2025) til 31.mars(2025),
+                    omgjøringsgrad = Omgjøringsgrad.HELT,
+                ),
+            )
+            sakMedOmgjøring.rammevedtaksliste.innvilgelsesperioder.perioder shouldBe listOf(førsteInnvilgelsesperiode)
+            sakMedOmgjøring.hentRammevedtakForId(søknadsbehandlingVedtak.id).omgjortAvRammevedtak.rammevedtakIDer shouldBe listOf(stansvedtak.id, omgjøringsvedtak.id)
+            sakMedOmgjøring.hentRammevedtakForId(stansvedtak.id).omgjortAvRammevedtak.rammevedtakIDer shouldBe listOf(omgjøringsvedtak.id)
+
+            // Det eldste vedtaket sendes i det gamle enkeltfeltet, mens lista inneholder alle.
+            omgjøringsvedtak.toDatadelingJson().shouldEqualSpecifiedJson(
+                """
+                {
+                  "omgjørRammevedtakId": "${søknadsbehandlingVedtak.id}",
+                  "omgjørRammevedtak": [
+                    {
+                      "vedtakId": "${søknadsbehandlingVedtak.id}",
+                      "periode": {"fraOgMed": "2025-01-01", "tilOgMed": "2025-02-28"},
+                      "omgjøringsgrad": "DELVIS"
+                    },
+                    {
+                      "vedtakId": "${stansvedtak.id}",
+                      "periode": {"fraOgMed": "2025-03-01", "tilOgMed": "2025-03-31"},
+                      "omgjøringsgrad": "HELT"
+                    }
+                  ]
+                }
+                """.trimIndent(),
+            )
+            // Enkeltfeltet settes kun når vedtaket er omgjort i sin helhet av ett vedtak, mens lista inneholder alle.
+            sakMedOmgjøring.hentRammevedtakForId(søknadsbehandlingVedtak.id).toDatadelingJson().shouldEqualSpecifiedJson(
+                """
+                {
+                  "omgjortAvRammevedtakId": null,
+                  "omgjortAvRammevedtak": [
+                    {
+                      "vedtakId": "${omgjøringsvedtak.id}",
+                      "periode": {"fraOgMed": "2025-01-01", "tilOgMed": "2025-02-28"},
+                      "omgjøringsgrad": "DELVIS"
+                    },
+                    {
+                      "vedtakId": "${stansvedtak.id}",
+                      "periode": {"fraOgMed": "2025-03-01", "tilOgMed": "2025-03-31"},
+                      "omgjøringsgrad": "DELVIS"
+                    }
+                  ]
+                }
+                """.trimIndent(),
+            )
+            sakMedOmgjøring.hentRammevedtakForId(stansvedtak.id).toDatadelingJson().shouldEqualSpecifiedJson(
+                """
+                {
+                  "omgjortAvRammevedtakId": "${omgjøringsvedtak.id}",
+                  "omgjortAvRammevedtak": [
+                    {
+                      "vedtakId": "${omgjøringsvedtak.id}",
+                      "periode": {"fraOgMed": "2025-03-01", "tilOgMed": "2025-03-31"},
+                      "omgjøringsgrad": "HELT"
+                    }
+                  ]
+                }
+                """.trimIndent(),
+            )
+            val stønadsstatistikk = genererStønadsstatistikkForRammevedtak(omgjøringsvedtak).genererStønadsstatistikk()
+            stønadsstatistikk.omgjørRammevedtakId shouldBe søknadsbehandlingVedtak.id.toString()
+            stønadsstatistikk.omgjørRammevedtak.map { it.vedtakId } shouldBe listOf(
+                søknadsbehandlingVedtak.id.toString(),
+                stansvedtak.id.toString(),
+            )
         }
     }
 
@@ -357,6 +465,112 @@ class IverksettRevurderingOmgjøringTest {
             sakMedOpphør.rammevedtaksliste.innvilgetTidslinje.perioder shouldBe listOf(
                 1.januar(2025) til 31.januar(2025),
                 1.mars(2025) til 31.mars(2025),
+            )
+        }
+    }
+
+    @Test
+    fun `kan opphøre over en stans med innvilgelse både før og etter`() {
+        withTestApplicationContext { tac ->
+            val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+
+            val (sak, _, søknadvedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
+            )
+            val (_, stansvedtak) = iverksettRevurderingStans(
+                tac = tac,
+                sakId = sak.id,
+                stansFraOgMed = 1.februar(2025),
+            )
+            val (sakFørOpphør, revurderingsvedtak) = iverksettRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                innvilgelsesperioder = innvilgelsesperioder(1.mars(2025) til 31.mars(2025)),
+            )
+
+            sakFørOpphør.rammevedtaksliste.innvilgetTidslinje.perioder shouldBe listOf(
+                1.januar(2025) til 31.januar(2025),
+                1.mars(2025) til 31.mars(2025),
+            )
+
+            val (sakMedOpphør, opphørsvedtak) = iverksettOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = søknadvedtak.id,
+                vedtaksperiode = 15.januar(2025) til 15.mars(2025),
+            )
+
+            opphørsvedtak.erOpphør shouldBe true
+            opphørsvedtak.omgjørRammevedtak shouldBe OmgjørRammevedtak(
+                Omgjøringsperiode(
+                    rammevedtakId = søknadvedtak.id,
+                    periode = 15.januar(2025) til 31.januar(2025),
+                    omgjøringsgrad = Omgjøringsgrad.DELVIS,
+                ),
+                Omgjøringsperiode(
+                    rammevedtakId = stansvedtak.id,
+                    periode = 1.februar(2025) til 28.februar(2025),
+                    // Stansvedtaket gjaldt også mars, men den perioden er allerede omgjort av revurderingen.
+                    omgjøringsgrad = Omgjøringsgrad.DELVIS,
+                ),
+                Omgjøringsperiode(
+                    rammevedtakId = revurderingsvedtak.id,
+                    periode = 1.mars(2025) til 15.mars(2025),
+                    omgjøringsgrad = Omgjøringsgrad.DELVIS,
+                ),
+            )
+            sakMedOpphør.rammevedtaksliste.innvilgetTidslinje.perioder shouldBe listOf(
+                1.januar(2025) til 14.januar(2025),
+                16.mars(2025) til 31.mars(2025),
+            )
+        }
+    }
+
+    @Test
+    fun `kan opphøre over et tidligere opphør med innvilgelse både før og etter`() {
+        withTestApplicationContext { tac ->
+            val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+
+            val (sak, _, søknadvedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
+            )
+            val (_, tidligereOpphør) = iverksettOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = søknadvedtak.id,
+                vedtaksperiode = 1.februar(2025) til 28.februar(2025),
+            )
+
+            val (sakMedOpphør, opphørsvedtak) = iverksettOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = søknadvedtak.id,
+                vedtaksperiode = 15.januar(2025) til 15.mars(2025),
+            )
+
+            opphørsvedtak.erOpphør shouldBe true
+            opphørsvedtak.omgjørRammevedtak shouldBe OmgjørRammevedtak(
+                Omgjøringsperiode(
+                    rammevedtakId = søknadvedtak.id,
+                    periode = 15.januar(2025) til 31.januar(2025),
+                    omgjøringsgrad = Omgjøringsgrad.DELVIS,
+                ),
+                Omgjøringsperiode(
+                    rammevedtakId = tidligereOpphør.id,
+                    periode = 1.februar(2025) til 28.februar(2025),
+                    omgjøringsgrad = Omgjøringsgrad.HELT,
+                ),
+                Omgjøringsperiode(
+                    rammevedtakId = søknadvedtak.id,
+                    periode = 1.mars(2025) til 15.mars(2025),
+                    omgjøringsgrad = Omgjøringsgrad.DELVIS,
+                ),
+            )
+            sakMedOpphør.rammevedtaksliste.innvilgetTidslinje.perioder shouldBe listOf(
+                1.januar(2025) til 14.januar(2025),
+                16.mars(2025) til 31.mars(2025),
             )
         }
     }

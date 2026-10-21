@@ -282,7 +282,8 @@ private fun GjeldendeInnvilgelse.finnEndringer(
  * - Endret startdato, sluttdato eller deltakelsesmengde gir omgjøring.
  * - Ikke aktuell, avsluttet som forventet og ren statusendring følges opp manuelt.
  *
- * Omgjøring gis bare når endringen berører nøyaktig ett gjeldende vedtak, siden en omgjøring bare kan omgjøre ett vedtak.
+ * Omgjøring gis bare når endringen berører nøyaktig ett gjeldende vedtak.
+ * En manuell omgjøring kan omgjøre flere vedtak, men automatisk omgjøring av flere vedtak er ikke støttet ennå.
  * Deltakelsen kan altså være innvilget i flere vedtak, så lenge endringen bare berører periodene til ett av dem.
  */
 private fun Sak.vurderAutomatiskRevurdering(

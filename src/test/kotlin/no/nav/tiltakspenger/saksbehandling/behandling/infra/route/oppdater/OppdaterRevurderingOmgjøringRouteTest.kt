@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater
 
 import arrow.core.nonEmptyListOf
-import io.kotest.assertions.json.shouldEqualJson
+import io.kotest.assertions.json.shouldEqualSpecifiedJson
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.februar
@@ -23,6 +23,9 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgels
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -34,7 +37,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
-import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 
 class OppdaterRevurderingOmgjøringRouteTest {
@@ -179,7 +181,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
     }
 
     @Test
-    fun `kan ikke omgjøre over flere vedtak`() {
+    fun `kan omgjøre over flere vedtak`() {
         withTestApplicationContext { tac ->
             val førsteInnvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
             val stansFraOgMed = 1.mars(2025)
@@ -193,7 +195,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
 
             val sakId = sakMedSøknadsbehandling.id
 
-            iverksettRevurderingStans(
+            val (_, stansvedtak) = iverksettRevurderingStans(
                 tac = tac,
                 sakId = sakId,
                 stansFraOgMed = stansFraOgMed,
@@ -211,25 +213,45 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 vedtaksperiode = førsteInnvilgelsesperiode,
                 innvilgelsesperioder = innvilgelsesperioder,
                 behandlingId = omgjøring.id,
-                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             ).also {
-                it.second.omgjørRammevedtak.rammevedtakIDer.single() shouldBe søknadsbehandlingVedtak.id
+                it.second.omgjørRammevedtak shouldBe OmgjørRammevedtak(
+                    Omgjøringsperiode(
+                        rammevedtakId = søknadsbehandlingVedtak.id,
+                        periode = 1.januar(2025) til 28.februar(2025),
+                        omgjøringsgrad = Omgjøringsgrad.DELVIS,
+                    ),
+                    Omgjøringsperiode(
+                        rammevedtakId = stansvedtak.id,
+                        periode = 1.mars(2025) til 31.mars(2025),
+                        omgjøringsgrad = Omgjøringsgrad.HELT,
+                    ),
+                )
 
-                @Language("JSON")
-                val expectedResponse = """
+                it.third.shouldEqualSpecifiedJson(
+                    """
                     {
-                        "melding": "En omgjøring kan kun omgjøre ett tidligere vedtak",
-                        "kode":"kan_ikke_omgjøre_flere_vedtak"
+                      "omgjørVedtak": "${søknadsbehandlingVedtak.id}",
+                      "omgjørRammevedtak": [
+                        {
+                          "vedtakId": "${søknadsbehandlingVedtak.id}",
+                          "periode": {"fraOgMed": "2025-01-01", "tilOgMed": "2025-02-28"},
+                          "omgjøringsgrad": "DELVIS"
+                        },
+                        {
+                          "vedtakId": "${stansvedtak.id}",
+                          "periode": {"fraOgMed": "2025-03-01", "tilOgMed": "2025-03-31"},
+                          "omgjøringsgrad": "HELT"
+                        }
+                      ]
                     }
-                """.trimIndent()
-
-                it.third.shouldEqualJson(expectedResponse)
+                    """.trimIndent(),
+                )
             }
         }
     }
 
     @Test
-    fun `kan ikke omgjøre over hull i vedtaksperioden til et vedtak`() {
+    fun `omgjør vedtaket som gjelder for vedtaksperioden, ikke vedtaket omgjøringen ble startet fra`() {
         withTestApplicationContext { tac ->
             val førsteInnvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
             val revurdertPeriode = 1.februar(2025) til 28.februar(2025)
@@ -243,7 +265,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
 
             val sakId = sakMedSøknadsbehandling.id
 
-            iverksettRevurderingInnvilgelse(
+            val (_, revurderingsvedtak) = iverksettRevurderingInnvilgelse(
                 tac = tac,
                 sakId = sakId,
                 innvilgelsesperioder = innvilgelsesperioder(
@@ -258,23 +280,68 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
             )!!
 
-            val (_, _, responseBody) = oppdaterOmgjøringInnvilgelse(
+            oppdaterOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sakId,
                 behandlingId = nyOmgjøring.id,
                 innvilgelsesperioder = innvilgelsesperioder(revurdertPeriode),
                 vedtaksperiode = revurdertPeriode,
-                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+            ).also {
+                it.second.omgjørRammevedtak shouldBe OmgjørRammevedtak(
+                    Omgjøringsperiode(
+                        rammevedtakId = revurderingsvedtak.id,
+                        periode = revurdertPeriode,
+                        omgjøringsgrad = Omgjøringsgrad.HELT,
+                    ),
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `kan omgjøre over flere vedtak med hull mellom seg`() {
+        withTestApplicationContext { tac ->
+            val tiltaksdeltakelse = tiltaksdeltakelse(fom = 1.januar(2025), tom = 31.mars(2025))
+            val (sak, _, januarvedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.januar(2025) til 31.januar(2025), tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+            val (_, _, marsvedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                sakId = sak.id,
+                innvilgelsesperioder = innvilgelsesperioder(1.mars(2025) til 31.mars(2025), tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
             )
 
-            responseBody.shouldEqualJson(
-                """
-                {
-                  "melding": "Må omgjøre angitt vedtak",
-                  "kode": "må_omgjøre_angitt_vedtak"
-                }
-                """.trimIndent(),
-            )
+            val (_, omgjøring) = startRevurderingOmgjøring(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = januarvedtak.id,
+            )!!
+
+            val vedtaksperiode = 1.januar(2025) til 31.mars(2025)
+            oppdaterOmgjøringInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = omgjøring.id,
+                vedtaksperiode = vedtaksperiode,
+                innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode, tiltaksdeltakelse),
+            ).also {
+                it.second.vedtaksperiode shouldBe vedtaksperiode
+                it.second.omgjørRammevedtak shouldBe OmgjørRammevedtak(
+                    Omgjøringsperiode(
+                        rammevedtakId = januarvedtak.id,
+                        periode = 1.januar(2025) til 31.januar(2025),
+                        omgjøringsgrad = Omgjøringsgrad.HELT,
+                    ),
+                    Omgjøringsperiode(
+                        rammevedtakId = marsvedtak.id,
+                        periode = 1.mars(2025) til 31.mars(2025),
+                        omgjøringsgrad = Omgjøringsgrad.HELT,
+                    ),
+                )
+            }
         }
     }
 
