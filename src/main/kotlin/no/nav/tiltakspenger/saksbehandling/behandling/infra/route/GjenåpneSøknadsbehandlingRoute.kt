@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenåpne.GjenåpneSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenåpne.KanIkkeGjenåpneSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilSøknadsbehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenåpneSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
@@ -70,11 +70,8 @@ fun Route.gjenåpneSøknadsbehandlingRoute(
                                 correlationId = correlationId,
                             )
                             call.respondJson(
-                                value = nySøknadsbehandling.tilSøknadsbehandlingDTO(
-                                    utbetalingsstatus = null,
-                                    beregninger = sak.meldeperiodeBeregninger,
-                                    rammevedtakId = null,
-                                    tilbakekrevingId = null,
+                                value = sak.tilRammebehandlingDTO(
+                                    behandlingId = nySøknadsbehandling.id,
                                     kallendeSaksbehandler = saksbehandler,
                                 ),
                             )

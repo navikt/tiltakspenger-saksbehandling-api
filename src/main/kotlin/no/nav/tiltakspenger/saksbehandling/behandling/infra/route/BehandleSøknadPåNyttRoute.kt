@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.StartSøknadsbehandlingPåNyttKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilSøknadsbehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
@@ -51,11 +51,8 @@ fun Route.behandleSøknadPåNyttRoute(
                     correlationId = correlationId,
                 )
                 call.respondJson(
-                    value = søknadsbehandling.tilSøknadsbehandlingDTO(
-                        utbetalingsstatus = null,
-                        beregninger = sak.meldeperiodeBeregninger,
-                        rammevedtakId = null,
-                        tilbakekrevingId = null,
+                    value = sak.tilRammebehandlingDTO(
+                        behandlingId = søknadsbehandling.id,
                         kallendeSaksbehandler = saksbehandler,
                     ),
                 )

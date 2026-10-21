@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilSøknadsbehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
@@ -110,11 +110,8 @@ fun Route.startBehandlingAvManueltRegistrertSøknadRoute(
                             contextMessage = "Startet behandling ${søknadsbehandling.id} av manuelt registrert søknad ${søknadsbehandling.søknad.id} for sak $saksnummer",
                         )
                         call.respondJson(
-                            value = søknadsbehandling.tilSøknadsbehandlingDTO(
-                                utbetalingsstatus = null,
-                                beregninger = sak.meldeperiodeBeregninger,
-                                rammevedtakId = null,
-                                tilbakekrevingId = null,
+                            value = sak.tilRammebehandlingDTO(
+                                behandlingId = søknadsbehandling.id,
                                 kallendeSaksbehandler = saksbehandler,
                             ),
                         )

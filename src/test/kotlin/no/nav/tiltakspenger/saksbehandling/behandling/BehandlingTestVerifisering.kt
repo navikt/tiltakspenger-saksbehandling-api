@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdetTekst
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import org.json.JSONObject
 
 fun String.shouldBeRevurderingDTO(
     ignorerTidspunkt: Boolean = true,
@@ -57,6 +58,9 @@ fun String.shouldBeRevurderingDTO(
     skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
     prioriteringBegrunnelse: String? = null,
     gyldigeKommandoer: List<String> = emptyList(),
+    // JSON for feltet.
+    // Null betyr at feltet ikke sammenlignes.
+    tidslinjeFørOgEtter: String? = null,
     periodeFraOgMed: String = "2023-01-01",
     periodeTilOgMed: String = "2023-03-31",
     eksternDeltagelseId: String,
@@ -205,14 +209,15 @@ fun String.shouldBeRevurderingDTO(
           "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
           "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())},
           "beslutterEndringer": {"skalJournalføreNotat": null},
-          "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
+          "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}${tidslinjeFørOgEtter.tilValgfrittJsonFelt()}
         }
     """
 
+    val actual = this.utenTidslinjeFørOgEtterDersomIkkeForventet(tidslinjeFørOgEtter)
     if (ignorerTidspunkt) {
-        this.shouldEqualJsonIgnoringTimestamps(expected)
+        actual.shouldEqualJsonIgnoringTimestamps(expected)
     } else {
-        this.shouldEqualJson(expected)
+        actual.shouldEqualJson(expected)
     }
 }
 
@@ -249,6 +254,9 @@ fun String.shouldBeSøknadsbehandlingDTO(
     prioriteringBegrunnelse: String? = null,
     skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
     gyldigeKommandoer: List<String> = emptyList(),
+    // JSON for feltet.
+    // Null betyr at feltet ikke sammenlignes.
+    tidslinjeFørOgEtter: String? = null,
     automatiskSaksbehandlet: Boolean = false,
     kanInnvilges: Boolean = true,
     manueltBehandlesGrunner: List<String> = emptyList(),
@@ -409,14 +417,22 @@ fun String.shouldBeSøknadsbehandlingDTO(
         "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
         "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())},
         "beslutterEndringer": {"skalJournalføreNotat": null},
-        "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
+        "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}${tidslinjeFørOgEtter.tilValgfrittJsonFelt()}
     }
     """
+    val actual = this.utenTidslinjeFørOgEtterDersomIkkeForventet(tidslinjeFørOgEtter)
     if (ignorerTidspunkt) {
-        this.shouldEqualJsonIgnoringTimestamps(expected)
+        actual.shouldEqualJsonIgnoringTimestamps(expected)
     } else {
-        this.shouldEqualJson(expected)
+        actual.shouldEqualJson(expected)
     }
+}
+
+private fun String?.tilValgfrittJsonFelt(): String = this?.let { """, "tidslinjeFørOgEtter": $it""" } ?: ""
+
+private fun String.utenTidslinjeFørOgEtterDersomIkkeForventet(tidslinjeFørOgEtter: String?): String {
+    if (tidslinjeFørOgEtter != null) return this
+    return JSONObject(this).apply { remove("tidslinjeFørOgEtter") }.toString()
 }
 
 private fun String?.tilPrioriteringJson(): String? =

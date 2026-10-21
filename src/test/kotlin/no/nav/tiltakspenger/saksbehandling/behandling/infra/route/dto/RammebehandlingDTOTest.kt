@@ -98,6 +98,7 @@ class RammebehandlingDTOTest {
                 tilbakekrevingId = null,
                 rammevedtakId = vedtakId,
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
+                tidslinjeFørOgEtter = null,
             ),
         )
 
@@ -170,6 +171,7 @@ class RammebehandlingDTOTest {
                 tilbakekrevingId = null,
                 rammevedtakId = vedtakId,
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
+                tidslinjeFørOgEtter = null,
             ),
         )
 
@@ -246,6 +248,7 @@ class RammebehandlingDTOTest {
                 tilbakekrevingId = null,
                 rammevedtakId = vedtakId,
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
+                tidslinjeFørOgEtter = null,
             ),
         )
 
@@ -314,6 +317,7 @@ class RammebehandlingDTOTest {
                 tilbakekrevingId = null,
                 rammevedtakId = vedtakId,
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
+                tidslinjeFørOgEtter = null,
             ),
         )
 
@@ -374,6 +378,7 @@ class RammebehandlingDTOTest {
                 tilbakekrevingId = null,
                 rammevedtakId = vedtakId,
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
+                tidslinjeFørOgEtter = null,
             ),
         )
 
@@ -482,6 +487,7 @@ class RammebehandlingDTOTest {
                 tilbakekrevingId = null,
                 rammevedtakId = omgjøringVedtakId,
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
+                tidslinjeFørOgEtter = null,
             ),
         )
 

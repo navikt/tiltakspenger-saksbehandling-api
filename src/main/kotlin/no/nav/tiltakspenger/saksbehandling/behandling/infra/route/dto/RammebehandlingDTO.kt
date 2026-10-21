@@ -29,6 +29,10 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.toSøknadDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
+import no.nav.tiltakspenger.saksbehandling.vedtak.TidslinjeFørOgEtter
+import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.TidslinjeFørOgEtterDTO
+import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.tilTidslinjeFørOgEtterDTO
+import no.nav.tiltakspenger.saksbehandling.vedtak.tidslinjeFørOgEtter
 import java.time.LocalDateTime
 
 sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
@@ -77,6 +81,12 @@ sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
     val beslutterEndringer: RammebehandlingBeslutterEndringerDTO
 
     val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>
+
+    /**
+     * Vedtakstidslinjen før og etter behandlingen.
+     * Null dersom behandlingen er avbrutt eller mangler vedtaksperiode.
+     */
+    val tidslinjeFørOgEtter: TidslinjeFørOgEtterDTO?
 }
 
 data class SøknadsbehandlingDTO(
@@ -112,6 +122,7 @@ data class SøknadsbehandlingDTO(
     override val skalJournalføreNotat: SkalJournalføreNotatDTO,
     override val beslutterEndringer: RammebehandlingBeslutterEndringerDTO,
     override val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
+    override val tidslinjeFørOgEtter: TidslinjeFørOgEtterDTO?,
 ) : RammebehandlingDTO,
     SøknadsbehandlingResultatDTO by resultatDTO {
     override val type = RammebehandlingstypeDTO.SØKNADSBEHANDLING
@@ -151,6 +162,7 @@ data class RevurderingDTO(
     override val skalJournalføreNotat: SkalJournalføreNotatDTO,
     override val beslutterEndringer: RammebehandlingBeslutterEndringerDTO,
     override val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
+    override val tidslinjeFørOgEtter: TidslinjeFørOgEtterDTO?,
 ) : RammebehandlingDTO,
     RevurderingResultatDTO by resultatDTO {
     override val type = RammebehandlingstypeDTO.REVURDERING
@@ -171,6 +183,7 @@ fun Sak.tilRammebehandlingDTO(
 
     val rammevedtakId = rammevedtaksliste.finnRammevedtakForBehandling(behandlingId)?.id
     val tilbakekrevingId = hentTilbakekrevingForRammebehandling(behandlingId)?.id
+    val tidslinjeFørOgEtter = rammevedtaksliste.tidslinjeFørOgEtter(behandling)
 
     return when (behandling) {
         is Revurdering -> behandling.tilRevurderingDTO(
@@ -179,6 +192,7 @@ fun Sak.tilRammebehandlingDTO(
             tilbakekrevingId = tilbakekrevingId,
             rammevedtakId = rammevedtakId,
             kallendeSaksbehandler = kallendeSaksbehandler,
+            tidslinjeFørOgEtter = tidslinjeFørOgEtter,
         )
 
         is Søknadsbehandling -> behandling.tilSøknadsbehandlingDTO(
@@ -187,6 +201,7 @@ fun Sak.tilRammebehandlingDTO(
             tilbakekrevingId = tilbakekrevingId,
             rammevedtakId = rammevedtakId,
             kallendeSaksbehandler = kallendeSaksbehandler,
+            tidslinjeFørOgEtter = tidslinjeFørOgEtter,
         )
     }
 }
@@ -201,6 +216,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
     tilbakekrevingId: TilbakekrevingId?,
     rammevedtakId: VedtakId?,
     kallendeSaksbehandler: Saksbehandler,
+    tidslinjeFørOgEtter: TidslinjeFørOgEtter?,
 ): SøknadsbehandlingDTO {
     return SøknadsbehandlingDTO(
         id = this.id.toString(),
@@ -235,6 +251,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         skalJournalføreNotat = this.skalJournalføreNotat.tilDTO(),
         beslutterEndringer = this.beslutterEndringer.tilDTO(),
         gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
+        tidslinjeFørOgEtter = tidslinjeFørOgEtter?.tilTidslinjeFørOgEtterDTO(),
     )
 }
 
@@ -244,6 +261,7 @@ fun Revurdering.tilRevurderingDTO(
     tilbakekrevingId: TilbakekrevingId?,
     rammevedtakId: VedtakId?,
     kallendeSaksbehandler: Saksbehandler,
+    tidslinjeFørOgEtter: TidslinjeFørOgEtter?,
 ): RevurderingDTO {
     return RevurderingDTO(
         id = this.id.toString(),
@@ -276,6 +294,7 @@ fun Revurdering.tilRevurderingDTO(
         skalJournalføreNotat = this.skalJournalføreNotat.tilDTO(),
         beslutterEndringer = this.beslutterEndringer.tilDTO(),
         gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
+        tidslinjeFørOgEtter = tidslinjeFørOgEtter?.tilTidslinjeFørOgEtterDTO(),
     )
 }
 
