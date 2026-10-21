@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import io.kotest.assertions.json.shouldEqualJson
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
@@ -10,6 +11,7 @@ import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.juli
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.november
@@ -19,9 +21,13 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.person.Navn
+import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 class BrevSøknadInnvilgetDTOTest {
@@ -65,7 +71,7 @@ class BrevSøknadInnvilgetDTOTest {
                  "forhandsvisning":true,
                  "datoForUtsending": "31. januar 2025",
                  "innvilgelsesperioder": { 
-                  "antallDagerTekst": "fem dager",
+                  "antallDagerPerMeldeperiode": 10,
                   "perioder": [
                     {
                       "fraOgMed": "1. juni 2025",
@@ -123,7 +129,7 @@ class BrevSøknadInnvilgetDTOTest {
                   "forhandsvisning":true,
                   "datoForUtsending": "31. januar 2025",
                  "innvilgelsesperioder": { 
-                  "antallDagerTekst": "fem dager",
+                  "antallDagerPerMeldeperiode": 10,
                   "perioder": [
                     {
                       "fraOgMed": "1. desember 2024",
@@ -176,7 +182,7 @@ class BrevSøknadInnvilgetDTOTest {
                  "forhandsvisning": true,
                  "datoForUtsending": "31. januar 2025",
                  "innvilgelsesperioder": { 
-                  "antallDagerTekst": "fem dager",
+                  "antallDagerPerMeldeperiode": 10,
                   "perioder": [
                     {
                       "fraOgMed": "1. juni 2025",
@@ -186,7 +192,7 @@ class BrevSøknadInnvilgetDTOTest {
                  },
                  "barnetillegg": [
                    {
-                      "antallBarnTekst": "to",
+                      "antallBarn": 2,
                       "periode": {
                        "fraOgMed": "1. juni 2025",
                        "tilOgMed": "31. august 2025" 
@@ -248,7 +254,7 @@ class BrevSøknadInnvilgetDTOTest {
                   "forhandsvisning": true,
                   "datoForUtsending": "31. januar 2025",
                  "innvilgelsesperioder": { 
-                  "antallDagerTekst": "fem dager",
+                  "antallDagerPerMeldeperiode": 10,
                   "perioder": [
                     {
                       "fraOgMed": "1. desember 2024",
@@ -258,14 +264,14 @@ class BrevSøknadInnvilgetDTOTest {
                  },
                  "barnetillegg": [
                     {
-                        "antallBarnTekst": "to",
+                        "antallBarn": 2,
                         "periode": {
                           "fraOgMed": "1. desember 2024",
                           "tilOgMed": "31. desember 2024"
                         }
                     },
                     {
-                        "antallBarnTekst": "tre",
+                        "antallBarn": 3,
                         "periode":  {
                           "fraOgMed": "1. januar 2025",
                           "tilOgMed": "31. januar 2025"
@@ -328,7 +334,7 @@ class BrevSøknadInnvilgetDTOTest {
                   "forhandsvisning": true,
                   "datoForUtsending": "31. januar 2025",
                   "innvilgelsesperioder": {
-                    "antallDagerTekst": "fem dager",
+                    "antallDagerPerMeldeperiode": 10,
                     "perioder": [
                       {
                         "fraOgMed": "1. november 2024",
@@ -338,21 +344,21 @@ class BrevSøknadInnvilgetDTOTest {
                   },
                   "barnetillegg": [
                     {
-                      "antallBarnTekst": "ett",
+                      "antallBarn": 1,
                       "periode" : {
                         "fraOgMed": "1. november 2024",
                         "tilOgMed": "30. november 2024"
                       }
                     },
                     {
-                      "antallBarnTekst": "to",
+                      "antallBarn": 2,
                       "periode" :  {
                         "fraOgMed": "1. desember 2024",
                         "tilOgMed": "31. desember 2024"
                       }
                     },
                     {
-                      "antallBarnTekst": "tre",
+                      "antallBarn": 3,
                       "periode" :  {
                         "fraOgMed": "1. januar 2025",
                         "tilOgMed": "31. januar 2025"
@@ -419,7 +425,7 @@ class BrevSøknadInnvilgetDTOTest {
                   "forhandsvisning": true,
                   "datoForUtsending": "31. januar 2025",
                   "innvilgelsesperioder": {
-                      "antallDagerTekst": "fem dager",
+                      "antallDagerPerMeldeperiode": 10,
                       "perioder": [
                       {
                           "fraOgMed": "1. november 2024",
@@ -433,21 +439,21 @@ class BrevSøknadInnvilgetDTOTest {
                   },
                   "barnetillegg": [
                     {
-                      "antallBarnTekst": "ett",
+                      "antallBarn": 1,
                       "periode" : {
                         "fraOgMed": "1. november 2024",
                         "tilOgMed": "31. januar 2025"
                       }
                     },
                     {
-                      "antallBarnTekst": "to",
+                      "antallBarn": 2,
                       "periode" :  {
                         "fraOgMed": "1. februar 2025",
                         "tilOgMed": "28. februar 2025"
                       }
                     },
                     {
-                      "antallBarnTekst": "tre",
+                      "antallBarn": 3,
                       "periode" :  {
                         "fraOgMed": "1. april 2025",
                         "tilOgMed": "30. april 2025"
@@ -515,7 +521,7 @@ class BrevSøknadInnvilgetDTOTest {
                   "forhandsvisning": true,
                   "datoForUtsending": "31. januar 2025",
                   "innvilgelsesperioder": {
-                    "antallDagerTekst": "fem dager",
+                    "antallDagerPerMeldeperiode": 10,
                     "perioder": [
                       {
                           "fraOgMed": "1. november 2024",
@@ -533,21 +539,21 @@ class BrevSøknadInnvilgetDTOTest {
                   },
                   "barnetillegg": [
                     {
-                      "antallBarnTekst": "ett",
+                      "antallBarn": 1,
                       "periode": {
                         "fraOgMed": "1. november 2024",
                         "tilOgMed": "28. februar 2025"
                       }
                     },
                     {
-                      "antallBarnTekst": "to",
+                      "antallBarn": 2,
                       "periode":  {
                         "fraOgMed": "1. april 2025",
                         "tilOgMed": "30. april 2025"
                       }
                     },
                     {
-                      "antallBarnTekst": "tre",
+                      "antallBarn": 3,
                       "periode":  {
                         "fraOgMed": "2. mai 2025",
                         "tilOgMed": "31. mai 2025"
@@ -556,6 +562,31 @@ class BrevSøknadInnvilgetDTOTest {
                  ]
               }
             """.trimIndent()
+        }
+    }
+
+    @Test
+    fun `antall dager sendes ikke når det varierer i perioden`() {
+        runTest {
+            val deltakelse = tiltaksdeltakelse(fom = 1.juni(2025), tom = 31.august(2025))
+            val actual = genererInnvilgetSøknadsbrev(
+                hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
+                hentSaksbehandlersNavn = { "Saksbehandler Navn" },
+                tilleggstekst = null,
+                fnr = Fnr.random(),
+                saksbehandlerNavIdent = "Z123456",
+                beslutterNavIdent = "Z654321",
+                saksnummer = Saksnummer("202501301001"),
+                innvilgelsesperioder = innvilgelsesperioder(
+                    innvilgelsesperiode(Periode(1.juni(2025), 30.juni(2025)), deltakelse, AntallDagerForMeldeperiode(6)),
+                    innvilgelsesperiode(Periode(1.juli(2025), 31.august(2025)), deltakelse, AntallDagerForMeldeperiode(10)),
+                ),
+                barnetillegg = null,
+                forhåndsvisning = true,
+                vedtaksdato = 31.januar(2025),
+            )
+
+            JSONObject(actual).getJSONObject("innvilgelsesperioder").opt("antallDagerPerMeldeperiode") shouldBe null
         }
     }
 }

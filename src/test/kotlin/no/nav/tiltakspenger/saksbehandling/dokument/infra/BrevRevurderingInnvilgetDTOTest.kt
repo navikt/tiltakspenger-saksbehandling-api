@@ -65,7 +65,7 @@ class BrevRevurderingInnvilgetDTOTest {
                  "forhandsvisning":true,
                  "datoForUtsending": "31. januar 2025",
                  "innvilgelsesperioder": { 
-                  "antallDagerTekst": "fem dager",
+                  "antallDagerPerMeldeperiode": 10,
                   "perioder": [
                     {
                       "fraOgMed": "1. juni 2025",
@@ -123,7 +123,7 @@ class BrevRevurderingInnvilgetDTOTest {
                   "forhandsvisning":true,
                   "datoForUtsending": "31. januar 2025",
                  "innvilgelsesperioder": { 
-                  "antallDagerTekst": "fem dager",
+                  "antallDagerPerMeldeperiode": 10,
                   "perioder": [
                     {
                       "fraOgMed": "1. desember 2024",
@@ -176,7 +176,7 @@ class BrevRevurderingInnvilgetDTOTest {
                  "forhandsvisning": true,
                  "datoForUtsending": "31. januar 2025",
                  "innvilgelsesperioder": { 
-                  "antallDagerTekst": "fem dager",
+                  "antallDagerPerMeldeperiode": 10,
                   "perioder": [
                     {
                       "fraOgMed": "1. juni 2025",
@@ -186,7 +186,7 @@ class BrevRevurderingInnvilgetDTOTest {
                  },
                  "barnetillegg": [
                    {
-                      "antallBarnTekst": "to",
+                      "antallBarn": 2,
                       "periode": {
                        "fraOgMed": "1. juni 2025",
                        "tilOgMed": "31. august 2025" 
@@ -248,7 +248,7 @@ class BrevRevurderingInnvilgetDTOTest {
                   "forhandsvisning": true,
                   "datoForUtsending": "31. januar 2025",
                  "innvilgelsesperioder": { 
-                  "antallDagerTekst": "fem dager",
+                  "antallDagerPerMeldeperiode": 10,
                   "perioder": [
                     {
                       "fraOgMed": "1. desember 2024",
@@ -258,14 +258,14 @@ class BrevRevurderingInnvilgetDTOTest {
                  },
                  "barnetillegg": [
                     {
-                        "antallBarnTekst": "to",
+                        "antallBarn": 2,
                         "periode": {
                           "fraOgMed": "1. desember 2024",
                           "tilOgMed": "31. desember 2024"
                         }
                     },
                     {
-                        "antallBarnTekst": "tre",
+                        "antallBarn": 3,
                         "periode":  {
                           "fraOgMed": "1. januar 2025",
                           "tilOgMed": "31. januar 2025"
@@ -328,7 +328,7 @@ class BrevRevurderingInnvilgetDTOTest {
                   "forhandsvisning": true,
                   "datoForUtsending": "31. januar 2025",
                   "innvilgelsesperioder": {
-                    "antallDagerTekst": "fem dager",
+                    "antallDagerPerMeldeperiode": 10,
                     "perioder": [
                       {
                         "fraOgMed": "1. november 2024",
@@ -338,21 +338,21 @@ class BrevRevurderingInnvilgetDTOTest {
                   },
                   "barnetillegg": [
                     {
-                      "antallBarnTekst": "ett",
+                      "antallBarn": 1,
                       "periode" : {
                         "fraOgMed": "1. november 2024",
                         "tilOgMed": "30. november 2024"
                       }
                     },
                     {
-                      "antallBarnTekst": "to",
+                      "antallBarn": 2,
                       "periode" :  {
                         "fraOgMed": "1. desember 2024",
                         "tilOgMed": "31. desember 2024"
                       }
                     },
                     {
-                      "antallBarnTekst": "tre",
+                      "antallBarn": 3,
                       "periode" :  {
                         "fraOgMed": "1. januar 2025",
                         "tilOgMed": "31. januar 2025"
@@ -419,7 +419,7 @@ class BrevRevurderingInnvilgetDTOTest {
                   "forhandsvisning": true,
                   "datoForUtsending": "31. januar 2025",
                   "innvilgelsesperioder": {
-                      "antallDagerTekst": "fem dager",
+                      "antallDagerPerMeldeperiode": 10,
                       "perioder": [
                       {
                           "fraOgMed": "1. november 2024",
@@ -433,21 +433,21 @@ class BrevRevurderingInnvilgetDTOTest {
                   },
                   "barnetillegg": [
                     {
-                      "antallBarnTekst": "ett",
+                      "antallBarn": 1,
                       "periode" : {
                         "fraOgMed": "1. november 2024",
                         "tilOgMed": "31. januar 2025"
                       }
                     },
                     {
-                      "antallBarnTekst": "to",
+                      "antallBarn": 2,
                       "periode" :  {
                         "fraOgMed": "1. februar 2025",
                         "tilOgMed": "28. februar 2025"
                       }
                     },
                     {
-                      "antallBarnTekst": "tre",
+                      "antallBarn": 3,
                       "periode" :  {
                         "fraOgMed": "1. april 2025",
                         "tilOgMed": "30. april 2025"
@@ -515,7 +515,7 @@ class BrevRevurderingInnvilgetDTOTest {
                   "forhandsvisning": true,
                   "datoForUtsending": "31. januar 2025",
                   "innvilgelsesperioder": {
-                    "antallDagerTekst": "fem dager",
+                    "antallDagerPerMeldeperiode": 10,
                     "perioder": [
                       {
                           "fraOgMed": "1. november 2024",
@@ -533,21 +533,21 @@ class BrevRevurderingInnvilgetDTOTest {
                   },
                   "barnetillegg": [
                     {
-                      "antallBarnTekst": "ett",
+                      "antallBarn": 1,
                       "periode": {
                         "fraOgMed": "1. november 2024",
                         "tilOgMed": "28. februar 2025"
                       }
                     },
                     {
-                      "antallBarnTekst": "to",
+                      "antallBarn": 2,
                       "periode":  {
                         "fraOgMed": "1. april 2025",
                         "tilOgMed": "30. april 2025"
                       }
                     },
                     {
-                      "antallBarnTekst": "tre",
+                      "antallBarn": 3,
                       "periode":  {
                         "fraOgMed": "2. mai 2025",
                         "tilOgMed": "31. mai 2025"

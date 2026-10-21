@@ -92,7 +92,7 @@ private fun tilInnvilgelsesperioder(
     val sammenhengendeInnvilgelsesperioder = innvilgelsesperioder.perioder.leggSammen(false)
 
     return BrevInnvilgelsesperioderDTO(
-        antallDagerTekst = tilAntallDagerTekst(innvilgelsesperioder.antallDagerPerMeldeperiode),
+        antallDagerPerMeldeperiode = innvilgelsesperioder.antallDagerPerMeldeperiode.verdier.map { it.value }.distinct().singleOrNull(),
         perioder = sammenhengendeInnvilgelsesperioder.map {
             BrevPeriodeDTO.fraPeriode(it)
         },
@@ -108,7 +108,7 @@ private fun tilBarnetillegg(
 
     return perioderMedBarnetillegg?.map { periodeMedVerdi ->
         BrevBarnetilleggDTO(
-            antallBarnTekst = periodeMedVerdi.verdi.toTekst(),
+            antallBarn = periodeMedVerdi.verdi.value,
             periode = BrevPeriodeDTO.fraPeriode(periodeMedVerdi.periode),
         )
     } ?: emptyList()

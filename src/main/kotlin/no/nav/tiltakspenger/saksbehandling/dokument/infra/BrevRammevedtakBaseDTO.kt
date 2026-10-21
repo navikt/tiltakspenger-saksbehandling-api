@@ -27,12 +27,16 @@ sealed interface BrevRammevedtakInnvilgelseBaseDTO : BrevRammevedtakBaseDTO {
     )
 }
 
+/**
+ * @param antallDagerPerMeldeperiode null når antallet varierer i perioden; pdfgenrs lager dagteksten, og saksbehandler skriver den i tilleggsteksten når den mangler.
+ */
 data class BrevInnvilgelsesperioderDTO(
-    val antallDagerTekst: String?,
+    val antallDagerPerMeldeperiode: Int?,
     val perioder: List<BrevPeriodeDTO>,
 )
 
+/** @param antallBarn pdfgenrs skriver antallet med bokstaver. */
 data class BrevBarnetilleggDTO(
-    val antallBarnTekst: String,
+    val antallBarn: Int,
     val periode: BrevPeriodeDTO,
 )
