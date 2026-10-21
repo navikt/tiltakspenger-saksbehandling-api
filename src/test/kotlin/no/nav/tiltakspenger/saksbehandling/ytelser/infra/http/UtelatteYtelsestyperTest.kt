@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt
+package no.nav.tiltakspenger.saksbehandling.ytelser.infra.http
 
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainAll

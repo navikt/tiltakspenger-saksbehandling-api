@@ -179,6 +179,7 @@ open class ApplicationContext(
                 audienceTarget = Configuration.sokosUtbetaldataScope,
             ),
             clock = clock,
+            meterRegistry = meterRegistry,
         )
     }
 

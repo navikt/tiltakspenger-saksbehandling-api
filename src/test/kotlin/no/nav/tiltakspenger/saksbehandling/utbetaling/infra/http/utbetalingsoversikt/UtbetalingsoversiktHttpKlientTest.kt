@@ -268,7 +268,7 @@ class UtbetalingsoversiktHttpKlientTest {
             val transport = transportMed(svar)
             hent(transport, klient = klient(transport, meterRegistry = meterRegistry)).getOrFail()
 
-            meterRegistry.find("tpts_saksbehandlingapi_utbetalingsoversikt_ukjente_ytelser").counters()
+            meterRegistry.find("tpts_saksbehandlingapi_utbetaldata_ukjente_ytelser").counters()
                 .associate { it.id.getTag("ytelsestype") to it.count() } shouldBe mapOf("Bidragsforskudd" to 1.0)
         }
     }

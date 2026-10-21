@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.ytelser.infra.http
 
 import arrow.core.Either
 import arrow.core.flatMap
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
@@ -40,6 +41,7 @@ class SokosUtbetaldataHttpClient(
     connectTimeout: Duration = 3.seconds,
     timeout: Duration = 6.seconds,
     private val clock: Clock,
+    private val meterRegistry: MeterRegistry,
     transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
 ) : SokosUtbetaldataClient {
     private val httpKlient: HttpKlient = HttpKlient(
@@ -85,6 +87,7 @@ class SokosUtbetaldataHttpClient(
 
     private fun List<UtbetalingDto>.tilYtelser(): List<Ytelse> {
         val utbetalinger = this.flatMap { it.ytelseListe }
+        meterRegistry.tellUkjenteYtelsestyper(utbetalinger.map { it.ytelsestype })
         val relevanteYtelser = utbetalinger.filter { it.ytelsestype == null || it.ytelsestype in relevanteYtelsestyper } // 1. Bug til Taulant -> forkaster alt vi ikke har tatt stilling til
             .groupBy { it.ytelsestype }
         return relevanteYtelser.map { ytelse ->

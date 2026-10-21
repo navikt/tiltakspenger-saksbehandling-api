@@ -4,6 +4,8 @@ import arrow.core.right
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.throwables.shouldThrowWithMessage
 import io.kotest.matchers.shouldBe
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -44,10 +46,15 @@ class SokosUtbetaldataHttpClientTest {
         override suspend fun hentToken(skipCache: Boolean) = AccessToken("token", Instant.MAX)
     }
 
-    private fun client(transport: FakeHttpTransport, clock: Clock = ObjectMother.clock) = SokosUtbetaldataHttpClient(
+    private fun client(
+        transport: FakeHttpTransport,
+        clock: Clock = ObjectMother.clock,
+        meterRegistry: MeterRegistry = SimpleMeterRegistry(),
+    ) = SokosUtbetaldataHttpClient(
         baseUrl = baseUrl,
         authTokenProvider = authTokenProvider,
         clock = clock,
+        meterRegistry = meterRegistry,
         transport = transport,
     )
 
@@ -57,6 +64,7 @@ class SokosUtbetaldataHttpClientTest {
             baseUrl = baseUrl,
             authTokenProvider = authTokenProvider,
             clock = ObjectMother.clock,
+            meterRegistry = SimpleMeterRegistry(),
         )
     }
 
@@ -159,6 +167,21 @@ class SokosUtbetaldataHttpClientTest {
             client(transport, klokkeEtterFixturperioden)
                 .hentYtelserFraUtbetaldata(fnr, fixturperiode, correlationId) shouldBe
                 UtbetalingDtoTestEx.forventedeYtelserFraRiktSvar.right()
+        }
+    }
+
+    @Test
+    fun `henter ytelser - ytelsestyper vi ikke kjenner, telles per type før de forkastes`() {
+        val transport = FakeHttpTransport().apply {
+            leggIKøJson(UtbetalingDtoTestEx.riktSvar(fnr), statusCode = 200)
+        }
+        val meterRegistry = SimpleMeterRegistry()
+
+        runTest {
+            client(transport, klokkeEtterFixturperioden, meterRegistry).hentYtelserFraUtbetaldata(fnr, fixturperiode, correlationId)
+
+            meterRegistry.find("tpts_saksbehandlingapi_utbetaldata_ukjente_ytelser").counters()
+                .associate { it.id.getTag("ytelsestype") to it.count() } shouldBe mapOf("Økonomisk sosialhjelp" to 1.0)
         }
     }
 

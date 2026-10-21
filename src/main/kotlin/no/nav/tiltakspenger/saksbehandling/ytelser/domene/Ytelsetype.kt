@@ -4,7 +4,7 @@ package no.nav.tiltakspenger.saksbehandling.ytelser.domene
  * Ytelsestypene vi henter fra sokos-utbetaldata, med teksten tjenesten sender i [tekstverdi].
  * Det gis ikke tiltakspenger for samme periode som deltakeren har rett til andre ytelser til livsopphold: https://lovdata.no/forskrift/2013-11-04-1286/%C2%A77
  * Rundskrivet til paragrafen regner med ytelser fra både offentlige og private trygde- og pensjonsordninger: https://lovdata.no/nav/rundskriv/r76-13-02
- * Typene vi kjenner, men ikke henter, står i [no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt.utelatteYtelsestyper].
+ * Typene vi kjenner, men ikke henter, står i [no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.utelatteYtelsestyper].
  * TODO: Flytt tekstverdien til klientlaget, dette skal ikke være i domenet.
  */
 enum class Ytelsetype(val tekstverdi: String) {

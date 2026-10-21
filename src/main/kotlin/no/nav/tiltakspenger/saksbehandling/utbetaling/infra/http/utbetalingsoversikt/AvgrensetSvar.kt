@@ -8,16 +8,12 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktgrunnlag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.sha256
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.erUkjentYtelsestype
 
-/**
- * Svaret slik det lagres og mappes, og tallene på det som ble tatt bort.
- *
- * @param ukjenteYtelsestyper Antall ytelser per ytelsestype vi ikke kjenner, til metrikker; lagres ikke, siden typen sier noe om personen.
- */
+/** Svaret slik det lagres og mappes, og tallene på det som ble tatt bort. */
 data class AvgrensetSvar(
     val utbetalinger: List<UtbetalingsoversiktDto>,
     val avgrensning: Utbetalingsoversiktavgrensning,
-    val ukjenteYtelsestyper: Map<String, Int>,
 )
 
 /**
@@ -52,11 +48,6 @@ fun List<UtbetalingsoversiktDto>.avgrensTil(grunnlag: Utbetalingsoversiktgrunnla
             mottattSvarSha256 = mottattSvar.sha256(),
             mottattSvarLengde = mottattSvar.length,
         ),
-        ukjenteYtelsestyper = fjernede
-            .filter { (_, årsak) -> årsak == Avgrensningsårsak.UKJENT_YTELSESTYPE }
-            .mapNotNull { (ytelse, _) -> ytelse.ytelsestype }
-            .groupingBy { it }
-            .eachCount(),
     )
 }
 
@@ -76,8 +67,8 @@ private fun String.tilMottattYtelsestype(): MottattYtelsestype {
     val ytelsetype = Ytelsetype.entries.find { it != Ytelsetype.UKJENT && it.tekstverdi == this }
     return when {
         ytelsetype != null -> MottattYtelsestype.Relevant(ytelsetype)
-        this in utelatteYtelsestyper -> MottattYtelsestype.Utelatt(this)
-        else -> MottattYtelsestype.Ukjent(this)
+        erUkjentYtelsestype() -> MottattYtelsestype.Ukjent(this)
+        else -> MottattYtelsestype.Utelatt(this)
     }
 }
 
