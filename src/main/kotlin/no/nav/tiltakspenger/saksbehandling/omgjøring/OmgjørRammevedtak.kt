@@ -27,6 +27,12 @@ data class OmgjørRammevedtak(
     val tilOgMed: LocalDate? = omgjøringsperioder.tilOgMed
     val totalPeriode: Periode? = omgjøringsperioder.totalPeriode
 
+    /**
+     * Delene av [periode] som ingen av vedtakene omgjør.
+     * Når vedtakene er utledet fra [periode], er dette periodene uten noen tidligere vedtak.
+     */
+    fun perioderSomIkkeOmgjøres(periode: Periode): List<Periode> = periode.trekkFra(perioder)
+
     companion object {
         fun create(omgjørRammevedtak: Rammevedtak): OmgjørRammevedtak {
             return OmgjørRammevedtak(Omgjøringsperioder.create(omgjørRammevedtak))

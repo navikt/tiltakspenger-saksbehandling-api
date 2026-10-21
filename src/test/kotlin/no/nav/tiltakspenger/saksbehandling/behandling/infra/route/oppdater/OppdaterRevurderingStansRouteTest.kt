@@ -1,18 +1,24 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat.Stans
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
 import org.junit.jupiter.api.Test
 
 class OppdaterRevurderingStansRouteTest {
@@ -191,6 +197,44 @@ class OppdaterRevurderingStansRouteTest {
             )
 
             oppdatertStans.vedtaksperiode shouldBe (9.januar(2026) til 30.januar(2026))
+        }
+    }
+
+    @Test
+    fun `kan ikke stanse over en periode uten tidligere vedtak`() {
+        withTestApplicationContext { tac ->
+            val tiltaksdeltakelse = tiltaksdeltakelse(fom = 1.januar(2025), tom = 31.mars(2025))
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.januar(2025) til 31.januar(2025), tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+            iverksettSøknadsbehandling(
+                tac = tac,
+                sakId = sak.id,
+                innvilgelsesperioder = innvilgelsesperioder(1.mars(2025) til 31.mars(2025), tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+            val (_, revurdering) = startRevurderingStans(tac, sak.id)!!
+
+            oppdaterRevurderingStans(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                stansFraOgMed = 15.januar(2025),
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+            ).also { (_, _, response) ->
+                response harKode "ugyldig_periode_for_stans"
+                response shouldContain "Perioden som stanses kan ikke gå over perioder uten tidligere vedtak"
+            }
+
+            val (_, oppdatertStans) = oppdaterRevurderingStans(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                stansFraOgMed = 1.mars(2025),
+            )
+            oppdatertStans.vedtaksperiode shouldBe (1.mars(2025) til 31.mars(2025))
         }
     }
 }

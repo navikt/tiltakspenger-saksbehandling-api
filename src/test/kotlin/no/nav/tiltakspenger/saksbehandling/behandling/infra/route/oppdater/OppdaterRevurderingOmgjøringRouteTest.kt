@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.json.shouldEqualSpecifiedJson
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
@@ -18,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
@@ -341,6 +343,40 @@ class OppdaterRevurderingOmgjøringRouteTest {
                         omgjøringsgrad = Omgjøringsgrad.HELT,
                     ),
                 )
+            }
+        }
+    }
+
+    @Test
+    fun `kan ikke opphøre deler av vedtaksperioden som ikke har tidligere vedtak`() {
+        withTestApplicationContext { tac ->
+            val tiltaksdeltakelse = tiltaksdeltakelse(fom = 1.januar(2025), tom = 31.mars(2025))
+            val (sak, _, januarvedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.januar(2025) til 31.januar(2025), tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+            iverksettSøknadsbehandling(
+                tac = tac,
+                sakId = sak.id,
+                innvilgelsesperioder = innvilgelsesperioder(1.mars(2025) til 31.mars(2025), tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+            val (_, omgjøring) = startRevurderingOmgjøring(tac, sak.id, januarvedtak.id)!!
+
+            oppdaterOmgjøringInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = omgjøring.id,
+                vedtaksperiode = 1.januar(2025) til 31.mars(2025),
+                innvilgelsesperioder = innvilgelsesperioder(
+                    innvilgelsesperiode(periode = 1.januar(2025) til 31.januar(2025), valgtTiltaksdeltakelse = tiltaksdeltakelse),
+                    innvilgelsesperiode(periode = 15.februar(2025) til 31.mars(2025), valgtTiltaksdeltakelse = tiltaksdeltakelse),
+                ),
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+            ).also { (_, _, response) ->
+                response harKode "ugyldig_periode_for_opphør"
+                response shouldContain "Perioder som opphøres kan ikke gå over perioder uten tidligere vedtak: 1.–14. februar 2025"
             }
         }
     }
