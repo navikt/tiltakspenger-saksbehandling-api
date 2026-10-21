@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.AngreSendTilBeslutning
@@ -88,7 +87,6 @@ class BenkGyldigeKommandoerTest {
     private fun søknadsbehandling(
         status: BenkBehandlingsstatus,
         felles: BenkBehandlingsfelles,
-        erDelautomatiskInnstiltTilInnvilgelse: Boolean = false,
     ) = BenkSøknadsbehandling(
         felles = felles,
         id = RammebehandlingId.random(),
@@ -97,7 +95,6 @@ class BenkGyldigeKommandoerTest {
         kravtidspunkt = felles.startet,
         resultat = BenkSøknadsbehandlingResultat.IKKE_VALGT,
         prioritering = null,
-        erDelautomatiskInnstiltTilInnvilgelse = erDelautomatiskInnstiltTilInnvilgelse,
     )
 
     private fun meldekort(
@@ -172,34 +169,6 @@ class BenkGyldigeKommandoerTest {
                 BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
                 felles(saksbehandler = saksbehandler.navIdent),
             ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(AngreSendTilBeslutning, Avbryt)
-        }
-
-        @Test
-        fun `delautomatisk innstilling til innvilgelse kan tildeles en saksbehandler uten beslutterrolle`() {
-            søknadsbehandling(
-                BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
-                felles(saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID),
-                erDelautomatiskInnstiltTilInnvilgelse = true,
-            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(TildelBeslutter)
-        }
-
-        @Test
-        fun `manuell innstilling kan ikke tildeles en saksbehandler uten beslutterrolle`() {
-            søknadsbehandling(
-                BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
-                felles(saksbehandler = "Z999999"),
-            ).finnGyldigeKommandoer(saksbehandler) shouldBe emptyList()
-        }
-
-        @Test
-        fun `automatisk revurdering kan ikke tildeles en saksbehandler uten beslutterrolle`() {
-            BenkRevurdering(
-                felles = felles(saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID),
-                id = RammebehandlingId.random(),
-                status = BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
-                resultat = BenkRevurderingResultat.REVURDERING_INNVILGELSE,
-                prioritering = null,
-            ).finnGyldigeKommandoer(saksbehandler) shouldBe emptyList()
         }
 
         @Test

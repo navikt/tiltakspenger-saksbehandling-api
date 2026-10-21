@@ -118,7 +118,7 @@ fun Rammebehandling.kanTaBehandling(saksbehandler: Saksbehandler): Either<KunneI
         KLAR_TIL_BESLUTNING -> {
             if (saksbehandler.navIdent == this.saksbehandler) {
                 KunneIkkeTaBehandling.SaksbehandlerOgBeslutterKanIkkeVæreDenSammePåBehandling.left()
-            } else if (!kanTaOgUnderkjenneSomBeslutter(saksbehandler)) {
+            } else if (!saksbehandler.erBeslutter) {
                 KunneIkkeTaBehandling.MåVæreBeslutter.left()
             } else if (this.beslutter != null) {
                 KunneIkkeTaBehandling.BehandlingenHarEksisterendeBeslutter.left()

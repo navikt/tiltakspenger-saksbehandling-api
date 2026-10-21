@@ -398,7 +398,6 @@ class BenkPostgresRepo(
                 sø.mottatt                as kravtidspunkt,
                 coalesce(b.resultat, 'IKKE_VALGT') as resultat,
                 b.prioritering_begrunnelse  as prioritering_begrunnelse,
-                b.automatisk_saksbehandlet  as automatisk_saksbehandlet,
                 b.id                        as id
             from behandling b
                 join søknad sø on sø.id = b.soknad_id
@@ -825,7 +824,6 @@ private fun Row.tilSøknadsbehandling(): BenkSøknadsbehandling = BenkSøknadsbe
     kravtidspunkt = localDateTime("kravtidspunkt"),
     resultat = enum("resultat", BenkSøknadsbehandlingResultat.entries),
     prioritering = tilPrioritering(),
-    erDelautomatiskInnstiltTilInnvilgelse = boolean("automatisk_saksbehandlet"),
 )
 
 private fun Row.tilRevurdering(): BenkRevurdering = BenkRevurdering(

@@ -13,9 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskBehandlingKlarTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.underkjenn
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.underkjennAutomatiskSaksbehandletBehandling
@@ -98,64 +96,19 @@ class UnderkjennRammebehandlingTest {
     }
 
     @Test
-    fun `send tilbake - automatisk saksbehandlet - saksbehandler uten beslutterrolle kan ta og underkjenne`() {
+    fun `automatisk saksbehandlet - saksbehandler uten beslutterrolle kan ikke ta behandlingen til beslutning`() {
         runTest {
             withTestApplicationContext { tac ->
-                val saksbehandler = ObjectMother.saksbehandler()
-                val (_, _, behandlingId, _) = this.underkjennAutomatiskSaksbehandletBehandling(tac, beslutter = saksbehandler)
-
-                val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
-                oppdatertBehandling.attesteringer.single().let {
-                    it.status shouldBe Attesteringsstatus.SENDT_TILBAKE
-                    it.beslutter shouldBe saksbehandler.navIdent
-                }
-                oppdatertBehandling.saksbehandler shouldBe saksbehandler.navIdent
-                oppdatertBehandling.beslutter shouldBe null
-                oppdatertBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
-                (oppdatertBehandling as Søknadsbehandling).automatiskSaksbehandlet shouldBe false
-                oppdatertBehandling.resultat shouldBe null
-            }
-        }
-    }
-
-    @Test
-    fun `automatisk saksbehandlet - saksbehandler uten beslutterrolle kan ikke iverksette`() {
-        runTest {
-            withTestApplicationContext { tac ->
-                val saksbehandler = ObjectMother.saksbehandler()
                 val (sak, _, behandling) = opprettAutomatiskBehandlingKlarTilBeslutning(tac)
-                taRammebehandlinger(tac, listOf(sak.id to behandling.id), saksbehandler = saksbehandler)
-
-                iverksettForBehandlingId(
-                    tac = tac,
-                    sakId = sak.id,
-                    behandlingId = behandling.id,
-                    beslutter = saksbehandler,
-                    forventet = ForventetRespons(403, contentType = "application/json; charset=UTF-8"),
-                ) shouldBe null
-
-                tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).let {
-                    it.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
-                    it.beslutter shouldBe saksbehandler.navIdent
-                }
-            }
-        }
-    }
-
-    @Test
-    fun `manuelt saksbehandlet - saksbehandler uten beslutterrolle kan ikke ta behandlingen til beslutning`() {
-        runTest {
-            withTestApplicationContext { tac ->
-                val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
 
                 taRammebehandlinger(
                     tac = tac,
-                    behandlinger = listOf(sak.id to behandlingId),
-                    saksbehandler = ObjectMother.saksbehandler(navIdent = "Z99999"),
+                    behandlinger = listOf(sak.id to behandling.id),
+                    saksbehandler = ObjectMother.saksbehandler(),
                     forventet = ForventetRespons(status = 403, contentType = "application/json; charset=UTF-8"),
                 ) shouldBe null
 
-                tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).let {
+                tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).let {
                     it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
                     it.beslutter shouldBe null
                 }
