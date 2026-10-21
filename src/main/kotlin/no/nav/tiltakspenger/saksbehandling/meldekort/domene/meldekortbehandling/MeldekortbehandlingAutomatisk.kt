@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.felles.MeldekortbehandlingBeslutterEndringer
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -62,6 +63,9 @@ data class MeldekortBehandletAutomatisk(
     override val avbrutt: Avbrutt? = null
     override val skalSendeVedtaksbrev: Boolean = true
     override val skalJournalføreNotat: Boolean = false
+    override val beslutterEndringer: MeldekortbehandlingBeslutterEndringer = MeldekortbehandlingBeslutterEndringer(
+        skalJournalføreNotat = null,
+    )
     override val prioritering: Prioritering? = null
 
     override val ventestatus: Ventestatus = Ventestatus()

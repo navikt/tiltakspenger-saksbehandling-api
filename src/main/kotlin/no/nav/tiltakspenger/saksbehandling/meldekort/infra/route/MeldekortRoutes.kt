@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.GjenopptaMeldekortb
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.LeggTilbakeMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.MottaBrukerutfyltMeldekortService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortbehandlingForBeslutterService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OvertaMeldekortbehandlingService
@@ -37,6 +38,7 @@ fun Route.meldekortRoutes(
     clock: Clock,
     tilgangskontrollService: TilgangskontrollService,
     forhåndsvisBrevMeldekortbehandlingService: ForhåndsvisBrevMeldekortbehandlingService,
+    oppdaterMeldekortbehandlingForBeslutterService: OppdaterMeldekortbehandlingForBeslutterService,
 ) {
     iverksettMeldekortRoute(iverksettMeldekortbehandlingService, auditService, clock, tilgangskontrollService)
     sendMeldekortTilBeslutningRoute(
@@ -52,6 +54,12 @@ fun Route.meldekortRoutes(
     taMeldekortbehandlingRoute(auditService, taMeldekortbehandlingService, tilgangskontrollService, clock)
     underkjennMeldekortbehandlingRoute(
         underkjennMeldekortbehandlingService,
+        auditService,
+        tilgangskontrollService,
+        clock,
+    )
+    oppdaterMeldekortbehandlingForBeslutterRoute(
+        oppdaterMeldekortbehandlingForBeslutterService,
         auditService,
         tilgangskontrollService,
         clock,

@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Gjenopp
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenåpneSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterRammebehandlingForBeslutterService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.RammebehandlingService
@@ -39,6 +40,7 @@ fun Route.rammebehandlingRoutes(
     overtaBehandlingService: OvertaRammebehandlingService,
     leggTilbakeBehandlingService: LeggTilbakeRammebehandlingService,
     oppdaterBehandlingService: OppdaterRammebehandlingService,
+    oppdaterRammebehandlingForBeslutterService: OppdaterRammebehandlingForBeslutterService,
     settBehandlingPåVentService: SettRammebehandlingPåVentService,
     gjenopptaBehandlingService: GjenopptaRammebehandlingService,
     gjenåpneSøknadsbehandlingService: GjenåpneSøknadsbehandlingService,
@@ -56,6 +58,7 @@ fun Route.rammebehandlingRoutes(
     taRammebehandlingerRoute(auditService, taRammebehandlingService, tilgangskontrollService, clock)
     angreRammebehandlingRoute(auditService, angreRammebehandlingService, tilgangskontrollService, clock)
     underkjennRammebehandlingRoute(auditService, behandlingService, tilgangskontrollService)
+    oppdaterRammebehandlingForBeslutterRoute(oppdaterRammebehandlingForBeslutterService, auditService, tilgangskontrollService)
     overtaRammebehandlingRoute(overtaBehandlingService, auditService, tilgangskontrollService, clock)
     leggTilbakeRammebehandlingRoute(auditService, leggTilbakeBehandlingService, tilgangskontrollService, clock)
     oppdaterRammebehandlingRoute(oppdaterBehandlingService, auditService, tilgangskontrollService)

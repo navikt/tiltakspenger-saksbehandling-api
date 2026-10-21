@@ -70,6 +70,12 @@ sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
     /** null når behandlingen ikke er prioritert. */
     val prioritering: PrioriteringDTO?
     val skalJournalføreNotat: SkalJournalføreNotatDTO
+
+    /**
+     * Endringer beslutter har gjort i saksbehandlers valg.
+     */
+    val beslutterEndringer: RammebehandlingBeslutterEndringerDTO
+
     val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>
 }
 
@@ -104,6 +110,7 @@ data class SøknadsbehandlingDTO(
     override val skalSendeVedtaksbrev: Boolean,
     override val prioritering: PrioriteringDTO?,
     override val skalJournalføreNotat: SkalJournalføreNotatDTO,
+    override val beslutterEndringer: RammebehandlingBeslutterEndringerDTO,
     override val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : RammebehandlingDTO,
     SøknadsbehandlingResultatDTO by resultatDTO {
@@ -142,6 +149,7 @@ data class RevurderingDTO(
     override val skalSendeVedtaksbrev: Boolean,
     override val prioritering: PrioriteringDTO?,
     override val skalJournalføreNotat: SkalJournalføreNotatDTO,
+    override val beslutterEndringer: RammebehandlingBeslutterEndringerDTO,
     override val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : RammebehandlingDTO,
     RevurderingResultatDTO by resultatDTO {
@@ -225,6 +233,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
         prioritering = this.prioritering?.tilDTO(),
         skalJournalføreNotat = this.skalJournalføreNotat.tilDTO(),
+        beslutterEndringer = this.beslutterEndringer.tilDTO(),
         gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
     )
 }
@@ -265,6 +274,7 @@ fun Revurdering.tilRevurderingDTO(
         skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
         prioritering = this.prioritering?.tilDTO(),
         skalJournalføreNotat = this.skalJournalføreNotat.tilDTO(),
+        beslutterEndringer = this.beslutterEndringer.tilDTO(),
         gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
     )
 }

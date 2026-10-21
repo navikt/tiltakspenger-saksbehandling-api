@@ -135,6 +135,7 @@ private fun Meldekortbehandling.avbryt(
         meldeperioder = meldeperioder,
         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         skalJournalføreNotat = skalJournalføreNotat,
+        beslutterEndringer = beslutterEndringer,
         prioritering = prioritering,
         ventestatus = ventestatus,
         klagebehandling = klagebehandling,

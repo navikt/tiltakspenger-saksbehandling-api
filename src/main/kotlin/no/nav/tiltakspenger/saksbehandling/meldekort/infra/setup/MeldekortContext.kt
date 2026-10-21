@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.GjenopptaMeldekortb
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.LeggTilbakeMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterBeregningOgSimuleringMeldekortService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortbehandlingForBeslutterService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OvertaMeldekortbehandlingService
@@ -153,6 +154,14 @@ open class MeldekortContext(
 
     val underkjennMeldekortbehandlingService by lazy {
         UnderkjennMeldekortbehandlingService(
+            meldekortbehandlingRepo = meldekortbehandlingRepo,
+            clock = clock,
+            sakService = sakService,
+        )
+    }
+
+    val oppdaterMeldekortbehandlingForBeslutterService by lazy {
+        OppdaterMeldekortbehandlingForBeslutterService(
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             clock = clock,
             sakService = sakService,

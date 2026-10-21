@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.Iver
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettSøknadsbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.leggTilbake.LeggTilbakeRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater.OppdaterRammebehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterForBeslutter.OppdaterRammebehandlingForBeslutterBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSaksopplysninger.OppdaterRammebehandlingSaksopplysningerBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.settPåVent.SettRammebehandlingPåVentBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start.StartRevurderingBuilder
@@ -57,6 +58,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.iverksett.Iverk
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.leggTilbake.LeggTilbakeMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.motta.MottaMeldekortBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.oppdater.OppdaterMeldekortbehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.oppdaterForBeslutter.OppdaterMeldekortbehandlingForBeslutterBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.opprett.OpprettMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.overta.OvertaMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.sendTilBeslutning.SendMeldekortbehandlingTilBeslutningBuilder
@@ -108,6 +110,8 @@ object RouteBehandlingBuilder :
     SendSøknadsbehandlingTilBeslutningBuilder,
     SendRevurderingTilBeslutningBuilder,
     UnderkjennRammebehandlingBuilder,
+    OppdaterRammebehandlingForBeslutterBuilder,
+    OppdaterMeldekortbehandlingForBeslutterBuilder,
     IverksettRammebehandlingBuilder,
     IverksettSøknadsbehandlingBuilder,
     IverksettRevurderingBuilder,

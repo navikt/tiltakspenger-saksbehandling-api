@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.RammebehandlingBeslutterEndringer
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
@@ -68,6 +69,7 @@ data class Søknadsbehandling(
     override val skalSendeVedtaksbrev: Boolean,
     override val prioritering: Prioritering?,
     override val skalJournalføreNotat: SkalJournalføreNotat,
+    override val beslutterEndringer: RammebehandlingBeslutterEndringer,
 ) : Rammebehandling {
 
     override val vedtaksperiode = resultat?.vedtaksperiode
@@ -243,6 +245,9 @@ data class Søknadsbehandling(
                 skalSendeVedtaksbrev = true,
                 prioritering = null,
                 skalJournalføreNotat = SkalJournalføreNotat.INGEN,
+                beslutterEndringer = RammebehandlingBeslutterEndringer(
+                    skalJournalføreNotat = null,
+                ),
             )
             val statistikkhendelser = Statistikkhendelser(
                 opprettetSøknadsbehandling.genererSaksstatistikk(StatistikkhendelseType.OPPRETTET_BEHANDLING),
@@ -297,6 +302,9 @@ data class Søknadsbehandling(
                 skalSendeVedtaksbrev = true,
                 prioritering = null,
                 skalJournalføreNotat = SkalJournalføreNotat.INGEN,
+                beslutterEndringer = RammebehandlingBeslutterEndringer(
+                    skalJournalføreNotat = null,
+                ),
             )
             val statistikkhendelser = Statistikkhendelser(
                 opprettetSøknadsbehandling.genererSaksstatistikk(StatistikkhendelseType.OPPRETTET_BEHANDLING),

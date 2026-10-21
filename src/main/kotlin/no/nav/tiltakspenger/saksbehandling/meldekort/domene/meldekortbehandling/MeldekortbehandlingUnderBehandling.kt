@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.MeldekortbehandlingBeslutterEndringer
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
@@ -65,6 +66,7 @@ data class MeldekortUnderBehandling(
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     override val skalSendeVedtaksbrev: Boolean,
     override val skalJournalføreNotat: Boolean,
+    override val beslutterEndringer: MeldekortbehandlingBeslutterEndringer,
     override val prioritering: Prioritering?,
     override val meldeperioder: Meldeperiodebehandlinger,
     override val ventestatus: Ventestatus,
@@ -145,6 +147,10 @@ data class MeldekortUnderBehandling(
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             skalJournalføreNotat = skalJournalføreNotat,
+            // Ved å sende til beslutning på nytt har saksbehandler akseptert beslutters endringer.
+            beslutterEndringer = MeldekortbehandlingBeslutterEndringer(
+                skalJournalføreNotat = null,
+            ),
             prioritering = prioritering,
             meldeperioder = this.meldeperioder,
             ventestatus = ventestatus,
@@ -306,6 +312,9 @@ fun Sak.opprettManuellMeldekortbehandling(
         ),
         skalSendeVedtaksbrev = true,
         skalJournalføreNotat = false,
+        beslutterEndringer = MeldekortbehandlingBeslutterEndringer(
+            skalJournalføreNotat = null,
+        ),
         prioritering = null,
         ventestatus = Ventestatus(),
         klagebehandling = klagebehandlingId?.let {

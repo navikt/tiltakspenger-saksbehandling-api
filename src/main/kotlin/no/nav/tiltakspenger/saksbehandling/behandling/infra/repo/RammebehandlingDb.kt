@@ -175,6 +175,7 @@ fun Row.toBehandling(session: Session): Rammebehandling {
                 skalSendeVedtaksbrev = boolean("skal_sende_vedtaksbrev"),
                 prioritering = prioritering,
                 skalJournalføreNotat = string("skal_journalfore_notat").toSkalJournalføreNotat(),
+                beslutterEndringer = string("beslutter_endringer").toRammebehandlingBeslutterEndringer(),
             )
         }
 
@@ -250,6 +251,7 @@ fun Row.toBehandling(session: Session): Rammebehandling {
                 skalSendeVedtaksbrev = boolean("skal_sende_vedtaksbrev"),
                 prioritering = prioritering,
                 skalJournalføreNotat = string("skal_journalfore_notat").toSkalJournalføreNotat(),
+                beslutterEndringer = string("beslutter_endringer").toRammebehandlingBeslutterEndringer(),
             )
         }
     }
@@ -321,7 +323,7 @@ fun Rammebehandling.tilDbParams(): Array<Pair<String, Any?>> {
         "skal_sende_vedtaksbrev" to this.skalSendeVedtaksbrev,
         "prioritering_begrunnelse" to this.prioritering?.begrunnelse?.verdi,
         "skal_journalfore_notat" to this.skalJournalføreNotat.toDbJson(),
-
+        "beslutter_endringer" to this.beslutterEndringer.toDbJson(),
         *this.resultat.tilDbParams(),
     )
 }

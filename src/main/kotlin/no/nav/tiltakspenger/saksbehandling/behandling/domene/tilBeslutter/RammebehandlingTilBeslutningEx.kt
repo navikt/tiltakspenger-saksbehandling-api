@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.felles.RammebehandlingBeslutterEndringer
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import java.time.Clock
 
@@ -33,12 +34,20 @@ fun Rammebehandling.tilBeslutning(
             status = status,
             sendtTilBeslutning = sendtTilBeslutning,
             sistEndret = sendtTilBeslutning,
+            // resetter endringer beslutter har gjort, da saksbehandler nå får mulighet til å endre valgene igjen
+            beslutterEndringer = RammebehandlingBeslutterEndringer(
+                skalJournalføreNotat = null,
+            ),
         )
 
         is Søknadsbehandling -> this.copy(
             status = status,
             sendtTilBeslutning = sendtTilBeslutning,
             sistEndret = sendtTilBeslutning,
+            // resetter endringer beslutter har gjort, da saksbehandler nå får mulighet til å endre valgene igjen
+            beslutterEndringer = RammebehandlingBeslutterEndringer(
+                skalJournalføreNotat = null,
+            ),
         )
     }.right()
 }

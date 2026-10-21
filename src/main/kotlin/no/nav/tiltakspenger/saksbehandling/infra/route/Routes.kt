@@ -42,6 +42,7 @@ fun Route.routes(
             overtaBehandlingService = applicationContext.behandlingContext.overtaRammebehandlingService,
             leggTilbakeBehandlingService = applicationContext.behandlingContext.leggTilbakeRammebehandlingService,
             oppdaterBehandlingService = applicationContext.behandlingContext.oppdaterRammebehandlingService,
+            oppdaterRammebehandlingForBeslutterService = applicationContext.behandlingContext.oppdaterRammebehandlingForBeslutterService,
             settBehandlingPåVentService = applicationContext.behandlingContext.settRammebehandlingPåVentService,
             gjenopptaBehandlingService = applicationContext.behandlingContext.gjenopptaRammebehandlingService,
             gjenåpneSøknadsbehandlingService = applicationContext.gjenåpneSøknadsbehandlingContext.gjenåpneSøknadsbehandlingService,
@@ -108,6 +109,7 @@ fun Route.routes(
             clock = applicationContext.clock,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
             forhåndsvisBrevMeldekortbehandlingService = applicationContext.meldekortContext.forhåndsvisBrevMeldekortbehandlingService,
+            oppdaterMeldekortbehandlingForBeslutterService = applicationContext.meldekortContext.oppdaterMeldekortbehandlingForBeslutterService,
         )
         søknadRoutes(
             auditService = applicationContext.personContext.auditService,

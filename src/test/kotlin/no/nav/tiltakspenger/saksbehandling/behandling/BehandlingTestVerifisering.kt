@@ -204,6 +204,7 @@ fun String.shouldBeRevurderingDTO(
           "skalSendeVedtaksbrev": $skalSendeVedtaksbrev,
           "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
           "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())},
+          "beslutterEndringer": {"skalJournalføreNotat": null},
           "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
         }
     """
@@ -407,6 +408,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
         "skalSendeVedtaksbrev": $skalSendeVedtaksbrev,
         "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
         "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())},
+        "beslutterEndringer": {"skalJournalføreNotat": null},
         "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
     }
     """

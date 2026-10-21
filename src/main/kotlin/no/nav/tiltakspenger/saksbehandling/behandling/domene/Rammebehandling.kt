@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.RammebehandlingBeslutterEndringer
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -102,8 +103,12 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     val skalSendeVedtaksbrev: Boolean
 
-    /** Saksbehandlers valg om hvilke begrunnelser som skal journalføres som et internt notat i Joark etter iverksettelse. */
     val skalJournalføreNotat: SkalJournalføreNotat
+
+    /**
+     * Endringer beslutter har gjort som overstyrer saksbehandlers valg
+     */
+    val beslutterEndringer: RammebehandlingBeslutterEndringer
 
     /**
      * Satt når behandlingen er markert som høyt prioritert, ellers null.

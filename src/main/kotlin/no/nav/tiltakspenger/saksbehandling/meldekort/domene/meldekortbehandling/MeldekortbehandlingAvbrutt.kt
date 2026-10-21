@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.MeldekortbehandlingBeslutterEndringer
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -40,6 +41,7 @@ data class MeldekortbehandlingAvbrutt(
     override val meldeperioder: Meldeperiodebehandlinger,
     override val skalSendeVedtaksbrev: Boolean,
     override val skalJournalføreNotat: Boolean,
+    override val beslutterEndringer: MeldekortbehandlingBeslutterEndringer,
     override val prioritering: Prioritering?,
     override val ventestatus: Ventestatus,
     override val klagebehandling: Klagebehandling?,
