@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.RammebehandlingBeslutterEndringer
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -59,6 +60,7 @@ data class Revurdering(
     override val skalSendeVedtaksbrev: Boolean,
     override val prioritering: Prioritering?,
     override val skalJournalføreNotat: SkalJournalføreNotat,
+    override val beslutterEndringer: RammebehandlingBeslutterEndringer,
     val automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
     val manueltBehandlesGrunner: List<ManueltBehandlesGrunn> = emptyList(),
 ) : Rammebehandling {
@@ -367,6 +369,9 @@ data class Revurdering(
                 skalSendeVedtaksbrev = true,
                 prioritering = null,
                 skalJournalføreNotat = SkalJournalføreNotat.INGEN,
+                beslutterEndringer = RammebehandlingBeslutterEndringer(
+                    skalJournalføreNotat = null,
+                ),
                 automatiskOpprettetGrunn = automatiskOpprettetGrunn,
             )
         }

@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.MeldekortbehandlingBeslutterEndringer
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -65,6 +66,7 @@ data class MeldekortbehandlingManuell(
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     override val skalSendeVedtaksbrev: Boolean,
     override val skalJournalføreNotat: Boolean,
+    override val beslutterEndringer: MeldekortbehandlingBeslutterEndringer,
     override val prioritering: Prioritering?,
     override val meldeperioder: Meldeperiodebehandlinger,
     override val ventestatus: Ventestatus,
@@ -240,6 +242,7 @@ data class MeldekortbehandlingManuell(
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             skalJournalføreNotat = skalJournalføreNotat,
+            beslutterEndringer = beslutterEndringer,
             prioritering = prioritering,
             meldeperioder = this.meldeperioder,
             ventestatus = ventestatus,
@@ -305,6 +308,7 @@ data class MeldekortbehandlingManuell(
             meldeperioder = nyeMeldeperioder,
             skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
             skalJournalføreNotat = this.skalJournalføreNotat,
+            beslutterEndringer = this.beslutterEndringer,
             prioritering = this.prioritering,
             ventestatus = ventestatus,
             klagebehandling = klagebehandling,

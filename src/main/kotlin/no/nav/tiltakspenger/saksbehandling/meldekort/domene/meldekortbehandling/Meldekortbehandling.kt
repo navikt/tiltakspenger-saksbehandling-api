@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.MeldekortbehandlingBeslutterEndringer
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -50,12 +51,8 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val ventestatus: Ventestatus
     val sistEndret: LocalDateTime
     val skalSendeVedtaksbrev: Boolean
-
-    /**
-     * Saksbehandlers valg om begrunnelsen skal journalføres som et internt notat i Joark etter iverksettelse.
-     * Notatet er kun synlig internt i Nav (Gosys), og deles ikke med bruker.
-     */
     val skalJournalføreNotat: Boolean
+    val beslutterEndringer: MeldekortbehandlingBeslutterEndringer
 
     /**
      * Satt når behandlingen er markert som høyt prioritert, ellers null.

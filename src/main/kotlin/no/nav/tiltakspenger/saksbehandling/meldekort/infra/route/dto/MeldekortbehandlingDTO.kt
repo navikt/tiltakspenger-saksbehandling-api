@@ -81,6 +81,7 @@ data class MeldekortbehandlingDTO(
     val tilbakekrevingId: String?,
     val skalSendeVedtaksbrev: Boolean,
     val skalJournalføreNotat: Boolean,
+    val beslutterEndringer: MeldekortbehandlingBeslutterEndringerDTO,
     /** null når behandlingen ikke er prioritert. */
     val prioritering: PrioriteringDTO?,
     /**
@@ -144,6 +145,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTO(
         tilbakekrevingId = hentTilbakekreving(id)?.id?.toString(),
         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         skalJournalføreNotat = skalJournalføreNotat,
+        beslutterEndringer = beslutterEndringer.tilDTO(),
         prioritering = prioritering?.tilDTO(),
         ventestatus = ventestatus.ventestatusHendelser.tilDto(),
         klagebehandlingId = this.klagebehandling?.id?.toString(),

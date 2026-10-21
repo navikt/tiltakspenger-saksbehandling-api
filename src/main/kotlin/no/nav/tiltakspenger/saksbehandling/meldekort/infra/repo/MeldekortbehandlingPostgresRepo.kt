@@ -83,6 +83,7 @@ class MeldekortbehandlingPostgresRepo(
                         sist_endret,
                         skal_sende_vedtaksbrev,
                         skal_journalfore_notat,
+                        beslutter_endringer,
                         prioritering_begrunnelse,
                         klagebehandling_id
                     ) values (
@@ -105,6 +106,7 @@ class MeldekortbehandlingPostgresRepo(
                         :sist_endret,
                         :skal_sende_vedtaksbrev,
                         :skal_journalfore_notat,
+                        :beslutter_endringer::jsonb,
                         :prioritering_begrunnelse,
                         :klagebehandling_id
                     )
@@ -129,6 +131,7 @@ class MeldekortbehandlingPostgresRepo(
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
                     "skal_journalfore_notat" to meldekortbehandling.skalJournalføreNotat,
+                    "beslutter_endringer" to meldekortbehandling.beslutterEndringer.toDbJson(),
                     "prioritering_begrunnelse" to meldekortbehandling.prioritering?.begrunnelse?.verdi,
                     "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
                 ).asUpdate,
@@ -166,6 +169,8 @@ class MeldekortbehandlingPostgresRepo(
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
                     "utbetalingskontroll" to meldekortbehandling.utbetalingskontroll?.tilUtbetalingskontrollDbJson(),
+                    "skal_journalfore_notat" to meldekortbehandling.skalJournalføreNotat,
+                    "beslutter_endringer" to meldekortbehandling.beslutterEndringer.toDbJson(),
                 ).asUpdate,
             )
             meldekortbehandling.klagebehandling?.let {
@@ -208,6 +213,7 @@ class MeldekortbehandlingPostgresRepo(
                         tekst_til_vedtaksbrev = :tekst_til_vedtaksbrev,
                         skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev,
                         skal_journalfore_notat = :skal_journalfore_notat,
+                        beslutter_endringer = :beslutter_endringer::jsonb,
                         prioritering_begrunnelse = :prioritering_begrunnelse,
                         klagebehandling_id = :klagebehandling_id
                     where id = :id
@@ -231,6 +237,7 @@ class MeldekortbehandlingPostgresRepo(
                     "tekst_til_vedtaksbrev" to meldekortbehandling.fritekstTilVedtaksbrev?.verdi,
                     "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
                     "skal_journalfore_notat" to meldekortbehandling.skalJournalføreNotat,
+                    "beslutter_endringer" to meldekortbehandling.beslutterEndringer.toDbJson(),
                     "prioritering_begrunnelse" to meldekortbehandling.prioritering?.begrunnelse?.verdi,
                     "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
                 ).asUpdate,
@@ -477,6 +484,8 @@ class MeldekortbehandlingPostgresRepo(
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
                     "utbetalingskontroll" to meldekortbehandling.utbetalingskontroll?.tilUtbetalingskontrollDbJson(),
+                    "skal_journalfore_notat" to meldekortbehandling.skalJournalføreNotat,
+                    "beslutter_endringer" to meldekortbehandling.beslutterEndringer.toDbJson(),
                 ).asUpdate,
             ) > 0
             if (oppdatert) {
@@ -544,7 +553,9 @@ class MeldekortbehandlingPostgresRepo(
                 ventestatus = :ventestatus::jsonb,
                 sist_endret = :sist_endret,
                 utbetalingskontroll = :utbetalingskontroll::jsonb,
-                klagebehandling_id = :klagebehandling_id
+                klagebehandling_id = :klagebehandling_id,
+                skal_journalfore_notat = :skal_journalfore_notat,
+                beslutter_endringer = :beslutter_endringer::jsonb
         """
 
         fun hentForMeldekortId(
@@ -645,6 +656,7 @@ class MeldekortbehandlingPostgresRepo(
 
             val skalSendeVedtaksbrev = row.boolean("skal_sende_vedtaksbrev")
             val skalJournalføreNotat = row.boolean("skal_journalfore_notat")
+            val beslutterEndringer = row.string("beslutter_endringer").toMeldekortbehandlingBeslutterEndringer()
             val prioritering = row.stringOrNull("prioritering_begrunnelse")?.let { Prioritering.create(it) }
             val klagebehandling = row.stringOrNull("klagebehandling_id")?.let {
                 // Foreign key-en meldekortbehandling_klagebehandling_id_fkey garanterer at klagebehandlingen finnes.
@@ -690,6 +702,7 @@ class MeldekortbehandlingPostgresRepo(
                         meldeperioder = meldeperioder,
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                         skalJournalføreNotat = skalJournalføreNotat,
+                        beslutterEndringer = beslutterEndringer,
                         prioritering = prioritering,
                         ventestatus = ventestatus,
                         klagebehandling = klagebehandling,
@@ -717,6 +730,7 @@ class MeldekortbehandlingPostgresRepo(
                         meldeperioder = meldeperioder,
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                         skalJournalføreNotat = skalJournalføreNotat,
+                        beslutterEndringer = beslutterEndringer,
                         prioritering = prioritering,
                         ventestatus = ventestatus,
                         klagebehandling = klagebehandling,
@@ -741,6 +755,7 @@ class MeldekortbehandlingPostgresRepo(
                         meldeperioder = meldeperioder,
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                         skalJournalføreNotat = skalJournalføreNotat,
+                        beslutterEndringer = beslutterEndringer,
                         prioritering = prioritering,
                         ventestatus = ventestatus,
                         klagebehandling = klagebehandling,

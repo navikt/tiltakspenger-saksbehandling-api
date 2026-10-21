@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Gjenopp
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterRammebehandlingForBeslutterService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.RammebehandlingService
@@ -288,6 +289,14 @@ open class BehandlingOgVedtakContext(
     val settRammebehandlingPåVentService by lazy {
         SettRammebehandlingPåVentService(
             behandlingService = rammebehandlingService,
+            clock = clock,
+        )
+    }
+
+    val oppdaterRammebehandlingForBeslutterService by lazy {
+        OppdaterRammebehandlingForBeslutterService(
+            behandlingService = rammebehandlingService,
+            rammebehandlingRepo = rammebehandlingRepo,
             clock = clock,
         )
     }
