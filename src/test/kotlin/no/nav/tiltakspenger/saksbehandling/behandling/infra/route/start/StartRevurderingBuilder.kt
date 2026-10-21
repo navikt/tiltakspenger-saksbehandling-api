@@ -199,7 +199,7 @@ interface StartRevurderingBuilder {
     suspend fun ApplicationTestBuilder.startRevurderingOmgjøring(
         tac: TestApplicationContext,
         sakId: SakId,
-        rammevedtakIdSomOmgjøres: VedtakId,
+        rammevedtakIdSomOmgjøres: VedtakId?,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Revurdering, RammebehandlingDTOJson>? {

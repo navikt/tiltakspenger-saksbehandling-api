@@ -28,7 +28,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.iverksett.iverksett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterOmgjøringKommando
@@ -414,9 +413,12 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         klagebehandling: Klagebehandling? = null,
     ): Revurdering {
         return Revurdering.opprettOmgjøring(
+            sakId = vedtattInnvilgetSøknadsbehandling.sakId,
+            saksnummer = vedtattInnvilgetSøknadsbehandling.saksnummer,
+            fnr = vedtattInnvilgetSøknadsbehandling.fnr,
             saksbehandler = saksbehandler,
             saksopplysninger = hentSaksopplysninger(søknadsbehandlingInnvilgelsesperiode),
-            omgjørRammevedtak = vedtattInnvilgetSøknadsbehandling,
+            omgjørRammevedtak = OmgjørRammevedtak.create(vedtattInnvilgetSøknadsbehandling),
             opprettet = nå(clock),
             klagebehandling = klagebehandling,
         ).copy(id = id)
@@ -546,19 +548,6 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         correlationId = correlationId,
         clock = clock,
     ).getOrFail().first
-
-    fun RevurderingsresultatType.tilStartRevurderingType(): StartRevurderingType {
-        return when (this) {
-            RevurderingsresultatType.STANS -> StartRevurderingType.STANS
-
-            RevurderingsresultatType.INNVILGELSE -> StartRevurderingType.INNVILGELSE
-
-            RevurderingsresultatType.OMGJØRING_INNVILGELSE,
-            RevurderingsresultatType.OMGJØRING_OPPHØR,
-            RevurderingsresultatType.OMGJØRING_IKKE_VALGT,
-            -> StartRevurderingType.OMGJØRING
-        }
-    }
 
     fun RevurderingsresultatType.tilStartRevurderingTypeDTO(): StartRevurderingTypeDTO {
         return when (this) {
