@@ -15,6 +15,8 @@ sealed interface KanIkkeOppdatereBehandling {
 
     data object KanIkkeOpphøre : KanIkkeOppdatereBehandling
 
+    data class UgyldigPeriodeForStans(val årsak: String) : KanIkkeOppdatereBehandling
+
     data object UgyldigeMeldeperioderHelg : KanIkkeOppdatereBehandling
 
     data object InnvilgelsesperiodeHarIngenOverlappMedTiltaksdeltakelserFraSaksopplysninger : KanIkkeOppdatereBehandling

@@ -50,6 +50,8 @@ fun Revurdering.oppdaterOmgjøring(
 /**
  * Vedtaksperioden kan omgjøre ett eller flere vedtak, og kan ha hull både innad i et vedtak og mellom vedtakene.
  * Vedtaket omgjøringen ble startet fra er kun et utgangspunkt; det er vedtaksperioden som avgjør hvilke vedtak som omgjøres.
+ * Delene av vedtaksperioden som ikke innvilges, opphøres, og kan som ved opphør ikke gå over perioder uten tidligere vedtak.
+ * Hull i vedtakene kan derimot innvilges.
  */
 private fun Revurdering.oppdaterOmgjøringInnvilgelse(
     kommando: OppdaterOmgjøringKommando.OmgjøringInnvilgelse,
@@ -65,6 +67,16 @@ private fun Revurdering.oppdaterOmgjøringInnvilgelse(
 
     if (!nyVedtaksperiode.inneholderHele(kommando.innvilgelsesperioder.totalPeriode)) {
         return KanIkkeOppdatereOmgjøring.VedtaksperiodeMåInneholdeInnvilgelsesperiodene.left()
+    }
+
+    val opphørtePerioderUtenVedtak = nyVedtaksperiode.trekkFra(
+        kommando.innvilgelsesperioder.perioder + rammevedtakSomOmgjøres.perioder,
+    )
+
+    if (opphørtePerioderUtenVedtak.isNotEmpty()) {
+        return KanIkkeOppdatereOmgjøring.UgyldigPeriodeForOpphør(
+            "Perioder som opphøres kan ikke gå over perioder uten tidligere vedtak: ${opphørtePerioderUtenVedtak.joinToString()}",
+        ).left()
     }
 
     val oppdaterteInnvilgelsesperioder = kommando
@@ -116,8 +128,9 @@ fun Revurdering.fyllUtAutomatiskOpprettetOpphør(
 }
 
 /**
- * Opphøret kan gå over flere vedtak og over hull, men må starte og slutte i en gjeldende innvilgelsesperiode på saken.
+ * Opphøret kan gå over flere vedtak, men må starte og slutte i en gjeldende innvilgelsesperiode på saken.
  * Det kan dermed gå over stans og tidligere opphør, så lenge det er innvilgelse både før og etter dem.
+ * Det kan ikke gå over perioder uten noen tidligere vedtak.
  */
 // TODO abn: sjekkene her bør også kjøres ved iverksetting
 private fun Revurdering.oppdaterOmgjøringOpphør(
@@ -151,6 +164,14 @@ private fun Revurdering.oppdaterOmgjøringOpphør(
     if (gjeldendeInnvilgetPerioder.none { it.inneholder(opphørtPeriode.tilOgMed) }) {
         return KanIkkeOppdatereOmgjøring.UgyldigPeriodeForOpphør("Perioden som opphøres må slutte i en gjeldende innvilgelsesperiode")
             .left()
+    }
+
+    val perioderUtenVedtak = rammevedtakSomOmgjøres.perioderSomIkkeOmgjøres(opphørtPeriode)
+
+    if (perioderUtenVedtak.isNotEmpty()) {
+        return KanIkkeOppdatereOmgjøring.UgyldigPeriodeForOpphør(
+            "Perioden som opphøres kan ikke gå over perioder uten tidligere vedtak: ${perioderUtenVedtak.joinToString()}",
+        ).left()
     }
 
     return this.copy(

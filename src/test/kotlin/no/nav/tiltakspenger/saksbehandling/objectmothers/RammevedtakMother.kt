@@ -165,7 +165,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         periode: Periode = ObjectMother.vedtaksperiode(),
-        omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
+        omgjørRammevedtak: OmgjørRammevedtak = ObjectMother.omgjørEttTidligereVedtak(periode),
         behandling: Rammebehandling = ObjectMother.nyVedtattRevurderingStans(
             sakId = sakId,
             vedtaksperiode = periode,

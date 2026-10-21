@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøring
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
@@ -417,6 +418,36 @@ class OppdaterRevurderingOpphørRouteTest {
             ).also { (_, _, response) ->
                 response harKode "ugyldig_periode_for_opphør"
                 response.shouldContain("Perioden som opphøres må starte i en gjeldende innvilgelsesperiode")
+            }
+        }
+    }
+
+    @Test
+    fun `skal ikke kunne opphøre over en periode uten tidligere vedtak`() {
+        withTestApplicationContext { tac ->
+            val tiltaksdeltakelse = tiltaksdeltakelse(fom = 1.januar(2025), tom = 31.mars(2025))
+            val (sak, _, januarvedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.januar(2025) til 31.januar(2025), tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+            iverksettSøknadsbehandling(
+                tac = tac,
+                sakId = sak.id,
+                innvilgelsesperioder = innvilgelsesperioder(1.mars(2025) til 31.mars(2025), tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+            val (_, omgjøring) = startRevurderingOmgjøring(tac, sak.id, januarvedtak.id)!!
+
+            oppdaterOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = omgjøring.id,
+                vedtaksperiode = 15.januar(2025) til 15.mars(2025),
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+            ).also { (_, _, response) ->
+                response harKode "ugyldig_periode_for_opphør"
+                response shouldContain "Perioden som opphøres kan ikke gå over perioder uten tidligere vedtak: 1.–28. februar 2025"
             }
         }
     }

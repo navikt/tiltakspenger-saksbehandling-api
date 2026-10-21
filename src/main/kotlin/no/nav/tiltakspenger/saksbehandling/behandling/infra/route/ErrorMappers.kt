@@ -49,6 +49,11 @@ fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, Erro
         "kan_ikke_opphøre",
     )
 
+    is KanIkkeOppdatereBehandling.UgyldigPeriodeForStans -> HttpStatusCode.BadRequest to ErrorJson(
+        "Ugyldig periode for stans: ${this.årsak}",
+        "ugyldig_periode_for_stans",
+    )
+
     KanIkkeOppdatereOmgjøring.MåOmgjøreMinstEttVedtak -> HttpStatusCode.BadRequest to ErrorJson(
         "Må omgjøre minst ett vedtak",
         "må_omgjøre_minst_ett_vedtak",

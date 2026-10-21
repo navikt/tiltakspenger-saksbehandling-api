@@ -61,6 +61,15 @@ fun Revurdering.oppdaterStans(
 
     require(this.resultat is Stans)
 
+    val stansperiode = kommando.utledStansperiode(førsteDagSomGirRett, sisteDagSomGirRett)
+    val perioderUtenVedtak = omgjørRammevedtak.perioderSomIkkeOmgjøres(stansperiode)
+
+    if (perioderUtenVedtak.isNotEmpty()) {
+        return KanIkkeOppdatereBehandling.UgyldigPeriodeForStans(
+            "Perioden som stanses kan ikke gå over perioder uten tidligere vedtak: ${perioderUtenVedtak.joinToString()}",
+        ).left()
+    }
+
     return this.copy(
         sistEndret = nå(clock),
         begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
@@ -68,7 +77,7 @@ fun Revurdering.oppdaterStans(
         resultat = Stans(
             valgtHjemmel = kommando.valgteHjemler,
             harValgtStansFraFørsteDagSomGirRett = kommando.harValgtStansFraFørsteDagSomGirRett,
-            stansperiode = kommando.utledStansperiode(førsteDagSomGirRett, sisteDagSomGirRett),
+            stansperiode = stansperiode,
             omgjørRammevedtak = omgjørRammevedtak,
         ),
         utbetaling = utbetaling,

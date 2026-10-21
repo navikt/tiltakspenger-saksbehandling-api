@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
@@ -55,6 +56,8 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterRe
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -64,6 +67,19 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 interface BehandlingRevurderingMother : MotherOfAllMothers {
+
+    /**
+     * Stans og opphør kan ikke gå over perioder uten tidligere vedtak.
+     * Denne lager et tenkt tidligere vedtak som dekker hele [periode].
+     */
+    fun omgjørEttTidligereVedtak(periode: Periode): OmgjørRammevedtak = OmgjørRammevedtak(
+        Omgjøringsperiode(
+            rammevedtakId = VedtakId.random(),
+            periode = periode,
+            omgjøringsgrad = Omgjøringsgrad.HELT,
+        ),
+    )
+
     fun revurderingVedtaksperiode() = 2.januar(2023) til 31.mars(2023)
 
     fun nyOpprettetRevurderingStans(
@@ -114,7 +130,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         stansFraOgMed: LocalDate?,
         førsteDagSomGirRett: LocalDate,
         sisteDagSomGirRett: LocalDate,
-        omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
+        omgjørRammevedtak: OmgjørRammevedtak = omgjørEttTidligereVedtak((stansFraOgMed ?: førsteDagSomGirRett) til sisteDagSomGirRett),
         skalSendeVedtaksbrev: Boolean = true,
         prioritering: Prioritering? = null,
         skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
@@ -174,7 +190,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         stansFraOgMed: LocalDate?,
         førsteDagSomGirRett: LocalDate,
         sisteDagSomGirRett: LocalDate,
-        omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
+        omgjørRammevedtak: OmgjørRammevedtak = omgjørEttTidligereVedtak((stansFraOgMed ?: førsteDagSomGirRett) til sisteDagSomGirRett),
         correlationId: CorrelationId = CorrelationId.generate(),
     ): Revurdering {
         return nyRevurderingStansKlarTilBeslutning(
