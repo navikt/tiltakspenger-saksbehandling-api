@@ -76,8 +76,7 @@ fun Rammebehandling.underkjenn(
 
 /**
  * Avgjør om [utøvendeBeslutter] kan underkjenne behandlingen.
- * Krever at [utøvendeBeslutter] kan opptre som beslutter, se [Rammebehandling.kanTaOgUnderkjenneSomBeslutter].
- * Kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
+ * Krever at [utøvendeBeslutter] har rollen beslutter, og kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
  *
  * Betingelsene speiler hvilke tilstander [underkjenn] faktisk håndterer, og sjekkes i denne rekkefølgen:
  *  - behandlingen må være [UNDER_BESLUTNING]
@@ -89,9 +88,7 @@ fun Rammebehandling.underkjenn(
  * Da er beslutteren fjernet fra behandlingen, og beslutteren skal få vite at behandlingen ikke lenger er under beslutning.
  */
 private fun Rammebehandling.kanUnderkjenne(utøvendeBeslutter: Saksbehandler): Either<KanIkkeUnderkjenne, Unit> {
-    if (!kanTaOgUnderkjenneSomBeslutter(utøvendeBeslutter)) {
-        krevBeslutterRolle(utøvendeBeslutter)
-    }
+    krevBeslutterRolle(utøvendeBeslutter)
 
     when (status) {
         UNDER_BESLUTNING -> Unit

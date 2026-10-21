@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
-import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.getOrFail
@@ -101,23 +100,6 @@ class RammebehandlingGyldigeKommandoerExTest {
             SaksbehandlerBehandlingKommando.AngreSendTilBeslutning,
             SaksbehandlerBehandlingKommando.Avbryt,
         )
-    }
-
-    @Test
-    fun `klar til beslutning - delautomatisk innstilt søknad kan tildeles en saksbehandler uten beslutterrolle`() {
-        val behandling = ObjectMother.nySøknadsbehandlingKlarTilBeslutning(saksbehandler = AUTOMATISK_SAKSBEHANDLER)
-            .copy(automatiskSaksbehandlet = true)
-
-        behandling.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(
-            SaksbehandlerBehandlingKommando.TildelBeslutter,
-        )
-    }
-
-    @Test
-    fun `klar til beslutning - manuelt innstilt søknad kan ikke tildeles en saksbehandler uten beslutterrolle`() {
-        val behandling = ObjectMother.nySøknadsbehandlingKlarTilBeslutning(saksbehandler = saksbehandler)
-
-        behandling.finnGyldigeKommandoer(annenSaksbehandler) shouldNotContain SaksbehandlerBehandlingKommando.TildelBeslutter
     }
 
     @Test

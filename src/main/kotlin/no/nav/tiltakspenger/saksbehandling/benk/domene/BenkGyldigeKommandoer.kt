@@ -38,14 +38,12 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
 
 fun BenkSøknadsbehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
     if (!saksbehandler.erSaksbehandlerEllerBeslutter) return emptyList()
-    // Speiler `Rammebehandling.kanTaOgUnderkjenneSomBeslutter`.
-    val kanTaSomBeslutter = saksbehandler.erBeslutter || (erDelautomatiskInnstiltTilInnvilgelse && saksbehandler.erSaksbehandler)
-    return finnGyldigeRammebehandlingKommandoer(felles, status, saksbehandler, kanTaSomBeslutter)
+    return finnGyldigeRammebehandlingKommandoer(felles, status, saksbehandler)
 }
 
 fun BenkRevurdering.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
     if (!saksbehandler.erSaksbehandlerEllerBeslutter) return emptyList()
-    return finnGyldigeRammebehandlingKommandoer(felles, status, saksbehandler, kanTaSomBeslutter = saksbehandler.erBeslutter)
+    return finnGyldigeRammebehandlingKommandoer(felles, status, saksbehandler)
 }
 
 fun BenkMeldekort.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
@@ -89,14 +87,11 @@ fun BenkTilbakekreving.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List
 
 /**
  * Speiler `Rammebehandling.finnGyldigeKommandoer` og `kan*`-funksjonene den bygger på.
- *
- * @param kanTaSomBeslutter Speiler rollekravet i `kanTaBehandling` for [KLAR_TIL_BESLUTNING].
  */
 private fun finnGyldigeRammebehandlingKommandoer(
     felles: BenkBehandlingsfelles,
     status: BenkBehandlingsstatus,
     saksbehandler: Saksbehandler,
-    kanTaSomBeslutter: Boolean,
 ): List<SaksbehandlerBehandlingKommando> {
     val navIdent = saksbehandler.navIdent
     val erSaksbehandler = saksbehandler.erSaksbehandler
@@ -110,7 +105,7 @@ private fun finnGyldigeRammebehandlingKommandoer(
         if ((status == KLAR_TIL_BESLUTNING || status == UNDER_BESLUTNING) && !erSattPåVent && felles.saksbehandler == navIdent) {
             add(AngreSendTilBeslutning)
         }
-        if (status == KLAR_TIL_BESLUTNING && kanTaSomBeslutter && felles.beslutter == null && felles.saksbehandler != navIdent) {
+        if (status == KLAR_TIL_BESLUTNING && erBeslutter && felles.beslutter == null && felles.saksbehandler != navIdent) {
             add(TildelBeslutter)
         }
         if (status == BenkBehandlingsstatus.UNDER_BEHANDLING && felles.saksbehandler != navIdent && erSaksbehandler && felles.saksbehandler != null) {

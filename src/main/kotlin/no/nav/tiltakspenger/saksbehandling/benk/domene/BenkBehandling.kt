@@ -70,8 +70,6 @@ data class BenkSøknadsbehandling(
     val resultat: BenkSøknadsbehandlingResultat,
     /** null når behandlingen ikke er prioritert. */
     val prioritering: BenkPrioritering?,
-    /** Speiler `Rammebehandling.erDelautomatiskInnstiltTilInnvilgelse`. */
-    val erDelautomatiskInnstiltTilInnvilgelse: Boolean,
 ) : BenkBehandling
 
 data class BenkRevurdering(
