@@ -307,12 +307,16 @@ data class Revurdering(
         }
 
         /**
-         * @param omgjørRammevedtak Rammevedtaket som erstattes helt eller delvis
+         * @param omgjørRammevedtak Forhåndsutfylte vedtak som omgjøres.
+         * Kan være tom; det er vedtaksperioden saksbehandler velger som avgjør hvilke vedtak som omgjøres.
          */
         fun opprettOmgjøring(
+            sakId: SakId,
+            saksnummer: Saksnummer,
+            fnr: Fnr,
             saksbehandler: Saksbehandler?,
             saksopplysninger: Saksopplysninger,
-            omgjørRammevedtak: Rammevedtak,
+            omgjørRammevedtak: OmgjørRammevedtak,
             klagebehandling: Klagebehandling?,
             opprettet: LocalDateTime,
             revurderingId: RammebehandlingId = RammebehandlingId.random(),
@@ -320,14 +324,14 @@ data class Revurdering(
         ): Revurdering {
             return opprett(
                 revurderingId = revurderingId,
-                sakId = omgjørRammevedtak.sakId,
-                saksnummer = omgjørRammevedtak.saksnummer,
-                fnr = omgjørRammevedtak.fnr,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 saksbehandler = saksbehandler,
                 saksopplysninger = saksopplysninger,
                 opprettet = opprettet,
                 resultat = Omgjøringsresultat.OmgjøringIkkeValgt(
-                    omgjørRammevedtak = OmgjørRammevedtak.create(omgjørRammevedtak),
+                    omgjørRammevedtak = omgjørRammevedtak,
                 ),
                 klagebehandling = klagebehandling,
                 automatiskOpprettetGrunn = automatiskOpprettetGrunn,

@@ -62,7 +62,7 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
     data class OmgjøringInnvilgelse(
         override val innvilgelsesperioder: InnvilgelsesperioderDTO?,
         override val barnetillegg: BarnetilleggDTO?,
-        override val omgjørVedtak: String,
+        override val omgjørVedtak: String?,
         override val omgjørRammevedtak: List<OmgjørRammevedtakDTO>,
     ) : RevurderingResultatDTO,
         RammebehandlingInnvilgelseResultatDTO,
@@ -71,7 +71,7 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
     }
 
     data class OmgjøringOpphør(
-        override val omgjørVedtak: String,
+        override val omgjørVedtak: String?,
         override val omgjørRammevedtak: List<OmgjørRammevedtakDTO>,
         val valgteHjemler: NonEmptySet<HjemmelForOpphørDTO>,
     ) : RevurderingResultatDTO,
@@ -80,7 +80,7 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
     }
 
     data class OmgjøringIkkeValgt(
-        override val omgjørVedtak: String,
+        override val omgjørVedtak: String?,
         override val omgjørRammevedtak: List<OmgjørRammevedtakDTO>,
     ) : RevurderingResultatDTO,
         OmgjøringResultatDTO {
@@ -88,13 +88,13 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
     }
 
     /**
-     * @param omgjørVedtak Det eldste vedtaket som omgjøres.
+     * @param omgjørVedtak Det eldste vedtaket som omgjøres, eller null dersom ingen vedtak omgjøres ennå.
      * Beholdes for bakoverkompatibilitet til frontend har tatt i bruk [omgjørRammevedtak].
      * @param omgjørRammevedtak Alle periodene som omgjøres, sortert på fraOgMed.
      * Kan omfatte flere vedtak og ha hull.
      */
     sealed interface OmgjøringResultatDTO {
-        val omgjørVedtak: String
+        val omgjørVedtak: String?
         val omgjørRammevedtak: List<OmgjørRammevedtakDTO>
     }
 
@@ -157,7 +157,7 @@ fun Revurderingsresultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
     }
 }
 
-private fun OmgjørRammevedtak.eldsteVedtakId(): String = rammevedtakIDer.first().toString()
+private fun OmgjørRammevedtak.eldsteVedtakId(): String? = rammevedtakIDer.firstOrNull()?.toString()
 
 private fun OmgjørRammevedtak.tilOmgjørRammevedtakDTO(): List<RevurderingResultatDTO.OmgjørRammevedtakDTO> =
     omgjøringsperioder.sortedBy { it.periode.fraOgMed }.map {

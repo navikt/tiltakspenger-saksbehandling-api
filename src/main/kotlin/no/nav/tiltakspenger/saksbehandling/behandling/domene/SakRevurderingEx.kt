@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.oppdaterBehandlingId
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -66,7 +67,7 @@ suspend fun Sak.startRevurdering(
             saksbehandler = kommando.saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
             correlationId = kommando.correlationId,
-            rammevedtakIdSomOmgjøres = kommando.vedtakIdSomOmgjøres!!,
+            rammevedtakIdSomOmgjøres = kommando.vedtakIdSomOmgjøres,
             opprettet = nå,
             klagebehandling = klagebehandling,
             automatiskOpprettetGrunn = kommando.automatiskOpprettetGrunn,
@@ -214,27 +215,45 @@ private suspend fun Sak.hentSaksopplysningerForInnvilgelse(
     id,
 )
 
+/**
+ * Starter en omgjøring, med eller uten et utgangspunkt i et bestemt vedtak.
+ * Med [rammevedtakIdSomOmgjøres] forhåndsutfylles omgjøringen med den gjeldende perioden til vedtaket.
+ * Uten starter den uten vedtak som omgjøres, og saksbehandler velger selv vedtaksperioden.
+ * I begge tilfeller er det vedtaksperioden saksbehandler lagrer som avgjør hvilke vedtak som omgjøres.
+ */
 private suspend fun Sak.startRevurderingOmgjøring(
     saksbehandler: Saksbehandler?,
     hentSaksopplysninger: HentSaksopplysninger,
     correlationId: CorrelationId,
-    rammevedtakIdSomOmgjøres: VedtakId,
+    rammevedtakIdSomOmgjøres: VedtakId?,
     klagebehandling: Klagebehandling?,
     opprettet: LocalDateTime,
     revurderingId: RammebehandlingId = RammebehandlingId.random(),
     automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
 ): Either<KanIkkeStarteRevurdering, Revurdering> {
-    val gjeldendeRammevedtak: Rammevedtak = this.hentRammevedtakForId(rammevedtakIdSomOmgjøres)
+    val omgjørRammevedtak = if (rammevedtakIdSomOmgjøres != null) {
+        val rammevedtak: Rammevedtak = this.hentRammevedtakForId(rammevedtakIdSomOmgjøres)
 
-    if (gjeldendeRammevedtak.gyldigOmgjøringskommando == null) {
-        return KanIkkeStarteRevurdering.VedtaketKanIkkeOmgjøres(
-            vedtakId = rammevedtakIdSomOmgjøres,
-            saksnummer = this.saksnummer,
-        ).left()
+        if (rammevedtak.gyldigOmgjøringskommando == null) {
+            return KanIkkeStarteRevurdering.VedtaketKanIkkeOmgjøres(
+                vedtakId = rammevedtakIdSomOmgjøres,
+                saksnummer = this.saksnummer,
+            ).left()
+        }
+
+        OmgjørRammevedtak.create(rammevedtak)
+    } else {
+        require(harFørstegangsvedtak) {
+            "Må ha en tidligere vedtatt innvilgelse for å kunne omgjøre"
+        }
+        OmgjørRammevedtak.empty
     }
 
     return Revurdering.opprettOmgjøring(
         revurderingId = revurderingId,
+        sakId = this.id,
+        saksnummer = this.saksnummer,
+        fnr = this.fnr,
         saksbehandler = saksbehandler,
         saksopplysninger = hentSaksopplysninger(
             fnr,
@@ -247,7 +266,7 @@ private suspend fun Sak.startRevurderingOmgjøring(
             id,
         ),
         opprettet = opprettet,
-        omgjørRammevedtak = gjeldendeRammevedtak,
+        omgjørRammevedtak = omgjørRammevedtak,
         klagebehandling = klagebehandling,
         automatiskOpprettetGrunn = automatiskOpprettetGrunn,
     ).right()

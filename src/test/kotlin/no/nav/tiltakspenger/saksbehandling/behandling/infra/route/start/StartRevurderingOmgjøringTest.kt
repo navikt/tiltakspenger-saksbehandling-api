@@ -10,8 +10,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelseForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
 import org.junit.jupiter.api.Test
@@ -37,6 +41,57 @@ class StartRevurderingOmgjøringTest {
             omgjøring.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringIkkeValgt>()
 
             omgjøring.resultat.omgjørRammevedtak shouldBe OmgjørRammevedtak.create(søknadVedtak)
+        }
+    }
+
+    @Test
+    fun `kan starte omgjøring uten et vedtak som utgangspunkt og omgjøre flere vedtak`() {
+        withTestApplicationContext { tac ->
+            val tiltaksdeltakelse = tiltaksdeltakelse(fom = 1.januar(2025), tom = 31.mars(2025))
+            val (sak, _, januarvedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.januar(2025) til 31.januar(2025), tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+            val (_, _, marsvedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                sakId = sak.id,
+                innvilgelsesperioder = innvilgelsesperioder(1.mars(2025) til 31.mars(2025), tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+
+            val (_, omgjøring, json) = startRevurderingOmgjøring(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = null,
+            )!!
+
+            omgjøring.resultat shouldBe Omgjøringsresultat.OmgjøringIkkeValgt(OmgjørRammevedtak.empty)
+            json.isNull("omgjørVedtak") shouldBe true
+            json.getJSONArray("omgjørRammevedtak").length() shouldBe 0
+
+            val vedtaksperiode = 1.januar(2025) til 31.mars(2025)
+            val (_, omgjøringsvedtak) = iverksettOmgjøringInnvilgelseForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = januarvedtak.id,
+                behandlingId = omgjøring.id,
+                vedtaksperiode = vedtaksperiode,
+                innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode, tiltaksdeltakelse),
+            )
+
+            omgjøringsvedtak.omgjørRammevedtak shouldBe OmgjørRammevedtak(
+                Omgjøringsperiode(
+                    rammevedtakId = januarvedtak.id,
+                    periode = 1.januar(2025) til 31.januar(2025),
+                    omgjøringsgrad = Omgjøringsgrad.HELT,
+                ),
+                Omgjøringsperiode(
+                    rammevedtakId = marsvedtak.id,
+                    periode = 1.mars(2025) til 31.mars(2025),
+                    omgjøringsgrad = Omgjøringsgrad.HELT,
+                ),
+            )
         }
     }
 

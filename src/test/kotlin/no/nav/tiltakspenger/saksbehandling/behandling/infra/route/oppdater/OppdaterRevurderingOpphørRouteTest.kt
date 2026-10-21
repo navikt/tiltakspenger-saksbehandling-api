@@ -423,6 +423,29 @@ class OppdaterRevurderingOpphørRouteTest {
     }
 
     @Test
+    fun `skal ikke kunne opphøre en periode som ikke overlapper noen tidligere vedtak`() {
+        withTestApplicationContext { tac ->
+            val tiltaksdeltakelse = tiltaksdeltakelse(fom = 1.januar(2025), tom = 31.mars(2025))
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.januar(2025) til 31.januar(2025), tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+            val (_, omgjøring) = startRevurderingOmgjøring(tac, sak.id, rammevedtakIdSomOmgjøres = null)!!
+
+            oppdaterOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = omgjøring.id,
+                vedtaksperiode = 1.mars(2025) til 31.mars(2025),
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+            ).also { (_, _, response) ->
+                response harKode "må_omgjøre_minst_ett_vedtak"
+            }
+        }
+    }
+
+    @Test
     fun `skal ikke kunne opphøre over en periode uten tidligere vedtak`() {
         withTestApplicationContext { tac ->
             val tiltaksdeltakelse = tiltaksdeltakelse(fom = 1.januar(2025), tom = 31.mars(2025))

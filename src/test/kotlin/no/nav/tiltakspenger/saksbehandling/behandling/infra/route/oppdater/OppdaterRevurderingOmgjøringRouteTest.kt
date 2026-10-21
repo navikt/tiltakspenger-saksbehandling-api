@@ -382,6 +382,31 @@ class OppdaterRevurderingOmgjøringRouteTest {
     }
 
     @Test
+    fun `kan ikke omgjøre med innvilgelse over en periode uten tidligere vedtak`() {
+        withTestApplicationContext { tac ->
+            val tiltaksdeltakelse = tiltaksdeltakelse(fom = 1.januar(2025), tom = 31.mars(2025))
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.januar(2025) til 31.januar(2025), tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+            val (_, omgjøring) = startRevurderingOmgjøring(tac, sak.id, rammevedtakIdSomOmgjøres = null)!!
+
+            val vedtaksperiode = 1.mars(2025) til 31.mars(2025)
+            oppdaterOmgjøringInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = omgjøring.id,
+                vedtaksperiode = vedtaksperiode,
+                innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode, tiltaksdeltakelse),
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+            ).also { (_, _, response) ->
+                response harKode "må_omgjøre_minst_ett_vedtak"
+            }
+        }
+    }
+
+    @Test
     fun `kan revurdere med hull`() {
         /*
          1. Søknadsbehandling: innvilger januar 2025
