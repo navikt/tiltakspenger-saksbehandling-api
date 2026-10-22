@@ -5,8 +5,10 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
@@ -22,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderin
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.objectmothers.DevSimuleringsscenario
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
@@ -82,6 +85,18 @@ class DelautomatiskOmgjøringServiceTest {
 
     private fun TestApplicationContextMedPostgres.hentRevurdering(sak: Sak, revurdering: Revurdering): Revurdering =
         sakContext.sakRepo.hentForSakId(sak.id)!!.hentRammebehandling(revurdering.id).shouldBeInstanceOf<Revurdering>()
+
+    /**
+     * Utbetaler første meldeperiode, 6.–17. januar 2025.
+     */
+    private suspend fun ApplicationTestBuilder.utbetalFørsteMeldeperiode(tac: TestApplicationContextMedPostgres, sak: Sak) {
+        val (sakMedUtbetaling) = opprettOgIverksettMeldekortbehandling(
+            tac = tac,
+            sakId = sak.id,
+            kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+        )!!
+        sakMedUtbetaling.meldeperiodeBeregninger.sisteDagMedUtbetaling shouldBe 17.januar(2025)
+    }
 
     private fun Revurdering.skalVæreOverlattTilSaksbehandler(vararg grunner: ManueltBehandlesGrunn) {
         status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
@@ -196,12 +211,7 @@ class DelautomatiskOmgjøringServiceTest {
                 tiltaksdeltakelse = deltakelse,
                 innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
             )
-            val (sakMedUtbetaling) = opprettOgIverksettMeldekortbehandling(
-                tac = tac,
-                sakId = sak.id,
-                kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
-            )!!
-            sakMedUtbetaling.meldeperiodeBeregninger.sisteDagMedUtbetaling shouldBe 17.januar(2025)
+            utbetalFørsteMeldeperiode(tac, sak)
             val revurdering = tac.opprettAutomatiskOmgjøring(
                 sak = sak,
                 vedtak = vedtak,
@@ -213,6 +223,114 @@ class DelautomatiskOmgjøringServiceTest {
 
             tac.hentRevurdering(sak, revurdering)
                 .skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.OMGJORING_UTBETALING_STOTTER_IKKE_FEILUTBETALING)
+        }
+    }
+
+    /**
+     * Som over, men oppdrag motregner reduksjonen mot meldeperioder utenfor omgjøringen og svarer med justering i stedet for feilutbetaling.
+     * Lokalt bestilles det med fødselsnummeret til [DevSimuleringsscenario.UBALANSERT_JUSTERING].
+     */
+    @Test
+    fun `utbetalt etter ny sluttdato med justering - justeringen overlates til saksbehandler`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(6.januar(2025) til 31.mai(2025))
+            val (sak, _, vedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                fnr = Fnr.fromString(DevSimuleringsscenario.UBALANSERT_JUSTERING.fnr),
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+            )
+            utbetalFørsteMeldeperiode(tac, sak)
+            val revurdering = tac.opprettAutomatiskOmgjøring(
+                sak = sak,
+                vedtak = vedtak,
+                tiltaksdeltakelse = deltakelse,
+                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 10.januar(2025)),
+            )
+
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+
+            tac.hentRevurdering(sak, revurdering)
+                .skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.OMGJORING_UTBETALING_STOTTER_IKKE_JUSTERING)
+        }
+    }
+
+    /**
+     * Søknadsbehandlingen innvilger januar–mars, og en revurdering innvilger april–mai.
+     * Første meldeperiode, 6.–17. januar, er utbetalt, og ny sluttdato, 10. januar, er i søknadsbehandlingen.
+     * Omgjøringen av begge vedtakene gir feilutbetaling, som ingen saksbehandler har vurdert.
+     */
+    @Test
+    fun `ny sluttdato i et tidligere vedtak og utbetalt etter ny sluttdato - feilutbetaling overlates til saksbehandler`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(6.januar(2025) til 31.mai(2025))
+            val (sak, _, søknadsvedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(6.januar(2025) til 31.mars(2025), deltakelse),
+            )
+            iverksettRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 31.mai(2025), deltakelse),
+            )
+            utbetalFørsteMeldeperiode(tac, sak)
+            val revurdering = tac.opprettAutomatiskOmgjøring(
+                sak = sak,
+                vedtak = søknadsvedtak,
+                tiltaksdeltakelse = deltakelse,
+                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 10.januar(2025)),
+            )
+
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+
+            tac.hentRevurdering(sak, revurdering)
+                .skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.OMGJORING_UTBETALING_STOTTER_IKKE_FEILUTBETALING)
+        }
+    }
+
+    /**
+     * Søknadsbehandlingen innvilger januar–mars, og en revurdering innvilger april–mai.
+     * Første meldeperiode, 6.–17. januar, er utbetalt, men ny sluttdato, 15. mars, er etter de utbetalte dagene.
+     * Utbetalingen endres ikke, så omgjøringen av begge vedtakene sendes til beslutning.
+     */
+    @Test
+    fun `ny sluttdato i et tidligere vedtak og utbetalt bare før ny sluttdato - sendes til beslutning`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(6.januar(2025) til 31.mai(2025))
+            val (sak, _, søknadsvedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(6.januar(2025) til 31.mars(2025), deltakelse),
+            )
+            val (_, revurderingsvedtak) = iverksettRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 31.mai(2025), deltakelse),
+            )
+            utbetalFørsteMeldeperiode(tac, sak)
+            val revurdering = tac.opprettAutomatiskOmgjøring(
+                sak = sak,
+                vedtak = søknadsvedtak,
+                tiltaksdeltakelse = deltakelse,
+                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 15.mars(2025)),
+            )
+
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+
+            tac.hentRevurdering(sak, revurdering).also {
+                it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+                it.manueltBehandlesGrunner.shouldBeEmpty()
+                it.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringInnvilgelse>()
+                    .omgjørRammevedtak.rammevedtakIDer shouldBe listOf(søknadsvedtak.id, revurderingsvedtak.id)
+            }
+            taRammebehandlinger(tac, listOf(sak.id to revurdering.id), saksbehandler = ObjectMother.beslutter()).shouldNotBeNull()
+            iverksettForBehandlingId(tac, sak.id, revurdering.id).shouldNotBeNull()
+
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.also {
+                it.sisteDagSomGirRett shouldBe 15.mars(2025)
+                it.meldeperiodeBeregninger.sisteDagMedUtbetaling shouldBe 17.januar(2025)
+            }
         }
     }
 
