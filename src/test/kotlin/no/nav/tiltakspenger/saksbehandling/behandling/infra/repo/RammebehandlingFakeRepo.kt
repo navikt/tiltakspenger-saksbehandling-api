@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import java.time.LocalDateTime
 
 class RammebehandlingFakeRepo : RammebehandlingRepo {
@@ -144,6 +145,26 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
             return false
         }
 
+        data.get()[behandlingId] = rammebehandling
+        return true
+    }
+
+    override fun hentTilbake(
+        rammebehandling: Rammebehandling,
+        forventetSendtTilBeslutning: LocalDateTime?,
+        transactionContext: TransactionContext?,
+    ): Boolean {
+        val behandlingId = rammebehandling.id
+        val behandling = data.get()[behandlingId]
+
+        if (behandling == null ||
+            behandling.status != Rammebehandlingsstatus.KLAR_TIL_BESLUTNING ||
+            behandling.saksbehandler != AUTOMATISK_SAKSBEHANDLER_ID ||
+            behandling.sendtTilBeslutning != forventetSendtTilBeslutning ||
+            behandling.ventestatus.erSattPåVent
+        ) {
+            return false
+        }
         data.get()[behandlingId] = rammebehandling
         return true
     }

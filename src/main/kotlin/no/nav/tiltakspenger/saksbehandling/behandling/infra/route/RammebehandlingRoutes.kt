@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.AngreRa
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenåpneSøknadsbehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentTilbakeRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterRammebehandlingForBeslutterService
@@ -39,6 +40,7 @@ fun Route.rammebehandlingRoutes(
     angreRammebehandlingService: AngreRammebehandlingService,
     overtaBehandlingService: OvertaRammebehandlingService,
     leggTilbakeBehandlingService: LeggTilbakeRammebehandlingService,
+    hentTilbakeRammebehandlingService: HentTilbakeRammebehandlingService,
     oppdaterBehandlingService: OppdaterRammebehandlingService,
     oppdaterRammebehandlingForBeslutterService: OppdaterRammebehandlingForBeslutterService,
     settBehandlingPåVentService: SettRammebehandlingPåVentService,
@@ -61,6 +63,7 @@ fun Route.rammebehandlingRoutes(
     oppdaterRammebehandlingForBeslutterRoute(oppdaterRammebehandlingForBeslutterService, auditService, tilgangskontrollService)
     overtaRammebehandlingRoute(overtaBehandlingService, auditService, tilgangskontrollService, clock)
     leggTilbakeRammebehandlingRoute(auditService, leggTilbakeBehandlingService, tilgangskontrollService, clock)
+    hentTilbakeRammebehandlingRoute(auditService, hentTilbakeRammebehandlingService, tilgangskontrollService, clock)
     oppdaterRammebehandlingRoute(oppdaterBehandlingService, auditService, tilgangskontrollService)
     settRammebehandlingPåVentRoute(auditService, settBehandlingPåVentService, tilgangskontrollService, clock)
     gjenopptaRammebehandling(auditService, gjenopptaBehandlingService, tilgangskontrollService, clock)
