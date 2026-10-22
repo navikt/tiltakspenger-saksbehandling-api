@@ -24,6 +24,11 @@ fun Route.tilbakekrevingRoutes(
         tilgangskontrollService = tilgangskontrollService,
         clock = clock,
     )
+    tildelTilbakekrevingerRoute(
+        auditService = auditService,
+        tilbakekrevingBehandlingTildelingService = tilbakekrevingBehandlingTildelingService,
+        tilgangskontrollService = tilgangskontrollService,
+    )
     leggTilbakeTilbakekrevingBehandlingRoute(
         auditService = auditService,
         tilbakekrevingBehandlingTildelingService = tilbakekrevingBehandlingTildelingService,

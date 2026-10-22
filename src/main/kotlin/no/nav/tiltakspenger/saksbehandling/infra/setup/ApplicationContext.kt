@@ -624,6 +624,7 @@ open class ApplicationContext(
         TilbakekrevingBehandlingTildelingService(
             sakService = sakContext.sakService,
             tilbakekrevingBehandlingRepo = tilbakekrevingBehandlingRepo,
+            sessionFactory = sessionFactory,
             clock = clock,
         )
     }

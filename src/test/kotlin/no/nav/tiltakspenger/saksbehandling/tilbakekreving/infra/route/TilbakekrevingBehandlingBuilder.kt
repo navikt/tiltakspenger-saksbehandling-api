@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingB
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.konsumerTilbakekrevingshendelse
 import org.intellij.lang.annotations.Language
+import tools.jackson.databind.JsonNode
 import java.time.LocalDate
 
 /**
@@ -29,6 +30,7 @@ import java.time.LocalDate
  *
  * Routes:
  * - [no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.tildelTilbakekrevingBehandlingRoute]
+ * - [no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.tildelTilbakekrevingerRoute]
  * - [no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.overtaTilbakekrevingBehandlingRoute]
  * - [no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.leggTilbakeTilbakekrevingBehandlingRoute]
  */
@@ -264,6 +266,35 @@ interface TilbakekrevingBehandlingBuilder {
         val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
         val oppdatertBehandling = oppdatertSak.tilbakekrevinger.single { it.id == tilbakekrevingId }
         return Triple(oppdatertSak, oppdatertBehandling, sakDTOJson)
+    }
+
+    /**
+     * Forventer at sakene og tilbakekrevingbehandlingene allerede finnes.
+     * Kaller POST /tilbakekreving/tildel
+     */
+    suspend fun ApplicationTestBuilder.tildelTilbakekrevinger(
+        tac: TestApplicationContext,
+        tilbakekrevinger: List<Pair<SakId, TilbakekrevingId>>,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomTar"),
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
+    ): Pair<List<TilbakekrevingBehandling>, JsonNode>? {
+        val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
+        tac.leggTilBruker(jwt, saksbehandler)
+        val tilbakekrevingerJson = tilbakekrevinger.joinToString(", ") { (sakId, tilbakekrevingId) ->
+            """{ "tilbakekrevingId": "$tilbakekrevingId", "sakId": "$sakId" }"""
+        }
+        val response = defaultRequestWithAssertions(
+            HttpMethod.POST,
+            "/tilbakekreving/tildel",
+            jwt = jwt,
+            forventet = forventet,
+            body = """{ "tilbakekrevinger": [ $tilbakekrevingerJson ] }""",
+        )
+        if (response.statusCode != 200) return null
+        val oppdaterteBehandlinger = tilbakekrevinger.map { (sakId, tilbakekrevingId) ->
+            tac.sakContext.sakRepo.hentForSakId(sakId)!!.tilbakekrevinger.single { it.id == tilbakekrevingId }
+        }
+        return oppdaterteBehandlinger to objectMapper.readTree(response.body)
     }
 
     /**

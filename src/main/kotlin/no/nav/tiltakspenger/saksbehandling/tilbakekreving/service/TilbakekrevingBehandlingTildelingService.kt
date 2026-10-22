@@ -1,7 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.service
 
+import arrow.core.NonEmptyList
+import arrow.core.NonEmptySet
+import arrow.core.nonEmptyListOf
+import arrow.core.toNonEmptySetOrThrow
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
@@ -16,6 +22,7 @@ import java.time.Clock
 class TilbakekrevingBehandlingTildelingService(
     private val sakService: SakService,
     private val tilbakekrevingBehandlingRepo: TilbakekrevingBehandlingRepo,
+    private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) {
 
@@ -24,25 +31,54 @@ class TilbakekrevingBehandlingTildelingService(
         tilbakekrevingId: TilbakekrevingId,
         saksbehandler: Saksbehandler,
     ): Pair<Sak, TilbakekrevingBehandling> {
-        val (sak, behandling) = hentSakOgBehandling(sakId, tilbakekrevingId)
-        val oppdatert = behandling.tildel(saksbehandler, clock)
+        return tildelBehandlinger(
+            TildelTilbakekrevingerKommando(
+                saksbehandler = saksbehandler,
+                tilbakekrevinger = nonEmptyListOf(
+                    TildelTilbakekrevingerKommando.TilbakekrevingMedSakId(
+                        tilbakekrevingId = tilbakekrevingId,
+                        sakId = sakId,
+                    ),
+                ),
+            ),
+        ).single()
+    }
 
+    /**
+     * Tildeler saksbehandler alle tilbakekrevingene i kommandoen, eller ingen av dem.
+     * Alle tildelingene valideres før noe lagres, og lagringen skjer i én transaksjon.
+     * Feiler én av dem, rulles hele tildelingen tilbake.
+     */
+    fun tildelBehandlinger(
+        kommando: TildelTilbakekrevingerKommando,
+    ): List<Pair<Sak, TilbakekrevingBehandling>> {
+        val tildelte = kommando.tilbakekrevinger.map { (tilbakekrevingId, sakId) ->
+            val (sak, behandling) = hentSakOgBehandling(sakId, tilbakekrevingId)
+            oppdatertSak(sak, behandling.tildel(kommando.saksbehandler, clock))
+        }
+
+        sessionFactory.withTransactionContext { tx ->
+            tildelte.forEach { (_, oppdatert) -> lagreTildeling(oppdatert, tx) }
+        }
+
+        return tildelte
+    }
+
+    private fun lagreTildeling(oppdatert: TilbakekrevingBehandling, tx: TransactionContext) {
         val harOppdatert = when (oppdatert.statusIntern) {
             TilbakekrevingBehandlingsstatusIntern.UNDER_FORHÅNDSVARSLING,
             TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING,
             ->
-                tilbakekrevingBehandlingRepo.taBehandlingSaksbehandler(oppdatert)
+                tilbakekrevingBehandlingRepo.taBehandlingSaksbehandler(oppdatert, tx)
 
             TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING ->
-                tilbakekrevingBehandlingRepo.taBehandlingBeslutter(oppdatert)
+                tilbakekrevingBehandlingRepo.taBehandlingBeslutter(oppdatert, tx)
 
-            else -> throw IllegalStateException("Uventet status ${oppdatert.statusIntern} etter ta behandling for $tilbakekrevingId")
+            else -> throw IllegalStateException("Uventet status ${oppdatert.statusIntern} etter ta behandling for ${oppdatert.id}")
         }
         require(harOppdatert) {
-            "Oppdatering av tilbakekrevingbehandling feilet for $tilbakekrevingId. En annen bruker kan ha endret behandlingen."
+            "Oppdatering av tilbakekrevingbehandling feilet for ${oppdatert.id}. En annen bruker kan ha endret behandlingen."
         }
-
-        return oppdatertSak(sak, oppdatert)
     }
 
     fun overtaBehandling(
@@ -113,4 +149,16 @@ class TilbakekrevingBehandlingTildelingService(
         )
         return oppdatertSak to oppdatert
     }
+}
+
+data class TildelTilbakekrevingerKommando(
+    val saksbehandler: Saksbehandler,
+    val tilbakekrevinger: NonEmptyList<TilbakekrevingMedSakId>,
+) {
+    fun hentSakIder(): NonEmptySet<SakId> = tilbakekrevinger.map { it.sakId }.toNonEmptySetOrThrow()
+
+    data class TilbakekrevingMedSakId(
+        val tilbakekrevingId: TilbakekrevingId,
+        val sakId: SakId,
+    )
 }
