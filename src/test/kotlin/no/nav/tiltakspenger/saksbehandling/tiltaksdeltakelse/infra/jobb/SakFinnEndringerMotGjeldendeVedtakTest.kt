@@ -5,6 +5,7 @@ import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -750,7 +751,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         sak.rammevedtaksliste.finnOmgjøringsperiodeVedAvkortetSluttdato(deltakelse.internDeltakelseId, sluttdatoIFørsteInnvilgelse)
             .getOrFail().vedtaksperiode.let {
                 it shouldBe deltakelse.periode
-                sak.rammevedtaksliste.finnVedtakSomOmgjøres(it).rammevedtakIDer shouldBe sak.rammevedtaksliste.verdi.map { vedtak -> vedtak.id }
+                sak.rammevedtaksliste.finnVedtakSomOmgjøres(it).rammevedtakIDer shouldContainExactlyInAnyOrder sak.rammevedtaksliste.verdi.map { vedtak -> vedtak.id }
             }
     }
 

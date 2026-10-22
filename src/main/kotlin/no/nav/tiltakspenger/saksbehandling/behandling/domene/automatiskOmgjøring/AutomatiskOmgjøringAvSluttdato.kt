@@ -167,6 +167,7 @@ private fun Rammevedtaksliste.gjeldendeBarnetillegg(vedtaksperiode: Periode): Ba
 
 /**
  * Fjerner dagene etter [nySluttdato] fra periodene der [tiltaksdeltakerId] er innvilget.
+ * Perioder som starter etter ny sluttdato, f.eks. fra et senere vedtak, fjernes helt.
  * Periodene der andre deltakelser er innvilget, beholdes.
  */
 private fun Innvilgelsesperioder.avkortForDeltakelse(
@@ -174,11 +175,12 @@ private fun Innvilgelsesperioder.avkortForDeltakelse(
     nySluttdato: LocalDate,
 ): Innvilgelsesperioder = Innvilgelsesperioder(
     periodisering.perioderMedVerdi.mapNotNull { periodeMedVerdi ->
-        if (periodeMedVerdi.verdi.valgtTiltaksdeltakelse.internDeltakelseId != tiltaksdeltakerId) {
-            return@mapNotNull periodeMedVerdi
+        val periode = periodeMedVerdi.periode
+        when {
+            periodeMedVerdi.verdi.valgtTiltaksdeltakelse.internDeltakelseId != tiltaksdeltakerId -> periodeMedVerdi
+            periode.fraOgMed.isAfter(nySluttdato) -> null
+            else -> PeriodeMedVerdi(verdi = periodeMedVerdi.verdi, periode = periode.fraOgMed til minOf(periode.tilOgMed, nySluttdato))
         }
-        periodeMedVerdi.periode.overlappendePeriode(periodeMedVerdi.periode.fraOgMed til nySluttdato)
-            ?.let { PeriodeMedVerdi(verdi = periodeMedVerdi.verdi, periode = it) }
     }.tilIkkeTomPeriodisering(),
 )
 
