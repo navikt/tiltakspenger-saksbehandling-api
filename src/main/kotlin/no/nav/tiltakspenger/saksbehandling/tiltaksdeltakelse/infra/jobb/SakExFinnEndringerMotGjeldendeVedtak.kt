@@ -272,6 +272,8 @@ private fun GjeldendeInnvilgelse.finnEndringer(
  * Det opprettes ikke revurdering dersom saken mangler førstegangsvedtak eller har åpne behandlinger.
  *
  * - Avbrudd gir stans eller opphør, så lenge deltakelsen er innvilget etter avbruddet og ingen andre deltakelser er innvilget etter avbruddet.
+ * Er sluttdatoen avkortet uten at deltakelsen har fått en annen status enn deltar, er den ikke avbrutt, og vedtaket omgjøres i stedet til innvilgelse til og med ny sluttdato.
+ * Omgjøringen behandles automatisk etter at den er opprettet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskOmgjøring.utledAutomatiskOmgjøringAvSluttdato].
  * Avbruddet kan gjelde tilbake i tid, også i en innvilgelse som er passert.
  * Er andre deltakelser innvilget etter avbruddet, vurderes omgjøring i stedet, siden en stans også ville stanset dem.
  * En stans behandles automatisk etter at den er opprettet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.utledAutomatiskStans].
@@ -343,6 +345,10 @@ private fun Sak.vurderRevurderingForAvbrudd(
         return null
     }
 
+    vedtakSomOmgjøresVedAvkortetSluttdato(oppdatertTilstand, gjeldendeInnvilgelse)?.let {
+        return AutomatiskRevurderingAvEndring.OmgjøringAvAvkortetSluttdato(it.id)
+    }
+
     val harAndreDeltakelserInnvilgetEtterAvbruddet = rammevedtaksliste.valgteTiltaksdeltakelser.perioderMedVerdi.any {
         !it.periode.tilOgMed.isBefore(avbruttFraOgMed) && it.verdi.internDeltakelseId != tiltaksdeltakerId
     }
@@ -354,6 +360,34 @@ private fun Sak.vurderRevurderingForAvbrudd(
     }
 
     return AutomatiskRevurderingAvEndring.StansEllerOpphør
+}
+
+/**
+ * Gir vedtaket som skal omgjøres når sluttdatoen er avkortet inn i de innvilgede periodene, mens deltakelsen fortsatt har status deltar.
+ * Deltakelsen er da ikke avbrutt, så i stedet for en stans omgjøres vedtaket slik at deltakelsen er innvilget til og med ny sluttdato.
+ *
+ * Gir null, slik at avbruddet vurderes som før, dersom
+ * - deltakelsen ikke har status deltar,
+ * - ny sluttdato er før deltakelsen er innvilget, slik at det ikke er noe igjen å innvilge,
+ * - de avkortede dagene er innvilget i flere vedtak, eller i et annet vedtak enn det som innvilger ny sluttdato,
+ * - eller omgjøringen av hele vedtaket ville omgjort andre vedtak også.
+ * En automatisk omgjøring kan foreløpig bare omgjøre ett vedtak.
+ */
+private fun Sak.vedtakSomOmgjøresVedAvkortetSluttdato(
+    oppdatertTilstand: Deltakelsestilstand,
+    gjeldendeInnvilgelse: GjeldendeInnvilgelse,
+): Rammevedtak? {
+    if (oppdatertTilstand.deltakelseStatus != TiltakDeltakerstatus.Deltar) return null
+    val nySluttdato = oppdatertTilstand.deltakelseTilOgMed ?: return null
+    if (nySluttdato.isBefore(gjeldendeInnvilgelse.førsteInnvilgedeDag) || !nySluttdato.isBefore(gjeldendeInnvilgelse.sisteInnvilgedeDag)) {
+        return null
+    }
+    val vedtak = gjeldendeInnvilgelse.vedtakSomInnvilger(nySluttdato.plusDays(1) til gjeldendeInnvilgelse.sisteInnvilgedeDag).singleOrNull()
+        ?: return null
+    if (gjeldendeInnvilgelse.vedtakSomInnvilger(nySluttdato til nySluttdato) != setOf(vedtak)) return null
+    val vedtaksperiode = vedtak.gjeldendeTotalPeriode ?: return null
+    if (vedtaksliste.finnRammevedtakSomOmgjøres(vedtaksperiode).rammevedtakIDer != listOf(vedtak.id)) return null
+    return vedtak
 }
 
 /** De gjeldende vedtakene som innvilger periodene endret startdato, sluttdato eller deltakelsesmengde berører. */
