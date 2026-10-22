@@ -41,7 +41,7 @@ sealed interface AutomatiskRevurderingAvEndring {
     data class Omgjøring(val vedtakIdSomOmgjøres: VedtakId) : AutomatiskRevurderingAvEndring
 
     /**
-     * Sluttdatoen er avkortet til fortiden, men deltakelsen har fortsatt status deltar.
+     * Sluttdatoen er avkortet, se [TiltaksdeltakerEndring.Avkortet].
      * Vedtaket omgjøres slik at deltakelsen er innvilget til og med ny sluttdato, og resten av vedtaksperioden opphøres.
      * Omgjøringen opprettes under automatisk behandling, og verdiene for å fylle den ut utledes når den behandles.
      * Se [no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskOmgjøringService].

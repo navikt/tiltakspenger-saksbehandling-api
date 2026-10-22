@@ -31,6 +31,12 @@ class AutomatiskOpprettetRevurderingGrunnDTOTest {
     }
 
     @Test
+    fun avkortet() {
+        TiltaksdeltakerEndring.Avkortet(nySluttdato = 15.mai(2025)).tilJson() shouldEqualJson
+            """{"endringer":[{"type":"AVKORTET","nySluttdato":"2025-05-15"}]}"""
+    }
+
+    @Test
     fun `forlengelse med endret mengde gir mengdeendringen før forlengelsen`() {
         TiltaksdeltakerEndring.Forlengelse(
             nySluttdato = 31.mai(2025),

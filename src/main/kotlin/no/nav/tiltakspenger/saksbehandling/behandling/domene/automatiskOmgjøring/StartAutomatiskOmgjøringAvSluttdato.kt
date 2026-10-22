@@ -11,7 +11,8 @@ import java.time.Clock
 
 /**
  * Starter en omgjøring av vedtaket [omgjørVedtakId] som behandles av den automatiske saksbehandleren, se [Revurdering.opprettAutomatiskBehandletOmgjøring].
- * Brukes når sluttdatoen for en tiltaksdeltakelse er flyttet bakover i tid, mens deltakelsen fortsatt har status deltar, se [utledAutomatiskOmgjøringAvSluttdato].
+ * Vedtaket er bare utgangspunktet, og vedtaksperioden som utledes kan også omgjøre senere vedtak, se [finnOmgjøringsperiodeVedAvkortetSluttdato].
+ * Brukes når sluttdatoen for en tiltaksdeltakelse er avkortet, mens deltakelsen fortsatt har status deltar, se [utledAutomatiskOmgjøringAvSluttdato].
  */
 suspend fun Sak.startAutomatiskOmgjøringAvSluttdato(
     omgjørVedtakId: VedtakId,

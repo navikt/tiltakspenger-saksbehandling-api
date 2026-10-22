@@ -713,9 +713,8 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val revurdering = oppdatert.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
             revurdering.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringIkkeValgt>()
                 .omgjørRammevedtak.rammevedtakIDer shouldBe listOf(vedtak.id)
-            revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe TiltaksdeltakerEndring.AndreEndringer(
-                endretSluttdato = TiltaksdeltakerEndring.EndretSluttdato(3.mai(2025)),
-            )
+            revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe TiltaksdeltakerEndring.Avkortet(3.mai(2025))
+            revurdering.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
         }
     }
 
@@ -788,7 +787,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
 
                 EndringEtterNyInnvilgelse.AVKORTET_SLUTTDATO -> Triple(
                     deltakelse.copy(deltakelseTilOgMed = 31.mai(2025)),
-                    TiltaksdeltakerEndring.AndreEndringer(endretSluttdato = TiltaksdeltakerEndring.EndretSluttdato(31.mai(2025))),
+                    TiltaksdeltakerEndring.Avkortet(31.mai(2025)),
                     nyInnvilgelse.id,
                 )
 
@@ -855,9 +854,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
                     endretStartdato = TiltaksdeltakerEndring.EndretStartdato(1.februar(2025)),
                 )
 
-                else -> deltakelse.copy(deltakelseTilOgMed = 31.mai(2025)) to TiltaksdeltakerEndring.AndreEndringer(
-                    endretSluttdato = TiltaksdeltakerEndring.EndretSluttdato(31.mai(2025)),
-                )
+                else -> deltakelse.copy(deltakelseTilOgMed = 31.mai(2025)) to TiltaksdeltakerEndring.Avkortet(31.mai(2025))
             }
 
             val oppdatert = tac.registrerEndringOgBehandle(sakMedOpphør, deltakelse, nåtilstand, forventetResultat = RevurderingOpprettet::class)

@@ -21,7 +21,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskOmgjørin
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterOmgjøringKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterOmgjøring
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.ForberedtRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
@@ -29,10 +28,9 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import java.time.Clock
-import java.time.LocalDate
 
 /**
- * Oppretter og behandler omgjøringer som systemet starter når sluttdatoen for en tiltaksdeltakelse er flyttet bakover i tid, mens deltakelsen fortsatt har status deltar.
+ * Oppretter og behandler omgjøringer som systemet starter når sluttdatoen for en tiltaksdeltakelse er avkortet, mens deltakelsen fortsatt har status deltar.
  * Vedtaket som innvilger deltakelsen, omgjøres slik at deltakelsen bare er innvilget til og med ny sluttdato.
  *
  * [opprett] bygger omgjøringen under automatisk behandling, tildelt [AUTOMATISK_SAKSBEHANDLER].
@@ -122,17 +120,12 @@ class DelautomatiskOmgjøringService(
                 nonEmptyListOf(ManueltBehandlesGrunn.OMGJORING_FANT_IKKE_TILTAKSDELTAKELSE).left(),
             )
 
-        // Omgjøringen opprettes for nøyaktig ett vedtak, se [startAutomatiskOmgjøringAvSluttdato].
-        val omgjørVedtakId = (revurdering.resultat as Omgjøringsresultat).omgjørRammevedtak.rammevedtakIDer.single()
-
         val automatiskOmgjøring = steg.medAnnenÅpenBehandling(
             this,
             revurdering,
             utledAutomatiskOmgjøringAvSluttdato(
                 tiltaksdeltakerId = tiltaksdeltakerId,
-                omgjørVedtakId = omgjørVedtakId,
                 saksopplysninger = revurdering.saksopplysninger,
-                iDag = LocalDate.now(clock),
             ),
         ).getOrElse { return it.left() }
 

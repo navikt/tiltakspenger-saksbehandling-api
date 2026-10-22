@@ -5,7 +5,6 @@ import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
-import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.leggSammen
@@ -25,16 +24,17 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.harSammeDeltakelsesmengde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.tilDeltakelsestilstand
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import java.time.LocalDate
 
 /**
- * Det systemet har utledet for å kunne fylle ut en automatisk opprettet omgjøring når sluttdatoen for en tiltaksdeltakelse er flyttet bakover i tid, uten at deltakelsen er avsluttet.
+ * Det systemet har utledet for å kunne fylle ut en automatisk opprettet omgjøring når sluttdatoen for en tiltaksdeltakelse er avkortet, uten at deltakelsen er avsluttet.
  *
- * @param vedtaksperiode Hele den gjeldende perioden til vedtaket som omgjøres.
+ * @param vedtaksperiode Perioden som omgjøres, se [finnOmgjøringsperiodeVedAvkortetSluttdato].
  * Delene av vedtaksperioden som ikke innvilges, opphøres.
- * @param innvilgelsesperioder De gjeldende innvilgelsesperiodene i vedtaket, der deltakelsen ikke lenger innvilges etter ny sluttdato.
- * Antall dager per meldeperiode og andre deltakelser videreføres fra vedtaket.
- * @param barnetillegg Barnetillegget i vedtaket, krympet til [innvilgelsesperioder].
+ * @param innvilgelsesperioder De gjeldende innvilgelsesperiodene i vedtaksperioden, der deltakelsen ikke lenger innvilges etter ny sluttdato.
+ * Antall dager per meldeperiode og andre deltakelser videreføres fra vedtakene.
+ * @param barnetillegg Det gjeldende barnetillegget, krympet til [innvilgelsesperioder].
  * @param begrunnelse Begrunnelsen for vilkårsvurderingen.
  * @param fritekstTilVedtaksbrev Forklarer omgjøringen for bruker i vedtaksbrevet.
  */
@@ -47,19 +47,20 @@ data class AutomatiskOmgjøringAvSluttdato(
 )
 
 /**
- * Utleder verdiene for å omgjøre vedtaket [omgjørVedtakId] uten saksbehandler, når sluttdatoen for [tiltaksdeltakerId] er flyttet bakover i tid og deltakelsen fortsatt har status [TiltakDeltakerstatus.Deltar].
+ * Utleder verdiene for å omgjøre vedtakene uten saksbehandler, når sluttdatoen for [tiltaksdeltakerId] er avkortet og deltakelsen fortsatt har status [TiltakDeltakerstatus.Deltar].
  * Gir alle grunnene til at omgjøringen må behandles manuelt dersom verdiene ikke kan utledes med stor sikkerhet.
  * Sjekker som bygger på en verdi som ikke kunne utledes, hoppes over, slik at saksbehandler ikke får følgefeil.
  *
- * Hele den gjeldende perioden til vedtaket omgjøres.
- * Deltakelsen innvilges til og med ny sluttdato, og resten av perioden den var innvilget i, opphøres.
- * Innvilgelsene av andre deltakelser i vedtaket, antall dager per meldeperiode og barnetillegget videreføres uendret.
+ * Vedtaksperioden går fra starten av vedtaket som innvilger ny sluttdato til slutten av det siste vedtaket som innvilger deltakelsen etter den, se [finnOmgjøringsperiodeVedAvkortetSluttdato].
+ * Ny sluttdato kan altså være innvilget i et tidligere vedtak enn de avkortede dagene, og ny sluttdato kan være passert.
+ * Deltakelsen innvilges til og med ny sluttdato, og resten av vedtaksperioden den var innvilget i, opphøres.
+ * Innvilgelsene av andre deltakelser, antall dager per meldeperiode og barnetillegget videreføres uendret fra de gjeldende vedtakene.
  *
  * Deltakelsen slik den er registrert nå, hentes fra [saksopplysninger], slik at det er de samme opplysningene beslutter ser.
- * Endringer som har kommet etter at omgjøringen ble opprettet, fanges dermed opp her.
+ * Endringer som har kommet etter at omgjøringen ble opprettet, fanges dermed opp her, og vedtaksperioden utledes på nytt fra dem.
  * Er deltakelsen avsluttet i mellomtiden, er en stans eller et opphør riktig, og det overlates til saksbehandler.
- * Startdatoen og deltakelsesmengden må være uendret fra vedtaket, siden omgjøringen bare avkorter innvilgelsen.
- * Gir de ferske saksopplysningene en annen innvilgelse enn den utledede, f.eks. fordi en annen deltakelse i vedtaket er endret, overlates omgjøringen også til saksbehandler.
+ * Startdatoen og deltakelsesmengden må være uendret fra alle vedtakene i vedtaksperioden, siden omgjøringen bare avkorter innvilgelsen.
+ * Gir de ferske saksopplysningene en annen innvilgelse enn den utledede, f.eks. fordi en annen deltakelse i vedtakene er endret, overlates omgjøringen også til saksbehandler.
  *
  * Vurderingen er bevisst konservativ, og alt som ikke er entydig overlates til saksbehandler.
  *
@@ -67,25 +68,9 @@ data class AutomatiskOmgjøringAvSluttdato(
  */
 fun Sak.utledAutomatiskOmgjøringAvSluttdato(
     tiltaksdeltakerId: TiltaksdeltakerId,
-    omgjørVedtakId: VedtakId,
     saksopplysninger: Saksopplysninger,
-    iDag: LocalDate,
 ): Either<NonEmptyList<ManueltBehandlesGrunn>, AutomatiskOmgjøringAvSluttdato> {
     val grunner = mutableListOf<ManueltBehandlesGrunn>()
-
-    val vedtak = rammevedtaksliste.hentRammevedtakForId(omgjørVedtakId)
-    val vedtaksperiode = vedtak.gjeldendeTotalPeriode
-    val gjeldendeInnvilgelse = vedtak.innvilgelsesperioder?.krymp(vedtak.gjeldendeInnvilgetPerioder)
-    val innvilgetForDeltakelse = gjeldendeInnvilgelse?.periodisering?.perioderMedVerdi
-        ?.filter { it.verdi.valgtTiltaksdeltakelse.internDeltakelseId == tiltaksdeltakerId }
-        .orEmpty()
-    if (vedtaksperiode == null || innvilgetForDeltakelse.isEmpty()) {
-        grunner.add(ManueltBehandlesGrunn.OMGJORING_VEDTAKET_INNVILGER_IKKE_DELTAKELSEN)
-    }
-
-    if (vedtaksperiode != null && vedtaksliste.finnRammevedtakSomOmgjøres(vedtaksperiode).rammevedtakIDer != listOf(omgjørVedtakId)) {
-        grunner.add(ManueltBehandlesGrunn.OMGJORING_OMGJOR_FLERE_VEDTAK)
-    }
 
     val nåtilstand = saksopplysninger.getTiltaksdeltakelse(tiltaksdeltakerId)
     if (nåtilstand == null) {
@@ -105,38 +90,33 @@ fun Sak.utledAutomatiskOmgjøringAvSluttdato(
         grunner.add(ManueltBehandlesGrunn.OMGJORING_DELTAKELSEN_MANGLER_SLUTTDATO)
     }
 
-    if (nySluttdato != null && nySluttdato.isAfter(iDag)) {
-        grunner.add(ManueltBehandlesGrunn.OMGJORING_SLUTTDATO_ER_IKKE_PASSERT)
+    val vedtaksperiode = nySluttdato?.let {
+        rammevedtaksliste.finnOmgjøringsperiodeVedAvkortetSluttdato(tiltaksdeltakerId, it)
+            .onLeft { grunn -> grunner.add(grunn) }
+            .getOrNull()
+            ?.vedtaksperiode
     }
 
-    val førsteInnvilgedeDag = innvilgetForDeltakelse.firstOrNull()?.periode?.fraOgMed
-    val sisteInnvilgedeDag = innvilgetForDeltakelse.lastOrNull()?.periode?.tilOgMed
-    if (sisteInnvilgedeDag != null && nySluttdato != null && !nySluttdato.isBefore(sisteInnvilgedeDag)) {
-        grunner.add(ManueltBehandlesGrunn.OMGJORING_SLUTTDATO_ER_IKKE_FOR_INNVILGELSEN_SLUTTER)
+    // Deltakelsen er innvilget på ny sluttdato når vedtaksperioden er funnet, så innvilgelsen i perioden er ikke tom.
+    val gjeldendeInnvilgelse = vedtaksperiode?.let {
+        Innvilgelsesperioder(rammevedtaksliste.innvilgelsesperioder.krymp(it).perioderMedVerdi.tilIkkeTomPeriodisering())
     }
+    val tidligereDeltakelser = gjeldendeInnvilgelse?.periodisering?.perioderMedVerdi
+        ?.map { it.verdi.valgtTiltaksdeltakelse }
+        ?.filter { it.internDeltakelseId == tiltaksdeltakerId }
+        .orEmpty()
 
-    if (førsteInnvilgedeDag != null && nySluttdato != null && nySluttdato.isBefore(førsteInnvilgedeDag)) {
-        grunner.add(ManueltBehandlesGrunn.OMGJORING_SLUTTDATO_ER_FOR_INNVILGELSEN_STARTER)
-    }
-
-    val tidligereDeltakelse = innvilgetForDeltakelse.lastOrNull()?.verdi?.valgtTiltaksdeltakelse
-    if (tidligereDeltakelse != null && nåtilstand != null && nåtilstand.deltakelseFraOgMed != tidligereDeltakelse.deltakelseFraOgMed) {
+    if (nåtilstand != null && tidligereDeltakelser.any { it.deltakelseFraOgMed != nåtilstand.deltakelseFraOgMed }) {
         grunner.add(ManueltBehandlesGrunn.OMGJORING_ENDRET_STARTDATO)
     }
 
-    if (tidligereDeltakelse != null &&
-        nåtilstand != null &&
-        !tidligereDeltakelse.tilDeltakelsestilstand().harSammeDeltakelsesmengde(nåtilstand.tilDeltakelsestilstand())
+    if (nåtilstand != null &&
+        tidligereDeltakelser.any { !it.tilDeltakelsestilstand().harSammeDeltakelsesmengde(nåtilstand.tilDeltakelsestilstand()) }
     ) {
         grunner.add(ManueltBehandlesGrunn.OMGJORING_ENDRET_DELTAKELSESMENGDE)
     }
 
-    val innvilgelsesperioder = if (
-        gjeldendeInnvilgelse != null &&
-        førsteInnvilgedeDag != null &&
-        nySluttdato != null &&
-        !nySluttdato.isBefore(førsteInnvilgedeDag)
-    ) {
+    val innvilgelsesperioder = if (gjeldendeInnvilgelse != null && nySluttdato != null) {
         gjeldendeInnvilgelse.avkortForDeltakelse(tiltaksdeltakerId, nySluttdato)
     } else {
         null
@@ -157,14 +137,32 @@ fun Sak.utledAutomatiskOmgjøringAvSluttdato(
     return AutomatiskOmgjøringAvSluttdato(
         vedtaksperiode = vedtaksperiode!!,
         innvilgelsesperioder = innvilgelsesperioder!!.tilKommando(),
-        barnetillegg = vedtak.barnetillegg?.krympTilPerioder(innvilgelsesperioder.perioder)
+        barnetillegg = rammevedtaksliste.gjeldendeBarnetillegg(vedtaksperiode)
+            ?.krympTilPerioder(innvilgelsesperioder.perioder)
             ?: Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         begrunnelse = lagBegrunnelse(
-            tidligereSluttdato = tidligereDeltakelse!!.deltakelseTilOgMed!!,
+            tidligereSluttdato = tidligereDeltakelser.last().deltakelseTilOgMed!!,
             nySluttdato = nySluttdato!!,
         ),
         fritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create(FRITEKST_TIL_VEDTAKSBREV_VED_AVKORTET_SLUTTDATO)!!,
     ).right()
+}
+
+/**
+ * Det gjeldende barnetillegget i [vedtaksperiode], sammenstilt fra vedtakene som gjelder i perioden.
+ * Begrunnelsen hentes fra det sist opprettede vedtaket i perioden som har en begrunnelse for barnetillegget.
+ * Gir null dersom ingen av vedtakene har barnetillegg.
+ */
+private fun Rammevedtaksliste.gjeldendeBarnetillegg(vedtaksperiode: Periode): Barnetillegg? {
+    val barnetilleggIVedtakene = innvilgetTidslinje.krymp(vedtaksperiode).perioderMedVerdi
+        .map { it.verdi }
+        .sortedBy { it.opprettet }
+        .mapNotNull { it.barnetillegg }
+        .ifEmpty { return null }
+    return Barnetillegg(
+        periodisering = barnetilleggsperioder.krymp(vedtaksperiode).perioderMedVerdi.tilIkkeTomPeriodisering(),
+        begrunnelse = barnetilleggIVedtakene.mapNotNull { it.begrunnelse }.lastOrNull(),
+    )
 }
 
 /**

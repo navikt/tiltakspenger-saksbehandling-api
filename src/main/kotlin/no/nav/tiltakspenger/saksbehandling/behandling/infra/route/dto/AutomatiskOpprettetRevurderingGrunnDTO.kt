@@ -16,6 +16,7 @@ data class AutomatiskOpprettetRevurderingGrunnDTO(
     JsonSubTypes.Type(value = TiltaksdeltakerEndringDTO.AvbruttDeltakelse::class, name = "AVBRUTT_DELTAKELSE"),
     JsonSubTypes.Type(value = TiltaksdeltakerEndringDTO.IkkeAktuellDeltakelse::class, name = "IKKE_AKTUELL_DELTAKELSE"),
     JsonSubTypes.Type(value = TiltaksdeltakerEndringDTO.Forlengelse::class, name = "FORLENGELSE"),
+    JsonSubTypes.Type(value = TiltaksdeltakerEndringDTO.Avkortet::class, name = "AVKORTET"),
     JsonSubTypes.Type(value = TiltaksdeltakerEndringDTO.EndretSluttdato::class, name = "ENDRET_SLUTTDATO"),
     JsonSubTypes.Type(value = TiltaksdeltakerEndringDTO.EndretStartdato::class, name = "ENDRET_STARTDATO"),
     JsonSubTypes.Type(value = TiltaksdeltakerEndringDTO.EndretDeltakelsesmengde::class, name = "ENDRET_DELTAKELSESMENGDE"),
@@ -30,6 +31,8 @@ sealed interface TiltaksdeltakerEndringDTO {
     data object IkkeAktuellDeltakelse : TiltaksdeltakerEndringDTO
 
     data class Forlengelse(val nySluttdato: LocalDate) : TiltaksdeltakerEndringDTO
+
+    data class Avkortet(val nySluttdato: LocalDate) : TiltaksdeltakerEndringDTO
 
     data class EndretSluttdato(val nySluttdato: LocalDate?) : TiltaksdeltakerEndringDTO
 
@@ -63,6 +66,8 @@ private fun TiltaksdeltakerEndring.toDTO(): List<TiltaksdeltakerEndringDTO> = wh
         endretDeltakelsesmengde?.toDTO(),
         TiltaksdeltakerEndringDTO.Forlengelse(nySluttdato = nySluttdato),
     )
+
+    is TiltaksdeltakerEndring.Avkortet -> listOf(TiltaksdeltakerEndringDTO.Avkortet(nySluttdato = nySluttdato))
 
     is TiltaksdeltakerEndring.AndreEndringer -> endringer.map { it.toDTO() }
 }

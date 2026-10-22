@@ -36,6 +36,15 @@ sealed interface TiltaksdeltakerEndring {
     }
 
     /**
+     * Sluttdatoen er flyttet til en dato før siste innvilgede dag, men den er ikke passert ennå, og deltakelsen har fortsatt status deltar.
+     * Startdatoen og deltakelsesmengden er uendret.
+     * Er sluttdatoen passert, er deltakelsen i stedet regnet som [AvbruttDeltakelse].
+     */
+    data class Avkortet(val nySluttdato: LocalDate) : TiltaksdeltakerEndring {
+        override val beskrivelser = listOf("Deltakelsen har blitt avkortet")
+    }
+
+    /**
      * Endringer som ikke går under noen av de andre utfallene.
      * Minst én av endringene er satt.
      */

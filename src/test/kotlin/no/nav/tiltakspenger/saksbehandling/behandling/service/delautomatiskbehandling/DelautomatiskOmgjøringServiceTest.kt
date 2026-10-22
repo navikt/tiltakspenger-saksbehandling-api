@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
@@ -25,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
@@ -38,7 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.junit.jupiter.api.Test
 
 /**
- * Sluttdatoen for deltakelsen flyttes bakover i tid mens den fortsatt har status deltar.
+ * Sluttdatoen for deltakelsen avkortes, mens den fortsatt har status deltar.
  * Klokka står på 1. mai 2025.
  */
 class DelautomatiskOmgjøringServiceTest {
@@ -89,15 +91,15 @@ class DelautomatiskOmgjøringServiceTest {
     }
 
     @Test
-    fun `sluttdato flyttet bakover med status deltar - omgjøres, sendes til beslutning og kan iverksettes`() {
+    fun `sluttdato avkortet med status deltar - omgjøres, sendes til beslutning og kan iverksettes`() {
         withTestApplicationContextAndPostgres { tac ->
-            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 31.mai(2025))
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 30.juni(2025))
             val (sak, _, vedtak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
                 innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
             )
-            val avkortet = deltakelse.copy(deltakelseTilOgMed = 20.april(2025))
+            val avkortet = deltakelse.copy(deltakelseTilOgMed = 15.mai(2025))
             val revurdering = tac.opprettAutomatiskOmgjøring(sak, vedtak, deltakelse, avkortet)
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
@@ -109,18 +111,18 @@ class DelautomatiskOmgjøringServiceTest {
                 it.manueltBehandlesGrunner.shouldBeEmpty()
                 it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldBe
                     "Automatisk behandlet.\n" +
-                    "Sluttdatoen for tiltaksdeltakelsen er endret fra 31. mai 2025 til 20. april 2025, og deltakelsen har fortsatt status deltar.\n" +
+                    "Sluttdatoen for tiltaksdeltakelsen er endret fra 30. juni 2025 til 15. mai 2025, og deltakelsen har fortsatt status deltar.\n" +
                     "Vedtaket omgjøres slik at tiltakspenger innvilges til og med ny sluttdato."
                 it.skalSendeVedtaksbrev shouldBe true
                 it.fritekstTilVedtaksbrev.shouldNotBeNull().verdi shouldBe
                     "Vi har fått opplysninger om at sluttdato for tiltaket er endret. Du er innvilget tiltakspenger ut perioden du deltar i tiltaket."
                 val omgjøring = it.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringInnvilgelse>()
                 omgjøring.omgjørRammevedtak.rammevedtakIDer shouldBe listOf(vedtak.id)
-                omgjøring.vedtaksperiode shouldBe (5.januar(2025) til 31.mai(2025))
-                omgjøring.innvilgelsesperioder.shouldNotBeNull().totalPeriode shouldBe (5.januar(2025) til 20.april(2025))
+                omgjøring.vedtaksperiode shouldBe (5.januar(2025) til 30.juni(2025))
+                omgjøring.innvilgelsesperioder.shouldNotBeNull().totalPeriode shouldBe (5.januar(2025) til 15.mai(2025))
                 it.antallDagerPerMeldeperiode.shouldNotBeNull().verdier.distinct() shouldBe
                     vedtak.antallDagerPerMeldeperiode.shouldNotBeNull().verdier.distinct()
-                it.barnetillegg.shouldNotBeNull().periodisering.totalPeriode shouldBe (5.januar(2025) til 20.april(2025))
+                it.barnetillegg.shouldNotBeNull().periodisering.totalPeriode shouldBe (5.januar(2025) til 15.mai(2025))
             }
 
             taRammebehandlinger(tac, listOf(sak.id to revurdering.id), saksbehandler = ObjectMother.beslutter()).shouldNotBeNull()
@@ -128,7 +130,7 @@ class DelautomatiskOmgjøringServiceTest {
 
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.also {
                 it.førsteDagSomGirRett shouldBe 5.januar(2025)
-                it.sisteDagSomGirRett shouldBe 20.april(2025)
+                it.sisteDagSomGirRett shouldBe 15.mai(2025)
             }
             tac.behandleEndring(sak, deltakelse, avkortet).shouldBeInstanceOf<IngenRelevantEndring>()
             tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>().opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
@@ -138,13 +140,13 @@ class DelautomatiskOmgjøringServiceTest {
     @Test
     fun `deltakelsen er avbrutt før omgjøringen behandles - overlates til saksbehandler`() {
         withTestApplicationContextAndPostgres { tac ->
-            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 31.mai(2025))
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 30.juni(2025))
             val (sak, _, vedtak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
                 innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
             )
-            val avkortet = deltakelse.copy(deltakelseTilOgMed = 20.april(2025))
+            val avkortet = deltakelse.copy(deltakelseTilOgMed = 15.mai(2025))
             val revurdering = tac.opprettAutomatiskOmgjøring(sak, vedtak, deltakelse, avkortet)
             tac.oppdaterTiltaksdeltakelse(sak.fnr, avkortet.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt))
 
@@ -158,13 +160,13 @@ class DelautomatiskOmgjøringServiceTest {
     @Test
     fun `startdato og deltakelsesmengde er endret før omgjøringen behandles - overlates til saksbehandler`() {
         withTestApplicationContextAndPostgres { tac ->
-            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 31.mai(2025))
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 30.juni(2025))
             val (sak, _, vedtak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
                 innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
             )
-            val avkortet = deltakelse.copy(deltakelseTilOgMed = 20.april(2025))
+            val avkortet = deltakelse.copy(deltakelseTilOgMed = 15.mai(2025))
             val revurdering = tac.opprettAutomatiskOmgjøring(sak, vedtak, deltakelse, avkortet)
             tac.oppdaterTiltaksdeltakelse(
                 sak.fnr,
@@ -211,6 +213,53 @@ class DelautomatiskOmgjøringServiceTest {
 
             tac.hentRevurdering(sak, revurdering)
                 .skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.OMGJORING_UTBETALING_STOTTER_IKKE_FEILUTBETALING)
+        }
+    }
+
+    /**
+     * Søknadsbehandlingen innvilger januar–mars, og en revurdering innvilger resten av deltakelsen, april–juni.
+     * Ny sluttdato, 15. mars, er innvilget i søknadsbehandlingen, mens de avkortede dagene også er innvilget i revurderingen.
+     * Omgjøringen startes fra søknadsbehandlingen, men vedtaksperioden dekker begge vedtakene.
+     */
+    @Test
+    fun `ny sluttdato i et tidligere vedtak - omgjør både det tidligere og det senere vedtaket`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 30.juni(2025))
+            val (sak, _, søknadsvedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(5.januar(2025) til 31.mars(2025), deltakelse),
+            )
+            val (_, revurderingsvedtak) = iverksettRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 30.juni(2025), deltakelse),
+            )
+            val avkortet = deltakelse.copy(deltakelseTilOgMed = 15.mars(2025))
+            val revurdering = tac.opprettAutomatiskOmgjøring(sak, søknadsvedtak, deltakelse, avkortet)
+
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+
+            tac.hentRevurdering(sak, revurdering).also {
+                it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+                it.manueltBehandlesGrunner.shouldBeEmpty()
+                val omgjøring = it.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringInnvilgelse>()
+                omgjøring.omgjørRammevedtak.rammevedtakIDer shouldBe listOf(søknadsvedtak.id, revurderingsvedtak.id)
+                omgjøring.vedtaksperiode shouldBe (5.januar(2025) til 30.juni(2025))
+                omgjøring.innvilgelsesperioder.shouldNotBeNull().perioder shouldBe listOf(5.januar(2025) til 15.mars(2025))
+                it.barnetillegg.shouldNotBeNull().periodisering.totalPeriode shouldBe (5.januar(2025) til 15.mars(2025))
+            }
+
+            taRammebehandlinger(tac, listOf(sak.id to revurdering.id), saksbehandler = ObjectMother.beslutter()).shouldNotBeNull()
+            iverksettForBehandlingId(tac, sak.id, revurdering.id).shouldNotBeNull()
+
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.also {
+                it.førsteDagSomGirRett shouldBe 5.januar(2025)
+                it.sisteDagSomGirRett shouldBe 15.mars(2025)
+                it.rammevedtaksliste.innvilgetTidslinje.perioder shouldBe listOf(5.januar(2025) til 15.mars(2025))
+            }
+            tac.behandleEndring(sak, deltakelse, avkortet).shouldBeInstanceOf<IngenRelevantEndring>()
+            tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>().opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
         }
     }
 
