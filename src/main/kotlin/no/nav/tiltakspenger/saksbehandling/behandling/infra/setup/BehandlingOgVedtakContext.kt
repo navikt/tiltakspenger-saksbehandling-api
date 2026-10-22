@@ -32,6 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.Fo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskForlengelseService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskOmgjøringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskRevurderingSteg
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskStansService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.distribuering.DistribuerRammevedtaksbrevService
@@ -132,6 +133,13 @@ open class BehandlingOgVedtakContext(
     }
     val delautomatiskForlengelseService: DelautomatiskForlengelseService by lazy {
         DelautomatiskForlengelseService(
+            sakService = sakService,
+            steg = delautomatiskRevurderingSteg,
+            clock = clock,
+        )
+    }
+    val delautomatiskOmgjøringService: DelautomatiskOmgjøringService by lazy {
+        DelautomatiskOmgjøringService(
             sakService = sakService,
             steg = delautomatiskRevurderingSteg,
             clock = clock,
