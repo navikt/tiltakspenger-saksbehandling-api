@@ -40,7 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 
 /**
- * Stegene som er felles for revurderinger systemet oppretter og behandler automatisk, se [DelautomatiskStansService], [DelautomatiskForlengelseService] og [DelautomatiskOmgjøringService].
+ * Stegene som er felles for revurderinger systemet oppretter og behandler automatisk, se [DelautomatiskStansService] og [DelautomatiskForlengelseService].
  * Stegene gjøres direkte på domeneobjektene, og resultatet lagres i én transaksjon til slutt.
  * Uventede feil, f.eks. når simulering eller oppslag mot Nav-kontor feiler, kastes videre uten at noe er lagret.
  */
@@ -322,15 +322,6 @@ data class GrunnerVedSendTilBeslutning(
             kontrollsimuleringHarEndringer = ManueltBehandlesGrunn.FORLENGELSE_UTBETALING_KONTROLLSIMULERING_HAR_ENDRINGER,
             ugyldigeMeldeperioderForHelg = ManueltBehandlesGrunn.FORLENGELSE_UGYLDIGE_MELDEPERIODER_FOR_HELG,
             kanIkkeSendesTilBeslutning = ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_SENDES_TIL_BESLUTNING,
-        )
-
-        val omgjøring = GrunnerVedSendTilBeslutning(
-            simuleringMangler = ManueltBehandlesGrunn.OMGJORING_UTBETALING_SIMULERING_MANGLER,
-            støtterIkkeFeilutbetaling = ManueltBehandlesGrunn.OMGJORING_UTBETALING_STOTTER_IKKE_FEILUTBETALING,
-            støtterIkkeJustering = ManueltBehandlesGrunn.OMGJORING_UTBETALING_STOTTER_IKKE_JUSTERING,
-            kontrollsimuleringHarEndringer = ManueltBehandlesGrunn.OMGJORING_UTBETALING_KONTROLLSIMULERING_HAR_ENDRINGER,
-            ugyldigeMeldeperioderForHelg = ManueltBehandlesGrunn.OMGJORING_UGYLDIGE_MELDEPERIODER_FOR_HELG,
-            kanIkkeSendesTilBeslutning = ManueltBehandlesGrunn.OMGJORING_KAN_IKKE_SENDES_TIL_BESLUTNING,
         )
     }
 }

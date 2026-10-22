@@ -300,58 +300,8 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
 
         sak.vurder(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)).automatiskRevurdering shouldBe
             AutomatiskRevurderingAvEndring.StansEllerOpphør
-        sak.vurder(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = iDag.minusWeeks(1)))
-            .automatiskRevurdering shouldBe AutomatiskRevurderingAvEndring.StansEllerOpphør
-    }
-
-    @Test
-    fun `sluttdato avkortet til fortiden med status deltar gir omgjøring av vedtaket i stedet for stans`() {
-        val sak = sakMedInnvilgelse()
-        val vedtak = sak.rammevedtaksliste.verdi.single()
-
-        listOf(iDag.minusWeeks(1), iDag, deltakelse.deltakelseFraOgMed!!).forEach { nySluttdato ->
-            sak.vurder(deltakelse.copy(deltakelseTilOgMed = nySluttdato)).let {
-                it.endring shouldBe AvbruttDeltakelse
-                it.automatiskRevurdering shouldBe AutomatiskRevurderingAvEndring.OmgjøringAvAvkortetSluttdato(vedtak.id)
-            }
-        }
-    }
-
-    @Test
-    fun `sluttdato avkortet til før innvilgelsen starter med status deltar gir stans som før`() {
-        val sak = sakMedInnvilgelse(innvilgelsesperiode = iDag.minusWeeks(2) til deltakelse.deltakelseTilOgMed!!)
-
-        sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(3))).automatiskRevurdering shouldBe
-            AutomatiskRevurderingAvEndring.StansEllerOpphør
-    }
-
-    @Test
-    fun `sluttdato avkortet med status deltar omgjør bare når de avkortede dagene er innvilget i ett vedtak`() {
-        val sak = sakMedInnvilgelse().medInnvilgelse(
-            innvilgelsesperiode = iDag til deltakelse.deltakelseTilOgMed!!,
-            innvilgetDeltakelse = deltakelse,
-        )
-        val andreVedtak = sak.rammevedtaksliste.verdi.last()
-
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(1))).automatiskRevurdering shouldBe
             AutomatiskRevurderingAvEndring.StansEllerOpphør
-        sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusDays(1))).automatiskRevurdering shouldBe
-            AutomatiskRevurderingAvEndring.StansEllerOpphør
-        sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag)).automatiskRevurdering shouldBe
-            AutomatiskRevurderingAvEndring.OmgjøringAvAvkortetSluttdato(andreVedtak.id)
-    }
-
-    @Test
-    fun `sluttdato avkortet med status deltar når en annen deltakelse er innvilget etterpå gir omgjøring av vedtaket`() {
-        val sluttdato = deltakelse.deltakelseTilOgMed!!
-        val annenDeltakelse = ObjectMother.tiltaksdeltakelse(fom = sluttdato.plusDays(1), tom = sluttdato.plusMonths(1))
-        val sak = sakMedInnvilgelse().medInnvilgelse(
-            innvilgelsesperiode = annenDeltakelse.periode!!,
-            innvilgetDeltakelse = annenDeltakelse,
-        )
-
-        sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(1))).automatiskRevurdering shouldBe
-            AutomatiskRevurderingAvEndring.OmgjøringAvAvkortetSluttdato(sak.rammevedtaksliste.verdi.first().id)
     }
 
     @Test
@@ -447,12 +397,9 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
     @Test
     fun `avbrudd tilbake i tid i en innvilgelse som er passert gir stans eller opphør`() {
         val sak = sakMedInnvilgelse(innvilgelsesperiode = deltakelse.deltakelseFraOgMed!! til iDag.minusMonths(1))
-        val avkortet = deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(6))
 
-        sak.vurder(avkortet.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)).automatiskRevurdering shouldBe
-            AutomatiskRevurderingAvEndring.StansEllerOpphør
-        sak.vurder(avkortet).automatiskRevurdering shouldBe
-            AutomatiskRevurderingAvEndring.OmgjøringAvAvkortetSluttdato(sak.rammevedtaksliste.verdi.single().id)
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(6))) shouldBe
+            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.StansEllerOpphør)
     }
 
     /**

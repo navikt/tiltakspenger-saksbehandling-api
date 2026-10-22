@@ -23,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderin
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.ForberedtRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskForlengelseService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskOmgjøringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskRevurderingJobb
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskStansService
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgave
@@ -53,7 +52,7 @@ import java.time.LocalDateTime
  * Referansen til oppgaven lagres som en [EksternOppgave] før markøren nullstilles.
  * Hver ferdig behandlede endring lagres i `tiltaksdeltaker_endring` for sporbarhet, i samme transaksjon som markøren nullstilles.
  * En automatisk revurdering lagres også i den transaksjonen, slik at revurderingen, sporingen og kvitteringen lagres samlet eller ikke i det hele tatt.
- * En automatisk stans, forlengelse eller omgjøring ved avkortet sluttdato opprettes under automatisk behandling og behandles videre av [DelautomatiskRevurderingJobb].
+ * En automatisk stans eller forlengelse opprettes under automatisk behandling og behandles videre av [DelautomatiskRevurderingJobb].
  */
 class OppdatertTiltaksdeltakelseJobb(
     private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
@@ -63,7 +62,6 @@ class OppdatertTiltaksdeltakelseJobb(
     private val startRevurderingService: StartRevurderingService,
     private val delautomatiskStansService: DelautomatiskStansService,
     private val delautomatiskForlengelseService: DelautomatiskForlengelseService,
-    private val delautomatiskOmgjøringService: DelautomatiskOmgjøringService,
     private val oppgaveKlient: OppgaveKlient,
     private val eksternOppgaveRepo: EksternOppgaveRepo,
     private val tiltaksdeltakerHendelseRepo: TiltaksdeltakerHendelseRepo,
@@ -230,8 +228,8 @@ class OppdatertTiltaksdeltakelseJobb(
     }
 
     /**
-     * En stans, forlengelse eller omgjøring ved avkortet sluttdato opprettes under automatisk behandling og behandles videre av [DelautomatiskRevurderingJobb].
-     * Andre omgjøringer opprettes klare til behandling for en saksbehandler.
+     * En stans eller forlengelse opprettes under automatisk behandling og behandles videre av [DelautomatiskRevurderingJobb].
+     * Omgjøringer opprettes klare til behandling for en saksbehandler.
      * En stans kan i stedet bli et utfylt opphør klart til behandling, se [DelautomatiskStansService.opprettStansEllerOpphør].
      *
      * @return null dersom revurderingen ikke kan opprettes, og endringen må følges opp med en oppgave.
@@ -249,13 +247,6 @@ class OppdatertTiltaksdeltakelseJobb(
                 ?: return null
 
             AutomatiskRevurderingAvEndring.Innvilgelse -> delautomatiskForlengelseService.opprett(sak, automatiskOpprettetGrunn, correlationId)
-
-            is AutomatiskRevurderingAvEndring.OmgjøringAvAvkortetSluttdato -> delautomatiskOmgjøringService.opprett(
-                sak = sak,
-                automatiskOpprettetGrunn = automatiskOpprettetGrunn,
-                vedtakIdSomOmgjøres = revurderingSomSkalOpprettes.vedtakIdSomOmgjøres,
-                correlationId = correlationId,
-            )
 
             is AutomatiskRevurderingAvEndring.Omgjøring -> startRevurderingService.forberedRevurdering(
                 StartRevurderingKommando(

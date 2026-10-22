@@ -229,7 +229,6 @@ open class ApplicationContext(
             startRevurderingService = behandlingContext.startRevurderingService,
             delautomatiskStansService = behandlingContext.delautomatiskStansService,
             delautomatiskForlengelseService = behandlingContext.delautomatiskForlengelseService,
-            delautomatiskOmgjøringService = behandlingContext.delautomatiskOmgjøringService,
             oppgaveKlient = oppgaveKlient,
             eksternOppgaveRepo = eksternOppgaveRepo,
             tiltaksdeltakerHendelseRepo = tiltaksdeltakerHendelseRepo,
@@ -377,7 +376,6 @@ open class ApplicationContext(
             rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
             delautomatiskStansService = behandlingContext.delautomatiskStansService,
             delautomatiskForlengelseService = behandlingContext.delautomatiskForlengelseService,
-            delautomatiskOmgjøringService = behandlingContext.delautomatiskOmgjøringService,
         )
     }
 

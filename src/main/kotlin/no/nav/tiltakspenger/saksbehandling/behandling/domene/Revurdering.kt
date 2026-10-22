@@ -281,36 +281,6 @@ data class Revurdering(
             )
         }
 
-        /**
-         * En omgjøring som opprettes av systemet og behandles av den automatiske saksbehandleren.
-         * Behandlingen er [UNDER_AUTOMATISK_BEHANDLING] og tildelt [AUTOMATISK_SAKSBEHANDLER_ID] til den enten sendes til beslutning eller overlates til en saksbehandler.
-         *
-         * @param omgjørRammevedtak Rammevedtaket som erstattes helt eller delvis
-         */
-        fun opprettAutomatiskBehandletOmgjøring(
-            revurderingId: RammebehandlingId = RammebehandlingId.random(),
-            saksopplysninger: Saksopplysninger,
-            omgjørRammevedtak: Rammevedtak,
-            opprettet: LocalDateTime,
-            automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn,
-        ): Revurdering {
-            return opprett(
-                revurderingId = revurderingId,
-                sakId = omgjørRammevedtak.sakId,
-                saksnummer = omgjørRammevedtak.saksnummer,
-                fnr = omgjørRammevedtak.fnr,
-                status = UNDER_AUTOMATISK_BEHANDLING,
-                saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID,
-                saksopplysninger = saksopplysninger,
-                opprettet = opprettet,
-                resultat = Omgjøringsresultat.OmgjøringIkkeValgt(
-                    omgjørRammevedtak = OmgjørRammevedtak.create(omgjørRammevedtak),
-                ),
-                klagebehandling = null,
-                automatiskOpprettetGrunn = automatiskOpprettetGrunn,
-            )
-        }
-
         fun opprettInnvilgelse(
             sakId: SakId,
             saksnummer: Saksnummer,
