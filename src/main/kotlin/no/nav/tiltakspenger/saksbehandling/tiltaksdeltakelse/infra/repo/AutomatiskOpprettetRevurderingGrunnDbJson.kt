@@ -33,6 +33,7 @@ private enum class TiltaksdeltakerEndringTypeDb {
     AVBRUTT_DELTAKELSE,
     IKKE_AKTUELL_DELTAKELSE,
     FORLENGELSE,
+    AVKORTET,
     ENDRET_SLUTTDATO,
     ENDRET_STARTDATO,
     ENDRET_DELTAKELSESMENGDE,
@@ -74,6 +75,8 @@ private fun TiltaksdeltakerEndring.tilEndringerDbJson(): List<TiltaksdeltakerEnd
         TiltaksdeltakerEndringDbJson(type = TiltaksdeltakerEndringTypeDb.FORLENGELSE, nySluttdato = nySluttdato.toString()),
     )
 
+    is TiltaksdeltakerEndring.Avkortet -> listOf(TiltaksdeltakerEndringDbJson(type = TiltaksdeltakerEndringTypeDb.AVKORTET, nySluttdato = nySluttdato.toString()))
+
     is TiltaksdeltakerEndring.AndreEndringer -> endringer.map { it.toDbJson() }
 }
 
@@ -94,6 +97,7 @@ private fun List<TiltaksdeltakerEndringDbJson>.toDomain(): TiltaksdeltakerEndrin
         TiltaksdeltakerEndring.EndretDeltakelsesmengde(nyDeltakelsesprosent = it.nyDeltakelsesprosent, nyDagerPerUke = it.nyDagerPerUke)
     }
     val forlengelse = finn(TiltaksdeltakerEndringTypeDb.FORLENGELSE)
+    val avkortet = finn(TiltaksdeltakerEndringTypeDb.AVKORTET)
 
     return when {
         finn(TiltaksdeltakerEndringTypeDb.AVSLUTTET_SOM_FORVENTET) != null -> TiltaksdeltakerEndring.AvsluttetSomForventet
@@ -106,6 +110,8 @@ private fun List<TiltaksdeltakerEndringDbJson>.toDomain(): TiltaksdeltakerEndrin
             nySluttdato = LocalDate.parse(forlengelse.nySluttdato!!),
             endretDeltakelsesmengde = endretDeltakelsesmengde,
         )
+
+        avkortet != null -> TiltaksdeltakerEndring.Avkortet(nySluttdato = LocalDate.parse(avkortet.nySluttdato!!))
 
         else -> TiltaksdeltakerEndring.AndreEndringer(
             endretDeltakelsesmengde = endretDeltakelsesmengde,

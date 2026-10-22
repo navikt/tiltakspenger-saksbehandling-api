@@ -58,6 +58,10 @@ class AutomatiskOpprettetRevurderingGrunnDbJsonTest {
             json(mengdeJson, endringJson("FORLENGELSE", nySluttdato = "2025-03-31")),
         ),
         Arguments.of(
+            TiltaksdeltakerEndring.Avkortet(nySluttdato = 15.mars(2025)),
+            json(endringJson("AVKORTET", nySluttdato = "2025-03-15")),
+        ),
+        Arguments.of(
             TiltaksdeltakerEndring.AndreEndringer(
                 endretDeltakelsesmengde = mengde,
                 endretStartdato = TiltaksdeltakerEndring.EndretStartdato(nyStartdato = 1.mars(2025)),

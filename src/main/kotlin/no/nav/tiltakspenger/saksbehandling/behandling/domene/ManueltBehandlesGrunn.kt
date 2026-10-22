@@ -81,6 +81,35 @@ enum class ManueltBehandlesGrunn {
     FORLENGELSE_UGYLDIGE_MELDEPERIODER_FOR_HELG,
     FORLENGELSE_KAN_IKKE_SENDES_TIL_BESLUTNING,
 
+    /** Tiltaksdeltakelsen som har fått ny sluttdato, er ikke lenger innvilget i noe gjeldende vedtak. */
+    OMGJORING_DELTAKELSEN_ER_IKKE_INNVILGET,
+
+    /** Et vedtak som gjelder i vedtaksperioden til omgjøringen, gjelder også utenfor den, slik at bare deler av det ville blitt omgjort. */
+    OMGJORING_OMGJOR_DELER_AV_VEDTAK,
+
+    /** Vedtaksperioden til omgjøringen går over dager uten vedtak, som ikke kan opphøres. */
+    OMGJORING_VEDTAKSPERIODEN_HAR_DAGER_UTEN_VEDTAK,
+    OMGJORING_FANT_IKKE_TILTAKSDELTAKELSE,
+    OMGJORING_DELTAKELSEN_HAR_IKKE_STATUS_DELTAR,
+    OMGJORING_TILTAKET_GIR_IKKE_RETT,
+    OMGJORING_DELTAKELSEN_MANGLER_SLUTTDATO,
+    OMGJORING_SLUTTDATO_ER_IKKE_FOR_INNVILGELSEN_SLUTTER,
+
+    /** Ny sluttdato er ikke innvilget for deltakelsen, f.eks. fordi den er før deltakelsen er innvilget eller i en stans. */
+    OMGJORING_SLUTTDATO_ER_IKKE_INNVILGET,
+    OMGJORING_ENDRET_STARTDATO,
+    OMGJORING_ENDRET_DELTAKELSESMENGDE,
+
+    /** De oppdaterte saksopplysningene endrer innvilgelsen av andre deltakelser enn den som har fått ny sluttdato. */
+    OMGJORING_ANDRE_ENDRINGER_I_TILTAKSDELTAKELSENE,
+    OMGJORING_UTBETALING_SIMULERING_MANGLER,
+    OMGJORING_UTBETALING_STOTTER_IKKE_FEILUTBETALING,
+    OMGJORING_UTBETALING_STOTTER_IKKE_JUSTERING,
+    OMGJORING_UTBETALING_KONTROLLSIMULERING_HAR_ENDRINGER,
+    OMGJORING_KAN_IKKE_FYLLES_UT,
+    OMGJORING_UGYLDIGE_MELDEPERIODER_FOR_HELG,
+    OMGJORING_KAN_IKKE_SENDES_TIL_BESLUTNING,
+
     ANNET_APEN_BEHANDLING,
     ANNET_VEDTAK_FOR_SAMME_PERIODE,
     ANNET_HAR_SOKT_FOR_SENT,

@@ -5,6 +5,7 @@ import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -23,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskOmgjøring.finnOmgjøringsperiodeVedAvkortetSluttdato
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.AutomatiskStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.utledAutomatiskStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.iverksett.iverksett
@@ -40,6 +42,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.AndreEndringer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.AvbruttDeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.Avkortet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.AvsluttetSomForventet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.EndretDeltakelsesmengde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.EndretSluttdato
@@ -124,10 +127,10 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
     }
 
     @Test
-    fun `avkortet sluttdato er bare avbrudd dersom den berører de gjenværende innvilgede periodene etter stans`() {
+    fun `avkortet sluttdato er bare relevant dersom den berører de gjenværende innvilgede periodene etter stans`() {
         val sak = sakMedInnvilgelse().medStans(stansFraOgMed = iDag)
 
-        sak.finnEndringer(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(1))) shouldBe AvbruttDeltakelse
+        sak.finnEndringer(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(1))) shouldBe Avkortet(iDag.minusWeeks(1))
         sak.vurderMotGjeldendeVedtak(deltakelse.copy(deltakelseTilOgMed = iDag)) shouldBe IngenEndring
     }
 
@@ -136,15 +139,39 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val sak = sakMedInnvilgelse(innvilgelsesperiode = deltakelse.deltakelseFraOgMed!! til iDag.minusMonths(1))
 
         sak.vurderMotGjeldendeVedtak(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(1))) shouldBe IngenEndring
-        sak.finnEndringer(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(6))) shouldBe AvbruttDeltakelse
+        sak.finnEndringer(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(6))) shouldBe Avkortet(iDag.minusWeeks(6))
     }
 
     @Test
-    fun `avkortet sluttdato frem i tid innenfor de innvilgede periodene gir endret sluttdato`() {
+    fun `avkortet sluttdato gir avkortet når deltakelsen har status deltar, også når den er passert`() {
+        val sak = sakMedInnvilgelse()
         val nySluttdato = iDag.plusWeeks(1)
 
-        sakMedInnvilgelse().finnEndringer(deltakelse.copy(deltakelseTilOgMed = nySluttdato)) shouldBe
+        sak.finnEndringer(deltakelse.copy(deltakelseTilOgMed = nySluttdato)) shouldBe Avkortet(nySluttdato)
+        sak.finnEndringer(deltakelse.copy(deltakelseTilOgMed = iDag)) shouldBe Avkortet(iDag)
+        sak.finnEndringer(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(1))) shouldBe Avkortet(iDag.minusWeeks(1))
+        sak.finnEndringer(
+            deltakelse.copy(deltakelseTilOgMed = nySluttdato, deltakelseStatus = TiltakDeltakerstatus.Deltar),
+        ) shouldBe Avkortet(nySluttdato)
+    }
+
+    @Test
+    fun `avkortet sluttdato gir andre endringer sammen med andre relevante endringer eller annen status enn deltar`() {
+        val opprinnelig = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.VenterPåOppstart)
+        val sak = sakMedInnvilgelse(opprinnelig = opprinnelig)
+        val nySluttdato = iDag.plusWeeks(1)
+
+        sak.finnEndringer(opprinnelig.copy(deltakelseTilOgMed = nySluttdato, deltakelseStatus = TiltakDeltakerstatus.Deltar)) shouldBe
+            Avkortet(nySluttdato)
+        sak.finnEndringer(opprinnelig.copy(deltakelseTilOgMed = nySluttdato)) shouldBe
             AndreEndringer(endretSluttdato = EndretSluttdato(nySluttdato))
+        sak.finnEndringer(
+            opprinnelig.copy(deltakelseTilOgMed = nySluttdato, deltakelseStatus = TiltakDeltakerstatus.Deltar, deltakelseProsent = 60F),
+        ) shouldBe AndreEndringer(
+            endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 2F),
+            endretSluttdato = EndretSluttdato(nySluttdato),
+            endretStatus = EndretStatus(TiltakDeltakerstatus.Deltar),
+        )
     }
 
     @Test
@@ -262,8 +289,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         sak.vurderMotGjeldendeVedtak(deltakelse.copy(deltakelseTilOgMed = forlengetSluttdato)) shouldBe IngenEndring
         sak.finnEndringer(deltakelse.copy(deltakelseTilOgMed = forlengetSluttdato.plusMonths(1))) shouldBe
             Forlengelse(forlengetSluttdato.plusMonths(1))
-        sak.finnEndringer(deltakelse) shouldBe
-            AndreEndringer(endretSluttdato = EndretSluttdato(deltakelse.deltakelseTilOgMed))
+        sak.finnEndringer(deltakelse) shouldBe Avkortet(deltakelse.deltakelseTilOgMed!!)
     }
 
     @Test
@@ -297,11 +323,117 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
     @Test
     fun `avbrudd gir stans eller opphør`() {
         val sak = sakMedInnvilgelse()
+        val avbrutt = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)
 
-        sak.vurder(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)).automatiskRevurdering shouldBe
+        sak.vurder(avbrutt).automatiskRevurdering shouldBe
             AutomatiskRevurderingAvEndring.StansEllerOpphør
-        sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(1))).automatiskRevurdering shouldBe
+        sak.vurder(avbrutt.copy(deltakelseTilOgMed = iDag.minusWeeks(1))).automatiskRevurdering shouldBe
             AutomatiskRevurderingAvEndring.StansEllerOpphør
+        sak.vurder(avbrutt.copy(deltakelseTilOgMed = iDag.minusDays(1))) shouldBeEksakt
+            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.StansEllerOpphør)
+    }
+
+    @Test
+    fun `avkortet sluttdato gir omgjøring av vedtaket som kan behandles automatisk`() {
+        val sak = sakMedInnvilgelse()
+        val vedtak = sak.rammevedtaksliste.verdi.single()
+
+        listOf(iDag.minusWeeks(1), iDag, iDag.plusWeeks(1)).forEach { nySluttdato ->
+            sak.vurder(deltakelse.copy(deltakelseTilOgMed = nySluttdato)).let {
+                it.endring shouldBe Avkortet(nySluttdato)
+                it.automatiskRevurdering shouldBe AutomatiskRevurderingAvEndring.OmgjøringAvAvkortetSluttdato(vedtak.id)
+            }
+        }
+    }
+
+    /**
+     * Er ny sluttdato innvilget i et tidligere vedtak enn de avkortede dagene, startes omgjøringen fra det tidligere vedtaket.
+     * Vedtaksperioden dekker da også det senere vedtaket, se [finnOmgjøringsperiodeVedAvkortetSluttdato].
+     */
+    @Test
+    fun `avkortet sluttdato i et tidligere vedtak gir omgjøring av det tidligere og det senere vedtaket som kan behandles automatisk`() {
+        val andreInnvilgelseFraOgMed = iDag.plusWeeks(1)
+        val sak = sakMedInnvilgelse().medInnvilgelse(
+            innvilgelsesperiode = andreInnvilgelseFraOgMed til deltakelse.deltakelseTilOgMed!!,
+            innvilgetDeltakelse = deltakelse,
+        )
+        val (førsteVedtak, andreVedtak) = sak.rammevedtaksliste.verdi
+
+        listOf(iDag.minusWeeks(1), iDag, andreInnvilgelseFraOgMed.minusDays(1)).forEach { nySluttdato ->
+            sak.vurder(deltakelse.copy(deltakelseTilOgMed = nySluttdato)) shouldBeEksakt Endret(
+                endring = Avkortet(nySluttdato),
+                automatiskRevurdering = AutomatiskRevurderingAvEndring.OmgjøringAvAvkortetSluttdato(førsteVedtak.id),
+            )
+            sak.rammevedtaksliste.finnOmgjøringsperiodeVedAvkortetSluttdato(deltakelse.internDeltakelseId, nySluttdato)
+                .getOrFail().vedtaksperiode shouldBe deltakelse.periode
+        }
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = andreInnvilgelseFraOgMed)).automatiskRevurdering shouldBe
+            AutomatiskRevurderingAvEndring.OmgjøringAvAvkortetSluttdato(andreVedtak.id)
+        sak.rammevedtaksliste.finnOmgjøringsperiodeVedAvkortetSluttdato(deltakelse.internDeltakelseId, andreInnvilgelseFraOgMed)
+            .getOrFail().vedtaksperiode shouldBe (andreInnvilgelseFraOgMed til deltakelse.deltakelseTilOgMed!!)
+    }
+
+    /**
+     * Et vedtak som innvilger midt i et annet vedtak, gjør at det andre vedtaket gjelder både før og etter.
+     * Med ny sluttdato i det midterste vedtaket ville omgjøringen bare omgjort deler av det andre vedtaket.
+     * En passert sluttdato vurderes da som et avbrudd, og ellers som en omgjøring som følges opp manuelt.
+     */
+    @Test
+    fun `avkortet sluttdato som ville omgjort deler av et vedtak omgjøres ikke automatisk`() {
+        val fremtidigSak = sakMedInnvilgelse().medInnvilgelse(
+            innvilgelsesperiode = iDag til iDag.plusWeeks(2),
+            innvilgetDeltakelse = deltakelse,
+        )
+        val passertSak = sakMedInnvilgelse().medInnvilgelse(
+            innvilgelsesperiode = iDag.minusWeeks(3) til iDag.minusWeeks(1),
+            innvilgetDeltakelse = deltakelse,
+        )
+
+        fremtidigSak.rammevedtaksliste.finnOmgjøringsperiodeVedAvkortetSluttdato(deltakelse.internDeltakelseId, iDag.plusWeeks(1)) shouldBe
+            ManueltBehandlesGrunn.OMGJORING_OMGJOR_DELER_AV_VEDTAK.left()
+        fremtidigSak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.plusWeeks(1))) shouldBeEksakt
+            Endret(Avkortet(iDag.plusWeeks(1)), automatiskRevurdering = null)
+        passertSak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(2))) shouldBeEksakt
+            Endret(Avkortet(iDag.minusWeeks(2)), AutomatiskRevurderingAvEndring.StansEllerOpphør)
+    }
+
+    @Test
+    fun `avkortet sluttdato som ville omgjort dager uten vedtak omgjøres ikke automatisk`() {
+        val sak = sakMedInnvilgelse(innvilgelsesperiode = deltakelse.deltakelseFraOgMed!! til iDag.plusWeeks(1))
+            .medInnvilgelse(innvilgelsesperiode = iDag.plusWeeks(3) til deltakelse.deltakelseTilOgMed!!, innvilgetDeltakelse = deltakelse)
+
+        sak.rammevedtaksliste.finnOmgjøringsperiodeVedAvkortetSluttdato(deltakelse.internDeltakelseId, iDag.plusDays(3)) shouldBe
+            ManueltBehandlesGrunn.OMGJORING_VEDTAKSPERIODEN_HAR_DAGER_UTEN_VEDTAK.left()
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.plusDays(3))) shouldBeEksakt
+            Endret(Avkortet(iDag.plusDays(3)), automatiskRevurdering = null)
+    }
+
+    @Test
+    fun `avkortet sluttdato før innvilgelsen starter gir stans når den er passert og ellers omgjøring som følges opp manuelt`() {
+        val fremtidigSak = sakMedInnvilgelse(innvilgelsesperiode = iDag.plusWeeks(2) til deltakelse.deltakelseTilOgMed!!)
+        val passertSak = sakMedInnvilgelse(innvilgelsesperiode = iDag.minusWeeks(2) til deltakelse.deltakelseTilOgMed!!)
+
+        fremtidigSak.rammevedtaksliste.finnOmgjøringsperiodeVedAvkortetSluttdato(deltakelse.internDeltakelseId, iDag.plusWeeks(1)) shouldBe
+            ManueltBehandlesGrunn.OMGJORING_SLUTTDATO_ER_IKKE_INNVILGET.left()
+        fremtidigSak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.plusWeeks(1))) shouldBeEksakt Endret(
+            endring = Avkortet(iDag.plusWeeks(1)),
+            automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(fremtidigSak.rammevedtaksliste.verdi.single().id),
+        )
+        passertSak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(3))) shouldBeEksakt
+            Endret(Avkortet(iDag.minusWeeks(3)), AutomatiskRevurderingAvEndring.StansEllerOpphør)
+    }
+
+    @Test
+    fun `avkortet sluttdato når en annen deltakelse er innvilget etterpå gir omgjøring av vedtaket som kan behandles automatisk`() {
+        val sluttdato = deltakelse.deltakelseTilOgMed!!
+        val annenDeltakelse = ObjectMother.tiltaksdeltakelse(fom = sluttdato.plusDays(1), tom = sluttdato.plusMonths(1))
+        val sak = sakMedInnvilgelse().medInnvilgelse(
+            innvilgelsesperiode = annenDeltakelse.periode!!,
+            innvilgetDeltakelse = annenDeltakelse,
+        )
+
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.plusWeeks(1))).automatiskRevurdering shouldBe
+            AutomatiskRevurderingAvEndring.OmgjøringAvAvkortetSluttdato(sak.rammevedtaksliste.verdi.first().id)
     }
 
     @Test
@@ -395,11 +527,16 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
     }
 
     @Test
-    fun `avbrudd tilbake i tid i en innvilgelse som er passert gir stans eller opphør`() {
+    fun `avbrudd og avkortet sluttdato tilbake i tid i en innvilgelse som er passert`() {
         val sak = sakMedInnvilgelse(innvilgelsesperiode = deltakelse.deltakelseFraOgMed!! til iDag.minusMonths(1))
+        val nySluttdato = iDag.minusWeeks(6)
 
-        sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(6))) shouldBe
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = nySluttdato, deltakelseStatus = TiltakDeltakerstatus.Avbrutt)) shouldBeEksakt
             Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.StansEllerOpphør)
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = nySluttdato)) shouldBeEksakt Endret(
+            endring = Avkortet(nySluttdato),
+            automatiskRevurdering = AutomatiskRevurderingAvEndring.OmgjøringAvAvkortetSluttdato(sak.rammevedtaksliste.verdi.single().id),
+        )
     }
 
     /**
@@ -409,7 +546,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
     fun `avbrudd uten avkortet sluttdato i en innvilgelse som er passert følges opp manuelt`() {
         val sak = sakMedInnvilgelse(innvilgelsesperiode = deltakelse.deltakelseFraOgMed!! til iDag.minusMonths(1))
 
-        sak.vurder(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)) shouldBe
+        sak.vurder(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)) shouldBeEksakt
             Endret(AvbruttDeltakelse, automatiskRevurdering = null)
     }
 
@@ -436,7 +573,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
             clock = Clock.offset(clock, Duration.ofSeconds(30)),
         )
 
-        sak.leggTilRevurdering(åpenRevurdering).vurder(deltakelse.copy(deltakelseProsent = 60F)) shouldBe
+        sak.leggTilRevurdering(åpenRevurdering).vurder(deltakelse.copy(deltakelseProsent = 60F)) shouldBeEksakt
             Endret(
                 endring = AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 2F)),
                 automatiskRevurdering = null,
@@ -455,7 +592,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         sak.vurder(deltakelse.copy(deltakelseProsent = 60F)).automatiskRevurdering shouldBe
             AutomatiskRevurderingAvEndring.Omgjøring(andreVedtak.id)
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.plusWeeks(1))).automatiskRevurdering shouldBe
-            AutomatiskRevurderingAvEndring.Omgjøring(andreVedtak.id)
+            AutomatiskRevurderingAvEndring.OmgjøringAvAvkortetSluttdato(andreVedtak.id)
         sak.vurder(deltakelse.copy(deltakelseFraOgMed = senereStartdato)).automatiskRevurdering shouldBe
             AutomatiskRevurderingAvEndring.Omgjøring(førsteVedtak.id)
         sak.vurder(deltakelse.copy(deltakelseFraOgMed = senereStartdato, deltakelseProsent = 60F)).let {
@@ -491,7 +628,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         )
         val nySluttdato = sluttdato.plusWeeks(2)
 
-        sak.vurder(deltakelse.copy(deltakelseTilOgMed = nySluttdato)) shouldBe
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = nySluttdato)) shouldBeEksakt
             Endret(Forlengelse(nySluttdato), automatiskRevurdering = null)
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = nySluttdato, deltakelseProsent = 60F)).automatiskRevurdering shouldBe
             AutomatiskRevurderingAvEndring.Omgjøring(sak.rammevedtaksliste.verdi.first().id)
@@ -516,7 +653,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
 
         sak.finnEndringer(nåtilstand) shouldBe Forlengelse(nåtilstand.deltakelseTilOgMed!!)
         sak.leggTilRevurdering(åpenRevurdering).vurderMotGjeldendeVedtak(nåtilstand) shouldBe IngenEndring
-        sak.leggTilRevurdering(åpenRevurdering).vurder(nåtilstand.copy(deltakelseProsent = 60F)) shouldBe
+        sak.leggTilRevurdering(åpenRevurdering).vurder(nåtilstand.copy(deltakelseProsent = 60F)) shouldBeEksakt
             Endret(
                 endring = Forlengelse(nåtilstand.deltakelseTilOgMed, EndretDeltakelsesmengde(60F, 2F)),
                 automatiskRevurdering = null,
@@ -529,7 +666,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val nySluttdato = deltakelse.deltakelseTilOgMed!!.plusMonths(1)
 
         sak.vurderMotGjeldendeVedtak(deltakelse) shouldBe IngenEndring
-        sak.vurder(deltakelse.copy(deltakelseTilOgMed = nySluttdato)) shouldBe
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = nySluttdato)) shouldBeEksakt
             Endret(endring = Forlengelse(nySluttdato), automatiskRevurdering = null)
         sak.finnEndringer(deltakelse.copy(deltakelseFraOgMed = deltakelse.deltakelseFraOgMed!!.plusDays(1), antallDagerPerUke = 3F)) shouldBe
             AndreEndringer(
@@ -548,7 +685,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val sak = sakInnvilgetStansetOgInnvilgetPåNytt()
         val nyInnvilgelse = sak.rammevedtaksliste.verdi.last()
 
-        sak.vurder(deltakelse.copy(deltakelseProsent = 60F)) shouldBe Endret(
+        sak.vurder(deltakelse.copy(deltakelseProsent = 60F)) shouldBeEksakt Endret(
             endring = AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 2F)),
             automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(nyInnvilgelse.id),
         )
@@ -561,11 +698,11 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val startdatoIStansen = iDag.minusWeeks(3)
         val startdatoIDenNyeInnvilgelsen = iDag.minusWeeks(1)
 
-        sak.vurder(deltakelse.copy(deltakelseFraOgMed = startdatoIStansen)) shouldBe Endret(
+        sak.vurder(deltakelse.copy(deltakelseFraOgMed = startdatoIStansen)) shouldBeEksakt Endret(
             endring = AndreEndringer(endretStartdato = EndretStartdato(startdatoIStansen)),
             automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(førsteInnvilgelse.id),
         )
-        sak.vurder(deltakelse.copy(deltakelseFraOgMed = startdatoIDenNyeInnvilgelsen)) shouldBe Endret(
+        sak.vurder(deltakelse.copy(deltakelseFraOgMed = startdatoIDenNyeInnvilgelsen)) shouldBeEksakt Endret(
             endring = AndreEndringer(endretStartdato = EndretStartdato(startdatoIDenNyeInnvilgelsen)),
             automatiskRevurdering = null,
         )
@@ -578,11 +715,11 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val forlengetSluttdato = deltakelse.deltakelseTilOgMed!!.plusMonths(1)
         val avkortetSluttdato = iDag.plusWeeks(1)
 
-        sak.vurder(deltakelse.copy(deltakelseTilOgMed = forlengetSluttdato)) shouldBe
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = forlengetSluttdato)) shouldBeEksakt
             Endret(Forlengelse(forlengetSluttdato), AutomatiskRevurderingAvEndring.Innvilgelse)
-        sak.vurder(deltakelse.copy(deltakelseTilOgMed = avkortetSluttdato)) shouldBe Endret(
-            endring = AndreEndringer(endretSluttdato = EndretSluttdato(avkortetSluttdato)),
-            automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(nyInnvilgelse.id),
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = avkortetSluttdato)) shouldBeEksakt Endret(
+            endring = Avkortet(avkortetSluttdato),
+            automatiskRevurdering = AutomatiskRevurderingAvEndring.OmgjøringAvAvkortetSluttdato(nyInnvilgelse.id),
         )
     }
 
@@ -591,10 +728,31 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val sak = sakInnvilgetStansetOgInnvilgetPåNytt()
         val sluttdatoIStansen = iDag.minusWeeks(3)
 
-        sak.vurder(deltakelse.copy(deltakelseTilOgMed = sluttdatoIStansen)) shouldBe
-            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.StansEllerOpphør)
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = sluttdatoIStansen)) shouldBeEksakt
+            Endret(Avkortet(sluttdatoIStansen), AutomatiskRevurderingAvEndring.StansEllerOpphør)
         sak.utledStans(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = sluttdatoIStansen))
             .getOrFail().stansFraOgMed shouldBe ValgtStansFraOgMed.StansFraOgMed(iDag.minusWeeks(2))
+    }
+
+    /**
+     * Ny sluttdato er innvilget i den første innvilgelsen, før stansen.
+     * Omgjøringen dekker da den første innvilgelsen, stansen og den nye innvilgelsen, og stansen forblir opphørt.
+     */
+    @Test
+    fun `innvilget, stanset og innvilget på nytt - sluttdato avkortet inn i den første innvilgelsen omgjør alle vedtakene`() {
+        val sak = sakInnvilgetStansetOgInnvilgetPåNytt()
+        val (førsteInnvilgelse) = sak.rammevedtaksliste.verdi
+        val sluttdatoIFørsteInnvilgelse = iDag.minusWeeks(6)
+
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = sluttdatoIFørsteInnvilgelse)) shouldBeEksakt Endret(
+            endring = Avkortet(sluttdatoIFørsteInnvilgelse),
+            automatiskRevurdering = AutomatiskRevurderingAvEndring.OmgjøringAvAvkortetSluttdato(førsteInnvilgelse.id),
+        )
+        sak.rammevedtaksliste.finnOmgjøringsperiodeVedAvkortetSluttdato(deltakelse.internDeltakelseId, sluttdatoIFørsteInnvilgelse)
+            .getOrFail().vedtaksperiode.let {
+                it shouldBe deltakelse.periode
+                sak.rammevedtaksliste.finnVedtakSomOmgjøres(it).rammevedtakIDer shouldContainExactlyInAnyOrder sak.rammevedtaksliste.verdi.map { vedtak -> vedtak.id }
+            }
     }
 
     @Test
@@ -606,11 +764,11 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val senereStartdato = deltakelse.deltakelseFraOgMed!!.plusWeeks(1)
 
         sak.vurderMotGjeldendeVedtak(nyTilstand) shouldBe IngenEndring
-        sak.vurder(deltakelse) shouldBe Endret(
+        sak.vurder(deltakelse) shouldBeEksakt Endret(
             endring = AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(50F, 2F)),
             automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(nyInnvilgelse.id),
         )
-        sak.vurder(nyTilstand.copy(deltakelseFraOgMed = senereStartdato)) shouldBe Endret(
+        sak.vurder(nyTilstand.copy(deltakelseFraOgMed = senereStartdato)) shouldBeEksakt Endret(
             endring = AndreEndringer(endretStartdato = EndretStartdato(senereStartdato)),
             automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(førsteInnvilgelse.id),
         )
@@ -627,12 +785,14 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         sak.vurderMotGjeldendeVedtak(deltakelse) shouldBe IngenEndring
         sak.vurder(deltakelse.copy(deltakelseProsent = 60F)).automatiskRevurdering shouldBe
             AutomatiskRevurderingAvEndring.Omgjøring(nyInnvilgelse.id)
-        sak.vurder(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)) shouldBe
+        sak.vurder(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)) shouldBeEksakt
             Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.StansEllerOpphør)
-        sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag)) shouldBe
-            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.StansEllerOpphør)
-        sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(2))) shouldBe
-            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.StansEllerOpphør)
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag)) shouldBeEksakt
+            Endret(Avkortet(iDag), AutomatiskRevurderingAvEndring.StansEllerOpphør)
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(2))) shouldBeEksakt Endret(
+            Avkortet(iDag.minusWeeks(2)),
+            AutomatiskRevurderingAvEndring.OmgjøringAvAvkortetSluttdato(sak.rammevedtaksliste.verdi.first().id),
+        )
         sak.utledStans(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = iDag))
             .getOrFail().stansFraOgMed shouldBe ValgtStansFraOgMed.StansFraOgMed(iDag.plusWeeks(1))
     }
@@ -836,5 +996,13 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
             ).getOrFail().first as Revurdering
 
         return leggTilRevurdering(iverksatt).opprettRammevedtak(iverksatt, innvilgelseClock).getOrFail().first
+    }
+
+    /**
+     * Kotest sin shouldBe kan gi falsk grønt når et nestet felt er et data object i det ene og en data class i det andre.
+     * Sammenligner derfor med equals.
+     */
+    private infix fun Endret.shouldBeEksakt(forventet: Endret) {
+        (this == forventet) shouldBe true
     }
 }

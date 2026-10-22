@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskOmgjøring.finnOmgjøringsperiodeVedAvkortetSluttdato
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
@@ -206,12 +207,14 @@ private fun Periodisering<VedtakForDeltakelse>.tilGjeldendeInnvilgelse(iDag: Loc
 
 /**
  * Tolker endringene mellom nå-tilstanden fra tiltakshistorikk og de gjeldende vedtakene.
- * Utfallene prioriteres i rekkefølgen avsluttet som forventet, avbrutt, ikke aktuell, forlengelse og andre endringer.
+ * Utfallene prioriteres i rekkefølgen avsluttet som forventet, avkortet, avbrutt, ikke aktuell, forlengelse og andre endringer.
  *
  * Startdatoen er relevant dersom deltakelsen nå starter etter første innvilgede dag, eller tidligere enn da den ble innvilget.
  * Sluttdatoen er relevant dersom deltakelsen nå slutter før siste innvilgede dag, eller slutter senere enn da den ble innvilget.
  * En endret start- eller sluttdato som ikke berører de innvilgede periodene er altså ikke relevant.
  * Avsluttet som forventet gis bare når statusen er den eneste relevante endringen.
+ * Avkortet gis bare når sluttdatoen er den eneste relevante endringen ved siden av statusen, og deltakelsen har status deltar.
+ * Det gjelder også når ny sluttdato er passert.
  */
 private fun GjeldendeInnvilgelse.finnEndringer(
     oppdatertDeltakelse: Deltakelsestilstand,
@@ -248,6 +251,12 @@ private fun GjeldendeInnvilgelse.finnEndringer(
             !endretSluttdato &&
             endretDeltakelsesmengde == null -> TiltaksdeltakerEndring.AvsluttetSomForventet
 
+        innvilgetEtterSluttdato &&
+            nySluttdato != null &&
+            nyStatus == TiltakDeltakerstatus.Deltar &&
+            !endretStartdato &&
+            endretDeltakelsesmengde == null -> TiltaksdeltakerEndring.Avkortet(nySluttdato)
+
         (endretStatus && nyStatus == TiltakDeltakerstatus.Avbrutt) ||
             (innvilgetEtterSluttdato && sluttdatoErPassert) -> TiltaksdeltakerEndring.AvbruttDeltakelse
 
@@ -276,14 +285,18 @@ private fun GjeldendeInnvilgelse.finnEndringer(
  * Er andre deltakelser innvilget etter avbruddet, vurderes omgjøring i stedet, siden en stans også ville stanset dem.
  * En stans behandles automatisk etter at den er opprettet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.utledAutomatiskStans].
  * Har oppdragssystemet allerede utbetalt for mange dager etter avbruddet, opprettes et opphør i stedet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.vurderOpphørIStedenforStans].
+ * - Avkortet sluttdato gir omgjøring av vedtakene, slik at deltakelsen er innvilget til og med ny sluttdato og resten av vedtaksperioden opphøres.
+ * Er ny sluttdato innvilget i et tidligere vedtak enn de avkortede dagene, omgjøres både det og de senere vedtakene, se [finnOmgjøringsperiodeVedAvkortetSluttdato].
+ * Omgjøringen behandles automatisk etter at den er opprettet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskOmgjøring.utledAutomatiskOmgjøringAvSluttdato].
+ * Kan den ikke behandles automatisk, vurderes en passert sluttdato som et avbrudd, og ellers en vanlig omgjøring som for endret sluttdato.
  * - Forlengelse gir innvilgelse dersom ny sluttdato er etter siste dag med rett på saken.
  * Ellers vurderes omgjøring dersom deltakelsesmengden er endret samtidig.
  * Forlengelsen behandles automatisk etter at den er opprettet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskForlengelse.utledAutomatiskForlengelse].
  * - Endret startdato, sluttdato eller deltakelsesmengde gir omgjøring.
  * - Ikke aktuell, avsluttet som forventet og ren statusendring følges opp manuelt.
  *
- * Omgjøring gis bare når endringen berører nøyaktig ett gjeldende vedtak.
- * En manuell omgjøring kan omgjøre flere vedtak, men automatisk omgjøring av flere vedtak er ikke støttet ennå.
+ * Bortsett fra ved avkortet sluttdato gis omgjøring bare når endringen berører nøyaktig ett gjeldende vedtak.
+ * En manuell omgjøring kan omgjøre flere vedtak, men omgjøringen startes fra ett av dem.
  * Deltakelsen kan altså være innvilget i flere vedtak, så lenge endringen bare berører periodene til ett av dem.
  */
 private fun Sak.vurderAutomatiskRevurdering(
@@ -313,6 +326,18 @@ private fun Sak.vurderAutomatiskRevurdering(
                 endring.endretDeltakelsesmengde?.let { omgjøringAv(gjeldendeInnvilgelse.vedtakForDeltakelsesmengde) }
             }
         }
+
+        is TiltaksdeltakerEndring.Avkortet ->
+            rammevedtaksliste.finnOmgjøringsperiodeVedAvkortetSluttdato(tiltaksdeltakerId, endring.nySluttdato).fold(
+                ifLeft = {
+                    if (endring.nySluttdato.isAfter(iDag)) {
+                        omgjøringAv(gjeldendeInnvilgelse.vedtakBerørtAvSluttdato(endring.nySluttdato))
+                    } else {
+                        vurderRevurderingForAvbrudd(tiltaksdeltakerId, oppdatertTilstand, gjeldendeInnvilgelse, iDag)
+                    }
+                },
+                ifRight = { AutomatiskRevurderingAvEndring.OmgjøringAvAvkortetSluttdato(it.vedtakVedSluttdato.id) },
+            )
 
         is TiltaksdeltakerEndring.AndreEndringer -> omgjøringAv(gjeldendeInnvilgelse.vedtakBerørtAv(endring))
 
@@ -366,19 +391,24 @@ private fun GjeldendeInnvilgelse.vedtakBerørtAv(endring: TiltaksdeltakerEndring
         }
     }.orEmpty()
 
-    val berørtAvSluttdato = endring.endretSluttdato?.let { (nySluttdato) ->
-        if (nySluttdato != null && nySluttdato.isBefore(sisteInnvilgedeDag)) {
-            vedtakSomInnvilger(maxOf(nySluttdato.plusDays(1), førsteInnvilgedeDag) til sisteInnvilgedeDag)
-        } else {
-            setOf(vedtakVedSlutt)
-        }
-    }.orEmpty()
+    val berørtAvSluttdato = endring.endretSluttdato?.let { (nySluttdato) -> vedtakBerørtAvSluttdato(nySluttdato) }.orEmpty()
 
     val berørtAvDeltakelsesmengde =
         if (endring.endretDeltakelsesmengde != null) vedtakForDeltakelsesmengde else emptySet()
 
     return berørtAvStartdato + berørtAvSluttdato + berørtAvDeltakelsesmengde
 }
+
+/**
+ * En avkortet sluttdato berører vedtakene som innvilger dagene etter den.
+ * En senere eller åpen sluttdato berører vedtaket som innvilger slutten av deltakelsen.
+ */
+private fun GjeldendeInnvilgelse.vedtakBerørtAvSluttdato(nySluttdato: LocalDate?): Set<Rammevedtak> =
+    if (nySluttdato != null && nySluttdato.isBefore(sisteInnvilgedeDag)) {
+        vedtakSomInnvilger(maxOf(nySluttdato.plusDays(1), førsteInnvilgedeDag) til sisteInnvilgedeDag)
+    } else {
+        setOf(vedtakVedSlutt)
+    }
 
 /** Gir null dersom ingen eller flere vedtak berøres, slik at saksbehandler selv må ta stilling til hva som skal omgjøres. */
 private fun omgjøringAv(berørteVedtak: Set<Rammevedtak>): AutomatiskRevurderingAvEndring? =

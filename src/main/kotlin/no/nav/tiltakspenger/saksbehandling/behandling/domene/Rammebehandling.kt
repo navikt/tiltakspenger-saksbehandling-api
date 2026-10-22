@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
@@ -136,9 +137,18 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 require(beslutter == null)
                 require(
                     this is Søknadsbehandling ||
-                        (this is Revurdering && automatiskOpprettetGrunn != null && (resultat is Revurderingsresultat.Stans || resultat is Revurderingsresultat.Innvilgelse)),
+                        (
+                            this is Revurdering &&
+                                automatiskOpprettetGrunn != null &&
+                                (
+                                    resultat is Revurderingsresultat.Stans ||
+                                        resultat is Revurderingsresultat.Innvilgelse ||
+                                        resultat is Omgjøringsresultat.OmgjøringIkkeValgt ||
+                                        resultat is Omgjøringsresultat.OmgjøringInnvilgelse
+                                    )
+                            ),
                 ) {
-                    "Kun søknadsbehandlinger og automatisk opprettede revurderinger til stans eller innvilgelse kan være under automatisk behandling. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+                    "Kun søknadsbehandlinger og automatisk opprettede revurderinger til stans, innvilgelse eller omgjøring til innvilgelse kan være under automatisk behandling. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
                 }
                 require(klagebehandling == null) {
                     "Klagebehandling kan ikke være knyttet til en behandling som er under automatisk behandling. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
