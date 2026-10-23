@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import org.junit.jupiter.api.Test
-import java.time.Clock
 import java.time.Instant
 
 /**
@@ -103,9 +102,10 @@ class StatistikkLagringTest {
     @Test
     fun `teknisktidspunkt settes av databasen i samme rekkefølge som id`() {
         withTestApplicationContextAndPostgres { tac ->
-            val før = Instant.now(Clock.systemUTC())
+            // Grensene leses fra databasens klokke, siden JVM-en og databasecontaineren kan gå litt i utakt.
+            val før = tac.sessionFactory.databasetid()
             val (sak) = iverksettSøknadsbehandling(tac = tac)
-            val etter = Instant.now(Clock.systemUTC())
+            val etter = tac.sessionFactory.databasetid()
 
             val tidspunkter = tac.sessionFactory.withSession { session ->
                 session.run(
@@ -123,6 +123,10 @@ class StatistikkLagringTest {
         }
     }
 }
+
+private fun PostgresSessionFactory.databasetid(): Instant = withSession { session ->
+    session.run(sqlQuery("select clock_timestamp() as tidspunkt").map { it.instant("tidspunkt") }.asSingle)
+}!!
 
 /** Leser den ene raden spørringen skal gi for saken, og feiler tydelig hvis den mangler. */
 private fun PostgresSessionFactory.radFor(sql: String, sakId: SakId): Rad = withSession { session ->
