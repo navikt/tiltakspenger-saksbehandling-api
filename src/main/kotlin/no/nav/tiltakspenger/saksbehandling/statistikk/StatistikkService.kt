@@ -28,7 +28,6 @@ class StatistikkService(
                 person.adressebeskyttelse.erKode6
             },
             versjon = gitHash,
-            clock = clock,
         )
     }
 

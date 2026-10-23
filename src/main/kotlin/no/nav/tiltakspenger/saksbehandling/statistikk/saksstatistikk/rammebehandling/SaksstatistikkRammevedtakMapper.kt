@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling
 
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
@@ -17,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.maskerHvisS
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 fun Rammevedtak.genererSaksstatistikk(): GenererSaksstatistikk {
-    return GenererSaksstatistikk { gjelderKode6, versjon, clock ->
+    return GenererSaksstatistikk { gjelderKode6, versjon ->
         val behandling = this.rammebehandling
         val erSøknadsbehandling = behandling is Søknadsbehandling
         val gjelderKode6 = gjelderKode6(this.fnr)
@@ -35,7 +34,6 @@ fun Rammevedtak.genererSaksstatistikk(): GenererSaksstatistikk {
             vedtakTidspunkt = this.opprettet,
             endretTidspunkt = this.opprettet,
             utbetaltTidspunkt = null,
-            tekniskTidspunkt = nå(clock),
             søknadsformat = behandling.getSoknadsformat(),
             // TODO jah: Hva gjør vi ved revurdering/stans i dette tilfellet.
             // Skal vi sende søknadsbehandling sin første innvilget fraOgMed eller null?

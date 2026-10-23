@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.statistikk
 
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
-import java.time.Clock
 
 data class Statistikkhendelser(
     val hendelser: List<Statistikkhendelse>,
@@ -32,13 +31,11 @@ data class Statistikkhendelser(
     suspend fun tilStatistikkDto(
         gjelderKode6: suspend (Fnr) -> Boolean,
         versjon: String,
-        clock: Clock,
     ): StatistikkDTO {
         val saksstatistikk = hendelser.filterIsInstance<GenererSaksstatistikk>().map {
             it.genererSaksstatistikk(
                 gjelderKode6 = gjelderKode6,
                 versjon = versjon,
-                clock = clock,
             )
         }
         val stønadsstatistikk = hendelser.filterIsInstance<GenererStønadsstatistikk>().map {

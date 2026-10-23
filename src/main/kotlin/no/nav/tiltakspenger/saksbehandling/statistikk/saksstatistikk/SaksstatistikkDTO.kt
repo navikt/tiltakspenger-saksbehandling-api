@@ -54,8 +54,7 @@ data class SaksstatistikkDTO(
 
     /** Hvis systemet eller bruker har et forhold til når ytelsen normalt skal utbetales (planlagt uttak, ønsket oppstart etc.) */
     val forventetOppstartTidspunkt: LocalDate?,
-    /** Tidspunktet da fagsystemet legger hendelsen på grensesnittet/topicen. */
-    val tekniskTidspunkt: LocalDateTime,
+    // teknisktidspunkt (tidspunktet hendelsen legges på grensesnittet) settes av databasen ved insert, se SaksstatistikkPostgresRepo.
     // IND
     val sakYtelse: String = "IND",
     val behandlingType: StatistikkBehandlingType,

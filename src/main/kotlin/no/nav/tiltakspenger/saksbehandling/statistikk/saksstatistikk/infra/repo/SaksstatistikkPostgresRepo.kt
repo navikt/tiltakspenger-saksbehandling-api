@@ -54,6 +54,11 @@ object SaksstatistikkPostgresRepo {
         )
     }
 
+    /**
+     * `teknisktidspunkt` settes av databasen med `clock_timestamp()` i selve inserten, samtidig som `id` trekkes fra sekvensen.
+     * Settes tidspunktet i applikasjonen, kan det gå tid før raden settes inn, og samtidige transaksjoner kan da gi rader der rekkefølgen på `id` og `teknisktidspunkt` er ulik.
+     * `now()` er ikke godt nok, siden den gir starttidspunktet til transaksjonen.
+     */
     fun lagre(dto: SaksstatistikkDTO, tx: TransactionalSession) {
         tx.run(
             queryOf(
@@ -72,7 +77,6 @@ object SaksstatistikkPostgresRepo {
                     "endretTidspunkt" to dto.endretTidspunkt,
                     "soknadsformat" to dto.søknadsformat.name,
                     "forventetOppstartTidspunkt" to dto.forventetOppstartTidspunkt,
-                    "tekniskTidspunkt" to dto.tekniskTidspunkt,
                     "sakYtelse" to dto.sakYtelse,
                     "behandlingType" to dto.behandlingType.name,
                     "behandlingStatus" to dto.behandlingStatus.name,
@@ -147,7 +151,7 @@ object SaksstatistikkPostgresRepo {
             :endretTidspunkt,
             :soknadsformat,
             :forventetOppstartTidspunkt,
-            :tekniskTidspunkt,
+            clock_timestamp(),
             :sakYtelse,
             :behandlingType,
             :behandlingStatus,

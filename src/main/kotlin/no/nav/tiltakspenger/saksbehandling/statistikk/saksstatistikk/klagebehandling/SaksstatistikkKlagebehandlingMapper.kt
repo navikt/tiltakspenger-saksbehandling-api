@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehandling
 
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
@@ -17,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.maskerHvisS
 fun Klagebehandling.genererSaksstatistikk(
     hendelse: StatistikkhendelseType,
 ): GenererSaksstatistikk {
-    return GenererSaksstatistikk { gjelderKode6, versjon, clock ->
+    return GenererSaksstatistikk { gjelderKode6, versjon ->
         val gjelderKode6 = gjelderKode6(this.fnr)
         SaksstatistikkDTO(
             sakId = this.sakId.toString(),
@@ -31,7 +30,6 @@ fun Klagebehandling.genererSaksstatistikk(
             vedtakTidspunkt = null,
             endretTidspunkt = this.sistEndret,
             utbetaltTidspunkt = null,
-            tekniskTidspunkt = nå(clock),
             søknadsformat = this.formkrav.innsendingskilde.toStatistikkFormat(),
             forventetOppstartTidspunkt = null,
             behandlingType = StatistikkBehandlingType.KLAGE,

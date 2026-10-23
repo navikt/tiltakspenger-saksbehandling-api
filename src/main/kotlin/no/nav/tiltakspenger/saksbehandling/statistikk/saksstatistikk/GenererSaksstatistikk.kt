@@ -10,6 +10,5 @@ fun interface GenererSaksstatistikk : Statistikkhendelse {
     suspend fun genererSaksstatistikk(
         gjelderKode6: suspend (Fnr) -> Boolean,
         versjon: String,
-        clock: java.time.Clock,
     ): SaksstatistikkDTO
 }

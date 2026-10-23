@@ -32,7 +32,7 @@ fun PostgresSessionFactory.hentSaksstatistikk(sakId: SakId): List<Saksstatistikk
                 select *
                 from statistikk_sak
                 where sak_id = :sak_id
-                order by teknisktidspunkt asc
+                order by id asc
             """.trimIndent(),
             mapOf("sak_id" to sakId.toString()),
         ).map { row -> row.tilSaksstatistikkDTO() }.asList,
@@ -54,7 +54,6 @@ private fun Row.tilSaksstatistikkDTO() =
         utbetaltTidspunkt = localDateTimeOrNull("utbetalttidspunkt"),
         søknadsformat = StatistikkFormat.valueOf(string("soknadsformat")),
         forventetOppstartTidspunkt = localDateOrNull("forventetoppstarttidspunkt"),
-        tekniskTidspunkt = localDateTime("teknisktidspunkt"),
         sakYtelse = string("sakytelse"),
         behandlingType = StatistikkBehandlingType.valueOf(string("behandlingtype")),
         behandlingStatus = StatistikkBehandlingStatus.valueOf(string("behandlingstatus")),

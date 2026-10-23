@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling
 
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -21,7 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.maskerHvisS
 fun Rammebehandling.genererSaksstatistikk(
     hendelse: StatistikkhendelseType,
 ): GenererSaksstatistikk {
-    return GenererSaksstatistikk { gjelderKode6, versjon, clock ->
+    return GenererSaksstatistikk { gjelderKode6, versjon ->
         val erSøknadsbehandling = this is Søknadsbehandling
         val gjelderKode6 = gjelderKode6(this.fnr)
         SaksstatistikkDTO(
@@ -36,7 +35,6 @@ fun Rammebehandling.genererSaksstatistikk(
             vedtakTidspunkt = null,
             endretTidspunkt = this.sistEndret,
             utbetaltTidspunkt = null,
-            tekniskTidspunkt = nå(clock),
             søknadsformat = this.getSoknadsformat(),
             forventetOppstartTidspunkt = if (erSøknadsbehandling) this.vedtaksperiode?.fraOgMed else null,
             behandlingType = if (erSøknadsbehandling) StatistikkBehandlingType.SØKNADSBEHANDLING else StatistikkBehandlingType.REVURDERING,

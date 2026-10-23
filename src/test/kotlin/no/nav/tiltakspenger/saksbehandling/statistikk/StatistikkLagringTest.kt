@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk
 
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.comparables.shouldBeBetween
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -12,6 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import org.junit.jupiter.api.Test
+import java.time.Clock
+import java.time.Instant
 
 /**
  * Statistikktabellene skrives av oss og leses kun av DVH, aldri av prodkoden vår.
@@ -94,6 +97,29 @@ class StatistikkLagringTest {
                 it.localDate("til_og_med") shouldBe meldekortbehandling.periode.tilOgMed
                 it.string("meldeperioder") shouldContain "meldeperiodeKjedeId"
             }
+        }
+    }
+
+    @Test
+    fun `teknisktidspunkt settes av databasen i samme rekkefølge som id`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val før = Instant.now(Clock.systemUTC())
+            val (sak) = iverksettSøknadsbehandling(tac = tac)
+            val etter = Instant.now(Clock.systemUTC())
+
+            val tidspunkter = tac.sessionFactory.withSession { session ->
+                session.run(
+                    sqlQuery(
+                        "select teknisktidspunkt from statistikk_sak where sak_id = :sak_id order by id",
+                        "sak_id" to sak.id.toString(),
+                    ).map { it.instant("teknisktidspunkt") }.asList,
+                )
+            }
+
+            // Testklokka står i 2025, så et tidspunkt satt av applikasjonen ville falt utenfor.
+            tidspunkter.size shouldBeGreaterThan 1
+            tidspunkter.forEach { it.shouldBeBetween(før, etter) }
+            tidspunkter shouldBe tidspunkter.sorted()
         }
     }
 }
