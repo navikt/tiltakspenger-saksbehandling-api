@@ -12,10 +12,12 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingStatus.
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingStatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingStatus.UNDER_FORHÅNDSVARSLING
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingStatus.UNDER_GODKJENNING
+import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.AngreSendTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Avbryt
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Gjenoppta
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.HentTilbake
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.LeggTilbakeBeslutter
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.LeggTilbakeSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.OppdaterSettPåVent
@@ -39,12 +41,12 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
 
 fun BenkSøknadsbehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
     if (!saksbehandler.erSaksbehandlerEllerBeslutter) return emptyList()
-    return finnGyldigeRammebehandlingKommandoer(felles, status, saksbehandler)
+    return finnGyldigeRammebehandlingKommandoer(felles, status, saksbehandler, erSøknadsbehandling = true)
 }
 
 fun BenkRevurdering.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
     if (!saksbehandler.erSaksbehandlerEllerBeslutter) return emptyList()
-    return finnGyldigeRammebehandlingKommandoer(felles, status, saksbehandler)
+    return finnGyldigeRammebehandlingKommandoer(felles, status, saksbehandler, erSøknadsbehandling = false)
 }
 
 fun BenkMeldekort.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
@@ -93,6 +95,7 @@ private fun finnGyldigeRammebehandlingKommandoer(
     felles: BenkBehandlingsfelles,
     status: BenkBehandlingsstatus,
     saksbehandler: Saksbehandler,
+    erSøknadsbehandling: Boolean,
 ): List<SaksbehandlerBehandlingKommando> {
     val navIdent = saksbehandler.navIdent
     val erSaksbehandler = saksbehandler.erSaksbehandler
@@ -120,6 +123,9 @@ private fun finnGyldigeRammebehandlingKommandoer(
         }
         if (status == UNDER_BESLUTNING && erBeslutter && felles.beslutter == navIdent) {
             add(LeggTilbakeBeslutter)
+        }
+        if (status == KLAR_TIL_BESLUTNING && erSøknadsbehandling && erSaksbehandler && felles.saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID && !erSattPåVent) {
+            add(HentTilbake)
         }
         if (!erSattPåVent && when (status) {
                 UNDER_AUTOMATISK_BEHANDLING -> true

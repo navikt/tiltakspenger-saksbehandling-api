@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.angre.kanAngreBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.avbryt.kanAvbryte
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.kanGjenoppta
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.hentTilbake.kanHenteTilbake
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.leggTilbake.kanLeggeTilbake
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.kanOverta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.kanOppdaterePåVent
@@ -29,6 +30,7 @@ fun Rammebehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<Sa
         if (kanOvertaBeslutter(saksbehandler)) add(SaksbehandlerBehandlingKommando.OvertaBeslutter)
         if (kanLeggeTilbakeSaksbehandler(saksbehandler)) add(SaksbehandlerBehandlingKommando.LeggTilbakeSaksbehandler)
         if (kanLeggeTilbakeBeslutter(saksbehandler)) add(SaksbehandlerBehandlingKommando.LeggTilbakeBeslutter)
+        if (kanHenteTilbake(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.HentTilbake)
         if (kanSettePåVent(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.SettPåVent)
         if (kanOppdaterePåVent(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.OppdaterSettPåVent)
         if (kanGjenoppta(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.Gjenoppta)

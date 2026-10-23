@@ -5,10 +5,13 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.angre.angreBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.hentTilbake.hentTilbakeRammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.angreRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgTaKlagebehandlingMedRammebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskBehandlingKlarTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
@@ -361,6 +364,133 @@ class RammebehandlingPostgresRepoTest {
                 utøvendeBeslutter = ObjectMother.beslutter(),
                 transactionContext = null,
             ) shouldBe false
+        }
+    }
+
+    @Test
+    fun `hentTilbake gir sann når behandlingen fortsatt er klar til beslutning hos den automatiske saksbehandleren`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val saksbehandler = ObjectMother.saksbehandler()
+            val repo = tac.behandlingContext.rammebehandlingRepo
+            val (_, _, opprettetBehandling) = opprettAutomatiskBehandlingKlarTilBeslutning(tac)
+            val behandlingFørHentTilbake = repo.hent(opprettetBehandling.id)
+            val (hentetBehandling, _) = behandlingFørHentTilbake.hentTilbakeRammebehandling(saksbehandler, tac.clock).getOrFail()
+
+            repo.hentTilbake(
+                rammebehandling = hentetBehandling,
+                forventetSendtTilBeslutning = behandlingFørHentTilbake.sendtTilBeslutning,
+                transactionContext = null,
+            ) shouldBe true
+
+            repo.hent(opprettetBehandling.id) shouldBe hentetBehandling
+        }
+    }
+
+    /**
+     * Saksbehandleren har lastet behandlingen, men en beslutter tar den før skrivingen når databasen.
+     * Status er da `UNDER_BESLUTNING`, så `status = 'KLAR_TIL_BESLUTNING'` slår ikke til.
+     */
+    @Test
+    fun `hentTilbake avviser en utdatert skriving etter at en beslutter har tatt behandlingen`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val saksbehandler = ObjectMother.saksbehandler()
+            val repo = tac.behandlingContext.rammebehandlingRepo
+            val (sak, _, opprettetBehandling) = opprettAutomatiskBehandlingKlarTilBeslutning(tac)
+            val utdatertBehandling = repo.hent(opprettetBehandling.id)
+            val (hentetBehandling, _) = utdatertBehandling.hentTilbakeRammebehandling(saksbehandler, tac.clock).getOrFail()
+
+            taRammebehandlinger(tac, listOf(sak.id to opprettetBehandling.id), ObjectMother.beslutter())!!
+            val behandlingUnderBeslutning = repo.hent(opprettetBehandling.id)
+
+            repo.hentTilbake(hentetBehandling, utdatertBehandling.sendtTilBeslutning, null) shouldBe false
+
+            repo.hent(opprettetBehandling.id) shouldBe behandlingUnderBeslutning
+        }
+    }
+
+    /**
+     * Beslutteren har tatt behandlingen og satt den på vent, så den er tilbake i `KLAR_TIL_BESLUTNING` hos den automatiske saksbehandleren.
+     * Bare ventestatus-vakten skiller denne tilstanden fra en behandling som kan hentes tilbake.
+     */
+    @Test
+    fun `hentTilbake avviser en utdatert skriving etter at beslutter har satt behandlingen på vent`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val saksbehandler = ObjectMother.saksbehandler()
+            val beslutter = ObjectMother.beslutter()
+            val repo = tac.behandlingContext.rammebehandlingRepo
+            val (sak, _, opprettetBehandling) = opprettAutomatiskBehandlingKlarTilBeslutning(tac)
+            val utdatertBehandling = repo.hent(opprettetBehandling.id)
+            val (hentetBehandling, _) = utdatertBehandling.hentTilbakeRammebehandling(saksbehandler, tac.clock).getOrFail()
+
+            taRammebehandlinger(tac, listOf(sak.id to opprettetBehandling.id), beslutter)!!
+            settRammebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                rammebehandlingId = opprettetBehandling.id,
+                saksbehandler = beslutter,
+            )!!
+            val behandlingPåVent = repo.hent(opprettetBehandling.id)
+            behandlingPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+            behandlingPåVent.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
+            behandlingPåVent.sendtTilBeslutning shouldBe utdatertBehandling.sendtTilBeslutning
+            behandlingPåVent.ventestatus.erSattPåVent shouldBe true
+
+            repo.hentTilbake(hentetBehandling, utdatertBehandling.sendtTilBeslutning, null) shouldBe false
+
+            repo.hent(opprettetBehandling.id) shouldBe behandlingPåVent
+        }
+    }
+
+    /**
+     * En annen saksbehandler har allerede hentet tilbake behandlingen.
+     * `saksbehandler = 'tp-sak'` og `status` slår ikke til.
+     */
+    @Test
+    fun `hentTilbake avviser en utdatert skriving etter at en annen saksbehandler har hentet tilbake behandlingen`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val repo = tac.behandlingContext.rammebehandlingRepo
+            val (_, _, opprettetBehandling) = opprettAutomatiskBehandlingKlarTilBeslutning(tac)
+            val utdatertBehandling = repo.hent(opprettetBehandling.id)
+            val (førstHentetBehandling, _) = utdatertBehandling
+                .hentTilbakeRammebehandling(ObjectMother.saksbehandler(), tac.clock)
+                .getOrFail()
+            val (hentetBehandling, _) = utdatertBehandling
+                .hentTilbakeRammebehandling(ObjectMother.saksbehandler(navIdent = "Z999999"), tac.clock)
+                .getOrFail()
+
+            repo.hentTilbake(førstHentetBehandling, utdatertBehandling.sendtTilBeslutning, null) shouldBe true
+            val behandlingEtterFørsteHentTilbake = repo.hent(opprettetBehandling.id)
+
+            repo.hentTilbake(hentetBehandling, utdatertBehandling.sendtTilBeslutning, null) shouldBe false
+
+            repo.hent(opprettetBehandling.id).also {
+                it shouldBe behandlingEtterFørsteHentTilbake
+                it.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
+            }
+        }
+    }
+
+    /**
+     * `sendt_til_beslutning` er versjonsnøkkelen.
+     * Feil forventet tidspunkt skal gi false selv om resten av vakten slår til.
+     */
+    @Test
+    fun `hentTilbake gir false når forventet sendtTilBeslutning ikke stemmer`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val repo = tac.behandlingContext.rammebehandlingRepo
+            val (_, _, opprettetBehandling) = opprettAutomatiskBehandlingKlarTilBeslutning(tac)
+            val behandlingFørHentTilbake = repo.hent(opprettetBehandling.id)
+            val (hentetBehandling, _) = behandlingFørHentTilbake
+                .hentTilbakeRammebehandling(ObjectMother.saksbehandler(), tac.clock)
+                .getOrFail()
+
+            repo.hentTilbake(
+                rammebehandling = hentetBehandling,
+                forventetSendtTilBeslutning = behandlingFørHentTilbake.sendtTilBeslutning!!.minusSeconds(1),
+                transactionContext = null,
+            ) shouldBe false
+
+            repo.hent(opprettetBehandling.id) shouldBe behandlingFørHentTilbake
         }
     }
 }

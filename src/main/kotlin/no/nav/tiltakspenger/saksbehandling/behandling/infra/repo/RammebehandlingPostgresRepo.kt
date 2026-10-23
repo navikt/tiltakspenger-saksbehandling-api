@@ -14,7 +14,9 @@ import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo.Companion.oppdaterRammebehandling
+import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import java.time.Clock
 import java.time.LocalDateTime
@@ -332,10 +334,44 @@ class RammebehandlingPostgresRepo(
         }
     }
 
+    /**
+     * Lagrer hele rammebehandlingen, men bare hvis den lagrede raden fortsatt er klar til beslutning hos den automatiske saksbehandleren og ikke er satt på vent.
+     * `set`-delen skriver den nye tilstanden fra [rammebehandling], altså `UNDER_BEHANDLING` hos den utøvende saksbehandleren.
+     * `where`-delen sjekker tilstanden som er lagret, ikke statusen på [rammebehandling].
+     * Hele raden lagres, som ved underkjenning, fordi resultatet nullstilles og det består av flere kolonner.
+     * [forventetSendtTilBeslutning] er tidspunktet fra den lastede behandlingen og fungerer som versjonsnøkkel.
+     *
+     * @return true dersom behandlingen ble hentet tilbake, false dersom den er endret siden den ble lastet.
+     */
+    override fun hentTilbake(
+        rammebehandling: Rammebehandling,
+        forventetSendtTilBeslutning: LocalDateTime?,
+        transactionContext: TransactionContext?,
+    ): Boolean {
+        return sessionFactory.withTransaction(transactionContext) { tx ->
+            tx.run(
+                sqlQuery(
+                    """
+                    $OPPDATER_RAMMEBEHANDLING
+                    where id = :id
+                        and status = :forventet_status
+                        and saksbehandler = :forventet_saksbehandler
+                        and sendt_til_beslutning = :forventet_sendt_til_beslutning
+                        and (ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent') is distinct from 'true'
+                    """.trimIndent(),
+                    "forventet_status" to Rammebehandlingsstatus.KLAR_TIL_BESLUTNING.toDb(),
+                    "forventet_saksbehandler" to AUTOMATISK_SAKSBEHANDLER_ID,
+                    "forventet_sendt_til_beslutning" to forventetSendtTilBeslutning,
+                    *rammebehandling.tilDbParams(),
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
     companion object {
         /**
          * Felles `set`-del for oppdatering av hele rammebehandlingen.
-         * Brukes av [oppdaterRammebehandling] og [lagreHvisFortsattUnderBeslutning], som legger til hver sin `where`.
+         * Brukes av [oppdaterRammebehandling], [lagreHvisFortsattUnderBeslutning] og [hentTilbake], som legger til hver sin `where`.
          */
         private const val OPPDATER_RAMMEBEHANDLING = """
             update behandling set

@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.leggTilbake.leggTil
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
+import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando
 import org.junit.jupiter.api.Test
@@ -312,5 +313,61 @@ class RammebehandlingGyldigeKommandoerExTest {
             SaksbehandlerBehandlingKommando.Gjenoppta,
             SaksbehandlerBehandlingKommando.Avbryt,
         )
+    }
+
+    private fun automatiskBehandlingKlarTilBeslutning(): Søknadsbehandling =
+        ObjectMother.nySøknadsbehandlingKlarTilBeslutning(
+            saksbehandler = AUTOMATISK_SAKSBEHANDLER,
+            automatiskBehandling = true,
+        )
+
+    @Test
+    fun `automatisk behandling klar til beslutning - saksbehandler kan hente tilbake`() {
+        val behandling = automatiskBehandlingKlarTilBeslutning()
+
+        behandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+        behandling.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
+        behandling.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(
+            SaksbehandlerBehandlingKommando.HentTilbake,
+        )
+    }
+
+    @Test
+    fun `automatisk behandling klar til beslutning - beslutter kan tildele seg, men ikke hente tilbake`() {
+        val behandling = automatiskBehandlingKlarTilBeslutning()
+
+        behandling.finnGyldigeKommandoer(beslutter) shouldBe listOf(
+            SaksbehandlerBehandlingKommando.TildelBeslutter,
+        )
+    }
+
+    @Test
+    fun `automatisk behandling klar til beslutning - bruker med begge roller får både tildel beslutter og hent tilbake`() {
+        val behandling = automatiskBehandlingKlarTilBeslutning()
+
+        behandling.finnGyldigeKommandoer(saksbehandlerOgBeslutter) shouldBe listOf(
+            SaksbehandlerBehandlingKommando.TildelBeslutter,
+            SaksbehandlerBehandlingKommando.HentTilbake,
+        )
+    }
+
+    @Test
+    fun `automatisk behandling på vent hos beslutter - hent tilbake annonseres ikke`() {
+        val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(
+            saksbehandler = AUTOMATISK_SAKSBEHANDLER,
+            beslutter = beslutter,
+            automatiskBehandling = true,
+        ).settPåVentAv(beslutter)
+
+        behandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+        behandling.ventestatus.erSattPåVent shouldBe true
+        behandling.finnGyldigeKommandoer(saksbehandler) shouldBe emptyList()
+    }
+
+    @Test
+    fun `manuell behandling klar til beslutning - hent tilbake annonseres ikke til en annen saksbehandler`() {
+        val behandling = ObjectMother.nySøknadsbehandlingKlarTilBeslutning(saksbehandler = saksbehandler)
+
+        behandling.finnGyldigeKommandoer(annenSaksbehandler) shouldBe emptyList()
     }
 }

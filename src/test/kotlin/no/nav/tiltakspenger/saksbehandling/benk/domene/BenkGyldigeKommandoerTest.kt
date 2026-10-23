@@ -9,11 +9,13 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.AngreSendTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Avbryt
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Gjenoppta
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.HentTilbake
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.LeggTilbakeBeslutter
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.LeggTilbakeSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.OppdaterSettPåVent
@@ -223,6 +225,59 @@ class BenkGyldigeKommandoerTest {
         fun `under automatisk behandling kan settes på vent og avbrytes`() {
             søknadsbehandling(BenkBehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING, felles())
                 .finnGyldigeKommandoer(saksbehandler) shouldBe listOf(SettPåVent, Avbryt)
+        }
+
+        @Test
+        fun `automatisk behandlet søknadsbehandling klar til beslutning kan hentes tilbake av en saksbehandler`() {
+            val rad = søknadsbehandling(
+                BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
+                felles(saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID),
+            )
+
+            rad.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(HentTilbake)
+        }
+
+        @Test
+        fun `automatisk behandlet søknadsbehandling klar til beslutning kan ikke hentes tilbake av en ren beslutter`() {
+            val rad = søknadsbehandling(
+                BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
+                felles(saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID),
+            )
+
+            rad.finnGyldigeKommandoer(beslutter) shouldBe listOf(TildelBeslutter)
+        }
+
+        @Test
+        fun `automatisk behandlet søknadsbehandling klar til beslutning på vent kan ikke hentes tilbake`() {
+            val rad = søknadsbehandling(
+                BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
+                felles(saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID, beslutter = beslutter.navIdent, erSattPåVent = true),
+            )
+
+            rad.finnGyldigeKommandoer(saksbehandler) shouldBe emptyList()
+        }
+
+        @Test
+        fun `revurdering klar til beslutning hos den automatiske saksbehandleren kan ikke hentes tilbake`() {
+            val rad = BenkRevurdering(
+                felles = felles(saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID),
+                id = RammebehandlingId.random(),
+                status = BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
+                resultat = BenkRevurderingResultat.STANS,
+                prioritering = null,
+            )
+
+            rad.finnGyldigeKommandoer(saksbehandler) shouldBe emptyList()
+        }
+
+        @Test
+        fun `manuelt behandlet søknadsbehandling klar til beslutning kan ikke hentes tilbake av en annen saksbehandler`() {
+            val rad = søknadsbehandling(
+                BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
+                felles(saksbehandler = "Z999999"),
+            )
+
+            rad.finnGyldigeKommandoer(saksbehandler) shouldBe emptyList()
         }
     }
 

@@ -74,6 +74,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.mottaMeldekortRequest
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskBehandlingKlarTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
@@ -98,6 +99,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tilUtfy
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tildelTilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.underkjenn
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.konsumerTilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
@@ -605,6 +607,25 @@ class BenkAggregatTest {
                 it.frist shouldBe null
                 it.venterTil shouldBe venterTil
             }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `søknadsfanen tilbyr hent tilbake på en automatisk behandlet søknadsbehandling klar til beslutning`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val saksbehandler = ObjectMother.saksbehandler()
+            val (_, _, opprettetBehandling) = opprettAutomatiskBehandlingKlarTilBeslutning(tac = tac)
+            val behandling = tac.behandlingContext.rammebehandlingRepo.hent(opprettetBehandling.id)
+
+            val rad = tac.benkContext.benkRepo.hentSøknader(søknaderCommand()).behandlinger.single()
+
+            rad.status shouldBe BenkBehandlingsstatus.KLAR_TIL_BESLUTNING
+            rad.felles.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
+            rad.felles.beslutter shouldBe null
+            rad.felles.ventestatus.erSattPåVent shouldBe false
+            rad.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(SaksbehandlerBehandlingKommando.HentTilbake)
+            rad.finnGyldigeKommandoer(saksbehandler) shouldBe behandling.finnGyldigeKommandoer(saksbehandler)
         }
     }
 

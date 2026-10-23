@@ -41,6 +41,7 @@ fun Route.routes(
             angreRammebehandlingService = applicationContext.behandlingContext.angreRammebehandlingService,
             overtaBehandlingService = applicationContext.behandlingContext.overtaRammebehandlingService,
             leggTilbakeBehandlingService = applicationContext.behandlingContext.leggTilbakeRammebehandlingService,
+            hentTilbakeRammebehandlingService = applicationContext.behandlingContext.hentTilbakeRammebehandlingService,
             oppdaterBehandlingService = applicationContext.behandlingContext.oppdaterRammebehandlingService,
             oppdaterRammebehandlingForBeslutterService = applicationContext.behandlingContext.oppdaterRammebehandlingForBeslutterService,
             settBehandlingPåVentService = applicationContext.behandlingContext.settRammebehandlingPåVentService,
