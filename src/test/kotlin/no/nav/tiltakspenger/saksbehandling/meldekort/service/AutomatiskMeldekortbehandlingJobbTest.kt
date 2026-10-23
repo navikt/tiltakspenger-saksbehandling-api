@@ -39,6 +39,8 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.mottaMeldekortRequest
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tilUtfyltFraBruker
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.statistikk.hentSaksstatistikk
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkBehandlingType
 import org.junit.jupiter.api.Test
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -73,6 +75,8 @@ class AutomatiskMeldekortbehandlingJobbTest {
 
             sisteMeldekortbehandling.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
             sisteMeldekortbehandling.brukersMeldekort.id shouldBe brukersMeldekort.id
+            // Team Sak vil bare ha de manuelle meldekortbehandlingene i saksstatistikken.
+            tac.sessionFactory.hentSaksstatistikk(sak.id).none { it.behandlingType == StatistikkBehandlingType.MELDEKORT } shouldBe true
 
             // En annen sak der bruker melder tre sammenhengende dager med godkjent fravær.
             // Jobben avviser meldekortet og skriver statusen tilbake på raden — grunnsettet for `oppdaterAutomatiskBehandletStatus`.

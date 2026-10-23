@@ -118,6 +118,7 @@ open class MeldekortContext(
             navkontorService = navkontorService,
             sessionFactory = sessionFactory,
             clock = clock,
+            statistikkService = statistikkService,
         )
     }
     val automatiskMeldekortbehandlingJobb by lazy {
@@ -157,6 +158,8 @@ open class MeldekortContext(
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             clock = clock,
             sakService = sakService,
+            sessionFactory = sessionFactory,
+            statistikkService = statistikkService,
         )
     }
 
@@ -173,6 +176,8 @@ open class MeldekortContext(
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakService = sakService,
             clock = clock,
+            sessionFactory = sessionFactory,
+            statistikkService = statistikkService,
         )
     }
 
@@ -181,6 +186,8 @@ open class MeldekortContext(
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakService = sakService,
             clock = clock,
+            sessionFactory = sessionFactory,
+            statistikkService = statistikkService,
         )
     }
 
@@ -189,6 +196,8 @@ open class MeldekortContext(
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakService = sakService,
             clock = clock,
+            sessionFactory = sessionFactory,
+            statistikkService = statistikkService,
         )
     }
 
@@ -198,6 +207,8 @@ open class MeldekortContext(
             sakService = sakService,
             oppdaterBeregningOgSimuleringMeldekortService = oppdaterBeregningOgSimuleringMeldekortService,
             erProd = Configuration.isProd(),
+            sessionFactory = sessionFactory,
+            statistikkService = statistikkService,
         )
     }
 
@@ -206,6 +217,8 @@ open class MeldekortContext(
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakService = sakService,
             clock = clock,
+            sessionFactory = sessionFactory,
+            statistikkService = statistikkService,
         )
     }
 
@@ -214,6 +227,8 @@ open class MeldekortContext(
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakService = sakService,
             clock = clock,
+            sessionFactory = sessionFactory,
+            statistikkService = statistikkService,
         )
     }
 
@@ -222,6 +237,8 @@ open class MeldekortContext(
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakService = sakService,
             clock = clock,
+            sessionFactory = sessionFactory,
+            statistikkService = statistikkService,
         )
     }
 
@@ -230,6 +247,8 @@ open class MeldekortContext(
             sakService = sakService,
             clock = clock,
             meldekortbehandlingRepo = meldekortbehandlingRepo,
+            sessionFactory = sessionFactory,
+            statistikkService = statistikkService,
         )
     }
 

@@ -57,6 +57,8 @@ class SettMeldekortbehandlingPåVentRouteTest {
                 meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo,
                 sakService = sakService,
                 clock = tac.clock,
+                sessionFactory = tac.sessionFactory,
+                statistikkService = tac.statistikkContext.statistikkService,
             )
 
             service.settPåVent(

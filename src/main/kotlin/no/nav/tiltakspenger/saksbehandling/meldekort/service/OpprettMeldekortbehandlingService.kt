@@ -21,6 +21,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.opprettManuellMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.meldekortbehandling.genererSaksstatistikk
 import java.time.Clock
 
 class OpprettMeldekortbehandlingService(
@@ -29,6 +32,7 @@ class OpprettMeldekortbehandlingService(
     val navkontorService: NavkontorService,
     val sessionFactory: SessionFactory,
     private val clock: Clock,
+    private val statistikkService: StatistikkService,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -82,8 +86,12 @@ class OpprettMeldekortbehandlingService(
             return it.left()
         }
 
+        val statistikk = statistikkService.generer(
+            oppdatertSak.genererSaksstatistikk(meldekortbehandling, StatistikkhendelseType.OPPRETTET_BEHANDLING),
+        )
         sessionFactory.withTransactionContext { tx ->
             meldekortbehandlingRepo.lagre(meldekortbehandling, null, tx)
+            statistikkService.lagre(statistikk, tx)
         }
 
         logger.info { "Opprettet behandling ${meldekortbehandling.id} på meldeperiodekjedene ${kommando.kjedeIder} for sak ${kommando.sakId}" }

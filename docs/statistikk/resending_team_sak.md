@@ -2,7 +2,7 @@ Resending av rader til Team Sak (DVH)
 ================
 
 Vi deler data med Team Sak (DVH) ved å inserte nye rader i tabellen `statistikk_sak`.
-Se DTO-klassen `no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDTO` for lenke til grensesnitt.
+Se DTO-klassen `no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkDTO`, som også beskriver hver kolonne, for lenke til grensesnitt.
 Selve delingen skjer via BigQuery.
 
 DVH fanger kun opp nye rader i tabellen, ikke oppdateringer, så endringer som man ønsker at DVH skal få med seg må komme som nye rader.

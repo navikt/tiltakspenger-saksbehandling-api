@@ -35,6 +35,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.meldepe
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.meldekortbehandling.genererSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.logg
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.vedtak.OpprettRammevedtakFeil
@@ -243,11 +245,20 @@ class IverksettRammebehandlingService(
         val sakOppdatertMedMeldekortbehandlinger =
             sakOppdatertMedMeldeperioder.oppdaterMeldekortbehandlinger(oppdaterteMeldekortbehandlinger)
 
+        // Åpne meldekortbehandlinger som avbrytes eller sendes tilbake fra beslutter, gir saksstatistikk; bare oppdaterte meldeperioder gir det ikke.
+        val meldekortstatistikk = oppdaterteMeldekort.mapNotNull { oppdatert ->
+            when {
+                oppdatert.erAvbrutt -> StatistikkhendelseType.AVSLUTTET_BEHANDLING
+                oppdatert.status != this.hentMeldekortbehandling(oppdatert.id)!!.status -> StatistikkhendelseType.AUTOMATISK_TILBAKESENDT_TIL_SAKSBEHANDLER
+                else -> null
+            }?.let { sakOppdatertMedMeldekortbehandlinger.genererSaksstatistikk(oppdatert, it) }
+        }
+
         val tidligereVedtak = sakOppdatertMedMeldekortbehandlinger.rammevedtaksliste
 
         val vellykket = lagreIverksattVedtak(
             rammevedtak = rammevedtak,
-            statistikkhendelser = statistikkhendelser,
+            statistikkhendelser = statistikkhendelser.leggTil(meldekortstatistikk),
             utøvendeBeslutter = utøvendeBeslutter,
             tilleggsoperasjoner = { tx ->
                 sakService.oppdaterSkalSendeMeldeperioderTilDatadelingOgSkalSendesTilMeldekortApi(

@@ -23,7 +23,7 @@ suspend fun Sak.overtaKlagebehandling(
     kommando: OvertaKlagebehandlingKommando,
     clock: Clock,
     overtaRammebehandling: suspend (OvertaRammebehandlingKommando) -> Either<KanIkkeOvertaKlagebehandling, Pair<Sak, Rammebehandling>>,
-    overtaMeldekortbehandling: (OvertaMeldekortbehandlingKommando) -> Either<KanIkkeOvertaKlagebehandling, Pair<Sak, Meldekortbehandling>>,
+    overtaMeldekortbehandling: suspend (OvertaMeldekortbehandlingKommando) -> Either<KanIkkeOvertaKlagebehandling, Pair<Sak, Meldekortbehandling>>,
     lagre: suspend (Klagebehandling, Statistikkhendelser) -> Unit,
 ): Either<KanIkkeOvertaKlagebehandling, Triple<Sak, Klagebehandling, AttesterbarBehandling?>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).let { klagebehandling ->

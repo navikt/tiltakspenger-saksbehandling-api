@@ -92,7 +92,6 @@ dependencies {
     implementation("no.nav.tiltakspenger.libs:tiltaksdeltakelse-domene:$felleslibVersion")
     implementation("no.nav.tiltakspenger.libs:tiltaksdeltakelse-infrastruktur:$felleslibVersion")
     implementation("no.nav.tiltakspenger.libs:arenatiltak-dtos:$felleslibVersion")
-    implementation("no.nav.tiltakspenger.libs:person-dtos:$felleslibVersion")
     implementation("no.nav.tiltakspenger.libs:periodisering:$felleslibVersion")
     implementation("no.nav.tiltakspenger.libs:personklient-domene:$felleslibVersion")
     implementation("no.nav.tiltakspenger.libs:personklient-infrastruktur:$felleslibVersion")

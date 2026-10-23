@@ -90,7 +90,7 @@ interface MeldekortbehandlingRepo {
     fun angreBehandling(
         meldekortbehandling: Meldekortbehandling,
         forventetSendtTilBeslutning: LocalDateTime?,
-        transactionContext: TransactionContext? = null,
+        transactionContext: TransactionContext?,
     ): Boolean
 
     fun oppdaterHvisFortsattUnderBeslutning(

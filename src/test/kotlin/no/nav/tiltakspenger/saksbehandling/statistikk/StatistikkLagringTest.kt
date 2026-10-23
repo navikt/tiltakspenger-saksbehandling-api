@@ -46,12 +46,16 @@ class StatistikkLagringTest {
                 it.saksnummer shouldBe saksnummer
                 it.fnr shouldBe fnr
                 it.sakYtelse shouldBe "IND"
+            }
+            saksstatistikk.filter { it.behandlingId == rammevedtak.rammebehandling.id.toString() }.forEach {
                 // Når søknaden kom inn til Nav, ikke når vi registrerte den.
                 // Testklokka og tiltaksstarten gir ulike verdier, så en forveksling med `opprettet` slår ut her.
                 it.mottattTidspunkt shouldBe søknad.mottatt
             }
+            // Meldekortbehandlingens rader er dekket av SaksstatistikkMeldekortbehandlingTest.
             saksstatistikk.map { it.behandlingId }.distinct() shouldContainExactly listOf(
                 rammevedtak.rammebehandling.id.toString(),
+                meldekortbehandling.id.toString(),
             )
 
             // statistikk_stonad: én rad per rammevedtak.

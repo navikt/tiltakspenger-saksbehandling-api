@@ -20,7 +20,7 @@ suspend fun Sak.gjenopptaKlagebehandling(
     kommando: GjenopptaKlagebehandlingKommando,
     clock: Clock,
     gjenopptaRammebehandling: suspend (GjenopptaRammebehandlingKommando) -> Pair<Sak, Rammebehandling>,
-    gjenopptaMeldekortbehandling: (GjenopptaMeldekortbehandlingKommando) -> Pair<Sak, Meldekortbehandling>,
+    gjenopptaMeldekortbehandling: suspend (GjenopptaMeldekortbehandlingKommando) -> Pair<Sak, Meldekortbehandling>,
     lagre: suspend (Klagebehandling, Statistikkhendelser) -> Unit,
 ): Either<KanIkkeGjenopptaKlagebehandling, Triple<Sak, Klagebehandling, AttesterbarBehandling?>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).let { klagebehandling ->
@@ -53,8 +53,8 @@ private suspend fun gjenopptaRammebehandling(
     ).let { Triple(it.first, it.second.klagebehandling!!, it.second) }
 }
 
-private fun gjenopptaMeldekortbehandling(
-    gjenopptaMeldekortbehandling: (GjenopptaMeldekortbehandlingKommando) -> Pair<Sak, Meldekortbehandling>,
+private suspend fun gjenopptaMeldekortbehandling(
+    gjenopptaMeldekortbehandling: suspend (GjenopptaMeldekortbehandlingKommando) -> Pair<Sak, Meldekortbehandling>,
     kommando: GjenopptaKlagebehandlingKommando,
     tilknyttetMeldekortbehandling: Meldekortbehandling,
 ): Triple<Sak, Klagebehandling, Meldekortbehandling> {

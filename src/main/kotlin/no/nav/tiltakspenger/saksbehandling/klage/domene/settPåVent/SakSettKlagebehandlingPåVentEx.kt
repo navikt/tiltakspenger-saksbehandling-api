@@ -20,7 +20,7 @@ suspend fun Sak.settKlagebehandlingPåVent(
     kommando: SettKlagebehandlingPåVentKommando,
     clock: Clock,
     settRammebehandlingPåVent: suspend (SettRammebehandlingPåVentKommando) -> Either<KanIkkeSetteKlagebehandlingPåVent, Pair<Sak, Rammebehandling>>,
-    settMeldekortbehandlingPåVent: (SettMeldekortbehandlingPåVentKommando) -> Either<KanIkkeSetteKlagebehandlingPåVent, Pair<Sak, Meldekortbehandling>>,
+    settMeldekortbehandlingPåVent: suspend (SettMeldekortbehandlingPåVentKommando) -> Either<KanIkkeSetteKlagebehandlingPåVent, Pair<Sak, Meldekortbehandling>>,
     lagre: suspend (Klagebehandling, Statistikkhendelser) -> Unit,
 ): Either<KanIkkeSetteKlagebehandlingPåVent, Triple<Sak, Klagebehandling, AttesterbarBehandling?>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).let { klagebehandling ->

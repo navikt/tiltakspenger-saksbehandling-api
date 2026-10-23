@@ -23,7 +23,7 @@ suspend fun Sak.taKlagebehandling(
     kommando: TaKlagebehandlingKommando,
     sistEndret: LocalDateTime,
     taRammebehandling: suspend (SakId, RammebehandlingId, Saksbehandler) -> Either<KunneIkkeTaBehandling, Pair<Sak, Rammebehandling>>,
-    taMeldekortbehandling: (SakId, MeldekortId, Saksbehandler) -> Pair<Sak, Meldekortbehandling>,
+    taMeldekortbehandling: suspend (SakId, MeldekortId, Saksbehandler) -> Pair<Sak, Meldekortbehandling>,
     lagre: suspend (Klagebehandling, Statistikkhendelser) -> Unit,
 ): Either<KanIkkeTaKlagebehandling, Triple<Sak, Klagebehandling, AttesterbarBehandling?>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).let { klagebehandling ->
