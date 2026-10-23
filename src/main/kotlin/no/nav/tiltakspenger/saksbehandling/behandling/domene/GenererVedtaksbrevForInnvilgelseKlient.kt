@@ -49,4 +49,18 @@ interface GenererVedtaksbrevForInnvilgelseKlient {
         barnetilleggsperioder: Periodisering<AntallBarn>?,
         tilleggstekst: FritekstTilVedtaksbrev?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
+
+    suspend fun genererForlengelseBrevForhåndsvisning(
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+        vedtaksdato: LocalDate,
+        fnr: Fnr,
+        saksbehandlerNavIdent: String,
+        beslutterNavIdent: String?,
+        saksnummer: Saksnummer,
+        sakId: SakId,
+        innvilgelsesperioder: Innvilgelsesperioder,
+        barnetilleggsperioder: Periodisering<AntallBarn>?,
+        tilleggstekst: FritekstTilVedtaksbrev?,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }

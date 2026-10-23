@@ -136,6 +136,7 @@ sealed class TestApplicationContext(
     clock = clock,
     meterRegistry = meterRegistry,
     erDev = false,
+    erProd = false,
 ) {
     override fun kafkaConfig(autoOffsetReset: String) = KafkaConfig(kafkaBrokers = LOKAL_KAFKA_BROKER)
 
@@ -391,6 +392,7 @@ sealed class TestApplicationContext(
             oppgaveKlient = oppgaveKlient,
             tiltakspengerArenaClient = tiltakspengerArenaFakeClient,
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
+            erProd = erProd,
         ) {
             override val rammevedtakRepo: RammevedtakRepo
                 get() = rammevedtakRepoOverride ?: super.rammevedtakRepo

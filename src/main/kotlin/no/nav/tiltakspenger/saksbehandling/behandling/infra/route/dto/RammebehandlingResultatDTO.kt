@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.Revurderin
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.OmgjøringsgradDTO
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.OmgjøringsgradDTO.Companion.tilDTO
+import java.time.LocalDate
 
 sealed interface RammebehandlingResultatDTO {
     val resultat: RammebehandlingResultatTypeDTO
@@ -50,6 +51,23 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
     ) : RevurderingResultatDTO,
         RammebehandlingInnvilgelseResultatDTO {
         override val resultat = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
+    }
+
+    /**
+     * @param forlengerRammevedtakId Vedtaket som forlenges.
+     * @param forlengesFraOgMed Dagen etter siste innvilgede dag i vedtaket som forlenges.
+     * Til og med-datoen saksbehandler har valgt, er slutten på vedtaksperioden.
+     * @param harValgtBarnetillegg Om saksbehandler har valgt barnetillegget selv, i stedet for at det er utledet fra vedtaket som forlenges.
+     */
+    data class Forlengelse(
+        val forlengerRammevedtakId: String,
+        val forlengesFraOgMed: LocalDate,
+        val harValgtBarnetillegg: Boolean,
+        override val innvilgelsesperioder: InnvilgelsesperioderDTO?,
+        override val barnetillegg: BarnetilleggDTO?,
+    ) : RevurderingResultatDTO,
+        RammebehandlingInnvilgelseResultatDTO {
+        override val resultat = RammebehandlingResultatTypeDTO.FORLENGELSE
     }
 
     data class Stans(
@@ -128,6 +146,14 @@ fun Søknadsbehandlingsresultat?.tilSøknadsbehandlingResultatDTO(): Søknadsbeh
 fun Revurderingsresultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
     return when (this) {
         is Revurderingsresultat.Innvilgelse -> Innvilgelse(
+            innvilgelsesperioder = innvilgelsesperioder?.tilDTO(),
+            barnetillegg = barnetillegg?.toBarnetilleggDTO(),
+        )
+
+        is Revurderingsresultat.Forlengelse -> RevurderingResultatDTO.Forlengelse(
+            forlengerRammevedtakId = forlenger.rammevedtakId.toString(),
+            forlengesFraOgMed = forlenger.forlengesFraOgMed,
+            harValgtBarnetillegg = harValgtBarnetillegg,
             innvilgelsesperioder = innvilgelsesperioder?.tilDTO(),
             barnetillegg = barnetillegg?.toBarnetilleggDTO(),
         )

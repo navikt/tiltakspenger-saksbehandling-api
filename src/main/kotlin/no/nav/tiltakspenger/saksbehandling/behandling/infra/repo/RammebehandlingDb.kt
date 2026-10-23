@@ -218,6 +218,11 @@ fun Row.toBehandling(session: Session): Rammebehandling {
                 RevurderingsresultatType.OMGJØRING_IKKE_VALGT -> Omgjøringsresultat.OmgjøringIkkeValgt(
                     omgjørRammevedtak = omgjørRammevedtak,
                 )
+
+                RevurderingsresultatType.FORLENGELSE -> string("forlengelse").tilForlengelse(
+                    innvilgelsesperioder = innvilgelsesperioder,
+                    barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
+                )
             }
 
             return Revurdering(
@@ -350,6 +355,13 @@ fun Rammebehandlingsresultat?.tilDbParams(): Array<Pair<String, Any?>> = when (t
         "innvilgelsesperioder" to this.innvilgelsesperioder?.tilInnvilgelsesperioderDbJson(),
         "barnetillegg" to this.barnetillegg?.toDbJson(),
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
+    )
+
+    is Revurderingsresultat.Forlengelse -> arrayOf(
+        "innvilgelsesperioder" to this.innvilgelsesperioder?.tilInnvilgelsesperioderDbJson(),
+        "barnetillegg" to this.barnetillegg?.toDbJson(),
+        "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
+        "forlengelse" to this.tilForlengelseDbJson(),
     )
 
     is Revurderingsresultat.Stans -> arrayOf(

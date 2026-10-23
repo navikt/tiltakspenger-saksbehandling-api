@@ -22,6 +22,7 @@ import java.time.LocalDate
     JsonSubTypes.Type(value = OppdaterRevurderingDTO.Innvilgelse::class, name = "REVURDERING_INNVILGELSE"),
     JsonSubTypes.Type(value = OppdaterRevurderingDTO.Stans::class, name = "STANS"),
     JsonSubTypes.Type(value = OppdaterRevurderingDTO.OmgjøringInnvilgelse::class, name = "OMGJØRING"),
+    JsonSubTypes.Type(value = OppdaterRevurderingDTO.Forlengelse::class, name = "FORLENGELSE"),
 )
 sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
 
@@ -53,6 +54,42 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperioder.perioder),
+                skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                prioritering = prioritering?.tilDomene(),
+                skalJournalføreNotat = skalJournalføreNotat.toDomain(),
+            )
+        }
+    }
+
+    /**
+     * @param barnetillegg Null betyr at barnetillegget utledes fra vedtaket som forlenges.
+     */
+    data class Forlengelse(
+        override val fritekstTilVedtaksbrev: String?,
+        override val begrunnelseVilkårsvurdering: String?,
+        val tilOgMed: LocalDate,
+        val barnetillegg: OppdaterBarnetilleggDTO?,
+        override val skalSendeVedtaksbrev: Boolean = true,
+        override val prioritering: OppdaterPrioriteringDTO? = null,
+        override val skalJournalføreNotat: SkalJournalføreNotatDTO = SkalJournalføreNotatDTO.INGEN,
+    ) : OppdaterRevurderingDTO {
+        override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.FORLENGELSE
+
+        override fun tilDomene(
+            sakId: SakId,
+            behandlingId: RammebehandlingId,
+            saksbehandler: Saksbehandler,
+            correlationId: CorrelationId,
+        ): OppdaterRevurderingKommando.Forlengelse {
+            return OppdaterRevurderingKommando.Forlengelse(
+                sakId = sakId,
+                behandlingId = behandlingId,
+                saksbehandler = saksbehandler,
+                correlationId = correlationId,
+                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
+                tilOgMed = tilOgMed,
+                barnetillegg = barnetillegg?.tilValgtBarnetillegg(),
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                 prioritering = prioritering?.tilDomene(),
                 skalJournalføreNotat = skalJournalføreNotat.toDomain(),

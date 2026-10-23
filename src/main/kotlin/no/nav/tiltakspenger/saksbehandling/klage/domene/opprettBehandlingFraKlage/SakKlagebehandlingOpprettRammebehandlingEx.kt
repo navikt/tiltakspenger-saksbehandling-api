@@ -84,6 +84,7 @@ private suspend fun Sak.opprettRevurderingFraKlage(
                 OpprettRevurderingFraKlageKommando.Type.INNVILGELSE -> null
                 OpprettRevurderingFraKlageKommando.Type.OMGJØRING -> kommando.vedtakIdSomOmgjøres!!
             },
+            vedtakIdSomForlenges = null,
             klagebehandlingId = kommando.klagebehandlingId,
         ),
         this,

@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeForlenge
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeOppdatereBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeOppdatereOmgjøring
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
@@ -72,6 +73,31 @@ fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, Erro
     is KanIkkeOppdatereOmgjøring.MåHaFritekstForValgteHjemler -> HttpStatusCode.BadRequest to ErrorJson(
         "For valgt hjemmel må vedtaket begrunnes med fritekst: ${this.hjemler}",
         "valgte_hjemler_krever_fritekst",
+    )
+
+    KanIkkeForlenge.VedtaketKanIkkeLengerForlenges -> HttpStatusCode.Conflict to ErrorJson(
+        "Vedtaket som forlenges, kan ikke lenger forlenges fra samme dato. Forlengelsen må avbrytes og startes på nytt.",
+        "vedtaket_kan_ikke_lenger_forlenges",
+    )
+
+    is KanIkkeForlenge.TilOgMedMåVæreEtterVedtaket -> HttpStatusCode.BadRequest to ErrorJson(
+        "Til og med-datoen må være etter ${this.sisteInnvilgedeDag}, som er siste innvilgede dag i vedtaket som forlenges",
+        "forlengelse_til_og_med_må_være_etter_vedtaket",
+    )
+
+    is KanIkkeForlenge.OverlapperAndreVedtak -> HttpStatusCode.BadRequest to ErrorJson(
+        "Forlengelsen ${this.forlengelsesperiode} overlapper andre vedtak",
+        "forlengelse_overlapper_andre_vedtak",
+    )
+
+    is KanIkkeForlenge.TiltaksdeltakelsenDekkerIkkeForlengelsen -> HttpStatusCode.BadRequest to ErrorJson(
+        "Tiltaksdeltakelsen dekker ikke hele forlengelsen ${this.forlengelsesperiode}",
+        "tiltaksdeltakelsen_dekker_ikke_forlengelsen",
+    )
+
+    is KanIkkeForlenge.BarnetilleggetGårUtoverForlengelsen -> HttpStatusCode.BadRequest to ErrorJson(
+        "Barnetillegget må være innenfor forlengelsen ${this.forlengelsesperiode}",
+        "barnetillegget_går_utover_forlengelsen",
     )
 
     KanIkkeOppdatereBehandling.UgyldigeMeldeperioderHelg -> HttpStatusCode.Conflict to ErrorJson(

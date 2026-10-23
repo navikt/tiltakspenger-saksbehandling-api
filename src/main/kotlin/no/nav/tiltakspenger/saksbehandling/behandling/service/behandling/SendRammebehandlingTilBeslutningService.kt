@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter.KanIkkeSendeRammebehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter.tilBeslutning
@@ -74,6 +75,12 @@ class SendRammebehandlingTilBeslutningService(
             behandling.validerOmgjøringsgrunnlag { sak.vedtaksliste.finnRammevedtakSomOmgjøres(it) }.onLeft {
                 logger.warn { "Kan ikke sende omgjøringen til beslutning. $it - ${behandling.loggkontekst(kommando.correlationId)}" }
                 return KanIkkeSendeRammebehandlingTilBeslutter.OmgjøringsgrunnlagetErEndret(it).left()
+            }
+
+            val resultat = behandling.resultat
+            if (resultat is Revurderingsresultat.Forlengelse && !sak.rammevedtaksliste.kanFortsattForlenges(resultat.forlenger)) {
+                logger.warn { "Kan ikke sende forlengelsen til beslutning, vedtaket kan ikke lenger forlenges fra ${resultat.forlenger.forlengesFraOgMed} - ${behandling.loggkontekst(kommando.correlationId)}" }
+                return KanIkkeSendeRammebehandlingTilBeslutter.ForlengelsesgrunnlagetErEndret.left()
             }
         }
 

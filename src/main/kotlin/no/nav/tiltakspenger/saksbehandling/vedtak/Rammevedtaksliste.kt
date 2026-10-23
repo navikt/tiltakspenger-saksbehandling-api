@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.vedtak
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
@@ -12,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeVerdi
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnAntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ForlengerRammevedtak
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat.IkkeValgt
@@ -180,6 +182,35 @@ data class Rammevedtaksliste(
 
     fun hentRammevedtakForId(rammevedtakId: VedtakId): Rammevedtak {
         return verdi.single { it.id == rammevedtakId }
+    }
+
+    /**
+     * Et vedtak kan forlenges når det fortsatt er innvilget helt frem til slutten av vedtaksperioden, og dagen etter ikke dekkes av et annet vedtak.
+     * Avslag, stans og opphør kan derfor ikke forlenges.
+     * Det kan heller ikke vedtak der slutten er stanset, opphørt eller omgjort av et senere vedtak.
+     */
+    fun gyldigForlengelseskommando(vedtak: Rammevedtak): Rammevedtakskommando.Forleng? {
+        val sisteInnvilgedeDag = vedtak.innvilgelsesperioder?.tilOgMed ?: return null
+        if (vedtak.periode.tilOgMed != sisteInnvilgedeDag) return null
+        if (vedtak.gjeldendeInnvilgetPerioder.lastOrNull()?.tilOgMed != sisteInnvilgedeDag) return null
+
+        val forlengesFraOgMed = sisteInnvilgedeDag.plusDays(1)
+        if (tidslinje.overlapper(forlengesFraOgMed til forlengesFraOgMed)) return null
+
+        return Rammevedtakskommando.Forleng(forlengesFraOgMed = forlengesFraOgMed)
+    }
+
+    /**
+     * Sann når vedtaket fortsatt kan forlenges fra samme dag som da forlengelsen ble opprettet.
+     * Et annet vedtak kan ha blitt iverksatt i mellomtiden, for eksempel en stans, en omgjøring eller en annen forlengelse.
+     */
+    fun kanFortsattForlenges(forlenger: ForlengerRammevedtak): Boolean {
+        return gyldigForlengelseskommando(hentRammevedtakForId(forlenger.rammevedtakId))?.forlengesFraOgMed == forlenger.forlengesFraOgMed
+    }
+
+    /** Kommandoene på [vedtak] som avhenger av de andre vedtakene på saken, i tillegg til [Rammevedtak.gyldigeKommandoer]. */
+    fun gyldigeKommandoer(vedtak: Rammevedtak): Rammevedtakskommandoer {
+        return Rammevedtakskommandoer(vedtak.gyldigeKommandoer + setOfNotNull(gyldigForlengelseskommando(vedtak)))
     }
 
     fun finnRammevedtakForBehandling(id: RammebehandlingId): Rammevedtak? {

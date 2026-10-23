@@ -163,6 +163,7 @@ class OppdaterBeregningOgSimuleringRammebehandlingService(
         return when (behandling.resultat) {
             is Omgjøringsresultat.OmgjøringInnvilgelse,
             is Revurderingsresultat.Innvilgelse,
+            is Revurderingsresultat.Forlengelse,
             is Søknadsbehandlingsresultat.Innvilgelse,
             -> this.beregnInnvilgelse(
                 behandlingId = behandlingId,

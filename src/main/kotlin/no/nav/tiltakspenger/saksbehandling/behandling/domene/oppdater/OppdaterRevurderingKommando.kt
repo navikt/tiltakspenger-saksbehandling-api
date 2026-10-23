@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ValgtBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import java.time.LocalDate
 
@@ -93,6 +94,26 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val skalJournalføreNotat: SkalJournalføreNotat,
     ) : OppdaterRevurderingKommando,
         OppdaterBehandlingKommando.Innvilgelse
+
+    /**
+     * Saksbehandler velger bare ny til og med-dato.
+     * Resten utledes fra vedtaket som forlenges, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.utledForlengelse].
+     *
+     * @param barnetillegg Null betyr at barnetillegget utledes på nytt fra vedtaket som forlenges.
+     */
+    data class Forlengelse(
+        override val sakId: SakId,
+        override val behandlingId: RammebehandlingId,
+        override val saksbehandler: Saksbehandler,
+        override val correlationId: CorrelationId,
+        override val begrunnelseVilkårsvurdering: Begrunnelse?,
+        override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
+        val tilOgMed: LocalDate,
+        val barnetillegg: ValgtBarnetillegg?,
+        override val skalSendeVedtaksbrev: Boolean,
+        override val prioritering: Prioritering?,
+        override val skalJournalføreNotat: SkalJournalføreNotat,
+    ) : OppdaterRevurderingKommando
 }
 
 sealed interface OppdaterOmgjøringKommando : OppdaterRevurderingKommando {

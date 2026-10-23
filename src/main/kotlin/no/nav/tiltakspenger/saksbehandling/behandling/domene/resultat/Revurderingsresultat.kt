@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ForlengerRammevedtak
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KunneIkkeOppdatereSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
@@ -94,6 +95,70 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
                 barnetillegg = null,
                 innvilgelsesperioder = null,
                 omgjørRammevedtak = OmgjørRammevedtak.empty,
+            )
+        }
+    }
+
+    /**
+     * Forlenger et gjeldende, innvilget rammevedtak fra dagen etter at det slutter.
+     * Saksbehandler velger bare ny til og med-dato, og kan eventuelt endre barnetillegget.
+     * Tiltaksdeltakelsen og antall dager per meldeperiode videreføres fra siste dag i vedtaket som forlenges.
+     *
+     * Vedtaksperioden og innvilgelsesperioden vil være 1-1, og starter alltid på [ForlengerRammevedtak.forlengesFraOgMed].
+     * Forlengelsen kan ikke overlappe andre vedtak, så den omgjør aldri andre vedtak.
+     * Når man oppretter forlengelsen, har man ikke tatt stilling til til og med-datoen ennå, og [innvilgelsesperioder] og [barnetillegg] er null.
+     *
+     * @param harValgtBarnetillegg Om saksbehandler har valgt barnetillegget selv.
+     * Er det false, er barnetillegget utledet fra vedtaket som forlenges, og utledes på nytt ved neste oppdatering.
+     */
+    data class Forlengelse(
+        val forlenger: ForlengerRammevedtak,
+        override val innvilgelsesperioder: Innvilgelsesperioder?,
+        override val barnetillegg: Barnetillegg?,
+        val harValgtBarnetillegg: Boolean,
+    ) : Rammebehandlingsresultat.Innvilgelse,
+        Revurderingsresultat {
+        override val vedtaksperiode = innvilgelsesperioder?.totalPeriode
+        override val valgteTiltaksdeltakelser = innvilgelsesperioder?.valgteTiltaksdeltagelser
+        override val antallDagerPerMeldeperiode = innvilgelsesperioder?.antallDagerPerMeldeperiode
+        override val omgjørRammevedtak = OmgjørRammevedtak.empty
+
+        init {
+            if (innvilgelsesperioder != null) {
+                require(innvilgelsesperioder.fraOgMed == forlenger.forlengesFraOgMed) {
+                    "Forlengelsen må starte ${forlenger.forlengesFraOgMed}, men starter ${innvilgelsesperioder.fraOgMed}"
+                }
+            }
+            if (harValgtBarnetillegg) {
+                require(barnetillegg != null) { "Forlengelsen har valgt barnetillegg, men mangler barnetillegg" }
+            }
+        }
+
+        fun nullstill() = Forlengelse(
+            forlenger = forlenger,
+            innvilgelsesperioder = null,
+            barnetillegg = null,
+            harValgtBarnetillegg = false,
+        )
+
+        override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Forlengelse> {
+            return if (valgteTiltaksdeltakelser == null || skalNullstilleResultatVedNyeSaksopplysninger(
+                    valgteTiltaksdeltakelser.verdier,
+                    oppdaterteSaksopplysninger,
+                )
+            ) {
+                nullstill()
+            } else {
+                this
+            }.right()
+        }
+
+        companion object {
+            fun opprett(forlenger: ForlengerRammevedtak) = Forlengelse(
+                forlenger = forlenger,
+                innvilgelsesperioder = null,
+                barnetillegg = null,
+                harValgtBarnetillegg = false,
             )
         }
     }

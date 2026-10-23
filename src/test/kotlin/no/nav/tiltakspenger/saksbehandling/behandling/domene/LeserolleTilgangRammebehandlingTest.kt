@@ -91,6 +91,7 @@ class LeserolleTilgangRammebehandlingTest {
                             saksbehandler = bruker,
                             revurderingType = StartRevurderingType.STANS,
                             vedtakIdSomOmgjøres = null,
+                            vedtakIdSomForlenges = null,
                             klagebehandlingId = null,
                         ),
                         clock = ObjectMother.clock,

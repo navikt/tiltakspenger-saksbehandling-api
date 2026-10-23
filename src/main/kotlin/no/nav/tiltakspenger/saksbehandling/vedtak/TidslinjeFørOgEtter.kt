@@ -58,6 +58,7 @@ data class Tidslinjeverdi(
         when (resultat) {
             Tidslinjeresultat.SØKNADSBEHANDLING_INNVILGELSE,
             Tidslinjeresultat.REVURDERING_INNVILGELSE,
+            Tidslinjeresultat.FORLENGELSE,
             Tidslinjeresultat.OMGJØRING_INNVILGELSE,
             -> Pair(antallDagerPerMeldeperiode!!, antallBarn!!)
 
@@ -71,6 +72,7 @@ data class Tidslinjeverdi(
 enum class Tidslinjeresultat {
     SØKNADSBEHANDLING_INNVILGELSE,
     REVURDERING_INNVILGELSE,
+    FORLENGELSE,
     OMGJØRING_INNVILGELSE,
     OMGJØRING_OPPHØR,
     STANS,
@@ -107,6 +109,7 @@ fun Rammevedtaksliste.tidslinjeFørOgEtter(rammebehandling: Rammebehandling): Ti
 
         is Søknadsbehandlingsresultat.Innvilgelse,
         is Revurderingsresultat.Innvilgelse,
+        is Revurderingsresultat.Forlengelse,
         is Revurderingsresultat.Stans,
         is Omgjøringsresultat.OmgjøringInnvilgelse,
         is Omgjøringsresultat.OmgjøringOpphør,
@@ -156,6 +159,8 @@ private fun Rammebehandling.tilTidslinjeverdier(rammevedtakId: VedtakId?): Perio
         is Søknadsbehandlingsresultat.Innvilgelse -> innvilgelse(Tidslinjeresultat.SØKNADSBEHANDLING_INNVILGELSE)
 
         is Revurderingsresultat.Innvilgelse -> innvilgelse(Tidslinjeresultat.REVURDERING_INNVILGELSE)
+
+        is Revurderingsresultat.Forlengelse -> innvilgelse(Tidslinjeresultat.FORLENGELSE)
 
         is Omgjøringsresultat.OmgjøringInnvilgelse -> {
             val innvilget = innvilgelse(Tidslinjeresultat.OMGJØRING_INNVILGELSE)

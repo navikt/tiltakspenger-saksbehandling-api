@@ -101,6 +101,11 @@ open class ApplicationContext(
      * Konteksten deles med tester og lokal kjøring, og et statisk oppslag ville gjort oppførselen avhengig av prosessglobal tilstand.
      */
     val erDev: Boolean,
+    /**
+     * Injiseres fra komposisjonsroten av samme grunn som [erDev].
+     * Brukes til å sperre funksjonalitet som ikke er klar for prod.
+     */
+    val erProd: Boolean,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -470,6 +475,7 @@ open class ApplicationContext(
             oppgaveKlient = oppgaveKlient,
             tiltakspengerArenaClient = tiltakspengerArenaClient,
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
+            erProd = erProd,
         )
     }
 
