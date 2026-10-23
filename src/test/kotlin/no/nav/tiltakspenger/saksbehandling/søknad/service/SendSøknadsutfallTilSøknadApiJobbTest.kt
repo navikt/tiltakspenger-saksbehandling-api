@@ -6,9 +6,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbe
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenåpneSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgAvbryt
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.KunneIkkeSendeSøknadsutfall
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadsutfall
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadsutfallresultat
 import org.junit.jupiter.api.Test
 
 class SendSøknadsutfallTilSøknadApiJobbTest {
@@ -30,16 +33,53 @@ class SendSøknadsutfallTilSøknadApiJobbTest {
                 it.søknadId in listOf(innvilgetSøknad.id, avslåttSøknad.id)
             } shouldBe listOf(
                 Søknadsutfall(
-                    vedtakId = innvilgelse.id,
                     søknadId = innvilgetSøknad.id,
-                    resultat = SøknadsbehandlingsresultatType.INNVILGELSE,
-                    vedtakstidspunkt = innvilgelse.opprettet,
+                    resultat = Søknadsutfallresultat.INNVILGELSE,
+                    tidspunkt = innvilgelse.opprettet,
+                    vedtakId = innvilgelse.id,
                 ),
                 Søknadsutfall(
-                    vedtakId = avslag.id,
                     søknadId = avslåttSøknad.id,
-                    resultat = SøknadsbehandlingsresultatType.AVSLAG,
-                    vedtakstidspunkt = avslag.opprettet,
+                    resultat = Søknadsutfallresultat.AVSLAG,
+                    tidspunkt = avslag.opprettet,
+                    vedtakId = avslag.id,
+                ),
+            )
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `sender avbrudd og gjenåpning av søknaden én gang hver`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, _, avbruttBehandling) = opprettSøknadsbehandlingOgAvbryt(tac = tac)!!
+
+            fun søknad() = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.søknader.single()
+
+            fun sendteUtfall() = tac.søknadApiFakeKlient.sendteSøknadsutfall.filter { it.søknadId == søknad().id }
+
+            tac.sendSøknadsutfallTilSøknadApiJobb.send()
+            tac.sendSøknadsutfallTilSøknadApiJobb.send()
+
+            val avbrutt = Søknadsutfall(
+                søknadId = søknad().id,
+                resultat = Søknadsutfallresultat.AVBRUTT,
+                tidspunkt = søknad().avbrutt.single().tidspunkt,
+                vedtakId = null,
+            )
+            sendteUtfall() shouldBe listOf(avbrutt)
+
+            gjenåpneSøknadsbehandling(tac = tac, sakId = sak.id, avbruttBehandlingId = avbruttBehandling!!.id)
+            tac.sendSøknadsutfallTilSøknadApiJobb.send()
+            tac.sendSøknadsutfallTilSøknadApiJobb.send()
+
+            sendteUtfall() shouldBe listOf(
+                avbrutt,
+                Søknadsutfall(
+                    søknadId = søknad().id,
+                    resultat = Søknadsutfallresultat.GJENÅPNET,
+                    tidspunkt = søknad().avbrutt.last().tidspunkt,
+                    vedtakId = null,
                 ),
             )
         }

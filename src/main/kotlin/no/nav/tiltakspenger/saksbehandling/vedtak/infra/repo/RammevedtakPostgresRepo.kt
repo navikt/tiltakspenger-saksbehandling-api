@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toOmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadsutfall
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.tilSøknadsutfallresultat
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -263,10 +264,10 @@ class RammevedtakPostgresRepo(
                     ),
                 ).map { row ->
                     Søknadsutfall(
-                        vedtakId = VedtakId.fromString(row.string("id")),
                         søknadId = SøknadId.fromString(row.string("soknad_id")),
-                        resultat = row.string("resultat").tilSøknadsbehandlingResultatType(),
-                        vedtakstidspunkt = row.localDateTime("opprettet"),
+                        resultat = row.string("resultat").tilSøknadsbehandlingResultatType().tilSøknadsutfallresultat(),
+                        tidspunkt = row.localDateTime("opprettet"),
+                        vedtakId = VedtakId.fromString(row.string("id")),
                     )
                 }.asList,
             )

@@ -10,13 +10,13 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalføringsnotat
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadsutfall
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadsutfallresultat
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
@@ -107,16 +107,16 @@ class RammevedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : RammevedtakR
                 val behandling = vedtak.rammebehandling as? Søknadsbehandling ?: return@mapNotNull null
                 if (behandling.søknad.søknadstype != Søknadstype.DIGITAL) return@mapNotNull null
                 Søknadsutfall(
-                    vedtakId = vedtak.id,
                     søknadId = behandling.søknad.id,
                     resultat = when (behandling.resultat!!) {
-                        is Søknadsbehandlingsresultat.Innvilgelse -> SøknadsbehandlingsresultatType.INNVILGELSE
-                        is Søknadsbehandlingsresultat.Avslag -> SøknadsbehandlingsresultatType.AVSLAG
+                        is Søknadsbehandlingsresultat.Innvilgelse -> Søknadsutfallresultat.INNVILGELSE
+                        is Søknadsbehandlingsresultat.Avslag -> Søknadsutfallresultat.AVSLAG
                     },
-                    vedtakstidspunkt = vedtak.opprettet,
+                    tidspunkt = vedtak.opprettet,
+                    vedtakId = vedtak.id,
                 )
             }
-            .sortedBy { it.vedtakstidspunkt }
+            .sortedBy { it.tidspunkt }
             .take(limit)
     }
 

@@ -10,10 +10,10 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.libs.json.deserialize
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.KunneIkkeSendeSøknadsutfall
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadsutfall
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadsutfallresultat
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDateTime
@@ -38,10 +38,10 @@ class SøknadApiHttpClientTest {
     )
 
     private val søknadsutfall = Søknadsutfall(
-        vedtakId = VedtakId.random(),
         søknadId = SøknadId.random(),
-        resultat = SøknadsbehandlingsresultatType.AVSLAG,
-        vedtakstidspunkt = LocalDateTime.parse("2025-05-01T12:30:15.123456"),
+        resultat = Søknadsutfallresultat.AVSLAG,
+        tidspunkt = LocalDateTime.parse("2025-05-01T12:30:15.123456"),
+        vedtakId = VedtakId.random(),
     )
 
     @Test
@@ -68,21 +68,44 @@ class SøknadApiHttpClientTest {
             "søknadId" to søknadsutfall.søknadId.toString(),
             "vedtakId" to søknadsutfall.vedtakId.toString(),
             "utfall" to "AVSLAG",
-            "vedtakstidspunkt" to "2025-05-01T12:30:15.123456",
+            "tidspunkt" to "2025-05-01T12:30:15.123456",
         )
     }
 
     @Test
-    fun `innvilgelse sendes som INNVILGELSE`() {
+    fun `avbrudd sendes uten vedtakId`() {
         val transport = FakeHttpTransport().apply { leggIKøTomRespons(statusCode = 204) }
 
         runTest {
             client(transport).sendSøknadsutfall(
-                søknadsutfall.copy(resultat = SøknadsbehandlingsresultatType.INNVILGELSE),
+                søknadsutfall.copy(resultat = Søknadsutfallresultat.AVBRUTT, vedtakId = null),
             ) shouldBe Unit.right()
         }
 
-        deserialize<Map<String, String>>(transport.mottatteKall.single().bodyTekst)["utfall"] shouldBe "INNVILGELSE"
+        deserialize<Map<String, String?>>(transport.mottatteKall.single().bodyTekst) shouldBe mapOf(
+            "søknadId" to søknadsutfall.søknadId.toString(),
+            "vedtakId" to null,
+            "utfall" to "AVBRUTT",
+            "tidspunkt" to "2025-05-01T12:30:15.123456",
+        )
+    }
+
+    @Test
+    fun `hvert resultat sendes med samme navn i kontrakten`() {
+        Søknadsutfallresultat.entries.forEach { resultat ->
+            val transport = FakeHttpTransport().apply { leggIKøTomRespons(statusCode = 204) }
+
+            runTest {
+                client(transport).sendSøknadsutfall(
+                    søknadsutfall.copy(
+                        resultat = resultat,
+                        vedtakId = if (resultat.harVedtak) VedtakId.random() else null,
+                    ),
+                ) shouldBe Unit.right()
+            }
+
+            deserialize<Map<String, String?>>(transport.mottatteKall.single().bodyTekst)["utfall"] shouldBe resultat.name
+        }
     }
 
     @Test

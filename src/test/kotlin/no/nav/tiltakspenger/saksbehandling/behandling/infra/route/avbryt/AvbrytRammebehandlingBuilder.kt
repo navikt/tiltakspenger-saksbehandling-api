@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -82,10 +83,13 @@ interface AvbrytRammebehandlingBuilder {
             val sakJson: SakDTOJson = objectMapper.readTree(bodyAsText)
 
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+            val rammebehandling = oppdatertSak.hentRammebehandling(rammebehandlingId)!!
+            // Saken kan ha flere søknader, så for en søknadsbehandling returneres søknaden som hører til den.
+            val søknadId = (rammebehandling as? Søknadsbehandling)?.søknad?.id
             return Tuple4(
                 oppdatertSak,
-                oppdatertSak.søknader.single(),
-                rammebehandlingId.let { oppdatertSak.hentRammebehandling(it)!! },
+                oppdatertSak.søknader.single { søknadId == null || it.id == søknadId },
+                rammebehandling,
                 sakJson,
             )
         }

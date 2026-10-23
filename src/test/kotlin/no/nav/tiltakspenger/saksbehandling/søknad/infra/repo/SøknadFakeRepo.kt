@@ -13,10 +13,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.SøknadshendelseTilSøknadApi
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.tilSøknadsutfall
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 class SøknadFakeRepo(private val behandlingRepo: RammebehandlingFakeRepo) : SøknadRepo {
     private val data = Atomic(mutableMapOf<SøknadId, Søknad>())
+    private val hendelserSendtTilSøknadApi = Atomic(mutableMapOf<SøknadId, Int>())
 
     val alle get() = data.get().values.toList()
 
@@ -75,5 +79,23 @@ class SøknadFakeRepo(private val behandlingRepo: RammebehandlingFakeRepo) : Sø
 
     fun hentForSakId(sakId: SakId): List<Søknad> {
         return data.get().filter { it.value.sakId == sakId }.values.toList()
+    }
+
+    override fun hentSøknadshendelserTilSøknadApi(limit: Int): List<SøknadshendelseTilSøknadApi> {
+        return data.get().values
+            .filter { it.søknadstype == Søknadstype.DIGITAL }
+            .filter { it.avbrutt.size > (hendelserSendtTilSøknadApi.get()[it.id] ?: 0) }
+            .sortedBy { it.opprettet }
+            .take(limit)
+            .map {
+                SøknadshendelseTilSøknadApi(
+                    søknadsutfall = it.avbrutt.last().tilSøknadsutfall(it.id),
+                    antallHendelser = it.avbrutt.size,
+                )
+            }
+    }
+
+    override fun markerSøknadshendelserSendtTilSøknadApi(søknadId: SøknadId, antallHendelser: Int) {
+        hendelserSendtTilSøknadApi.get().merge(søknadId, antallHendelser, ::maxOf)
     }
 }

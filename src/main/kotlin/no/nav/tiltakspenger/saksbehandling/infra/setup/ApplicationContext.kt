@@ -563,6 +563,7 @@ open class ApplicationContext(
     val sendSøknadsutfallTilSøknadApiJobb by lazy {
         SendSøknadsutfallTilSøknadApiJobb(
             rammevedtakRepo = behandlingContext.rammevedtakRepo,
+            søknadRepo = søknadContext.søknadRepo,
             søknadApiKlient = søknadApiKlient,
             clock = clock,
         )

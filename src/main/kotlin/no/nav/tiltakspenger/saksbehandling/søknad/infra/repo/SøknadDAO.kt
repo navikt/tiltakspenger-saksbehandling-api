@@ -15,8 +15,10 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.SøknadshendelseTilSøknadApi
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelser
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.tilSøknadsutfall
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 private const val HAR_SOKT_PAA_TILTAK = "har_sokt_paa_tiltak"
@@ -124,6 +126,43 @@ object SøknadDAO {
                 row.toSøknad(session)
             }.asSingle,
         ) as? InnvilgbarSøknad
+
+    fun hentSøknadshendelserTilSøknadApi(limit: Int, session: Session): List<SøknadshendelseTilSøknadApi> =
+        session.run(
+            sqlQuery(
+                """
+                    select id, avbrutt
+                    from søknad
+                    where jsonb_array_length(avbrutt) > hendelser_sendt_til_soknad_api
+                      and soknadstype = :digital
+                    order by opprettet
+                    limit :limit
+                """.trimIndent(),
+                "limit" to limit,
+                "digital" to Søknadstype.DIGITAL.toDbValue(),
+            ).map { row: Row ->
+                val hendelser = row.string("avbrutt").toSøknadshendelser()
+                SøknadshendelseTilSøknadApi(
+                    søknadsutfall = hendelser.last().tilSøknadsutfall(SøknadId.fromString(row.string("id"))),
+                    antallHendelser = hendelser.size,
+                )
+            }.asList,
+        )
+
+    fun markerSøknadshendelserSendtTilSøknadApi(søknadId: SøknadId, antallHendelser: Int, session: Session) {
+        session.run(
+            sqlQuery(
+                """
+                    update søknad
+                    set hendelser_sendt_til_soknad_api = :antall
+                    where id = :id
+                      and hendelser_sendt_til_soknad_api < :antall
+                """.trimIndent(),
+                "id" to søknadId.toString(),
+                "antall" to antallHendelser,
+            ).asUpdate,
+        )
+    }
 
     private fun søknadFinnes(
         søknadId: SøknadId,

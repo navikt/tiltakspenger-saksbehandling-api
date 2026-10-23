@@ -10,10 +10,10 @@ import no.nav.tiltakspenger.libs.httpklient.infra.kall.SerialisertJson
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.KunneIkkeSendeSøknadsutfall
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.SøknadApiKlient
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadsutfall
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadsutfallresultat
 import java.net.URI
 import java.time.Clock
 import java.time.LocalDateTime
@@ -70,22 +70,26 @@ class SøknadApiHttpClient(
 
 private data class SøknadsutfallDTO(
     val søknadId: String,
-    val vedtakId: String,
+    val vedtakId: String?,
     val utfall: UtfallDTO,
-    val vedtakstidspunkt: LocalDateTime,
+    val tidspunkt: LocalDateTime,
 )
 
 private enum class UtfallDTO {
     INNVILGELSE,
     AVSLAG,
+    AVBRUTT,
+    GJENÅPNET,
 }
 
 private fun Søknadsutfall.tilDTO() = SøknadsutfallDTO(
     søknadId = søknadId.toString(),
-    vedtakId = vedtakId.toString(),
+    vedtakId = vedtakId?.toString(),
     utfall = when (resultat) {
-        SøknadsbehandlingsresultatType.INNVILGELSE -> UtfallDTO.INNVILGELSE
-        SøknadsbehandlingsresultatType.AVSLAG -> UtfallDTO.AVSLAG
+        Søknadsutfallresultat.INNVILGELSE -> UtfallDTO.INNVILGELSE
+        Søknadsutfallresultat.AVSLAG -> UtfallDTO.AVSLAG
+        Søknadsutfallresultat.AVBRUTT -> UtfallDTO.AVBRUTT
+        Søknadsutfallresultat.GJENÅPNET -> UtfallDTO.GJENÅPNET
     },
-    vedtakstidspunkt = vedtakstidspunkt,
+    tidspunkt = tidspunkt,
 )
