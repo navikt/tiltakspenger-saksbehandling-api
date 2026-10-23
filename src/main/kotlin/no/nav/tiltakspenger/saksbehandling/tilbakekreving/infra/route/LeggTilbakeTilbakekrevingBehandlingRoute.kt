@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
+import no.nav.tiltakspenger.saksbehandling.felles.krevTilbakekrevingRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withTilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
@@ -37,6 +38,7 @@ fun Route.leggTilbakeTilbakekrevingBehandlingRoute(
             call.withTilbakekrevingId { tilbakekrevingId ->
                 val correlationId = call.correlationId()
                 krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
+                krevTilbakekrevingRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
                 tilbakekrevingBehandlingTildelingService.leggTilbakeBehandling(sakId, tilbakekrevingId, saksbehandler)
                     .also { (sak) ->

@@ -31,7 +31,7 @@ class TilbakekrevingBehandlingPostgresRepoTest {
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
-                saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomVant"),
+                saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandlerSomVant"),
             )!!
             val repo = tac.tilbakekrevingBehandlingRepo
 
@@ -52,7 +52,7 @@ class TilbakekrevingBehandlingPostgresRepoTest {
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
-                saksbehandler = ObjectMother.beslutter("beslutterSomVant"),
+                saksbehandler = ObjectMother.tilbakekrevingBeslutter("beslutterSomVant"),
             )!!
             val repo = tac.tilbakekrevingBehandlingRepo
 

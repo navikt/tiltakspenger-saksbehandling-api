@@ -313,6 +313,27 @@ class BenkGyldigeKommandoerTest {
     @Nested
     inner class Tilbakekrevinger {
 
+        private val saksbehandler = ObjectMother.tilbakekrevingSaksbehandler()
+        private val beslutter = ObjectMother.tilbakekrevingBeslutter()
+
+        @Test
+        fun `saksbehandler og beslutter uten tilbakekrevingsrollen får ingen kommandoer`() {
+            val utenRolle = listOf(ObjectMother.saksbehandler(), ObjectMother.beslutter())
+            listOf(
+                felles(),
+                felles(saksbehandler = ObjectMother.saksbehandler().navIdent),
+                felles(saksbehandler = "Z999999", beslutter = ObjectMother.beslutter().navIdent),
+            ).forEach { felles ->
+                BenkTilbakekrevingStatus.entries.forEach { status ->
+                    utenRolle.forEach { bruker ->
+                        withClue("Roller: ${bruker.roller}, status: $status") {
+                            tilbakekreving(status, felles).finnGyldigeKommandoer(bruker) shouldBe emptyList()
+                        }
+                    }
+                }
+            }
+        }
+
         @Test
         fun `til behandling kan tildeles en saksbehandler`() {
             tilbakekreving(BenkTilbakekrevingStatus.TIL_BEHANDLING, felles())
@@ -326,7 +347,7 @@ class BenkGyldigeKommandoerTest {
                 felles(saksbehandler = saksbehandler.navIdent),
             )
             rad.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(LeggTilbakeSaksbehandler)
-            rad.finnGyldigeKommandoer(ObjectMother.saksbehandler(navIdent = "Z999999")) shouldBe
+            rad.finnGyldigeKommandoer(ObjectMother.tilbakekrevingSaksbehandler(navIdent = "Z999999")) shouldBe
                 listOf(OvertaSaksbehandler)
         }
 
@@ -347,7 +368,7 @@ class BenkGyldigeKommandoerTest {
                 felles(saksbehandler = "Z999999", beslutter = beslutter.navIdent),
             )
             rad.finnGyldigeKommandoer(beslutter) shouldBe listOf(LeggTilbakeBeslutter)
-            rad.finnGyldigeKommandoer(ObjectMother.beslutter(navIdent = "B999999")) shouldBe listOf(OvertaBeslutter)
+            rad.finnGyldigeKommandoer(ObjectMother.tilbakekrevingBeslutter(navIdent = "B999999")) shouldBe listOf(OvertaBeslutter)
         }
 
         @Test

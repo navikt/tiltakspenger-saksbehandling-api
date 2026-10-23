@@ -6,6 +6,8 @@ import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
+import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.common.nå
@@ -1183,8 +1185,8 @@ class BenkAggregatTest {
                 it.felles.beslutter shouldBe null
                 it.felles.erUnderkjent shouldBe false
                 it.felles.ventestatus.erSattPåVent shouldBe false
-                it.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe
-                    tilBehandling.gyldigeKommandoer(ObjectMother.saksbehandler())
+                it.finnGyldigeKommandoer(ObjectMother.tilbakekrevingSaksbehandler()) shouldBe
+                    tilBehandling.gyldigeKommandoer(ObjectMother.tilbakekrevingSaksbehandler())
             }
             oversikt.behandlinger.single { it.felles.sakId == sakTilGodkjenning.id }.status shouldBe
                 BenkTilbakekrevingStatus.TIL_GODKJENNING
@@ -1226,7 +1228,7 @@ class BenkAggregatTest {
                 tac = tac,
                 sakId = sakTilGodkjenning.id,
                 tilbakekrevingId = tilGodkjenning.id,
-                saksbehandler = ObjectMother.beslutter("beslutterSomTar"),
+                saksbehandler = ObjectMother.tilbakekrevingBeslutter("beslutterSomTar"),
             )!!
 
             val oversikt = tac.benkContext.benkRepo.hentTilbakekrevinger(tilbakekrevingCommand())
@@ -1280,7 +1282,7 @@ class BenkAggregatTest {
                 tac = tac,
                 sakId = sakTilGodkjenning.id,
                 tilbakekrevingId = tilBehandling.id,
-                saksbehandler = ObjectMother.saksbehandler(),
+                saksbehandler = ObjectMother.tilbakekrevingSaksbehandler(),
             )!!
             sendTilbakekrevingHendelseOgKjørJobb(
                 tac = tac,
@@ -1295,7 +1297,7 @@ class BenkAggregatTest {
                 tac = tac,
                 sakId = sakUnderBehandling.id,
                 tilbakekrevingId = underBehandling.id,
-                saksbehandler = ObjectMother.saksbehandler(),
+                saksbehandler = ObjectMother.tilbakekrevingSaksbehandler(),
             )!!
             val repo = tac.benkContext.benkRepo
 
@@ -1447,7 +1449,7 @@ class BenkAggregatTest {
     @IsolatedDatabaseTest
     fun `mine-fanen viser behandlingene tildelt innlogget saksbehandler, som én seksjon per fane`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val meg = ObjectMother.saksbehandler()
+            val meg = ObjectMother.tilbakekrevingSaksbehandler()
             val (sakSøknad, _, søknadsbehandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
             val (sakRevurdering, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac = tac)
             oppdaterRevurderingStans(tac = tac, sakId = sakRevurdering.id, behandlingId = revurdering.id)
@@ -1519,7 +1521,14 @@ class BenkAggregatTest {
     @IsolatedDatabaseTest
     fun `mine-fanen treffer identen som beslutter, også på tilbakekreving`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val beslutter = ObjectMother.saksbehandlerOgBeslutter("Z888888")
+            val beslutter = ObjectMother.saksbehandlerOgBeslutter(
+                navIdent = "Z888888",
+                roller = Saksbehandlerroller(
+                    Saksbehandlerrolle.SAKSBEHANDLER,
+                    Saksbehandlerrolle.BESLUTTER,
+                    Saksbehandlerrolle.TILBAKEKREVING,
+                ),
+            )
             val (sakUnderBeslutning, _, underBeslutningId, _) = sendSøknadsbehandlingTilBeslutning(tac = tac)
             val (sakTilGodkjenning, tilGodkjenning) = opprettTilbakekrevingBehandlingTilGodkjenning(tac = tac)
             val repo = tac.benkContext.benkRepo

@@ -24,7 +24,7 @@ class TildelTilbakekrevingerRouteTest {
             val (oppdaterte, json) = tildelTilbakekrevinger(
                 tac = tac,
                 tilbakekrevinger = listOf(sak1.id to tilbakekreving1.id, sak2.id to tilbakekreving2.id),
-                saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomTar"),
+                saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandlerSomTar"),
             )!!
 
             oppdaterte.map { it.saksbehandler } shouldBe listOf("saksbehandlerSomTar", "saksbehandlerSomTar")
@@ -52,13 +52,13 @@ class TildelTilbakekrevingerRouteTest {
                 tac = tac,
                 sakId = sak2.id,
                 tilbakekrevingId = alleredeTatt.id,
-                saksbehandler = ObjectMother.saksbehandler("annenSaksbehandler"),
+                saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("annenSaksbehandler"),
             )!!
 
             tildelTilbakekrevinger(
                 tac = tac,
                 tilbakekrevinger = listOf(sak1.id to ledig.id, sak2.id to alleredeTatt.id),
-                saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomTar"),
+                saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandlerSomTar"),
                 forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             ) shouldBe null
 

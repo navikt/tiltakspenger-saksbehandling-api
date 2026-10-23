@@ -50,6 +50,28 @@ interface SaksbehandlerMother : MotherOfAllMothers {
         brukernavn = brukernavn,
     )
 
+    fun tilbakekrevingSaksbehandler(
+        navIdent: String = "Z12345",
+        brukernavn: String = "Sak Behandler",
+        epost: String = "Sak.Behandler@nav.no",
+    ) = saksbehandler(
+        roller = Saksbehandlerroller(Saksbehandlerrolle.SAKSBEHANDLER, Saksbehandlerrolle.TILBAKEKREVING),
+        navIdent = navIdent,
+        epost = epost,
+        brukernavn = brukernavn,
+    )
+
+    fun tilbakekrevingBeslutter(
+        navIdent: String = "B12345",
+        brukernavn: String = "Sak Behandler",
+        epost: String = "Sak.Behandler@nav.no",
+    ) = saksbehandler(
+        roller = Saksbehandlerroller(Saksbehandlerrolle.BESLUTTER, Saksbehandlerrolle.TILBAKEKREVING),
+        navIdent = navIdent,
+        epost = epost,
+        brukernavn = brukernavn,
+    )
+
     fun saksbehandlerOgBeslutter(
         navIdent: String = "A12345",
         brukernavn: String = "Sak McBeslutterface",
