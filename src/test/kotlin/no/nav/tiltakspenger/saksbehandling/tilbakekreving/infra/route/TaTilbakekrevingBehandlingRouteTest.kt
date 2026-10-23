@@ -192,7 +192,7 @@ class TaTilbakekrevingBehandlingRouteTest {
     }
 
     @Test
-    fun `saksbehandler uten tilbakekrevingsrollen ser tilbakekrevingen, men uten lenke og kommandoer`() {
+    fun `saksbehandler uten tilbakekrevingsrollen ser tilbakekrevingen med lenke, men uten kommandoer`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
 
@@ -202,7 +202,7 @@ class TaTilbakekrevingBehandlingRouteTest {
                 saksbehandler = ObjectMother.saksbehandler(),
             )!!.getJSONArray("tilbakekrevinger").getJSONObject(0)
             utenRolle.getString("id") shouldBe behandling.id.toString()
-            utenRolle.isNull("url") shouldBe true
+            utenRolle.getString("url") shouldBe behandling.url
             utenRolle.getJSONArray("gyldigeKommandoer").length() shouldBe 0
 
             val medRolle = hentSakForSaksnummer(
