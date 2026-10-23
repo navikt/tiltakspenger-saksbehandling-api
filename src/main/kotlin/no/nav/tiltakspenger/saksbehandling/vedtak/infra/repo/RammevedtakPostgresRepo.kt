@@ -5,6 +5,7 @@ import kotliquery.Session
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
@@ -12,6 +13,7 @@ import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.tilSøknadsbehandlingResultatType
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periode
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
@@ -22,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.journalnotat.infra.repo.toJournalfør
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toOmgjortAvRammevedtak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadsutfall
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -236,6 +239,54 @@ class RammevedtakPostgresRepo(
                 ).map { row ->
                     row.toRammevedtak(session)
                 }.asList,
+            )
+        }
+    }
+
+    override fun hentSøknadsutfallTilSøknadApi(limit: Int): List<Søknadsutfall> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                queryOf(
+                    """
+                    select rv.id, rv.opprettet, b.soknad_id, b.resultat
+                    from rammevedtak rv
+                    join behandling b on b.id = rv.behandling_id
+                    join søknad s on s.id = b.soknad_id
+                    where rv.sendt_til_soknad_api is null
+                      and b.behandlingstype = 'SØKNADSBEHANDLING'
+                      and s.soknadstype = 'DIGITAL'
+                    order by rv.opprettet
+                    limit :limit
+                    """.trimIndent(),
+                    mapOf(
+                        "limit" to limit,
+                    ),
+                ).map { row ->
+                    Søknadsutfall(
+                        vedtakId = VedtakId.fromString(row.string("id")),
+                        søknadId = SøknadId.fromString(row.string("soknad_id")),
+                        resultat = row.string("resultat").tilSøknadsbehandlingResultatType(),
+                        vedtakstidspunkt = row.localDateTime("opprettet"),
+                    )
+                }.asList,
+            )
+        }
+    }
+
+    override fun markerSøknadsutfallSendtTilSøknadApi(id: VedtakId, tidspunkt: LocalDateTime) {
+        sessionFactory.withSession { session ->
+            session.run(
+                queryOf(
+                    """
+                    update rammevedtak
+                    set sendt_til_soknad_api = :tidspunkt
+                    where id = :id
+                    """.trimIndent(),
+                    mapOf(
+                        "id" to id.toString(),
+                        "tidspunkt" to tidspunkt,
+                    ),
+                ).asUpdate,
             )
         }
     }

@@ -57,7 +57,10 @@ import no.nav.tiltakspenger.saksbehandling.person.personhendelser.jobb.Personhen
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.LeesahConsumer
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.SøknadApiKlient
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.http.SøknadApiHttpClient
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
+import no.nav.tiltakspenger.saksbehandling.søknad.service.SendSøknadsutfallTilSøknadApiJobb
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingHendelseRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.jobb.BehandleTilbakekrevingHendelserJobb
@@ -542,6 +545,25 @@ open class ApplicationContext(
             meldekortbehandlingRepo = meldekortContext.meldekortbehandlingRepo,
             meldekortvedtakRepo = utbetalingContext.meldekortvedtakRepo,
             datadelingClient = datadelingKlient,
+            clock = clock,
+        )
+    }
+
+    open val søknadApiKlient: SøknadApiKlient by lazy {
+        SøknadApiHttpClient(
+            baseUrl = Configuration.soknadApiUrl,
+            clock = clock,
+            authTokenProvider = TexasSystemTokenProvider(
+                texasClient = texasClient,
+                audienceTarget = Configuration.soknadApiScope,
+            ),
+        )
+    }
+
+    val sendSøknadsutfallTilSøknadApiJobb by lazy {
+        SendSøknadsutfallTilSøknadApiJobb(
+            rammevedtakRepo = behandlingContext.rammevedtakRepo,
+            søknadApiKlient = søknadApiKlient,
             clock = clock,
         )
     }

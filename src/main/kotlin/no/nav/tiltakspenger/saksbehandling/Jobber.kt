@@ -213,6 +213,15 @@ private fun naisJobber(
         },
     ),
     Task(
+        navn = "saksbehandling-jobb-send-søknadsutfall-til-søknad-api",
+        intervall = Miljøverdi.lik(1.minutes),
+        initialDelay = Miljøverdi.lik(1.minutes),
+        utfør = { _ ->
+            applicationContext.sendSøknadsutfallTilSøknadApiJobb.send()
+            TaskResultat.Ferdig
+        },
+    ),
+    Task(
         navn = "saksbehandling-jobb-personhendelse-opprett-opgave",
         intervall = Miljøverdi.lik(1.minutes),
         initialDelay = Miljøverdi.lik(1.minutes),

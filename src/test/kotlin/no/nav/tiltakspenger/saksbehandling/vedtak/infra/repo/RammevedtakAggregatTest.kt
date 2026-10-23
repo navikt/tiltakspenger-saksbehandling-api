@@ -8,6 +8,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -15,15 +16,19 @@ import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEllerOpprettSakForSystembruker
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingAvslag
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startBehandlingAvManueltRegistrertSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import org.junit.jupiter.api.Test
 
 /**
- * Aggregat-test for de fire køene på rammevedtak, jf. testtaksonomien i `AGENTS.md`.
+ * Aggregat-test for køene på rammevedtak, jf. testtaksonomien i `AGENTS.md`.
  *
  * Alle spørringene velger ut på tvers av alle saker.
  * Derfor bygger testene flere saker og asserter hele køen, uten å filtrere på `sakId`.
@@ -145,6 +150,29 @@ class RammevedtakAggregatTest {
     }
 
     /**
+     * Søknad-api-køen tar kun vedtak på søknadsbehandlinger av digitale søknader, siden det bare er de søknad-api kjenner.
+     * Revurderingen og avslaget på papirsøknaden er kandidatene som skal falle utenfor.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `søknad-api-køen tar kun søknadsbehandlinger av digitale søknader, sorterer eldst først, respekterer limit og tømmes av jobben`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (_, _, innvilgelse, _) = iverksettSøknadsbehandlingOgRevurderingInnvilgelse(tac)
+            val (_, _, avslag) = iverksettSøknadsbehandling(tac, resultat = SøknadsbehandlingsresultatType.AVSLAG)
+            iverksattAvslagPåPapirsøknad(tac)
+
+            val repo = tac.behandlingContext.rammevedtakRepo
+
+            repo.hentSøknadsutfallTilSøknadApi(limit = 10).map { it.vedtakId } shouldBe listOf(innvilgelse.id, avslag.id)
+            repo.hentSøknadsutfallTilSøknadApi(limit = 1).map { it.vedtakId } shouldBe listOf(innvilgelse.id)
+
+            tac.sendSøknadsutfallTilSøknadApiJobb.send()
+
+            repo.hentSøknadsutfallTilSøknadApi(limit = 10).shouldBeEmpty()
+        }
+    }
+
+    /**
      * Bygger en sak med et iverksatt rammevedtak gjennom route-laget.
      *
      * @param jobber Slå av jobben som tømmer køen testen ser på — ellers er køen alltid tom.
@@ -185,5 +213,22 @@ class RammevedtakAggregatTest {
             jobber = JobberEtterIverksettelse(journalførNotat = false),
         )!!
         return rammevedtak.id
+    }
+
+    private suspend fun ApplicationTestBuilder.iverksattAvslagPåPapirsøknad(tac: TestApplicationContext) {
+        val fnr = ObjectMother.gyldigFnr()
+        val saksnummer = hentEllerOpprettSakForSystembruker(tac, fnr)
+        tac.leggTilPerson(fnr, ObjectMother.personopplysningKjedeligFyr(fnr), tac.tiltaksdeltakelse())
+        startBehandlingAvManueltRegistrertSøknad(
+            tac = tac,
+            saksnummer = saksnummer,
+            manueltSattSøknadsperiodeJson = """{"fraOgMed": "2025-03-01", "tilOgMed": "2025-03-31"}""",
+        )
+        val sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
+        val behandling = sak.rammebehandlinger.single()
+        oppdaterSøknadsbehandlingAvslag(tac, sak.id, behandling.id)
+        sendSøknadsbehandlingTilBeslutningForBehandlingId(tac, sak.id, behandling.id)
+        taRammebehandlinger(tac, behandlinger = listOf(sak.id to behandling.id), saksbehandler = ObjectMother.beslutter())
+        iverksettForBehandlingId(tac, sak.id, behandling.id)!!
     }
 }
