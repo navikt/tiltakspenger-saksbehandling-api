@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.behandlePåNyt
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev.ForhåndsvisRammevedtaksbrevTestbuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.gjenoppta.GjenopptaRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.gjenåpne.GjenåpneSøknadsbehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.hentTilbake.HentTilbakeRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettRevurderingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettSøknadsbehandlingBuilder
@@ -107,6 +108,7 @@ object RouteBehandlingBuilder :
     ForhåndsvisBrevKlagebehandlingBuilder,
     TaRammebehandlingBuilder,
     AngreRammebehandlingBuilder,
+    HentTilbakeRammebehandlingBuilder,
     SendSøknadsbehandlingTilBeslutningBuilder,
     SendRevurderingTilBeslutningBuilder,
     UnderkjennRammebehandlingBuilder,
