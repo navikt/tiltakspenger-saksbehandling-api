@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.SøknadshendelseTilSøknadApi
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 class SøknadPostgresRepo(
@@ -64,6 +65,22 @@ class SøknadPostgresRepo(
         return sessionFactory.withTransaction {
             SøknadDAO.hentUbehandletSøknad(
                 søknadId = søknadId,
+                session = it,
+            )
+        }
+    }
+
+    override fun hentSøknadshendelserTilSøknadApi(limit: Int): List<SøknadshendelseTilSøknadApi> {
+        return sessionFactory.withSession {
+            SøknadDAO.hentSøknadshendelserTilSøknadApi(limit = limit, session = it)
+        }
+    }
+
+    override fun markerSøknadshendelserSendtTilSøknadApi(søknadId: SøknadId, antallHendelser: Int) {
+        sessionFactory.withSession {
+            SøknadDAO.markerSøknadshendelserSendtTilSøknadApi(
+                søknadId = søknadId,
+                antallHendelser = antallHendelser,
                 session = it,
             )
         }

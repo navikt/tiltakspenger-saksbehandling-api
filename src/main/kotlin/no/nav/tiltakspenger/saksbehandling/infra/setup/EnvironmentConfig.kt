@@ -54,6 +54,9 @@ sealed interface EnvironmentConfig {
     val meldekortApiScope: String
     val meldekortApiUrl: String
 
+    val soknadApiScope: String
+    val soknadApiUrl: String
+
     val aoKontorScope: String
     val aoKontorUrl: String
 
@@ -148,6 +151,9 @@ data object LocalConfig : EnvironmentConfig {
     override val meldekortApiScope = "tiltakspenger-meldekort-api"
     override val meldekortApiUrl = "http://localhost:8083"
 
+    override val soknadApiScope = "localhost:tpts:tiltakspenger-soknad-api"
+    override val soknadApiUrl = "http://localhost:8085"
+
     override val aoKontorScope = "localhost"
     override val aoKontorUrl = WIREMOCK_URL
 
@@ -231,6 +237,9 @@ data object DevConfig : EnvironmentConfig {
     override val meldekortApiScope = "dev-gcp:tpts:tiltakspenger-meldekort-api"
     override val meldekortApiUrl = "http://tiltakspenger-meldekort-api"
 
+    override val soknadApiScope = "dev-gcp:tpts:tiltakspenger-soknad-api"
+    override val soknadApiUrl = "http://tiltakspenger-soknad-api"
+
     override val aoKontorScope = "dev-gcp.dab.ao-oppfolgingskontor"
     override val aoKontorUrl = "http://ao-oppfolgingskontor.dab"
 
@@ -313,6 +322,9 @@ data object ProdConfig : EnvironmentConfig {
 
     override val meldekortApiScope = "prod-gcp:tpts:tiltakspenger-meldekort-api"
     override val meldekortApiUrl = "http://tiltakspenger-meldekort-api"
+
+    override val soknadApiScope = "prod-gcp:tpts:tiltakspenger-soknad-api"
+    override val soknadApiUrl = "http://tiltakspenger-soknad-api"
 
     override val aoKontorScope = "prod-gcp.dab.ao-oppfolgingskontor"
     override val aoKontorUrl = "http://ao-oppfolgingskontor.dab"

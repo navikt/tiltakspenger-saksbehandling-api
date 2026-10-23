@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.SøknadshendelseTilSøknadApi
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 interface SøknadRepo {
@@ -32,4 +33,13 @@ interface SøknadRepo {
 
     /** Henter søknaden kun dersom den fortsatt er ubehandlet (digital, ikke avbrutt og uten behandling). */
     fun hentUbehandletSøknad(søknadId: SøknadId): InnvilgbarSøknad?
+
+    /**
+     * Siste avbrudd eller gjenåpning for digitale søknader med hendelser som ikke er sendt til søknad-api ennå, eldst først.
+     * Andre søknadstyper kom ikke fra søknad-api.
+     */
+    fun hentSøknadshendelserTilSøknadApi(limit: Int = 100): List<SøknadshendelseTilSøknadApi>
+
+    /** Markerer de første [antallHendelser] hendelsene på søknaden som sendt til søknad-api. */
+    fun markerSøknadshendelserSendtTilSøknadApi(søknadId: SøknadId, antallHendelser: Int)
 }

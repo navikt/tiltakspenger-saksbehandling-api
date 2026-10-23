@@ -69,6 +69,8 @@ import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkRepo
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.SøknadApiKlient
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.http.SøknadApiFakeKlient
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingRepo
@@ -173,6 +175,8 @@ sealed class TestApplicationContext(
     protected open val safJournalpostFakeClient by lazy { SafJournalpostFakeClient(clock) }
     open val datadelingFakeKlient by lazy { DatadelingFakeKlient() }
     override val datadelingKlient: DatadelingClient by lazy { datadelingFakeKlient }
+    open val søknadApiFakeKlient by lazy { SøknadApiFakeKlient() }
+    override val søknadApiKlient: SøknadApiKlient by lazy { søknadApiFakeKlient }
     override val safJournalpostClient by lazy { safJournalpostFakeClient }
     override val sokosUtbetaldataClient by lazy { sokosUtbetaldataFakeClient }
     override val tiltakspengerArenaClient by lazy { tiltakspengerArenaFakeClient }

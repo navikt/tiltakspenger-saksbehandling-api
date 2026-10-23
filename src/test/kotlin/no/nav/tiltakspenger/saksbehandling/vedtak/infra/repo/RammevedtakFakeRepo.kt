@@ -8,10 +8,15 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammevedtakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalføringsnotat
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadsutfall
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadsutfallresultat
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
@@ -22,6 +27,7 @@ import java.time.LocalDateTime
 class RammevedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : RammevedtakRepo {
 
     private val data = Atomic(mutableMapOf<VedtakId, Rammevedtak>())
+    private val søknadsutfallSendtTilSøknadApi = Atomic(mutableSetOf<VedtakId>())
 
     override fun hentForVedtakId(vedtakId: VedtakId, context: SessionContext?): Rammevedtak? = data.get()[vedtakId]
 
@@ -92,6 +98,30 @@ class RammevedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : RammevedtakR
 
     override fun markerSendtTilDatadeling(id: VedtakId, tidspunkt: LocalDateTime) {
         data.get()[id] = data.get()[id]!!.copy(sendtTilDatadeling = tidspunkt)
+    }
+
+    override fun hentSøknadsutfallTilSøknadApi(limit: Int): List<Søknadsutfall> {
+        return data.get().values
+            .filter { it.id !in søknadsutfallSendtTilSøknadApi.get() }
+            .mapNotNull { vedtak ->
+                val behandling = vedtak.rammebehandling as? Søknadsbehandling ?: return@mapNotNull null
+                if (behandling.søknad.søknadstype != Søknadstype.DIGITAL) return@mapNotNull null
+                Søknadsutfall(
+                    søknadId = behandling.søknad.id,
+                    resultat = when (behandling.resultat!!) {
+                        is Søknadsbehandlingsresultat.Innvilgelse -> Søknadsutfallresultat.INNVILGELSE
+                        is Søknadsbehandlingsresultat.Avslag -> Søknadsutfallresultat.AVSLAG
+                    },
+                    tidspunkt = vedtak.opprettet,
+                    vedtakId = vedtak.id,
+                )
+            }
+            .sortedBy { it.tidspunkt }
+            .take(limit)
+    }
+
+    override fun markerSøknadsutfallSendtTilSøknadApi(id: VedtakId, tidspunkt: LocalDateTime) {
+        søknadsutfallSendtTilSøknadApi.get().add(id)
     }
 
     override fun oppdaterOmgjortAv(

@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalføringsnotat
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadsutfall
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
 import java.time.LocalDate
@@ -52,6 +53,14 @@ interface RammevedtakRepo {
     fun hentRammevedtakTilDatadeling(limit: Int = 10): List<Rammevedtak>
 
     fun markerSendtTilDatadeling(id: VedtakId, tidspunkt: LocalDateTime)
+
+    /**
+     * Utfallet av søknadsbehandlinger av digitale søknader som ikke er sendt til søknad-api ennå, eldst først.
+     * Andre søknadstyper kom ikke fra søknad-api, og revurderinger har ikke et søknadsutfall.
+     */
+    fun hentSøknadsutfallTilSøknadApi(limit: Int = 100): List<Søknadsutfall>
+
+    fun markerSøknadsutfallSendtTilSøknadApi(id: VedtakId, tidspunkt: LocalDateTime)
 
     fun oppdaterOmgjortAv(
         vedtakId: VedtakId,

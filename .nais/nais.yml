@@ -86,6 +86,7 @@ spec:
         - application: tiltakspenger-pdfgenrs
         - application: tiltakspenger-datadeling
         - application: tiltakspenger-meldekort-api
+        - application: tiltakspenger-soknad-api
         - application: utsjekk
           namespace: helved
         - application: ao-oppfolgingskontor
