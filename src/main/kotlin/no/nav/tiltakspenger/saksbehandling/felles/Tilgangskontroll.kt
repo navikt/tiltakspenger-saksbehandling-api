@@ -51,6 +51,14 @@ fun krevSaksbehandlerEllerBeslutterRolle(
 ) = krevEnAvRollene(saksbehandler, Saksbehandlerrolle.SAKSBEHANDLER, Saksbehandlerrolle.BESLUTTER)
 
 /**
+ * Kaster en [TilgangException] dersom saksbehandler ikke har rollen [Saksbehandlerrolle.TILBAKEKREVING].
+ * Rollen kreves i tillegg til saksbehandler- eller beslutterrollen for å endre tilbakekrevingsbehandlinger.
+ */
+fun krevTilbakekrevingRolle(
+    saksbehandler: Saksbehandler,
+) = krevRollen(saksbehandler, Saksbehandlerrolle.TILBAKEKREVING)
+
+/**
  * Kaster en [TilgangException] dersom saksbehandler ikke har rollen [krevRollen].
  */
 fun krevRollen(saksbehandler: Saksbehandler, krevRollen: Saksbehandlerrolle) {

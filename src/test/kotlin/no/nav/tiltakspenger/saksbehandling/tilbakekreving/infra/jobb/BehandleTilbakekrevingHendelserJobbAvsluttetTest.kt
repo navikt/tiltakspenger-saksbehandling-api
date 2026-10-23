@@ -71,8 +71,8 @@ class BehandleTilbakekrevingHendelserJobbAvsluttetTest {
                 )!!
             }
 
-            val saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomTar")
-            val beslutter = ObjectMother.beslutter("beslutterSomTar")
+            val saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandlerSomTar")
+            val beslutter = ObjectMother.tilbakekrevingBeslutter("beslutterSomTar")
 
             sendStatus(TilbakekrevingBehandlingsstatus.OPPRETTET, null, nå(tac.clock))
 

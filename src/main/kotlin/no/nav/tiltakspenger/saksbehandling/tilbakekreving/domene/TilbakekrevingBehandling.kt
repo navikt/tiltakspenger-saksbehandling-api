@@ -65,6 +65,7 @@ data class TilbakekrevingBehandling(
     }
 
     fun gyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
+        if (!saksbehandler.roller.erTilbakekreving) return emptyList()
         val erSaksbehandler = saksbehandler.erSaksbehandler
         val erBeslutter = saksbehandler.erBeslutter
         val navIdent = saksbehandler.navIdent

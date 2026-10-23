@@ -19,8 +19,8 @@ class OvertaTilbakekrevingBehandlingRouteTest {
     fun `saksbehandler kan overta behandling fra en annen saksbehandler`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
-            val saksbehandler1 = ObjectMother.saksbehandler("saksbehandler1")
-            val saksbehandler2 = ObjectMother.saksbehandler("saksbehandler2")
+            val saksbehandler1 = ObjectMother.tilbakekrevingSaksbehandler("saksbehandler1")
+            val saksbehandler2 = ObjectMother.tilbakekrevingSaksbehandler("saksbehandler2")
 
             tildelTilbakekrevingBehandling(
                 tac = tac,
@@ -55,14 +55,14 @@ class OvertaTilbakekrevingBehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
-                saksbehandler = ObjectMother.saksbehandler("saksbehandler1"),
+                saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandler1"),
             )!!
 
             val (_, oppdatertBehandling, json) = overtaTilbakekrevingBehandling(
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
-                saksbehandler = ObjectMother.saksbehandler("saksbehandler2"),
+                saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandler2"),
             )!!
 
             oppdatertBehandling.saksbehandler shouldBe "saksbehandler2"
@@ -79,7 +79,7 @@ class OvertaTilbakekrevingBehandlingRouteTest {
     fun `kan ikke overta fra seg selv - returnerer 500`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
-            val saksbehandler = ObjectMother.saksbehandler("saksbehandler1")
+            val saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandler1")
 
             tildelTilbakekrevingBehandling(
                 tac = tac,
@@ -102,7 +102,7 @@ class OvertaTilbakekrevingBehandlingRouteTest {
     fun `kan ikke overta behandling som ikke er tatt - returnerer 500`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
-            val saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomOvertar")
+            val saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandlerSomOvertar")
 
             overtaTilbakekrevingBehandling(
                 tac = tac,
@@ -123,14 +123,14 @@ class OvertaTilbakekrevingBehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
-                saksbehandler = ObjectMother.beslutter("beslutter1"),
+                saksbehandler = ObjectMother.tilbakekrevingBeslutter("beslutter1"),
             )!!
 
             val (_, oppdatertBehandling) = overtaTilbakekrevingBehandling(
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
-                saksbehandler = ObjectMother.beslutter("beslutter2"),
+                saksbehandler = ObjectMother.tilbakekrevingBeslutter("beslutter2"),
             )!!
 
             oppdatertBehandling.beslutter shouldBe "beslutter2"

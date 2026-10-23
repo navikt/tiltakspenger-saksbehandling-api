@@ -249,7 +249,7 @@ interface TilbakekrevingBehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         tilbakekrevingId: TilbakekrevingId,
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomTar"),
+        saksbehandler: Saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandlerSomTar"),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, TilbakekrevingBehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
@@ -275,7 +275,7 @@ interface TilbakekrevingBehandlingBuilder {
     suspend fun ApplicationTestBuilder.tildelTilbakekrevinger(
         tac: TestApplicationContext,
         tilbakekrevinger: List<Pair<SakId, TilbakekrevingId>>,
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomTar"),
+        saksbehandler: Saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandlerSomTar"),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Pair<List<TilbakekrevingBehandling>, JsonNode>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
@@ -305,7 +305,7 @@ interface TilbakekrevingBehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         tilbakekrevingId: TilbakekrevingId,
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomOvertar"),
+        saksbehandler: Saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandlerSomOvertar"),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, TilbakekrevingBehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
@@ -332,7 +332,7 @@ interface TilbakekrevingBehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         tilbakekrevingId: TilbakekrevingId,
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomLeggerTilbake"),
+        saksbehandler: Saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandlerSomLeggerTilbake"),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, TilbakekrevingBehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)

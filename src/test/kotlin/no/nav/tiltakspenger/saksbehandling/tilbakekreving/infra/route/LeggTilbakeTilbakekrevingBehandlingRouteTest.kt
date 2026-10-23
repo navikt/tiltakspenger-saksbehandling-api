@@ -19,7 +19,7 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
     fun `saksbehandler kan legge tilbake behandling hen selv har tatt`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
-            val saksbehandler = ObjectMother.saksbehandler("saksbehandler1")
+            val saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandler1")
 
             tildelTilbakekrevingBehandling(
                 tac = tac,
@@ -49,7 +49,7 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
     fun `saksbehandler kan legge tilbake behandling under forhåndsvarsling hen selv har tatt`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilForhåndsvarsel(tac = tac)
-            val saksbehandler = ObjectMother.saksbehandler("saksbehandler1")
+            val saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandler1")
 
             tildelTilbakekrevingBehandling(
                 tac = tac,
@@ -79,8 +79,8 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
     fun `kan ikke legge tilbake behandling som en annen saksbehandler eier - returnerer 500`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
-            val saksbehandler1 = ObjectMother.saksbehandler("saksbehandler1")
-            val saksbehandler2 = ObjectMother.saksbehandler("saksbehandler2")
+            val saksbehandler1 = ObjectMother.tilbakekrevingSaksbehandler("saksbehandler1")
+            val saksbehandler2 = ObjectMother.tilbakekrevingSaksbehandler("saksbehandler2")
 
             tildelTilbakekrevingBehandling(
                 tac = tac,
@@ -103,7 +103,7 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
     fun `kan ikke legge tilbake behandling som ikke er tatt - returnerer 500`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
-            val saksbehandler = ObjectMother.saksbehandler("saksbehandler1")
+            val saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandler1")
 
             leggTilbakeTilbakekrevingBehandling(
                 tac = tac,
@@ -119,8 +119,8 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
     fun `ta-leggTilbake-ta roundtrip bevarer ekstern status`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
-            val saksbehandler1 = ObjectMother.saksbehandler("saksbehandler1")
-            val saksbehandler2 = ObjectMother.saksbehandler("saksbehandler2")
+            val saksbehandler1 = ObjectMother.tilbakekrevingSaksbehandler("saksbehandler1")
+            val saksbehandler2 = ObjectMother.tilbakekrevingSaksbehandler("saksbehandler2")
 
             // Saksbehandler 1 tar behandlingen
             val (_, etterTa, _) = tildelTilbakekrevingBehandling(
@@ -160,7 +160,7 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
     fun `beslutter kan legge tilbake behandling til godkjenning`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilGodkjenning(tac = tac)
-            val beslutter = ObjectMother.beslutter("beslutterSomLeggerTilbake")
+            val beslutter = ObjectMother.tilbakekrevingBeslutter("beslutterSomLeggerTilbake")
 
             tildelTilbakekrevingBehandling(
                 tac = tac,

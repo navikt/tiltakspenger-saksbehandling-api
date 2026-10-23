@@ -26,7 +26,11 @@ data class TilbakekrevingBehandlingDTO(
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime,
     val status: TilbakekrevingBehandlingsstatusDTO,
-    val url: String,
+    /**
+     * Lenke til ekstern tilbakekrevingsløsning.
+     * Er null dersom saksbehandler mangler rollen TILBAKEKREVING.
+     */
+    val url: String?,
     val kravgrunnlagTotalPeriode: PeriodeDTO,
     val totaltFeilutbetaltBeløp: BigDecimal,
     val varselSendt: LocalDate?,
@@ -83,7 +87,7 @@ fun TilbakekrevingBehandling.tilTilbakekrevingBehandlingDTO(
         opprettet = opprettet,
         sistEndret = sistEndret,
         status = statusIntern.tilTilbakekrevingBehandlingsstatusDTO(),
-        url = url,
+        url = url.takeIf { saksbehandler.roller.erTilbakekreving },
         kravgrunnlagTotalPeriode = kravgrunnlagTotalPeriode.toDTO(),
         totaltFeilutbetaltBeløp = totaltFeilutbetaltBeløp,
         varselSendt = varselSendt,

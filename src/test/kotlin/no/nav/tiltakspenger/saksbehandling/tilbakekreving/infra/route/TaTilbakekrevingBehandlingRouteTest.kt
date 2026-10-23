@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilForhåndsvarsel
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilGodkjenning
@@ -20,7 +21,7 @@ class TaTilbakekrevingBehandlingRouteTest {
     fun `saksbehandler kan ta tilbakekrevingbehandling med status TIL_BEHANDLING`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
-            val saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomTar")
+            val saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandlerSomTar")
 
             val (_, oppdatertBehandling, json) = tildelTilbakekrevingBehandling(
                 tac = tac,
@@ -53,7 +54,7 @@ class TaTilbakekrevingBehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
-                saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomTar"),
+                saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandlerSomTar"),
             )!!
 
             oppdatertBehandling.saksbehandler shouldBe "saksbehandlerSomTar"
@@ -70,8 +71,8 @@ class TaTilbakekrevingBehandlingRouteTest {
     fun `kan ikke ta behandling som allerede er tatt - returnerer 500`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
-            val saksbehandler1 = ObjectMother.saksbehandler("saksbehandler1")
-            val saksbehandler2 = ObjectMother.saksbehandler("saksbehandler2")
+            val saksbehandler1 = ObjectMother.tilbakekrevingSaksbehandler("saksbehandler1")
+            val saksbehandler2 = ObjectMother.tilbakekrevingSaksbehandler("saksbehandler2")
 
             tildelTilbakekrevingBehandling(
                 tac = tac,
@@ -99,7 +100,7 @@ class TaTilbakekrevingBehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = TilbakekrevingId.random(),
-                saksbehandler = ObjectMother.saksbehandler("saksbehandler"),
+                saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandler"),
                 forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             ) shouldBe null
         }
@@ -114,7 +115,7 @@ class TaTilbakekrevingBehandlingRouteTest {
                 tac = tac,
                 sakId = SakId.random(),
                 tilbakekrevingId = behandling.id,
-                saksbehandler = ObjectMother.saksbehandler("saksbehandler"),
+                saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandler"),
                 forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             ) shouldBe null
         }
@@ -124,7 +125,7 @@ class TaTilbakekrevingBehandlingRouteTest {
     fun `beslutter kan ta tilbakekrevingbehandling med status TIL_GODKJENNING`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilGodkjenning(tac = tac)
-            val beslutter = ObjectMother.beslutter("beslutterSomTar")
+            val beslutter = ObjectMother.tilbakekrevingBeslutter("beslutterSomTar")
 
             val (_, oppdatertBehandling) = tildelTilbakekrevingBehandling(
                 tac = tac,
@@ -148,16 +149,69 @@ class TaTilbakekrevingBehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
-                saksbehandler = ObjectMother.beslutter("beslutter1"),
+                saksbehandler = ObjectMother.tilbakekrevingBeslutter("beslutter1"),
             )!!
 
             tildelTilbakekrevingBehandling(
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
-                saksbehandler = ObjectMother.beslutter("beslutter2"),
+                saksbehandler = ObjectMother.tilbakekrevingBeslutter("beslutter2"),
                 forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             ) shouldBe null
+        }
+    }
+
+    @Test
+    fun `saksbehandler eller beslutter uten tilbakekrevingsrollen kan ikke ta behandlingen - returnerer 403`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sakTilBehandling, tilBehandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
+            val (sakTilGodkjenning, tilGodkjenning) = opprettTilbakekrevingBehandlingTilGodkjenning(tac = tac)
+
+            tildelTilbakekrevingBehandling(
+                tac = tac,
+                sakId = sakTilBehandling.id,
+                tilbakekrevingId = tilBehandling.id,
+                saksbehandler = ObjectMother.saksbehandler("saksbehandlerUtenRolle"),
+                forventet = ForventetRespons(403, contentType = "application/json; charset=UTF-8"),
+            ) shouldBe null
+
+            tildelTilbakekrevingBehandling(
+                tac = tac,
+                sakId = sakTilGodkjenning.id,
+                tilbakekrevingId = tilGodkjenning.id,
+                saksbehandler = ObjectMother.beslutter("beslutterUtenRolle"),
+                forventet = ForventetRespons(403, contentType = "application/json; charset=UTF-8"),
+            ) shouldBe null
+
+            tac.sakContext.sakRepo.hentForSakId(sakTilBehandling.id)!!
+                .tilbakekrevinger.single().saksbehandler shouldBe null
+            tac.sakContext.sakRepo.hentForSakId(sakTilGodkjenning.id)!!
+                .tilbakekrevinger.single().beslutter shouldBe null
+        }
+    }
+
+    @Test
+    fun `saksbehandler uten tilbakekrevingsrollen ser tilbakekrevingen, men uten lenke og kommandoer`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
+
+            val utenRolle = hentSakForSaksnummer(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                saksbehandler = ObjectMother.saksbehandler(),
+            )!!.getJSONArray("tilbakekrevinger").getJSONObject(0)
+            utenRolle.getString("id") shouldBe behandling.id.toString()
+            utenRolle.isNull("url") shouldBe true
+            utenRolle.getJSONArray("gyldigeKommandoer").length() shouldBe 0
+
+            val medRolle = hentSakForSaksnummer(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                saksbehandler = ObjectMother.tilbakekrevingSaksbehandler(),
+            )!!.getJSONArray("tilbakekrevinger").getJSONObject(0)
+            medRolle.getString("url") shouldBe behandling.url
+            medRolle.getJSONArray("gyldigeKommandoer").length() shouldBe 1
         }
     }
 }

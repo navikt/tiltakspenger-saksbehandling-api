@@ -2,12 +2,14 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling
 
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.felles.krevTilbakekrevingRolle
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatusIntern
 import java.time.Clock
 
 /** Saksbehandler/beslutter legger tilbake tilbakekrevingsbehandlingen. */
 fun TilbakekrevingBehandling.leggTilbake(saksbehandler: Saksbehandler, clock: Clock): TilbakekrevingBehandling {
+    krevTilbakekrevingRolle(saksbehandler)
     val sistEndret = nå(clock)
 
     return when (statusIntern) {

@@ -45,7 +45,11 @@ data class BenkTilbakekrevingDTO(
     val beløp: BigDecimal,
     val kilde: BenkTilbakekrevingKildeDTO,
     val kravgrunnlagPeriode: PeriodeDTO,
-    val url: String,
+    /**
+     * Lenke til ekstern tilbakekrevingsløsning.
+     * Er null dersom saksbehandler mangler rollen TILBAKEKREVING.
+     */
+    val url: String?,
     val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : BenkBehandlingDTO
 
@@ -73,7 +77,7 @@ fun BenkTilbakekreving.toDTO(
         kravgrunnlagPeriode.fraOgMed.toString(),
         kravgrunnlagPeriode.tilOgMed.toString(),
     ),
-    url = url,
+    url = url.takeIf { saksbehandler.roller.erTilbakekreving },
     gyldigeKommandoer = finnGyldigeKommandoer(saksbehandler).tilDTO(),
 )
 

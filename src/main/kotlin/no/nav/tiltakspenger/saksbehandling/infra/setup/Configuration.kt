@@ -22,6 +22,7 @@ object Configuration : EnvironmentConfig by hentConfigForMiljø() {
             AdRolle(Saksbehandlerrolle.BESLUTTER, roleBeslutter),
             AdRolle(Saksbehandlerrolle.VEILEDER, roleVeileder),
             AdRolle(Saksbehandlerrolle.UTVIKLER, roleUtvikler),
+            AdRolle(Saksbehandlerrolle.TILBAKEKREVING, roleTilbakekreving),
         )
     }
 

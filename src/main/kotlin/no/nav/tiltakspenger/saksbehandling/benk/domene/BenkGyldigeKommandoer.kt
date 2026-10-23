@@ -34,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
  * Rader uten behandling — innsendte eller korrigerte meldekort som venter på at noen starter en behandling — har ingen kommandoer, fordi kommandoene alle er handlinger på en behandling.
  *
  * Leseroller (veileder, utvikler) kan se benken, men ikke utføre kommandoene — radene deres har derfor alltid en tom kommandoliste.
+ * Tilbakekrevinger krever i tillegg rollen TILBAKEKREVING; uten den er kommandolista for tilbakekrevinger tom.
  */
 
 fun BenkSøknadsbehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
@@ -56,7 +57,7 @@ fun BenkMeldekort.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<Saks
 }
 
 fun BenkTilbakekreving.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
-    if (!saksbehandler.erSaksbehandlerEllerBeslutter) return emptyList()
+    if (!saksbehandler.erSaksbehandlerEllerBeslutter || !saksbehandler.roller.erTilbakekreving) return emptyList()
     val navIdent = saksbehandler.navIdent
     return buildList {
         when (status) {
