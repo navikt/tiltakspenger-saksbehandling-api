@@ -5,6 +5,8 @@ import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
@@ -18,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgBesluttertarMeldekortbehanding
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tilUtfyltFraBruker
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.underkjennMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkBehandlingAarsak
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkBehandlingResultat
@@ -26,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkB
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkFormat
 import org.junit.jupiter.api.Test
 import java.time.DayOfWeek
+import java.time.LocalDateTime
 
 /**
  * Saksstatistikk for manuelle meldekortbehandlinger, bestilt av Team Sak for å koble tilbakekrevinger til en behandling hos oss.
@@ -164,6 +168,61 @@ class SaksstatistikkMeldekortbehandlingTest {
         }
     }
 
+    /**
+     * Migreringen leser hele databasen, så den kjører isolert.
+     * Radene prodkoden lager er fasiten: de slettes, migreringen gjenskaper dem, og feltene skal være like.
+     * Unntaket er `endrettidspunkt` for send til beslutter og underkjenning, der prodkoden bruker `sistEndret`, som leses fra klokka rett etter tidspunktet migreringen har.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `migreringen gjenskaper radene prodkoden lager`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak) = iverksettSøknadsbehandling(tac = tac)
+            val (første, andre) = sak.meldeperiodeKjeder.take(2).map { it.hentSisteMeldeperiode() }
+            mottaMeldekortSomGikkTilManuellBehandling(tac, sak.id, sak.kanSendeInnHelgForMeldekort, første)
+            val (_, _, iverksatt) = opprettOgIverksettMeldekortbehandling(tac = tac, sakId = sak.id, kjedeId = første.kjedeId)!!
+            val (_, avbrutt) = opprettMeldekortbehandlingForSakId(tac = tac, sakId = sak.id, kjedeId = første.kjedeId)!!
+            avbrytMeldekortbehandling(tac = tac, sakId = sak.id, meldekortId = avbrutt.id)!!
+            val (_, underkjent) = opprettOgBesluttertarMeldekortbehanding(tac = tac, sakId = sak.id, kjedeId = andre.kjedeId)!!
+            underkjennMeldekortbehandling(tac = tac, sakId = sak.id, meldekortId = underkjent.id)!!
+
+            val fraProdkoden = tac.sessionFactory.hentMeldekortstatistikk(sak.id)
+            tac.sessionFactory.slettMeldekortstatistikk()
+            tac.sessionFactory.kjørMigrering() shouldBe 8
+
+            val migrert = tac.sessionFactory.hentMeldekortstatistikk(sak.id)
+            migrert.groupBy({ it.behandlingId }, { it.hendelse }) shouldBe mapOf(
+                iverksatt.id.toString() to listOf("opprettet_behandling", "sendt_til_beslutter", "iverksatt_behandling"),
+                avbrutt.id.toString() to listOf("opprettet_behandling", "avsluttet_behandling"),
+                underkjent.id.toString() to listOf("opprettet_behandling", "sendt_til_beslutter", "underkjent_behandling"),
+            )
+            migrert.forEach { rad ->
+                val fasit = fraProdkoden.single { it.behandlingId == rad.behandlingId && it.hendelse == rad.hendelse }
+                rad.sammenlignbar() shouldBe fasit.sammenlignbar()
+            }
+            migrert.first { it.behandlingId == iverksatt.id.toString() }.søknadsformat shouldBe StatistikkFormat.DIGITAL
+            migrert.first { it.behandlingId == avbrutt.id.toString() }.behandlingAarsak shouldBe StatistikkBehandlingAarsak.KORRIGERING
+
+            tac.sessionFactory.kjørMigrering() shouldBe 0
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `migreringen lager ikke dobbeltrader for behandling som fikk rader etter deploy`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak) = iverksettSøknadsbehandling(tac = tac)
+            opprettOgIverksettMeldekortbehandling(tac = tac, sakId = sak.id, kjedeId = sak.meldeperiodeKjeder.first().kjedeId)!!
+            val fraProdkoden = tac.sessionFactory.hentMeldekortstatistikk(sak.id)
+            // Behandlingen ble opprettet før deploy og sendt til beslutter etterpå.
+            tac.sessionFactory.slettMeldekortstatistikk(hendelse = "opprettet_behandling")
+
+            tac.sessionFactory.kjørMigrering() shouldBe 1
+
+            tac.sessionFactory.hentMeldekortstatistikk(sak.id).map { it.hendelse }.sorted() shouldBe fraProdkoden.map { it.hendelse }.sorted()
+        }
+    }
+
     @Test
     fun `stans som fjerner all rett avbryter åpen meldekortbehandling`() {
         withTestApplicationContextAndPostgres { tac ->
@@ -235,3 +294,25 @@ private suspend fun ApplicationTestBuilder.mottaMeldekortSomGikkTilManuellBehand
     )
     return forsøk
 }
+
+private fun PostgresSessionFactory.slettMeldekortstatistikk(hendelse: String? = null) = withSession { session ->
+    session.run(
+        sqlQuery(
+            "delete from statistikk_sak where behandlingtype = 'MELDEKORT' and (cast(:hendelse as varchar) is null or hendelse = :hendelse)",
+            "hendelse" to hendelse,
+        ).asUpdate,
+    )
+}
+
+private fun PostgresSessionFactory.kjørMigrering(): Int = withSession { session ->
+    val sql = SaksstatistikkMeldekortbehandlingTest::class.java
+        .getResource("/db/migration/V264__statistikk_sak_historiske_meldekortbehandlinger.sql")!!
+        .readText()
+    session.run(sqlQuery(sql).asUpdate)
+}
+
+/** Feltene migreringen skal gjenskape likt med prodkoden. */
+private fun SaksstatistikkDTO.sammenlignbar(): SaksstatistikkDTO = copy(
+    versjon = "",
+    endretTidspunkt = if (hendelse in setOf("sendt_til_beslutter", "underkjent_behandling")) LocalDateTime.MIN else endretTidspunkt,
+)
