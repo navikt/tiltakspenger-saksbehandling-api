@@ -15,6 +15,7 @@ sealed interface RammevedtakKommandoDTO {
         OMGJØR,
         OPPHØR,
         STANS,
+        FORLENG,
     }
 
     data class Omgjør(
@@ -35,6 +36,12 @@ sealed interface RammevedtakKommandoDTO {
     ) : RammevedtakKommandoDTO {
         override val type = KommandoType.STANS
     }
+
+    data class Forleng(
+        val forlengesFraOgMed: String,
+    ) : RammevedtakKommandoDTO {
+        override val type = KommandoType.FORLENG
+    }
 }
 
 fun Rammevedtakskommandoer.toDTO(): Map<RammevedtakKommandoDTO.KommandoType, RammevedtakKommandoDTO> {
@@ -54,6 +61,10 @@ fun Rammevedtakskommando.toDTO(): RammevedtakKommandoDTO {
         is Rammevedtakskommando.Stans -> RammevedtakKommandoDTO.Stans(
             tidligsteFraOgMedDato = this.tidligsteFraOgMedDato.toString(),
             tvungenStansTilOgMedDato = this.tvungenStansTilOgMedDato.toString(),
+        )
+
+        is Rammevedtakskommando.Forleng -> RammevedtakKommandoDTO.Forleng(
+            forlengesFraOgMed = this.forlengesFraOgMed.toString(),
         )
     }
 }

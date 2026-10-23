@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ForlengerRammevedtak
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
@@ -43,6 +44,9 @@ class BehandlingsresultatDbTest {
         søknadsbehandlingInnvilgelse.toDb() shouldBe "INNVILGELSE"
         søknadsbehandlingAvslag.toDb() shouldBe "AVSLAG"
         revurderingStans.toDb() shouldBe "STANS"
+        Revurderingsresultat.Forlengelse.opprett(
+            ForlengerRammevedtak(rammevedtakId = VedtakId.random(), forlengesFraOgMed = 11.januar(2025)),
+        ).toDb() shouldBe "FORLENGELSE"
     }
 
     @Test
@@ -50,5 +54,6 @@ class BehandlingsresultatDbTest {
         "INNVILGELSE".tilSøknadsbehandlingResultatType() shouldBe SøknadsbehandlingsresultatType.INNVILGELSE
         "AVSLAG".tilSøknadsbehandlingResultatType() shouldBe SøknadsbehandlingsresultatType.AVSLAG
         "STANS".tilRevurderingResultatType() shouldBe RevurderingsresultatType.STANS
+        "FORLENGELSE".tilRevurderingResultatType() shouldBe RevurderingsresultatType.FORLENGELSE
     }
 }

@@ -30,7 +30,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.createOrThrow
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ForlengerRammevedtak
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
@@ -114,6 +116,56 @@ class PdfgenrsHttpClientTest {
                 tilleggstekst = null,
                 hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+            )
+        }
+    }
+
+    @Test
+    fun `genererInnvilgetVedtakBrev for forlengelse treffer vedtakForlengelse`() {
+        verifiserKunPdfgenrs("vedtakForlengelse") { klient ->
+            val revurdering = ObjectMother.nyVedtattRevurderingInnvilgelse()
+            val behandling = revurdering.copy(
+                resultat = Revurderingsresultat.Forlengelse(
+                    forlenger = ForlengerRammevedtak(
+                        rammevedtakId = VedtakId.random(),
+                        forlengesFraOgMed = revurdering.innvilgelsesperioder!!.fraOgMed,
+                    ),
+                    innvilgelsesperioder = revurdering.innvilgelsesperioder,
+                    barnetillegg = revurdering.barnetillegg,
+                    harValgtBarnetillegg = false,
+                ),
+            )
+            val vedtak = ObjectMother.nyttRammevedtak(
+                sakId = behandling.sakId,
+                fnr = behandling.fnr,
+                behandling = behandling,
+                periode = behandling.innvilgelsesperioder!!.totalPeriode,
+            )
+            klient.genererInnvilgetVedtakBrev(
+                vedtak = vedtak,
+                vedtaksdato = 2.januar(2023),
+                tilleggstekst = null,
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+            )
+        }
+    }
+
+    @Test
+    fun `genererForlengelseBrevForhåndsvisning treffer vedtakForlengelse`() {
+        verifiserKunPdfgenrs("vedtakForlengelse") {
+            it.genererForlengelseBrevForhåndsvisning(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                vedtaksdato = 2.januar(2025),
+                fnr = Fnr.random(),
+                saksbehandlerNavIdent = "Z123456",
+                beslutterNavIdent = null,
+                saksnummer = saksnummer,
+                sakId = SakId.random(),
+                innvilgelsesperioder = ObjectMother.innvilgelsesperioder(),
+                barnetilleggsperioder = null,
+                tilleggstekst = FritekstTilVedtaksbrev.createOrThrow("tilleggstekst"),
             )
         }
     }

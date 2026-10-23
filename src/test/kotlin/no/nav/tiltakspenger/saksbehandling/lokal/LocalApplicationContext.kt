@@ -99,6 +99,7 @@ class LocalApplicationContext(
     // Lokalt vises derfor ikke tellerne fra MetricRegister på /metrics.
     meterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
     erDev = false,
+    erProd = false,
 ) {
 
     override fun kafkaConfig(autoOffsetReset: String) = KafkaConfig(kafkaBrokers = LOKAL_KAFKA_BROKER)
@@ -352,6 +353,7 @@ class LocalApplicationContext(
             oppgaveKlient = oppgaveKlient,
             tiltakspengerArenaClient = tiltakspengerArenaClient,
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
+            erProd = erProd,
         ) {}
     }
     override val utbetalingContext by lazy {

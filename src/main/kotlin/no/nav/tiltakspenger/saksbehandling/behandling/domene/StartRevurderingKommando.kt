@@ -13,6 +13,8 @@ data class StartRevurderingKommando(
     val saksbehandler: Saksbehandler?,
     val revurderingType: StartRevurderingType,
     val vedtakIdSomOmgjøres: VedtakId?,
+    /** Påkrevd ved [StartRevurderingType.FORLENGELSE], og ellers null. */
+    val vedtakIdSomForlenges: VedtakId?,
     val klagebehandlingId: KlagebehandlingId?,
     val automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
 )
@@ -21,4 +23,5 @@ enum class StartRevurderingType {
     STANS,
     INNVILGELSE,
     OMGJØRING,
+    FORLENGELSE,
 }

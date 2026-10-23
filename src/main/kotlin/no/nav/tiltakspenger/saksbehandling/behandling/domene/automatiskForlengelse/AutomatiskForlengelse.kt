@@ -207,7 +207,7 @@ fun Sak.utledAutomatiskForlengelse(
  * Har saksbehandler for eksempel innvilget barnetillegg for et barn utenfor EØS, eller lagt til et barn, overlates forlengelsen til saksbehandler.
  * Det samme gjelder om søknaden gir flere barn i forlengelsen enn i vedtaket, siden et nytt barn må vurderes av saksbehandler.
  */
-private fun Sak.utledAntallBarn(
+fun Sak.utledAntallBarn(
     tiltaksdeltakerId: TiltaksdeltakerId,
     sisteInnvilgedeDag: LocalDate,
     antallBarnIVedtaket: AntallBarn,
@@ -265,7 +265,7 @@ private fun lagBegrunnelse(
  * Begrunnelsen for barnetillegget.
  * Er null når forlengelsen ikke har barnetillegg, enten fordi det gjeldende vedtaket ikke hadde det, eller fordi det faller helt bort.
  */
-private fun lagBegrunnelseBarnetillegg(
+fun lagBegrunnelseBarnetillegg(
     antallBarnIVedtaket: AntallBarn,
     antallBarn: SammenhengendePeriodisering<AntallBarn>,
 ): Begrunnelse? = when {

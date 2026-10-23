@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ForlengerRammevedtak
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
@@ -71,6 +72,15 @@ suspend fun Sak.startRevurdering(
             opprettet = nå,
             klagebehandling = klagebehandling,
             automatiskOpprettetGrunn = kommando.automatiskOpprettetGrunn,
+        ).getOrElse { return it.left() }
+
+        StartRevurderingType.FORLENGELSE -> startRevurderingForlengelse(
+            revurderingId = behandlingId,
+            saksbehandler = kommando.saksbehandler!!,
+            hentSaksopplysninger = hentSaksopplysninger,
+            correlationId = kommando.correlationId,
+            rammevedtakIdSomForlenges = kommando.vedtakIdSomForlenges!!,
+            opprettet = nå,
         ).getOrElse { return it.left() }
     }
 
@@ -176,6 +186,42 @@ private suspend fun Sak.startRevurderingInnvilgelse(
         klagebehandling = klagebehandling,
         automatiskOpprettetGrunn = automatiskOpprettetGrunn,
     )
+}
+
+/**
+ * Starter en forlengelse av [rammevedtakIdSomForlenges] fra dagen etter at vedtaket slutter.
+ * Vedtaket må kunne forlenges, se [no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste.gyldigForlengelseskommando].
+ * Saksbehandler fyller ut ny til og med-dato i behandlingen.
+ */
+private suspend fun Sak.startRevurderingForlengelse(
+    revurderingId: RammebehandlingId,
+    saksbehandler: Saksbehandler,
+    hentSaksopplysninger: HentSaksopplysninger,
+    correlationId: CorrelationId,
+    rammevedtakIdSomForlenges: VedtakId,
+    opprettet: LocalDateTime,
+): Either<KanIkkeStarteRevurdering, Revurdering> {
+    val rammevedtak: Rammevedtak = this.hentRammevedtakForId(rammevedtakIdSomForlenges)
+
+    val forlengelseskommando = rammevedtaksliste.gyldigForlengelseskommando(rammevedtak)
+        ?: return KanIkkeStarteRevurdering.VedtaketKanIkkeForlenges(
+            vedtakId = rammevedtakIdSomForlenges,
+            saksnummer = this.saksnummer,
+        ).left()
+
+    return Revurdering.opprettForlengelse(
+        revurderingId = revurderingId,
+        sakId = this.id,
+        saksnummer = this.saksnummer,
+        fnr = this.fnr,
+        saksbehandler = saksbehandler,
+        saksopplysninger = hentSaksopplysningerForInnvilgelse(hentSaksopplysninger, correlationId),
+        opprettet = opprettet,
+        forlenger = ForlengerRammevedtak(
+            rammevedtakId = rammevedtakIdSomForlenges,
+            forlengesFraOgMed = forlengelseskommando.forlengesFraOgMed,
+        ),
+    ).right()
 }
 
 /**

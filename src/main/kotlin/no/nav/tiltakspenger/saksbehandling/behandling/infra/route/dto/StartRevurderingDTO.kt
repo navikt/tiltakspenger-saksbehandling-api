@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingTyp
 data class StartRevurderingDTO(
     val revurderingType: StartRevurderingTypeDTO,
     val rammevedtakIdSomOmgjøres: String? = null,
+    val rammevedtakIdSomForlenges: String? = null,
 ) {
     fun tilKommando(
         sakId: SakId,
@@ -22,6 +23,7 @@ data class StartRevurderingDTO(
             saksbehandler = saksbehandler,
             revurderingType = revurderingType.tilKommando(),
             vedtakIdSomOmgjøres = rammevedtakIdSomOmgjøres?.let { VedtakId.fromString(it) },
+            vedtakIdSomForlenges = rammevedtakIdSomForlenges?.let { VedtakId.fromString(it) },
             klagebehandlingId = null,
         )
     }
@@ -31,11 +33,13 @@ enum class StartRevurderingTypeDTO {
     REVURDERING_INNVILGELSE,
     STANS,
     OMGJØRING,
+    FORLENGELSE,
     ;
 
     fun tilKommando(): StartRevurderingType = when (this) {
         REVURDERING_INNVILGELSE -> StartRevurderingType.INNVILGELSE
         STANS -> StartRevurderingType.STANS
         OMGJØRING -> StartRevurderingType.OMGJØRING
+        FORLENGELSE -> StartRevurderingType.FORLENGELSE
     }
 }

@@ -76,6 +76,8 @@ open class BehandlingOgVedtakContext(
     oppgaveKlient: OppgaveKlient,
     tiltakspengerArenaClient: TiltakspengerArenaClient,
     tiltaksdeltakerRepo: TiltaksdeltakerRepo,
+    /** Sperrer forlengelse i prod inntil videre. */
+    erProd: Boolean,
 ) {
     open val rammevedtakRepo: RammevedtakRepo by lazy { RammevedtakPostgresRepo(sessionFactory as PostgresSessionFactory) }
     open val rammebehandlingRepo: RammebehandlingRepo by lazy {
@@ -207,6 +209,7 @@ open class BehandlingOgVedtakContext(
             clock = clock,
             statistikkService = statistikkService,
             sessionFactory = sessionFactory,
+            forlengelseErPåslått = !erProd,
         )
     }
 

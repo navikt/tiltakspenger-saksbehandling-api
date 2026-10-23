@@ -74,6 +74,8 @@ fun RevurderingResultatDTO.sladdet(): RevurderingResultatDTO = when (this) {
 
     is RevurderingResultatDTO.OmgjøringInnvilgelse -> this.copy(barnetillegg = barnetillegg?.sladdet())
 
+    is RevurderingResultatDTO.Forlengelse -> this.copy(barnetillegg = barnetillegg?.sladdet())
+
     is RevurderingResultatDTO.Stans,
     is RevurderingResultatDTO.OmgjøringOpphør,
     is RevurderingResultatDTO.OmgjøringIkkeValgt,

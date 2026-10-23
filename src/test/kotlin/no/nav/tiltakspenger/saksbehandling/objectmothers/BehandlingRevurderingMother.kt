@@ -555,6 +555,8 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
 
             RevurderingsresultatType.INNVILGELSE -> StartRevurderingTypeDTO.REVURDERING_INNVILGELSE
 
+            RevurderingsresultatType.FORLENGELSE -> StartRevurderingTypeDTO.FORLENGELSE
+
             RevurderingsresultatType.OMGJØRING_INNVILGELSE,
             RevurderingsresultatType.OMGJØRING_OPPHØR,
             RevurderingsresultatType.OMGJØRING_IKKE_VALGT,

@@ -80,4 +80,14 @@ fun KanIkkeStarteRevurdering.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJ
         "Vedtaket kan ikke omgjøres fordi det er et avslagsvedtak eller allerede er omgjort i sin helhet.",
         "vedtak_kan_ikke_omgjøres",
     )
+
+    is KanIkkeStarteRevurdering.VedtaketKanIkkeForlenges -> HttpStatusCode.BadRequest to ErrorJson(
+        "Vedtaket kan ikke forlenges fordi det ikke er innvilget helt frem til slutten av vedtaksperioden, eller fordi dagen etter dekkes av et annet vedtak.",
+        "vedtak_kan_ikke_forlenges",
+    )
+
+    KanIkkeStarteRevurdering.ForlengelseErIkkePåslått -> HttpStatusCode.BadRequest to ErrorJson(
+        "Forlengelse er ikke tilgjengelig ennå.",
+        "forlengelse_er_ikke_påslått",
+    )
 }

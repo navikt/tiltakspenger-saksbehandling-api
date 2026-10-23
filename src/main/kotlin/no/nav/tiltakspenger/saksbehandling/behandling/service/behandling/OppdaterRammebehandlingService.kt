@@ -13,6 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.UtledetForlengelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.utledForlengelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeOppdatereBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeOppdatereBehandling.BehandlingenEiesAvAnnenSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterBehandlingKommando
@@ -20,9 +22,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterOm
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdater
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterForlengelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterOmgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilInnvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnOpphør
@@ -63,11 +67,19 @@ class OppdaterRammebehandlingService(
             return it.left()
         }
 
-        val (utbetaling, simuleringMedMetadata) = sak.beregnOgSimulerHvisAktuelt(kommando, behandling, nå)
+        val utledetForlengelse = (kommando as? OppdaterRevurderingKommando.Forlengelse)?.let {
+            sak.utledForlengelse(
+                revurdering = behandling as Revurdering,
+                tilOgMed = it.tilOgMed,
+                barnetillegg = it.barnetillegg,
+            ).getOrElse { feil -> return feil.left() }
+        }
+
+        val (utbetaling, simuleringMedMetadata) = sak.beregnOgSimulerHvisAktuelt(kommando, behandling, nå, utledetForlengelse)
 
         return when (kommando) {
             is OppdaterSøknadsbehandlingKommando -> sak.oppdaterSøknadsbehandling(kommando, utbetaling)
-            is OppdaterRevurderingKommando -> sak.oppdaterRevurdering(kommando, utbetaling)
+            is OppdaterRevurderingKommando -> sak.oppdaterRevurdering(kommando, utbetaling, utledetForlengelse)
         }.map { oppdatertBehandling: Rammebehandling ->
             val oppdatertSak = sak.oppdaterRammebehandling(oppdatertBehandling)
 
@@ -92,6 +104,7 @@ class OppdaterRammebehandlingService(
         kommando: OppdaterBehandlingKommando,
         rammebehandling: Rammebehandling,
         beregningstidspunkt: LocalDateTime,
+        utledetForlengelse: UtledetForlengelse?,
     ): Pair<BehandlingUtbetaling?, SimuleringMedMetadata?> {
         log.debug { "Beregner hvis aktuelt ifm oppdatering av behandling ${rammebehandling.id} for sak ${rammebehandling.sakId}" }
         val beregning = when (kommando) {
@@ -115,6 +128,14 @@ class OppdaterRammebehandlingService(
                     beregningstidspunkt = beregningstidspunkt,
                 )
             }
+
+            is OppdaterRevurderingKommando.Forlengelse -> this.beregnInnvilgelse(
+                behandlingId = kommando.behandlingId,
+                vedtaksperiode = utledetForlengelse!!.forlengelsesperiode,
+                innvilgelsesperioder = utledetForlengelse.innvilgelsesperioder.tilInnvilgelsesperioder(rammebehandling),
+                barnetilleggsperioder = utledetForlengelse.barnetillegg.periodisering,
+                beregningstidspunkt = beregningstidspunkt,
+            )
 
             is OppdaterRevurderingKommando.Stans -> this.beregnRevurderingStans(
                 behandlingId = kommando.behandlingId,
@@ -186,6 +207,7 @@ class OppdaterRammebehandlingService(
     private fun Sak.oppdaterRevurdering(
         kommando: OppdaterRevurderingKommando,
         utbetaling: BehandlingUtbetaling?,
+        utledetForlengelse: UtledetForlengelse?,
     ): Either<KanIkkeOppdatereBehandling, Revurdering> {
         val revurdering: Revurdering = this.hentRammebehandling(kommando.behandlingId) as Revurdering
 
@@ -206,6 +228,15 @@ class OppdaterRammebehandlingService(
                     utbetaling = utbetaling,
                     clock = clock,
                     omgjørRammevedtak = this.vedtaksliste.finnRammevedtakSomOmgjøres(kommando.innvilgelsesperioder.totalPeriode),
+                )
+            }
+
+            is OppdaterRevurderingKommando.Forlengelse -> {
+                revurdering.oppdaterForlengelse(
+                    kommando = kommando,
+                    utledetForlengelse = utledetForlengelse!!,
+                    utbetaling = utbetaling,
+                    clock = clock,
                 )
             }
 
@@ -239,6 +270,8 @@ class OppdaterRammebehandlingService(
             is OppdaterOmgjøringKommando.OmgjøringInnvilgelse,
             is OppdaterOmgjøringKommando.OmgjøringIkkeValgt,
             is OppdaterOmgjøringKommando.OmgjøringOpphør,
+            // Forlengelsen kan ikke overlappe andre vedtak, se utledForlengelse.
+            is OppdaterRevurderingKommando.Forlengelse,
             -> Unit.right()
 
             is OppdaterRevurderingKommando.Innvilgelse,

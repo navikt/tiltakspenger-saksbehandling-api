@@ -31,4 +31,13 @@ sealed interface Rammevedtakskommando {
         val tidligsteFraOgMedDato: LocalDate,
         val tvungenStansTilOgMedDato: LocalDate,
     ) : Rammevedtakskommando
+
+    /**
+     * Vedtaket er innvilget helt frem til slutten av vedtaksperioden, og dagen etter dekkes ikke av et annet vedtak.
+     * Saksbehandler kan kun velge ny til og med-dato.
+     * Se [Rammevedtaksliste.gyldigForlengelseskommando].
+     */
+    data class Forleng(
+        val forlengesFraOgMed: LocalDate,
+    ) : Rammevedtakskommando
 }

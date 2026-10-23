@@ -46,6 +46,7 @@ fun start(
         clock = clock,
         meterRegistry = prometheusMeterRegistry(),
         erDev = Configuration.isDev(),
+        erProd = Configuration.isProd(),
     ),
     devRoutes: Route.(applicationContext: ApplicationContext) -> Unit = {},
 ) {

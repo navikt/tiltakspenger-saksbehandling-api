@@ -8,6 +8,8 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ForlengerRammevedtak
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -57,6 +59,14 @@ sealed interface OpprettRammevedtakFeil {
     ) : OpprettRammevedtakFeil {
         override fun toString(): String = feil.toString()
     }
+
+    /**
+     * Et annet vedtak er iverksatt etter at forlengelsen ble opprettet, slik at vedtaket ikke lenger kan forlenges fra samme dag.
+     * Dette er en forventet tilstand og ikke en systemfeil.
+     */
+    data class ForlengelsesgrunnlagetErEndret(
+        val forlenger: ForlengerRammevedtak,
+    ) : OpprettRammevedtakFeil
 }
 
 fun Sak.opprettRammevedtak(
@@ -80,6 +90,11 @@ fun Sak.opprettRammevedtak(
             klagebehandlingId = klagebehandling.id,
             status = klagebehandling.status,
         ).left()
+    }
+
+    val resultat = rammebehandling.resultat
+    if (resultat is Revurderingsresultat.Forlengelse && !rammevedtaksliste.kanFortsattForlenges(resultat.forlenger)) {
+        return OpprettRammevedtakFeil.ForlengelsesgrunnlagetErEndret(resultat.forlenger).left()
     }
 
     val vedtakId = VedtakId.random()
