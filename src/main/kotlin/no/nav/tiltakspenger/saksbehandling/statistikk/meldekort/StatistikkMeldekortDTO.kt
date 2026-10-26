@@ -11,6 +11,11 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+/**
+ * Én rad i `statistikk_meldekort` per iverksatt meldekortbehandling, både manuell og automatisk, oppdatert med upsert på `meldekortbehandling_id`.
+ * Team Spenn (DVH) leser tabellen som beskrevet på [no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.StatistikkStønadDTO].
+ * Dagene og meldeperiodekjeden ligger i jsonb-feltet `meldeperioder`.
+ */
 data class StatistikkMeldekortDTO(
     val sakId: String,
     val meldekortbehandlingId: String,

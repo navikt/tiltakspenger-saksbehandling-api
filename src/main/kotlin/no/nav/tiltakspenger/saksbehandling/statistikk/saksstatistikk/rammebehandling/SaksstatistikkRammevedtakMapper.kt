@@ -35,8 +35,6 @@ fun Rammevedtak.genererSaksstatistikk(): GenererSaksstatistikk {
             endretTidspunkt = this.opprettet,
             utbetaltTidspunkt = null,
             søknadsformat = behandling.getSoknadsformat(),
-            // TODO jah: Hva gjør vi ved revurdering/stans i dette tilfellet.
-            // Skal vi sende søknadsbehandling sin første innvilget fraOgMed eller null?
             forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.vedtaksperiode?.fraOgMed else null,
             behandlingType = if (erSøknadsbehandling) StatistikkBehandlingType.SØKNADSBEHANDLING else StatistikkBehandlingType.REVURDERING,
             behandlingStatus = StatistikkBehandlingStatus.FERDIG_BEHANDLET,

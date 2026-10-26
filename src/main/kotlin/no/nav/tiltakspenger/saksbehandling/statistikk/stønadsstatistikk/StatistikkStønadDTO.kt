@@ -13,8 +13,16 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.Statist
 import java.time.LocalDate
 import java.util.UUID
 
-// Team Spenn (DVH) bruker denne tabellen, samt statistikk_utbetaling.
-// De har beskrevet behovet sitt her: https://confluence.adeo.no/display/DVH/Datamodell+for+tiltakspenger
+/**
+ * Én rad i `statistikk_stonad` per rammevedtak; Team Spenn (DVH) leser tabellen sammen med `statistikk_utbetaling` og `statistikk_meldekort`.
+ *
+ * Kildekode: https://github.com/navikt/dvh_tiltakspenger (internt repo; kolonnene de henter står i `etl/datalast_fra_bq.py`)
+ * Dokumentasjon: https://confluence.adeo.no/display/DVH/dvh_tiltakspenger og dbt-modellene i https://dbt.ansatt.nav.no/docs/spenn/dvh-tiltakspenger/index.html
+ * Slack: #tiltakspenger-dvh
+ * Teamkatalog: https://teamkatalogen.nav.no/team/3c411c72-9587-4c6f-937e-2a404935b778
+ *
+ * Nye og fjernede kolonner må avklares med Team Spenn; se `docs/statistikk/README.md`.
+ */
 data class StatistikkStønadDTO(
     // tilfeldig id
     val id: UUID,
@@ -38,7 +46,8 @@ data class StatistikkStønadDTO(
     // Listen er tom for stans og avslag
     val innvilgelsesperioder: List<InnvilgelsesperiodeStatistikk>,
 
-    // TODO: erstattes av [omgjørRammevedtak] - kan fjernes når DVH ikke bruker dette feltet lengre
+    // TODO: erstattet av [omgjørRammevedtak].
+    // Team Spenn bruker det ikke lenger i dbt, men henter kolonnen fortsatt i etl/datalast_fra_bq.py i navikt/dvh_tiltakspenger; fjern den når de har tatt den ut der.
     val omgjørRammevedtakId: String?,
 
     val omgjørRammevedtak: List<OmgjørRammevedtakStatistikk>,

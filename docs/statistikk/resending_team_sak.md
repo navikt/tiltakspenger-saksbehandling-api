@@ -1,20 +1,15 @@
-Resending av rader til Team Sak (DVH)
-================
+# Resending og retting av rader til Team Sak (DVH)
 
-Vi deler data med Team Sak (DVH) ved å inserte nye rader i tabellen `statistikk_sak`.
-Se DTO-klassen `no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkDTO`, som også beskriver hver kolonne, for lenke til grensesnitt.
-Selve delingen skjer via BigQuery.
+Bakgrunnen står i [README.md](README.md): Team Sak henter bare rader med `id` høyere enn den største de har, og beholder én rad per `behandlingid` + `endrettidspunkt`, den med nyeste `teknisktidspunkt`.
+Endringer i eksisterende rader ser de derfor ikke.
+For å rette en hendelse setter du inn en ny rad med samme `behandlingid` og `endrettidspunkt`, de rettede verdiene og et nytt `teknisktidspunkt`.
+Den nye raden får ny `id` fra sekvensen og erstatter den gamle hos Team Sak.
 
-DVH fanger kun opp nye rader i tabellen, ikke oppdateringer, så endringer som man ønsker at DVH skal få med seg må komme som nye rader.
-DVH bruker kombinasjonen `behandlingid` + `endrettidspunkt` for å identifisere en hendelse, så ved f.eks. teknisk patching av data må man inserte en ny rad med samme `behandlingid` + `endrettidspunkt` og endringene man ønsker å gjøre pr rad som skal patches.
-Husk å oppdatere `teknisktidspunkt`.
-Applikasjonen lar databasen sette den med `clock_timestamp()` i inserten, slik at rekkefølgen følger `id`.
-
-Dokumentasjon: https://confluence.adeo.no/spaces/DVH/pages/459904637/Funksjonell+tid+teknisk+tid+og+lastet+tids+rolle+i+modell
+Team Saks forklaring av funksjonell, teknisk og lastet tid: <https://confluence.adeo.no/spaces/DVH/pages/459904637/Funksjonell+tid+teknisk+tid+og+lastet+tids+rolle+i+modell>
 
 Vi har ikke noe ferdig funksjonalitet for resending, men denne SQL-en er ganske effektiv og har blitt brukt for resending og patch av behandlinger der `soknadsformat` og `behandlingtype` måtte endres:
 
-```
+```sql
 INSERT INTO statistikk_sak (
     sak_id,
     saksnummer,
@@ -92,5 +87,4 @@ WHERE behandlingid = ANY(ARRAY[
 RETURNING *;
 ```
 
-Denne inserter en kopi av alle rader for de angitte behandlingId-ene med oppdatert `soknadsformat`, `behandlingtype` og 
-`teknisktidspunkt` (sistnevnte er viktig for at DVH skal fange opp endringen). 
+Denne setter inn en kopi av alle radene for de angitte behandlings-id-ene med oppdatert `soknadsformat`, `behandlingtype` og `teknisktidspunkt`; det nye `teknisktidspunkt` gjør at Team Sak bruker den nye raden.

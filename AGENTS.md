@@ -82,6 +82,11 @@ Slik ser den ut i dette repoet:
 - **Rene mappinger testes som enhetstester som pinner den lagrede strengen eller json-en**, ikke bare rundturen — se «Row hører i databasetesten, ren mapping i enhetstesten» i AGENTS-backend.md i metarepoet `tiltakspenger`.
   `HjemmelForOpphørDbTest` og `TiltakDeltakerstatusDbTest` er mønsterfilene.
 
+## Statistikk til datavarehuset
+
+Les [`docs/statistikk/README.md`](docs/statistikk/README.md) før du endrer statistikktabellene, DTO-ene under `statistikk/` eller hendelsene som skrives.
+Bare Team Sak og Team Spenn leser tabellene, så en feil synes ikke hos oss; avklar derfor nye verdier og kolonner med dem først.
+
 ## Lokal testdata
 
 - Hvordan du oppretter en meldekortbehandling og en klagebehandling lokalt (scripts, curl og GUI fra A til Å, både digital og papir søknad) er dokumentert i frontend-repoet: [`../tiltakspenger-saksbehandling/docs/opprette-behandlinger-lokalt.md`](../tiltakspenger-saksbehandling/docs/opprette-behandlinger-lokalt.md).

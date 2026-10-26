@@ -9,6 +9,9 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+/**
+ * Én rad i `statistikk_utbetaling` per utbetaling, lest av Team Spenn (DVH) som beskrevet på [StatistikkStønadDTO].
+ */
 data class StatistikkUtbetalingDTO(
     // id for utbetalingsvedtaket
     val id: String,
@@ -20,7 +23,7 @@ data class StatistikkUtbetalingDTO(
     val posteringDato: LocalDate,
     val gyldigFraDatoPostering: LocalDate,
     val gyldigTilDatoPostering: LocalDate,
-    // id-en som vi sender til helved
+    // UUID-delen av [id], som vi sender til helved som behandlingId og som havner i OS/UR i feltet «henvisning».
     val utbetalingId: String,
     // Rammevedtaket/vedtakene som gjelder i perioden for utbetalingen
     val vedtakId: List<String>?,
@@ -48,7 +51,6 @@ fun VedtattUtbetaling.tilStatistikk(
 ): GenererUtbetalingsstatistikk {
     return GenererUtbetalingsstatistikk {
         StatistikkUtbetalingDTO(
-            // TODO post-mvp jah: Vi sender uuid-delen av denne til helved som behandlingId som mappes videre til OS/UR i feltet 'henvisning'.
             id = this.id.toString(),
             sakId = this.sakId.toString(),
             saksnummer = this.saksnummer.toString(),

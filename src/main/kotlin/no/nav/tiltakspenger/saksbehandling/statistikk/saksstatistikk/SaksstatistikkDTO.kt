@@ -1,24 +1,19 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk
 
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.infra.repo.SaksstatistikkPostgresRepo
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * Én rad i `statistikk_sak`, tabellen der Team Sak (DVH) leser saksbehandlingsstatistikken vår via Datastream og BigQuery.
- * Team Sak eier grensesnittet og beskriver det i https://confluence.adeo.no/display/navdvh/Teknisk+beskrivelse+av+behov+til+felles+saksbehandlingsstatistikk
+ * Én rad i `statistikk_sak` per hendelse på en behandling; Team Sak (DVH) leser tabellen gjennom BigQuery-viewet `statistikk_sak_dvh`.
  *
- * Vi skriver én ny rad per hendelse på en behandling og oppdaterer aldri radene for å formidle endringer, fordi Team Sak bare leser nye rader.
- * Team Sak kjenner igjen en hendelse på `behandlingid` + `endrettidspunkt`; resending og retting står i `docs/statistikk/resending_team_sak.md`.
- * Unntakene er [SaksstatistikkPostgresRepo.oppdaterFnr] og [SaksstatistikkPostgresRepo.oppdaterAdressebeskyttelse], som oppdaterer eksisterende rader.
+ * Kildekode: https://github.com/navikt/dvh_saksbehandlingsstatistikk (internt repo, filer med `tiltakspenger` i navnet)
+ * Dokumentasjon: https://confluence.adeo.no/spaces/navdvh/pages/696778901/Teknisk+beskrivelse+av+behov+til+felles+saksbehandlingsstatistikk (grensesnittet), https://confluence.adeo.no/spaces/navdvh/pages/340504860/Funksjonell+beskrivelse+av+behov+til+felles+saksbehandlingsstatistikk og https://confluence.adeo.no/spaces/navdvh/pages/419505004/Kategorier+dimensjoner+i+saksbehandlingsstatistikk (kodeverdier)
+ * Vår kilde hos Team Sak: https://confluence.adeo.no/spaces/DVH/pages/634585537/Kilde+Tiltakspenger, med mapping av kolonnene i https://confluence.adeo.no/spaces/DVH/pages/634585540
+ * Slack: #tiltakspenger-dvh
+ * Teamkatalog: https://teamkatalogen.nav.no/team/d59d1024-28cc-4685-a8e5-bdde33e4cbab
  *
- * KDoc på feltene starter med kolonnenavnet; kolonnene til felt uten KDoc står i insert-setningen i [SaksstatistikkPostgresRepo].
- * `teknisktidspunkt`, når hendelsen legges på grensesnittet, har ikke noe felt her; databasen setter den ved insert.
- * Radene lages i `rammebehandling/`, `klagebehandling/` og `meldekortbehandling/` ved siden av denne fila.
- * Automatiske meldekortbehandlinger gir ingen rader; Team Sak har bare bedt om de manuelle.
- *
- * TODO jah: Grensesnittet ønsker tidspunkter uten millisekunder, men alle tidspunktkolonnene lagres med mikrosekunder.
- * Kutter vi til hele sekunder, kan to hendelser på samme behandling i samme sekund få samme nøkkel hos Team Sak, så avklar med dem før noe endres.
+ * Hvordan radene skrives og leses, og hva som må avklares før endringer, står i `docs/statistikk/README.md`.
+ * KDoc på feltene starter med kolonnenavnet; databasen setter `teknisktidspunkt` ved insert.
  */
 data class SaksstatistikkDTO(
     val sakId: String,
@@ -50,8 +45,7 @@ data class SaksstatistikkDTO(
     val ferdigBehandletTidspunkt: LocalDateTime?,
     /**
      * `vedtaktidspunkt`: når vedtaket ble fattet; null for avbrutte og åpne behandlinger.
-     * TODO jah: Jeg finner ikke denne i confluence-siden til navdvh.
-     * Gir det mening og ta den vekk og heller bruke [ferdigBehandletTidspunkt]
+     * Står ikke i grensesnittbeskrivelsen, men Team Sak laster den som `vedtak_tid`.
      */
     val vedtakTidspunkt: LocalDateTime?,
     /**
@@ -69,7 +63,10 @@ data class SaksstatistikkDTO(
      * Meldekort: `DIGITAL` når det finnes et meldekort fra bruker som gikk til manuell behandling, ellers `ANNET`.
      */
     val søknadsformat: StatistikkFormat,
-    /** `forventetoppstarttidspunkt`: første dag i vedtaksperioden for søknadsbehandlinger; null ellers. */
+    /**
+     * `forventetoppstarttidspunkt`: grensesnittet beskriver feltet som når ytelsen normalt skal utbetales, hvis systemet eller bruker har et forhold til det (planlagt uttak, ønsket oppstart og lignende).
+     * Søknadsbehandling: første dag i vedtaksperioden, null før den er satt; ellers null.
+     */
     val forventetOppstartTidspunkt: LocalDate?,
     /** `sakytelse`: alltid `IND` (individstønad). */
     val sakYtelse: String = "IND",

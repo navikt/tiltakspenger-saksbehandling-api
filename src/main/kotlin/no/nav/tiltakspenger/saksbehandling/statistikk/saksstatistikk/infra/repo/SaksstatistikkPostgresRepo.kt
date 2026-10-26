@@ -9,14 +9,9 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.Saksstatist
 import org.intellij.lang.annotations.Language
 
 /**
- * Denne tabellen brukes for å dele data med DVH.
- * Se DTO-klassen for lenke til grensesnitt.
- * DVH fanger kun opp nye rader i tabellen, ikke oppdateringer, så endringer som man ønsker at DVH skal få med seg må komme som nye rader.
- * DVH bruker kombinasjonen behandlingid + endrettidspunkt for å identifisere en hendelse, så ved f.eks. teknisk patching av data må man inserte en ny rad med samme behandlingid + endrettidspunkt og endringene man ønsker å gjøre pr rad som skal patches.
- *
- * Dokumentasjon: https://confluence.adeo.no/spaces/DVH/pages/459904637/Funksjonell+tid+teknisk+tid+og+lastet+tids+rolle+i+modell
- *
- * Vår dokumentasjon: docs/statistikk/resending_team_sak.md
+ * Skriver `statistikk_sak`, som Team Sak (DVH) leser; feltene og reglene for tabellen står på [no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkDTO].
+ * Team Sak ser bare nye rader, så retting gjøres med nye rader som beskrevet i `docs/statistikk/resending_team_sak.md`.
+ * Hvordan Team Sak bruker funksjonell, teknisk og lastet tid: https://confluence.adeo.no/spaces/DVH/pages/459904637/Funksjonell+tid+teknisk+tid+og+lastet+tids+rolle+i+modell
  */
 object SaksstatistikkPostgresRepo {
     /**

@@ -7,6 +7,10 @@ import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
 import java.time.Clock
 
+/**
+ * Gjør [Statistikkhendelse]r om til rader og lagrer dem; se `docs/statistikk/README.md`.
+ * [generer] slår opp strengt fortrolig adresse i PDL og skal derfor kalles før transaksjonen, mens [lagre] kalles i samme transaksjon som endringen.
+ */
 class StatistikkService(
     private val personKlient: PersonKlient,
     private val gitHash: String,
