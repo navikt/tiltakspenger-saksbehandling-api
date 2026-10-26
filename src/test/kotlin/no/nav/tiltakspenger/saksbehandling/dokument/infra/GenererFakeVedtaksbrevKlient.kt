@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevF
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.BarnSomFyller16
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
@@ -79,6 +80,15 @@ class GenererFakeVedtaksbrevKlient :
         tilleggstekst: FritekstTilVedtaksbrev?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> = response
 
+    override suspend fun genererForlengelseBrev(
+        vedtak: Rammevedtak,
+        barnSomFyller16: BarnSomFyller16?,
+        vedtaksdato: LocalDate,
+        tilleggstekst: FritekstTilVedtaksbrev?,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> = response
+
     override suspend fun genererForlengelseBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
@@ -90,6 +100,7 @@ class GenererFakeVedtaksbrevKlient :
         sakId: SakId,
         innvilgelsesperioder: Innvilgelsesperioder,
         barnetilleggsperioder: Periodisering<AntallBarn>?,
+        barnSomFyller16: BarnSomFyller16?,
         tilleggstekst: FritekstTilVedtaksbrev?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> = response
 

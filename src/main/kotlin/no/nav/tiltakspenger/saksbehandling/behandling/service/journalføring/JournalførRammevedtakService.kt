@@ -53,7 +53,18 @@ class JournalførRammevedtakService(
                 }
                 Either.catch {
                     val vedtaksdato = LocalDate.now(clock)
-                    val pdfOgJson = when (vedtak.rammebehandlingsresultat) {
+                    val pdfOgJson = when (val resultat = vedtak.rammebehandlingsresultat) {
+                        is Revurderingsresultat.Forlengelse -> genererVedtaksbrevForInnvilgelseKlient.genererForlengelseBrev(
+                            vedtak = vedtak,
+                            barnSomFyller16 = resultat.barnSomFyller16(
+                                forlengetVedtak = rammevedtakRepo.hentForVedtakId(resultat.forlenger.rammevedtakId)!!,
+                            ),
+                            vedtaksdato = vedtaksdato,
+                            tilleggstekst = vedtak.rammebehandling.fritekstTilVedtaksbrev,
+                            hentBrukersNavn = personService::hentNavn,
+                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
+                        )
+
                         is Rammebehandlingsresultat.Innvilgelse -> genererVedtaksbrevForInnvilgelseKlient.genererInnvilgetVedtakBrev(
                             vedtaksdato = vedtaksdato,
                             vedtak = vedtak,
