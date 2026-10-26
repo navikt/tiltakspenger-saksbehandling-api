@@ -90,6 +90,7 @@ open class UtbetalingContext(
     val sendUtbetalingerService: SendUtbetalingerService by lazy {
         SendUtbetalingerService(
             utbetalingRepo = utbetalingRepo,
+            meldekortvedtakRepo = meldekortvedtakRepo,
             utbetalingsklient = utbetalingsklient,
             statistikkService = statistikkService,
             clock = clock,

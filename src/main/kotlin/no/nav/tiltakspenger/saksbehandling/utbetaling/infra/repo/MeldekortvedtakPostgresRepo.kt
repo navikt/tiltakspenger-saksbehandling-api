@@ -39,8 +39,7 @@ class MeldekortvedtakPostgresRepo(
                         utbetaling_id,
                         sak_id,
                         opprettet,
-                        meldekort_id
-                        
+                        meldekort_id                        
                     ) values (
                         :id,
                         :utbetaling_id,

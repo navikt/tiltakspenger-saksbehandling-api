@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeUtbetale
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsklient
@@ -22,7 +23,7 @@ class SendUtbetalingerServiceTest {
         val utbetalingRepo = mockk<UtbetalingRepo>()
         val utbetalingsklient = mockk<Utbetalingsklient>()
         val sendUtbetalingerService =
-            SendUtbetalingerService(utbetalingRepo, utbetalingsklient, mockk<StatistikkService>(), fixedClock)
+            SendUtbetalingerService(utbetalingRepo, mockk<MeldekortvedtakRepo>(), utbetalingsklient, mockk<StatistikkService>(), fixedClock)
         val utbetaling = ObjectMother.utbetaling()
 
         every { utbetalingRepo.hentForUtsjekk() } returns listOf(utbetaling)
@@ -46,7 +47,7 @@ class SendUtbetalingerServiceTest {
         val utbetalingRepo = mockk<UtbetalingRepo>()
         val utbetalingsklient = mockk<Utbetalingsklient>()
         val sendUtbetalingerService =
-            SendUtbetalingerService(utbetalingRepo, utbetalingsklient, mockk<StatistikkService>(), fixedClock)
+            SendUtbetalingerService(utbetalingRepo, mockk<MeldekortvedtakRepo>(), utbetalingsklient, mockk<StatistikkService>(), fixedClock)
         val utbetaling = ObjectMother.utbetaling()
 
         every { utbetalingRepo.hentForUtsjekk() } returns listOf(utbetaling)

@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk
 
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.statistikk.GenererUtbetalingsstatistikk
@@ -21,7 +22,7 @@ data class StatistikkUtbetalingDTO(
     val gyldigTilDatoPostering: LocalDate,
     // id-en som vi sender til helved
     val utbetalingId: String,
-    // vedtaket/vedtakene som er bakgrunnen for utbetalingen
+    // Rammevedtaket/vedtakene som gjelder i perioden for utbetalingen
     val vedtakId: List<String>?,
     val opprettet: LocalDateTime?,
     val sistEndret: LocalDateTime?,
@@ -37,7 +38,14 @@ data class StatistikkUtbetalingDTO(
     )
 }
 
-fun VedtattUtbetaling.tilStatistikk(clock: Clock): GenererUtbetalingsstatistikk {
+/**
+ * @param rammevedtakIder Rammevedtakene som er bakgrunnen for utbetalingen.
+ * For et rammevedtak er det vedtaket selv, og for et meldekortvedtak er det rammevedtakene meldekortbehandlingen bygger på.
+ */
+fun VedtattUtbetaling.tilStatistikk(
+    rammevedtakIder: List<VedtakId>,
+    clock: Clock,
+): GenererUtbetalingsstatistikk {
     return GenererUtbetalingsstatistikk {
         StatistikkUtbetalingDTO(
             // TODO post-mvp jah: Vi sender uuid-delen av denne til helved som behandlingId som mappes videre til OS/UR i feltet 'henvisning'.
@@ -51,7 +59,7 @@ fun VedtattUtbetaling.tilStatistikk(clock: Clock): GenererUtbetalingsstatistikk 
             gyldigFraDatoPostering = this.periode.fraOgMed,
             gyldigTilDatoPostering = this.periode.tilOgMed,
             utbetalingId = this.id.uuidPart(),
-            vedtakId = listOf(this.vedtakId.toString()),
+            vedtakId = rammevedtakIder.map { it.toString() },
             opprettet = nå(clock),
             sistEndret = nå(clock),
             brukerId = this.fnr.verdi,

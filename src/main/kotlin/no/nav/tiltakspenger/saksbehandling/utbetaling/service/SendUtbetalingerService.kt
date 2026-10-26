@@ -3,13 +3,17 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.tilStatistikk
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsklient
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.Clock
 
 /**
@@ -17,6 +21,7 @@ import java.time.Clock
  */
 class SendUtbetalingerService(
     private val utbetalingRepo: UtbetalingRepo,
+    private val meldekortvedtakRepo: MeldekortvedtakRepo,
     private val utbetalingsklient: Utbetalingsklient,
     private val statistikkService: StatistikkService,
     private val clock: Clock,
@@ -43,7 +48,7 @@ class SendUtbetalingerService(
                         utbetalingRepo.markerSendtTilUtbetaling(utbetaling.id, nå(clock), it)
                         logger.info { "Iverksetting av utbetaling mot helved: markert som sendt til utbetaling. $kontekst" }
 
-                        statistikkService.lagre(utbetaling.tilStatistikk(clock), null)
+                        statistikkService.lagre(utbetaling.tilStatistikk(hentRammevedtakIder(utbetaling), clock), null)
                     }.onLeft { kunneIkkeUtbetale ->
                         kunneIkkeUtbetale.feil.loggFeil(logger, "iverksetting av utbetaling mot helved", "$kontekst. Denne vil bli prøvd på nytt.")
                         utbetalingRepo.lagreFeilResponsFraUtbetaling(utbetaling.id, kunneIkkeUtbetale)
@@ -56,4 +61,11 @@ class SendUtbetalingerService(
             logger.error(it) { "Ukjent feil ved iverksetting av utbetaling mot helved" }
         }
     }
+
+    // Foreign key-en utbetaling_meldekortvedtak_id_fkey garanterer at meldekortvedtaket finnes.
+    private fun hentRammevedtakIder(utbetaling: VedtattUtbetaling): List<VedtakId> =
+        when (utbetaling.beregningKilde) {
+            is BeregningKilde.BeregningKildeRammebehandling -> listOf(utbetaling.vedtakId)
+            is BeregningKilde.BeregningKildeMeldekort -> meldekortvedtakRepo.hentForVedtakId(utbetaling.vedtakId)!!.rammevedtak
+        }
 }
