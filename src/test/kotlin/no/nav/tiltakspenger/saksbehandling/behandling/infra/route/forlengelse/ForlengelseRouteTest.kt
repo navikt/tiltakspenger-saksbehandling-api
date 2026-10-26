@@ -109,7 +109,7 @@ class ForlengelseRouteTest {
             startetJson.getString("forlengesFraOgMed") shouldBe "2025-04-01"
 
             val (_, oppdatert, oppdatertJson) = oppdaterForlengelse(tac, sak.id, startet.id, tilOgMed = 31.mai(2025))
-            JSONObject(oppdatertJson).getBoolean("harValgtBarnetillegg") shouldBe false
+            JSONObject(oppdatertJson).getBoolean("harEndretBarnetillegg") shouldBe false
             oppdatert.innvilgelsesperioder.shouldNotBeNull().totalPeriode shouldBe (1.april(2025) til 31.mai(2025))
             oppdatert.barnetilleggsperioder() shouldBe listOf(PeriodeMedVerdi(AntallBarn.ZERO, 1.april(2025) til 31.mai(2025)))
 
@@ -166,7 +166,7 @@ class ForlengelseRouteTest {
 
             val (_, oppdatert, oppdatertJson) = oppdaterForlengelse(tac, sak.id, valgt.id, tilOgMed = 30.juni(2025))
 
-            JSONObject(oppdatertJson).getBoolean("harValgtBarnetillegg") shouldBe false
+            JSONObject(oppdatertJson).getBoolean("harEndretBarnetillegg") shouldBe false
             oppdatert.barnetilleggsperioder() shouldBe listOf(
                 PeriodeMedVerdi(AntallBarn(2), 1.april(2025) til 30.april(2025)),
                 PeriodeMedVerdi(AntallBarn(1), 1.mai(2025) til 30.juni(2025)),
@@ -204,7 +204,7 @@ class ForlengelseRouteTest {
                 PeriodeMedVerdi(AntallBarn.ZERO, 1.mai(2025) til 31.mai(2025)),
             )
             tac.behandlingContext.rammebehandlingRepo.hent(forlengelse.id).resultat
-                .shouldBeInstanceOf<Revurderingsresultat.Forlengelse>().harValgtBarnetillegg shouldBe true
+                .shouldBeInstanceOf<Revurderingsresultat.Forlengelse>().harEndretBarnetillegg shouldBe true
         }
     }
 

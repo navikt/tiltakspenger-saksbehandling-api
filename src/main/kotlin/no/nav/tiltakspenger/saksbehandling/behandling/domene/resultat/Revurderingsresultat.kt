@@ -108,14 +108,14 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
      * Forlengelsen kan ikke overlappe andre vedtak, så den omgjør aldri andre vedtak.
      * Når man oppretter forlengelsen, har man ikke tatt stilling til til og med-datoen ennå, og [innvilgelsesperioder] og [barnetillegg] er null.
      *
-     * @param harValgtBarnetillegg Om saksbehandler har valgt barnetillegget selv.
+     * @param harEndretBarnetillegg Om saksbehandler har valgt barnetillegget selv.
      * Er det false, er barnetillegget utledet fra vedtaket som forlenges, og utledes på nytt ved neste oppdatering.
      */
     data class Forlengelse(
         val forlenger: ForlengerRammevedtak,
         override val innvilgelsesperioder: Innvilgelsesperioder?,
         override val barnetillegg: Barnetillegg?,
-        val harValgtBarnetillegg: Boolean,
+        val harEndretBarnetillegg: Boolean,
     ) : Rammebehandlingsresultat.Innvilgelse,
         Revurderingsresultat {
         override val vedtaksperiode = innvilgelsesperioder?.totalPeriode
@@ -129,7 +129,7 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
                     "Forlengelsen må starte ${forlenger.forlengesFraOgMed}, men starter ${innvilgelsesperioder.fraOgMed}"
                 }
             }
-            if (harValgtBarnetillegg) {
+            if (harEndretBarnetillegg) {
                 require(barnetillegg != null) { "Forlengelsen har valgt barnetillegg, men mangler barnetillegg" }
             }
         }
@@ -138,7 +138,7 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
             forlenger = forlenger,
             innvilgelsesperioder = null,
             barnetillegg = null,
-            harValgtBarnetillegg = false,
+            harEndretBarnetillegg = false,
         )
 
         override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Forlengelse> {
@@ -158,7 +158,7 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
                 forlenger = forlenger,
                 innvilgelsesperioder = null,
                 barnetillegg = null,
-                harValgtBarnetillegg = false,
+                harEndretBarnetillegg = false,
             )
         }
     }
