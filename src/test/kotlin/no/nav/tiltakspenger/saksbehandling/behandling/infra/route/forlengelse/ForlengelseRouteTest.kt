@@ -150,6 +150,31 @@ class ForlengelseRouteTest {
     }
 
     @Test
+    fun `barnetillegget utledes på nytt hver gang forlengelsen lagres uten barnetillegg valgt av saksbehandler`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, vedtak) = iverksettVedtakSomKanForlenges(
+                tac = tac,
+                barnetillegg = barnetillegg(periode = vedtaksperiode, antallBarn = AntallBarn(2)),
+                barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015)), barnetilleggMedIdent(fødselsdato = 1.mai(2009))),
+            )
+            val valgt = startOgOppdaterForlengelse(
+                tac = tac,
+                sak = sak,
+                vedtak = vedtak,
+                barnetillegg = barnetillegg(periode = 1.april(2025) til 31.mai(2025), antallBarn = AntallBarn(3)),
+            )
+
+            val (_, oppdatert, oppdatertJson) = oppdaterForlengelse(tac, sak.id, valgt.id, tilOgMed = 30.juni(2025))
+
+            JSONObject(oppdatertJson).getBoolean("harValgtBarnetillegg") shouldBe false
+            oppdatert.barnetilleggsperioder() shouldBe listOf(
+                PeriodeMedVerdi(AntallBarn(2), 1.april(2025) til 30.april(2025)),
+                PeriodeMedVerdi(AntallBarn(1), 1.mai(2025) til 30.juni(2025)),
+            )
+        }
+    }
+
+    @Test
     fun `barnetillegget i vedtaket videreføres uendret når barna ikke kan utledes fra søknaden`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, vedtak) = iverksettVedtakSomKanForlenges(
