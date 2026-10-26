@@ -24,6 +24,7 @@ class GrunnBrevDtoTest {
             "INSTITUSJONSOPPHOLD",
             "IKKE_LOVLIG_OPPHOLD",
             "FREMMET_FOR_SENT",
+            "FORLENGET_VENTETID",
         )
     }
 
@@ -39,6 +40,7 @@ class GrunnBrevDtoTest {
             Avslagsgrunnlag.LønnFraAndre to GrunnBrevDto.LØNN_FRA_ANDRE,
             Avslagsgrunnlag.Institusjonsopphold to GrunnBrevDto.INSTITUSJONSOPPHOLD,
             Avslagsgrunnlag.FremmetForSent to GrunnBrevDto.FREMMET_FOR_SENT,
+            Avslagsgrunnlag.ForlengetVentetid to GrunnBrevDto.FORLENGET_VENTETID,
         )
     }
 

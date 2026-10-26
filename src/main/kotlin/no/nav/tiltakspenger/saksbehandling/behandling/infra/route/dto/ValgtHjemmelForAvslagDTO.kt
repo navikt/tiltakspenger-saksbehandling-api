@@ -14,6 +14,7 @@ enum class ValgtHjemmelForAvslagDTO {
     LønnFraAndre,
     Institusjonsopphold,
     FremmetForSent,
+    ForlengetVentetid,
     ;
 
     fun toDomain(): Avslagsgrunnlag = when (this) {
@@ -26,6 +27,7 @@ enum class ValgtHjemmelForAvslagDTO {
         LønnFraAndre -> Avslagsgrunnlag.LønnFraAndre
         Institusjonsopphold -> Avslagsgrunnlag.Institusjonsopphold
         FremmetForSent -> Avslagsgrunnlag.FremmetForSent
+        ForlengetVentetid -> Avslagsgrunnlag.ForlengetVentetid
     }
 }
 
@@ -44,6 +46,7 @@ fun Set<Avslagsgrunnlag>.toValgtHjemmelForAvslagDTO(): List<ValgtHjemmelForAvsla
             Avslagsgrunnlag.LønnFraAndre -> ValgtHjemmelForAvslagDTO.LønnFraAndre
             Avslagsgrunnlag.Institusjonsopphold -> ValgtHjemmelForAvslagDTO.Institusjonsopphold
             Avslagsgrunnlag.FremmetForSent -> ValgtHjemmelForAvslagDTO.FremmetForSent
+            Avslagsgrunnlag.ForlengetVentetid -> ValgtHjemmelForAvslagDTO.ForlengetVentetid
         }
     }.sortedBy { it.name }
 }

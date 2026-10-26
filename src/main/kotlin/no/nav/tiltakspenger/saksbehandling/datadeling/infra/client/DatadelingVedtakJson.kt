@@ -188,12 +188,24 @@ private fun HjemmelForStans.toValgtHjemmelHarIkkeRettighetString(): DatadelingHj
 private fun Avslagsgrunnlag.toValgtHjemmelHarIkkeRettighetString(): DatadelingHjemmelHarIkkeRettighet =
     when (this) {
         Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak -> DatadelingHjemmelHarIkkeRettighet.DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK
+
         Avslagsgrunnlag.Alder -> DatadelingHjemmelHarIkkeRettighet.ALDER
+
         Avslagsgrunnlag.FremmetForSent -> DatadelingHjemmelHarIkkeRettighet.FREMMET_FOR_SENT
+
         Avslagsgrunnlag.Institusjonsopphold -> DatadelingHjemmelHarIkkeRettighet.INSTITUSJONSOPPHOLD
+
         Avslagsgrunnlag.Introduksjonsprogrammet -> DatadelingHjemmelHarIkkeRettighet.INTRODUKSJONSPROGRAMMET
+
         Avslagsgrunnlag.Kvalifiseringsprogrammet -> DatadelingHjemmelHarIkkeRettighet.KVALIFISERINGSPROGRAMMET
+
         Avslagsgrunnlag.Livsoppholdytelser -> DatadelingHjemmelHarIkkeRettighet.LIVSOPPHOLDSYTELSER
+
         Avslagsgrunnlag.LønnFraAndre -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_ANDRE
+
         Avslagsgrunnlag.LønnFraTiltaksarrangør -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_TILTAKSARRANGOR
+
+        // TODO: Avhenger av hjemmelen fag avklarer.
+        // Samme hjemmel som Livsoppholdytelser gir LIVSOPPHOLDSYTELSER, ellers trengs en ny verdi i tiltakspenger-datadeling.
+        Avslagsgrunnlag.ForlengetVentetid -> TODO("Datadeling for ForlengetVentetid er ikke avklart")
     }

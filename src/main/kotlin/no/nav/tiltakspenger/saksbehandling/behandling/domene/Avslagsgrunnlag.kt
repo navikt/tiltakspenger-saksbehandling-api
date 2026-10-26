@@ -30,4 +30,7 @@ enum class Avslagsgrunnlag(val hjemler: List<Hjemmel>) {
     LønnFraAndre(listOf(TILTAKSPENGEFORSKRIFTEN_8_L2, ARBEIDSMARKEDSLOVEN_13)),
     Institusjonsopphold(listOf(TILTAKSPENGEFORSKRIFTEN_9)),
     FremmetForSent(listOf(TILTAKSPENGEFORSKRIFTEN_11, ARBEIDSMARKEDSLOVEN_15)),
+
+    // TODO: Fyll inn hjemlene når fag har avklart dem.
+    ForlengetVentetid(emptyList()),
 }
