@@ -71,7 +71,7 @@ fun Revurdering.oppdaterForlengelse(
             forlenger = resultat.forlenger,
             innvilgelsesperioder = utledetForlengelse.innvilgelsesperioder.tilInnvilgelsesperioder(this),
             barnetillegg = utledetForlengelse.barnetillegg,
-            harValgtBarnetillegg = kommando.barnetillegg != null,
+            harEndretBarnetillegg = kommando.barnetillegg != null,
         ),
         utbetaling = utbetaling,
         skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,

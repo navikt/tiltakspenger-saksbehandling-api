@@ -16,14 +16,14 @@ import java.time.LocalDate
 private data class ForlengelseDbJson(
     val rammevedtakId: String,
     val forlengesFraOgMed: LocalDate,
-    val harValgtBarnetillegg: Boolean,
+    val harEndretBarnetillegg: Boolean,
 )
 
 fun Revurderingsresultat.Forlengelse.tilForlengelseDbJson(): String = serialize(
     ForlengelseDbJson(
         rammevedtakId = forlenger.rammevedtakId.toString(),
         forlengesFraOgMed = forlenger.forlengesFraOgMed,
-        harValgtBarnetillegg = harValgtBarnetillegg,
+        harEndretBarnetillegg = harEndretBarnetillegg,
     ),
 )
 
@@ -39,6 +39,6 @@ fun String.tilForlengelse(
         ),
         innvilgelsesperioder = innvilgelsesperioder,
         barnetillegg = barnetillegg,
-        harValgtBarnetillegg = json.harValgtBarnetillegg,
+        harEndretBarnetillegg = json.harEndretBarnetillegg,
     )
 }
