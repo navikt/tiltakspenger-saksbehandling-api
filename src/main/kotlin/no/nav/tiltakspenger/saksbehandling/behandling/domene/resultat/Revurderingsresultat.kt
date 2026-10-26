@@ -7,10 +7,13 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.BarnSomFyller16
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ForlengerRammevedtak
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.barnSomFyller16
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KunneIkkeOppdatereSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 sealed interface Revurderingsresultat : Rammebehandlingsresultat {
 
@@ -132,6 +135,15 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
             if (harEndretBarnetillegg) {
                 require(barnetillegg != null) { "Forlengelsen har valgt barnetillegg, men mangler barnetillegg" }
             }
+        }
+
+        /**
+         * Barn som fyller 16 år i forlengelsen av [forlengetVedtak], til bruk i vedtaksbrevet.
+         * Er null når saksbehandler har endret barnetillegget, eller forlengelsen ikke har fått en periode ennå.
+         */
+        fun barnSomFyller16(forlengetVedtak: Rammevedtak): BarnSomFyller16? = when {
+            harEndretBarnetillegg || barnetillegg == null -> null
+            else -> forlenger.barnSomFyller16(forlengetVedtak, barnetillegg.periodisering)
         }
 
         fun nullstill() = Forlengelse(

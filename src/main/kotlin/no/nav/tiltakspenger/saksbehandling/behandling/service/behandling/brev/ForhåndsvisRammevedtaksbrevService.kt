@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.barnSomFyller16
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.utledForlengelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilInnvilgelsesperioder
@@ -159,7 +160,12 @@ class ForhåndsvisRammevedtaksbrevService(
         behandling: Revurdering,
         kommando: ForhåndsvisVedtaksbrevForForlengelseKommando,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        val (innvilgelsesperioder, barnetillegg) = when (behandling.status) {
+        val resultat = behandling.resultat
+        require(resultat is Revurderingsresultat.Forlengelse) {
+            "Behandlingen ${behandling.id} er ikke en forlengelse, men ${resultat?.javaClass?.simpleName}"
+        }
+        val forlengetVedtak = sak.hentRammevedtakForId(resultat.forlenger.rammevedtakId)
+        val (innvilgelsesperioder, barnetillegg, barnSomFyller16) = when (behandling.status) {
             Rammebehandlingsstatus.UNDER_BEHANDLING -> {
                 val utledet = sak.utledForlengelse(
                     revurdering = behandling,
@@ -168,7 +174,14 @@ class ForhåndsvisRammevedtaksbrevService(
                 ).getOrElse {
                     throw IllegalArgumentException("Kan ikke forhåndsvise vedtaksbrev for forlengelsen ${behandling.id}: $it")
                 }
-                utledet.innvilgelsesperioder.tilInnvilgelsesperioder(behandling) to utledet.barnetillegg
+                Triple(
+                    utledet.innvilgelsesperioder.tilInnvilgelsesperioder(behandling),
+                    utledet.barnetillegg,
+                    when (kommando.barnetillegg) {
+                        null -> resultat.forlenger.barnSomFyller16(forlengetVedtak, utledet.barnetillegg.periodisering)
+                        else -> null
+                    },
+                )
             }
 
             Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
@@ -177,7 +190,7 @@ class ForhåndsvisRammevedtaksbrevService(
             Rammebehandlingsstatus.UNDER_BESLUTNING,
             Rammebehandlingsstatus.VEDTATT,
             Rammebehandlingsstatus.AVBRUTT,
-            -> behandling.innvilgelsesperioder!! to behandling.barnetillegg
+            -> Triple(behandling.innvilgelsesperioder!!, behandling.barnetillegg, resultat.barnSomFyller16(forlengetVedtak))
         }
 
         return genererInnvilgelsesbrevClient.genererForlengelseBrevForhåndsvisning(
@@ -191,6 +204,7 @@ class ForhåndsvisRammevedtaksbrevService(
             sakId = sak.id,
             innvilgelsesperioder = innvilgelsesperioder,
             barnetilleggsperioder = barnetillegg?.periodisering,
+            barnSomFyller16 = barnSomFyller16,
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
         )
     }
