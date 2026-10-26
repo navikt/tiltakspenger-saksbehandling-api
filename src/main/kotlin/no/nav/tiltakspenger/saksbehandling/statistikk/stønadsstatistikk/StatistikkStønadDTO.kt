@@ -17,7 +17,7 @@ import java.util.UUID
  * Én rad i `statistikk_stonad` per rammevedtak; Team Spenn (DVH) leser tabellen sammen med `statistikk_utbetaling` og `statistikk_meldekort`.
  *
  * Kildekode: https://github.com/navikt/dvh_tiltakspenger (internt repo; kolonnene de henter står i `etl/datalast_fra_bq.py`)
- * Dokumentasjon: https://confluence.adeo.no/display/DVH/dvh_tiltakspenger og dbt-modellene i https://dbt.ansatt.nav.no/docs/spenn/dvh-tiltakspenger/index.html
+ * Dokumentasjon: https://confluence.adeo.no/spaces/DVH/pages/579148170/dvh_tiltakspenger og dbt-modellene i https://dbt.ansatt.nav.no/docs/spenn/dvh-tiltakspenger/index.html
  * Slack: #tiltakspenger-dvh
  * Teamkatalog: https://teamkatalogen.nav.no/team/3c411c72-9587-4c6f-937e-2a404935b778
  *
