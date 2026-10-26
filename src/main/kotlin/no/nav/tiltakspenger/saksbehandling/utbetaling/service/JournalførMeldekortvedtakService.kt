@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.sammenlignBeregninger
@@ -19,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.hentNavnForNavIdentEllerKast
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
 import java.time.Clock
+import java.time.LocalDate
 
 /**
  * Har ansvar for å generere pdf og sende meldekortvedtak til journalføring.
@@ -29,6 +31,7 @@ class JournalførMeldekortvedtakService(
     private val meldekortvedtakRepo: MeldekortvedtakRepo,
     private val genererVedtaksbrevForMeldekortKlient: GenererVedtaksbrevForMeldekortKlient,
     private val navIdentClient: NavIdentClient,
+    private val personService: PersonService,
     private val sakRepo: SakRepo,
     private val clock: Clock,
 ) {
@@ -84,7 +87,9 @@ class JournalførMeldekortvedtakService(
                     val pdfOgJson = genererVedtaksbrevForMeldekortKlient.genererMeldekortvedtakBrev(
                         meldekortvedtak,
                         tiltaksdeltakelser = tiltak,
+                        hentBrukersNavn = personService::hentNavn,
                         hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                        vedtaksdato = LocalDate.now(clock),
                         sammenligning = sammenligning,
                     ).getOrElse {
                         it.feil.loggFeil(

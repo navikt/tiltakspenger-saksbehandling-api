@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
@@ -59,6 +60,7 @@ open class MeldekortContext(
     statistikkService: StatistikkService,
     genererVedtaksbrevForMeldekortKlient: GenererVedtaksbrevForMeldekortKlient,
     navIdentClient: NavIdentClient,
+    personService: PersonService,
 ) {
     open val meldekortbehandlingRepo: MeldekortbehandlingRepo by lazy {
         MeldekortbehandlingPostgresRepo(
@@ -258,6 +260,7 @@ open class MeldekortContext(
             sakService = sakService,
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             navIdentClient = navIdentClient,
+            personService = personService,
             clock = clock,
         )
     }

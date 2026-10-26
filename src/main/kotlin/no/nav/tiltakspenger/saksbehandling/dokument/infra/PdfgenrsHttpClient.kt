@@ -197,14 +197,18 @@ class PdfgenrsHttpClient(
     override suspend fun genererMeldekortvedtakBrev(
         meldekortvedtak: Meldekortvedtak,
         tiltaksdeltakelser: Tiltaksdeltakelser,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        vedtaksdato: LocalDate,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         val jsonPayload = suspend {
             meldekortvedtak.tilBrevMeldekortvedtakJson(
-                hentSaksbehandlersNavn,
-                tiltaksdeltakelser,
-                sammenligning,
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                vedtaksdato = vedtaksdato,
+                tiltaksdeltakelser = tiltaksdeltakelser,
+                sammenlign = sammenligning,
             )
         }
 
@@ -213,9 +217,11 @@ class PdfgenrsHttpClient(
 
     override suspend fun genererMeldekortvedtakBrev(
         kommando: GenererMeldekortvedtakBrevKommando,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        vedtaksdato: LocalDate,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        val jsonPayload = suspend { kommando.tilBrevMeldekortvedtakJson(hentSaksbehandlersNavn) }
+        val jsonPayload = suspend { kommando.tilBrevMeldekortvedtakJson(hentBrukersNavn, hentSaksbehandlersNavn, vedtaksdato) }
 
         return pdfgenrsRequest(jsonPayload = jsonPayload, uri = meldekortvedtakRsUri)
     }

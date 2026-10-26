@@ -421,6 +421,7 @@ open class ApplicationContext(
             journalførMeldekortKlient = dokumentContext.journalførMeldekortKlient,
             texasClient = texasClient,
             navIdentClient = personContext.navIdentClient,
+            personService = personContext.personService,
             sakRepo = sakContext.sakRepo,
             clock = clock,
             navkontorService = navkontorService,
@@ -443,6 +444,7 @@ open class ApplicationContext(
             statistikkService = statistikkContext.statistikkService,
             genererVedtaksbrevForMeldekortKlient = dokumentContext.genererVedtaksbrevForMeldekortKlient,
             navIdentClient = personContext.navIdentClient,
+            personService = personContext.personService,
         )
     }
     open val behandlingContext by lazy {

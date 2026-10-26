@@ -163,7 +163,9 @@ class PdfgenrsHttpClientTest {
             it.genererMeldekortvedtakBrev(
                 meldekortvedtak = meldekortvedtak,
                 tiltaksdeltakelser = Tiltaksdeltakelser(listOf(ObjectMother.tiltaksdeltakelse())),
+                hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                vedtaksdato = 2.januar(2023),
                 sammenligning = { sammenlign(it) },
             )
         }
@@ -174,7 +176,9 @@ class PdfgenrsHttpClientTest {
         verifiserKunPdfgenrs("meldekortvedtak") {
             it.genererMeldekortvedtakBrev(
                 kommando = meldekortvedtakBrevKommando(),
+                hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                vedtaksdato = 2.januar(2023),
             )
         }
     }
@@ -354,11 +358,13 @@ class PdfgenrsHttpClientTest {
             val actual = nyKlient(transportMedPdf(antallSvar = 1)).genererMeldekortvedtakBrev(
                 meldekortvedtak,
                 tiltaksdeltakelser = Tiltaksdeltakelser(listOf(ObjectMother.tiltaksdeltakelse())),
+                hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = { ObjectMother.saksbehandler().brukernavn },
+                vedtaksdato = 2.januar(2023),
                 sammenligning = { sammenlign(meldekortvedtak.utbetaling.beregning.beregninger.first()) },
             ).getOrFail()
 
-            actual.json shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","periode":{"fraOgMed":"6. januar 2025","tilOgMed":"19. januar 2025"},"erAutomatiskBehandlet":false,"saksbehandlerNavn":"Sak Behandler","beslutterNavn":"Sak Behandler","tiltak":["Arbeidsmarkedsoppfølging gruppe"],"iverksattTidspunkt":"1. januar 2025 01:02:03","fødselsnummer":"${fnr.verdi}","meldeperioder":[{"korrigering":false,"periode":{"fraOgMed":"6. januar 2025","tilOgMed":"19. januar 2025"},"beløp":2980,"beløpDiff":0,"harBarnetillegg":false,"dager":[]}],"totaltBelop":2980,"totalDifferanse":0,"brevTekst":null,"forhandsvisning":false}"""
+            actual.json shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","periode":{"fraOgMed":"6. januar 2025","tilOgMed":"19. januar 2025"},"erAutomatiskBehandlet":false,"saksbehandlerNavn":"Sak Behandler","beslutterNavn":"Sak Behandler","tiltak":["Arbeidsmarkedsoppfølging gruppe"],"iverksattTidspunkt":"1. januar 2025 01:02:03","fødselsnummer":"${fnr.verdi}","personalia":{"ident":"${fnr.verdi}","fornavn":"Fornavn","etternavn":"Etternavn"},"datoForUtsending":"2. januar 2023","meldeperioder":[{"korrigering":false,"periode":{"fraOgMed":"6. januar 2025","tilOgMed":"19. januar 2025"},"beløp":2980,"beløpDiff":0,"harBarnetillegg":false,"dager":[]}],"totaltBelop":2980,"totalDifferanse":0,"brevTekst":null,"forhandsvisning":false}"""
         }
     }
 
@@ -375,10 +381,12 @@ class PdfgenrsHttpClientTest {
                     fnr = fnr,
                     meldekortId = meldekortId,
                 ),
+                hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = { ObjectMother.saksbehandler().brukernavn },
+                vedtaksdato = 2.januar(2023),
             ).getOrFail()
 
-            actual.json shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","periode":{"fraOgMed":"1. mai 2025","tilOgMed":"7. mai 2025"},"erAutomatiskBehandlet":false,"saksbehandlerNavn":"Sak Behandler","beslutterNavn":null,"tiltak":[],"iverksattTidspunkt":null,"fødselsnummer":"${fnr.verdi}","meldeperioder":[],"totaltBelop":50,"totalDifferanse":0,"brevTekst":"Bacon ipsum dolor amet","forhandsvisning":true}"""
+            actual.json shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","periode":{"fraOgMed":"1. mai 2025","tilOgMed":"7. mai 2025"},"erAutomatiskBehandlet":false,"saksbehandlerNavn":"Sak Behandler","beslutterNavn":null,"tiltak":[],"iverksattTidspunkt":null,"fødselsnummer":"${fnr.verdi}","personalia":{"ident":"${fnr.verdi}","fornavn":"Fornavn","etternavn":"Etternavn"},"datoForUtsending":"2. januar 2023","meldeperioder":[],"totaltBelop":50,"totalDifferanse":0,"brevTekst":"Bacon ipsum dolor amet","forhandsvisning":true}"""
         }
     }
 

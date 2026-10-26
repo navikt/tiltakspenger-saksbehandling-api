@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.desember
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
@@ -16,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.person.Navn
 import org.junit.jupiter.api.Test
 
 class BrevMeldekortvedtakDTOTest {
@@ -36,10 +38,12 @@ class BrevMeldekortvedtakDTOTest {
         val tiltaksdeltakelser = listOf(ObjectMother.tiltaksdeltakelse())
 
         meldekortvedtak.tilBrevMeldekortvedtakJson(
+            hentBrukersNavn = { Navn("Fornavn", null, "Etternavn") },
             hentSaksbehandlersNavn = { "Saksbehandler Navn" },
+            vedtaksdato = 2.januar(2025),
             tiltaksdeltakelser = Tiltaksdeltakelser(tiltaksdeltakelser),
             sammenlign = { utenDager(it) },
-        ) shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","periode":{"fraOgMed":"6. januar 2025","tilOgMed":"19. januar 2025"},"erAutomatiskBehandlet":false,"saksbehandlerNavn":"Saksbehandler Navn","beslutterNavn":"Saksbehandler Navn","tiltak":["Arbeidsmarkedsoppfølging gruppe"],"iverksattTidspunkt":"1. januar 2025 01:02:03","fødselsnummer":"${fnr.verdi}","meldeperioder":[{"korrigering":false,"periode":{"fraOgMed":"6. januar 2025","tilOgMed":"19. januar 2025"},"beløp":2980,"beløpDiff":0,"harBarnetillegg":false,"dager":[]}],"totaltBelop":2980,"totalDifferanse":0,"brevTekst":null,"forhandsvisning":false}"""
+        ) shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","periode":{"fraOgMed":"6. januar 2025","tilOgMed":"19. januar 2025"},"erAutomatiskBehandlet":false,"saksbehandlerNavn":"Saksbehandler Navn","beslutterNavn":"Saksbehandler Navn","tiltak":["Arbeidsmarkedsoppfølging gruppe"],"iverksattTidspunkt":"1. januar 2025 01:02:03","fødselsnummer":"${fnr.verdi}","personalia":{"ident":"${fnr.verdi}","fornavn":"Fornavn","etternavn":"Etternavn"},"datoForUtsending":"2. januar 2025","meldeperioder":[{"korrigering":false,"periode":{"fraOgMed":"6. januar 2025","tilOgMed":"19. januar 2025"},"beløp":2980,"beløpDiff":0,"harBarnetillegg":false,"dager":[]}],"totaltBelop":2980,"totalDifferanse":0,"brevTekst":null,"forhandsvisning":false}"""
     }
 
     @Test
@@ -57,10 +61,12 @@ class BrevMeldekortvedtakDTOTest {
         )
 
         meldekortvedtak.tilBrevMeldekortvedtakJson(
+            hentBrukersNavn = { Navn("Fornavn", null, "Etternavn") },
             hentSaksbehandlersNavn = { "Saksbehandler Navn" },
+            vedtaksdato = 2.januar(2025),
             tiltaksdeltakelser = Tiltaksdeltakelser(listOf(ObjectMother.tiltaksdeltakelse())),
             sammenlign = { medEnDag(it) },
-        ) shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","periode":{"fraOgMed":"6. januar 2025","tilOgMed":"19. januar 2025"},"erAutomatiskBehandlet":false,"saksbehandlerNavn":"Saksbehandler Navn","beslutterNavn":"Saksbehandler Navn","tiltak":["Arbeidsmarkedsoppfølging gruppe"],"iverksattTidspunkt":"1. januar 2025 01:02:03","fødselsnummer":"${fnr.verdi}","meldeperioder":[{"korrigering":false,"periode":{"fraOgMed":"6. januar 2025","tilOgMed":"19. januar 2025"},"beløp":2980,"beløpDiff":900,"harBarnetillegg":true,"dager":[{"dato":"mandag 1. desember","status":{"forrige":"Deltatt","gjeldende":"Fravær godkjent av Nav","harEndring":true},"beløp":{"forrige":100,"gjeldende":1000,"harEndring":true},"barnetillegg":{"forrige":50,"gjeldende":500,"harEndring":true},"prosent":{"forrige":10,"gjeldende":50,"harEndring":true},"harEndring":true}]}],"totaltBelop":2980,"totalDifferanse":900,"brevTekst":null,"forhandsvisning":false}"""
+        ) shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","periode":{"fraOgMed":"6. januar 2025","tilOgMed":"19. januar 2025"},"erAutomatiskBehandlet":false,"saksbehandlerNavn":"Saksbehandler Navn","beslutterNavn":"Saksbehandler Navn","tiltak":["Arbeidsmarkedsoppfølging gruppe"],"iverksattTidspunkt":"1. januar 2025 01:02:03","fødselsnummer":"${fnr.verdi}","personalia":{"ident":"${fnr.verdi}","fornavn":"Fornavn","etternavn":"Etternavn"},"datoForUtsending":"2. januar 2025","meldeperioder":[{"korrigering":false,"periode":{"fraOgMed":"6. januar 2025","tilOgMed":"19. januar 2025"},"beløp":2980,"beløpDiff":900,"harBarnetillegg":true,"dager":[{"dato":"mandag 1. desember","status":{"forrige":"Deltatt","gjeldende":"Fravær godkjent av Nav","harEndring":true},"beløp":{"forrige":100,"gjeldende":1000,"harEndring":true},"barnetillegg":{"forrige":50,"gjeldende":500,"harEndring":true},"prosent":{"forrige":10,"gjeldende":50,"harEndring":true},"harEndring":true}]}],"totaltBelop":2980,"totalDifferanse":900,"brevTekst":null,"forhandsvisning":false}"""
     }
 
     private fun utenDager(beregning: MeldeperiodeBeregning): SammenligningAvBeregninger.MeldeperiodeSammenligninger {

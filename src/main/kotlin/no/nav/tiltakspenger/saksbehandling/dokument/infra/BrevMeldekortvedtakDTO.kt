@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
+import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.dato.norskTidspunktFormatter
 import no.nav.tiltakspenger.libs.dato.norskUkedagOgDatoUtenÅrFormatter
 import no.nav.tiltakspenger.libs.json.serialize
@@ -11,6 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.beregning.sammenlignBeregninger
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingMedBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.person.Navn
+import java.time.LocalDate
 
 private typealias SammenlignMeldeperioder = (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger
 
@@ -22,8 +26,12 @@ private data class BrevMeldekortvedtakDTO(
     val saksbehandlerNavn: String?,
     val beslutterNavn: String?,
     val tiltak: List<String>,
+    /** Overgang: pdfgenrs viser `datoForUtsending`, og vi fjerner feltet når pdfgenrs ikke lenger leser det. */
     val iverksattTidspunkt: String?,
+    /** Overgang: pdfgenrs viser `personalia`, og vi fjerner feltet når pdfgenrs ikke lenger leser det. */
     val fødselsnummer: String,
+    val personalia: BrevPersonaliaDTO,
+    val datoForUtsending: String,
     val meldeperioder: List<BrevMeldeperiode>,
     val totaltBelop: Int,
     val totalDifferanse: Int,
@@ -140,8 +148,16 @@ private fun MeldeperiodeBeregningDag.toStatus(): String {
     }
 }
 
+private fun brevPersonalia(fnr: Fnr, navn: Navn) = BrevPersonaliaDTO(
+    ident = fnr.verdi,
+    fornavn = navn.fornavn,
+    etternavn = navn.mellomnavnOgEtternavn,
+)
+
 suspend fun Meldekortvedtak.tilBrevMeldekortvedtakJson(
+    hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
+    vedtaksdato: LocalDate,
     tiltaksdeltakelser: Tiltaksdeltakelser,
     sammenlign: SammenlignMeldeperioder,
 ): String {
@@ -149,6 +165,8 @@ suspend fun Meldekortvedtak.tilBrevMeldekortvedtakJson(
 
     return BrevMeldekortvedtakDTO(
         fødselsnummer = fnr.verdi,
+        personalia = brevPersonalia(fnr, hentBrukersNavn(fnr)),
+        datoForUtsending = vedtaksdato.format(norskDatoFormatter),
         erAutomatiskBehandlet = erAutomatiskBehandlet,
         saksbehandlerNavn = if (erAutomatiskBehandlet) null else hentSaksbehandlersNavn(saksbehandler),
         beslutterNavn = if (erAutomatiskBehandlet) null else hentSaksbehandlersNavn(beslutter),
@@ -166,7 +184,9 @@ suspend fun Meldekortvedtak.tilBrevMeldekortvedtakJson(
 }
 
 suspend fun GenererMeldekortvedtakBrevKommando.tilBrevMeldekortvedtakJson(
+    hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
+    vedtaksdato: LocalDate,
 ): String {
     val erAutomatiskBehandlet = saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID
 
@@ -180,6 +200,8 @@ suspend fun GenererMeldekortvedtakBrevKommando.tilBrevMeldekortvedtakJson(
 
     return BrevMeldekortvedtakDTO(
         fødselsnummer = fnr.verdi,
+        personalia = brevPersonalia(fnr, hentBrukersNavn(fnr)),
+        datoForUtsending = vedtaksdato.format(norskDatoFormatter),
         erAutomatiskBehandlet = erAutomatiskBehandlet,
         saksbehandlerNavn = if (erAutomatiskBehandlet) null else saksbehandler?.let { hentSaksbehandlersNavn(it) },
         beslutterNavn = if (erAutomatiskBehandlet) null else beslutter?.let { hentSaksbehandlersNavn(it) },

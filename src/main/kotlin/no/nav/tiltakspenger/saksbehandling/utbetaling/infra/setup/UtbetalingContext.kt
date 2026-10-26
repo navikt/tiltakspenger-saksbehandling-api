@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.GenererVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.JournalførMeldekortKlient
@@ -36,6 +37,7 @@ open class UtbetalingContext(
     genererVedtaksbrevForMeldekortKlient: GenererVedtaksbrevForMeldekortKlient,
     journalførMeldekortKlient: JournalførMeldekortKlient,
     navIdentClient: NavIdentClient,
+    personService: PersonService,
     texasClient: TexasClient,
     sakRepo: SakRepo,
     clock: Clock,
@@ -102,6 +104,7 @@ open class UtbetalingContext(
             journalførMeldekortKlient = journalførMeldekortKlient,
             genererVedtaksbrevForMeldekortKlient = genererVedtaksbrevForMeldekortKlient,
             navIdentClient = navIdentClient,
+            personService = personService,
             sakRepo = sakRepo,
             clock = clock,
         )

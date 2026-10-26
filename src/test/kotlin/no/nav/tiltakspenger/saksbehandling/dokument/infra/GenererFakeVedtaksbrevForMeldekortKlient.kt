@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import arrow.core.Either
 import arrow.core.right
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
@@ -10,6 +11,8 @@ import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.GenererVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.person.Navn
+import java.time.LocalDate
 
 class GenererFakeVedtaksbrevForMeldekortKlient : GenererVedtaksbrevForMeldekortKlient {
     private val response by lazy { PdfOgJson(PdfA("pdf".toByteArray()), "json") }
@@ -17,7 +20,9 @@ class GenererFakeVedtaksbrevForMeldekortKlient : GenererVedtaksbrevForMeldekortK
     override suspend fun genererMeldekortvedtakBrev(
         meldekortvedtak: Meldekortvedtak,
         tiltaksdeltakelser: Tiltaksdeltakelser,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        vedtaksdato: LocalDate,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response.right()
@@ -25,7 +30,9 @@ class GenererFakeVedtaksbrevForMeldekortKlient : GenererVedtaksbrevForMeldekortK
 
     override suspend fun genererMeldekortvedtakBrev(
         kommando: GenererMeldekortvedtakBrevKommando,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        vedtaksdato: LocalDate,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response.right()
     }

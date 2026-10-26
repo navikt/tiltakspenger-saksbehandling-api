@@ -308,6 +308,7 @@ class LocalApplicationContext(
             statistikkService = statistikkContext.statistikkService,
             genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForMeldekortKlient,
             navIdentClient = personContext.navIdentClient,
+            personService = personContext.personService,
         ) {
             override val meldekortApiHttpClient: MeldekortApiKlient
                 // Ved kjøring lokalt kan vi styre kjøring av fake eller ekte API med env-var BRUK_FAKE_MELDEKORT_API
@@ -361,6 +362,7 @@ class LocalApplicationContext(
             texasClient = texasClient,
             sakRepo = sakContext.sakRepo,
             navIdentClient = personContext.navIdentClient,
+            personService = personContext.personService,
             clock = clock,
             navkontorService = navkontorService,
             statistikkService = statistikkContext.statistikkService,

@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
@@ -23,12 +24,14 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.hentNavnForNavIdentEllerKast
 import java.time.Clock
+import java.time.LocalDate
 
 class ForhåndsvisBrevMeldekortbehandlingService(
     val genererBrevClient: GenererVedtaksbrevForMeldekortKlient,
     val sakService: SakService,
     val meldekortbehandlingRepo: MeldekortbehandlingRepo,
     val navIdentClient: NavIdentClient,
+    val personService: PersonService,
     val clock: Clock,
 ) {
     private val log = KotlinLogging.logger {}
@@ -95,7 +98,9 @@ class ForhåndsvisBrevMeldekortbehandlingService(
                 tekstTilVedtaksbrev = kommando.tekstTilVedtaksbrev,
                 forhåndsvisning = true,
             ),
+            hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+            vedtaksdato = LocalDate.now(clock),
         ).mapLeft {
             it.feil.loggFeil(
                 log,

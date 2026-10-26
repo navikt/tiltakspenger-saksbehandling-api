@@ -352,6 +352,7 @@ sealed class TestApplicationContext(
             simulerService = utbetalingContext.simulerService,
             genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForMeldekortKlient,
             navIdentClient = personContext.navIdentClient,
+            personService = personContext.personService,
             statistikkService = statistikkContext.statistikkService,
         ) {
             override val meldekortApiHttpClient = meldekortApiFakeKlient
@@ -456,6 +457,7 @@ sealed class TestApplicationContext(
             journalførMeldekortKlient = journalførFakeMeldekortKlient,
             texasClient = texasClient,
             navIdentClient = personContext.navIdentClient,
+            personService = personContext.personService,
             sakRepo = sakContext.sakRepo,
             clock = clock,
             navkontorService = navkontorService,
