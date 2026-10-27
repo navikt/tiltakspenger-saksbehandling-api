@@ -13,6 +13,9 @@ sealed interface KanIkkeSendeRammebehandlingTilBeslutter {
 
     data object ErPaVent : KanIkkeSendeRammebehandlingTilBeslutter
 
+    /** Resultatet mangler eller er ikke ferdig utfylt, for eksempel uten vedtaksperiode. */
+    data object ErIkkeFerdigutfylt : KanIkkeSendeRammebehandlingTilBeslutter
+
     data class UtbetalingFeil(val feil: KanIkkeIverksetteUtbetaling, val sak: Sak, val behandling: Rammebehandling) : KanIkkeSendeRammebehandlingTilBeslutter
 
     data class SimuleringFeil(val feil: KunneIkkeSimulere) : KanIkkeSendeRammebehandlingTilBeslutter

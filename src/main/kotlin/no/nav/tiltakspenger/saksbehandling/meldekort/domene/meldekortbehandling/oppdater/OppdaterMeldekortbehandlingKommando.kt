@@ -51,6 +51,9 @@ class OppdaterMeldekortbehandlingKommando(
             val status: Status,
         )
 
+        val antallDagerMedDeltattEllerFravær: Int
+            get() = count { MeldekortDag(dato = it.dag, status = it.status.tilMeldekortDagStatus()).harDeltattEllerFravær }
+
         fun tilUtfyltMeldeperiode(meldeperiode: Meldeperiode): UtfyltMeldeperiode {
             require(meldeperiode.kjedeId == kjedeId)
 

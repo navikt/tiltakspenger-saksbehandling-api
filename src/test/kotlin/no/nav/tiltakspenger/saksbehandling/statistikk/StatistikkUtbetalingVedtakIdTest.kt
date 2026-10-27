@@ -44,12 +44,18 @@ class StatistikkUtbetalingVedtakIdTest {
             meldekortvedtak.rammevedtak shouldBe rammevedtakIder
             tac.sessionFactory.hentVedtakIder(sak.id) shouldBe rammevedtakIder.map { it.toString() }
 
-            // Slik prodkoden skrev raden før endringen.
-            tac.sessionFactory.settVedtakId(sak.id, meldekortvedtak.id)
-            tac.sessionFactory.kjørMigrering() shouldBe 1
-            tac.sessionFactory.hentVedtakIder(sak.id) shouldBe rammevedtakIder.map { it.toString() }
+            // V267 gjentar V265 for rader den gamle poden skrev under utrullingen.
+            listOf(
+                "V265__statistikk_utbetaling_vedtak_id_rammevedtak.sql",
+                "V267__statistikk_utbetaling_vedtak_id_rammevedtak_etter_utrulling.sql",
+            ).forEach { migrering ->
+                // Slik prodkoden skrev raden før endringen.
+                tac.sessionFactory.settVedtakId(sak.id, meldekortvedtak.id)
+                tac.sessionFactory.kjørMigrering(migrering) shouldBe 1
+                tac.sessionFactory.hentVedtakIder(sak.id) shouldBe rammevedtakIder.map { it.toString() }
 
-            tac.sessionFactory.kjørMigrering() shouldBe 0
+                tac.sessionFactory.kjørMigrering(migrering) shouldBe 0
+            }
         }
     }
 }
@@ -73,9 +79,9 @@ private fun PostgresSessionFactory.settVedtakId(sakId: SakId, vedtakId: VedtakId
     )
 }
 
-private fun PostgresSessionFactory.kjørMigrering(): Int = withSession { session ->
+private fun PostgresSessionFactory.kjørMigrering(migrering: String): Int = withSession { session ->
     val sql = StatistikkUtbetalingVedtakIdTest::class.java
-        .getResource("/db/migration/V265__statistikk_utbetaling_vedtak_id_rammevedtak.sql")!!
+        .getResource("/db/migration/$migrering")!!
         .readText()
     session.run(sqlQuery(sql).asUpdate)
 }

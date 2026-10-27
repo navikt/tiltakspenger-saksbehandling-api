@@ -60,7 +60,8 @@ class DokdistHttpClient(
     clock: Clock,
     authTokenProvider: AuthTokenProvider,
     connectTimeout: Duration = 1.seconds,
-    timeout: Duration = 1.seconds,
+    // Dokdist svarer typisk på 0,2 s, men p99 ligger rundt 1 s.
+    timeout: Duration = 3.seconds,
     transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
 ) : Dokumentdistribusjonsklient {
     private val httpKlient: HttpKlient = HttpKlient(

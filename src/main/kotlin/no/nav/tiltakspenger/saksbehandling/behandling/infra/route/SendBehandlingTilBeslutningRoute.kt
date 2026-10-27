@@ -58,6 +58,7 @@ fun Route.sendRammebehandlingTilBeslutningRoute(
                     when (it) {
                         is KanIkkeSendeRammebehandlingTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler,
                         KanIkkeSendeRammebehandlingTilBeslutter.ErPaVent,
+                        KanIkkeSendeRammebehandlingTilBeslutter.ErIkkeFerdigutfylt,
                         KanIkkeSendeRammebehandlingTilBeslutter.MåVæreUnderBehandlingEllerAutomatisk,
                         is KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeil,
                         KanIkkeSendeRammebehandlingTilBeslutter.MåHaBegrunnelseForÅJournalføreNotat,
@@ -101,6 +102,11 @@ private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(saksbehandler: S
     KanIkkeSendeRammebehandlingTilBeslutter.ErPaVent -> HttpStatusCode.BadRequest to ErrorJson(
         "Behandlingen er satt på vent",
         "behandlingen_er_pa_vent",
+    )
+
+    KanIkkeSendeRammebehandlingTilBeslutter.ErIkkeFerdigutfylt -> HttpStatusCode.BadRequest to ErrorJson(
+        "Behandlingen må ha et ferdig utfylt resultat med vedtaksperiode for å kunne sendes til beslutning",
+        "behandlingen_er_ikke_ferdigutfylt",
     )
 
     is KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeil -> this.feil.tilSimuleringErrorJson()

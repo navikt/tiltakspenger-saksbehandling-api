@@ -40,7 +40,9 @@ class OppdaterMeldekortbehandlingService(
                 )
             },
             clock = clock,
-        ).map { (sak, meldekort, simulering) ->
+        ).onLeft {
+            logger.warn { "Kan ikke oppdatere meldekortbehandling ${kommando.meldekortId}: $it. Saksbehandler: ${kommando.saksbehandler.navIdent}, correlationId: ${kommando.correlationId}" }
+        }.map { (sak, meldekort, simulering) ->
             meldekortbehandlingRepo.oppdater(meldekort, simulering)
             logger.info { "Meldekort under behandling med id ${meldekort.id} oppdatert. Saksbehandler: ${kommando.saksbehandler.navIdent}" }
             Pair(sak, meldekort)

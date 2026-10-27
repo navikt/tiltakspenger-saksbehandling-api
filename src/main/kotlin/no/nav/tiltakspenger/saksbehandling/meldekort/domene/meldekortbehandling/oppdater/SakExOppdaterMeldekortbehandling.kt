@@ -32,6 +32,12 @@ suspend fun Sak.oppdaterMeldekort(
 
     val meldeperioder = kommando.meldeperioder.map {
         val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjede(it.kjedeId)
+        if (it.antallDagerMedDeltattEllerFravær > meldeperiode.maksAntallDagerForMeldeperiode) {
+            return KanIkkeOppdatereMeldekortbehandling.ForMangeDagerUtfylt(
+                antallUtfylt = it.antallDagerMedDeltattEllerFravær,
+                maksAntall = meldeperiode.maksAntallDagerForMeldeperiode,
+            ).left()
+        }
         it.tilUtfyltMeldeperiode(meldeperiode)
     }
 

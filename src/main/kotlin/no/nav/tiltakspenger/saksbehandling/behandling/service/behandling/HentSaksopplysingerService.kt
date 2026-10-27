@@ -58,6 +58,10 @@ class HentSaksopplysingerService(
      * @param aktuelleTiltaksdeltakelserForBehandlingen For søknadsbehandling vil det være den tiltaksdeltakelsen det er søkt for.
      * Husk og sett [inkluderOverlappendeTiltaksdeltakelserDetErSøktOm] til true dersom vi skal hente saksopplysninger for tiltaksdeltakelser som overlapper denne.
      * @param inkluderOverlappendeTiltaksdeltakelserDetErSøktOm Typisk bare brukt ved søknadsbehandling når det er søkt om mer enn 1 tiltaksdeltakelse.
+     *
+     * Kaster når tiltakshistorikken, Utbetaldata eller Arena ikke svarer, slik at automatiske behandlinger prøves på nytt og saksbehandler får en feil i stedet for ufullstendige saksopplysninger.
+     * TODO: Returner Either i stedet for å kaste.
+     *  Det krever at typealiasen HentSaksopplysninger og kallerne, både servicene og domenefunksjonene den sendes inn i, får en egen feilvariant med statuskode i rutene.
      */
     suspend fun hentSaksopplysningerFraRegistre(
         fnr: Fnr,
@@ -150,8 +154,6 @@ class HentSaksopplysingerService(
             tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
             correlationId = correlationId,
         ).getOrElse { feil ->
-            // Tiltaksdeltakelsene er selve behandlingsgrunnlaget — uten dem kan vi ikke bygge saksopplysninger, i motsetning til ytelser/arenavedtak som kan falle tilbake til tom liste.
-            // Kontrakten videre oppover er fortsatt throw-basert.
             feil.loggFeil(logger, "henting av tiltaksdeltakelser fra tiltakshistorikk", loggkontekst)
             throw IllegalStateException("Kunne ikke hente tiltaksdeltakelser fra tiltakshistorikk. $loggkontekst")
         }
@@ -238,22 +240,17 @@ class HentSaksopplysingerService(
             fnr,
             utbetaldataPeriode,
             correlationId,
-        ).fold(
-            ifLeft = { error ->
-                error.loggFeil(
-                    logger,
-                    "henting av ytelser fra Utbetaldata",
-                    lagLoggcontext(
-                        correlationId = correlationId,
-                        sakId = sakId,
-                        saksnummer = saksnummer,
-                        behandlingId = behandlingId,
-                    ),
-                )
-                emptyList()
-            },
-            ifRight = { it },
-        )
+        ).getOrElse { error ->
+            // Et tomt svar ville blitt lagret som IngenTreff, og da kunne en automatisk behandling gått videre uten at ytelser var sjekket.
+            val loggkontekst = lagLoggcontext(
+                correlationId = correlationId,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                behandlingId = behandlingId,
+            )
+            error.loggFeil(logger, "henting av ytelser fra Utbetaldata", loggkontekst)
+            throw IllegalStateException("Kunne ikke hente ytelser fra Utbetaldata. $loggkontekst")
+        }
         return Ytelser.fromList(
             ytelser = ytelser,
             oppslagsperiode = utbetaldataPeriode,
@@ -274,22 +271,17 @@ class HentSaksopplysingerService(
             fnr,
             arenaPeriode,
             correlationId,
-        ).fold(
-            ifLeft = { error ->
-                error.loggFeil(
-                    logger,
-                    "henting av tiltakspengevedtak fra Arena",
-                    lagLoggcontext(
-                        correlationId = correlationId,
-                        sakId = sakId,
-                        saksnummer = saksnummer,
-                        behandlingId = behandlingId,
-                    ),
-                )
-                emptyList()
-            },
-            ifRight = { it },
-        )
+        ).getOrElse { error ->
+            // Et tomt svar ville blitt lagret som IngenTreff, og da kunne en automatisk behandling gått videre uten at tiltakspengevedtak var sjekket.
+            val loggkontekst = lagLoggcontext(
+                correlationId = correlationId,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                behandlingId = behandlingId,
+            )
+            error.loggFeil(logger, "henting av tiltakspengevedtak fra Arena", loggkontekst)
+            throw IllegalStateException("Kunne ikke hente tiltakspengevedtak fra Arena. $loggkontekst")
+        }
         return TiltakspengevedtakFraArena.fromList(
             arenaTpVedtak = arenaTpVedtak,
             oppslagsperiode = arenaPeriode,

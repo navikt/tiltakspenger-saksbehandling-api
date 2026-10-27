@@ -114,7 +114,11 @@ class SendSøknadsbehandlingTilBeslutningTest {
                 sak.id,
                 behandlingId,
                 saksbehandler,
-                forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
+                forventet = ForventetRespons.json(
+                    status = 400,
+                    json = """{"melding":"Behandlingen må ha et ferdig utfylt resultat med vedtaksperiode for å kunne sendes til beslutning","kode":"behandlingen_er_ikke_ferdigutfylt"}""",
+                    contentType = "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
 
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {

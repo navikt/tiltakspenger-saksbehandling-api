@@ -1,11 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.string.shouldStartWith
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -15,6 +18,7 @@ import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
@@ -29,6 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
+import no.nav.tiltakspenger.saksbehandling.felles.uventetStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
@@ -904,6 +909,46 @@ class HentSaksopplysingerServiceTest {
         }
     }
 
+    @Test
+    fun `kaster når ytelser fra Utbetaldata ikke kan hentes`() {
+        runBlocking {
+            val periode: Periode = 2.januar(2023) til 30.januar(2023)
+            val tiltak = ObjectMother.tiltakOgSøknadstiltak(søknadFraOgMed = periode.fraOgMed, søknadTilOgMed = periode.tilOgMed)
+            val service = serviceMedTiltakshistorikk(tiltak.first, ytelser = uventetStatus().left())
+
+            shouldThrow<IllegalStateException> {
+                service.hentSaksopplysningerFraRegistre(
+                    fnr = Fnr.random(),
+                    correlationId = CorrelationId.generate(),
+                    tiltaksdeltakelserDetErSøktTiltakspengerFor = TiltaksdeltakelserDetErSøktTiltakspengerFor(tiltak.second, periode.fraOgMed.atStartOfDay()),
+                    aktuelleTiltaksdeltakelserForBehandlingen = listOf(tiltak.first.internDeltakelseId),
+                    sakId = SakId.random(),
+                    inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = false,
+                )
+            }.message shouldStartWith "Kunne ikke hente ytelser fra Utbetaldata."
+        }
+    }
+
+    @Test
+    fun `kaster når tiltakspengevedtak fra Arena ikke kan hentes`() {
+        runBlocking {
+            val periode: Periode = 2.januar(2023) til 30.januar(2023)
+            val tiltak = ObjectMother.tiltakOgSøknadstiltak(søknadFraOgMed = periode.fraOgMed, søknadTilOgMed = periode.tilOgMed)
+            val service = serviceMedTiltakshistorikk(tiltak.first, arenavedtak = uventetStatus().left())
+
+            shouldThrow<IllegalStateException> {
+                service.hentSaksopplysningerFraRegistre(
+                    fnr = Fnr.random(),
+                    correlationId = CorrelationId.generate(),
+                    tiltaksdeltakelserDetErSøktTiltakspengerFor = TiltaksdeltakelserDetErSøktTiltakspengerFor(tiltak.second, periode.fraOgMed.atStartOfDay()),
+                    aktuelleTiltaksdeltakelserForBehandlingen = listOf(tiltak.first.internDeltakelseId),
+                    sakId = SakId.random(),
+                    inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = false,
+                )
+            }.message shouldStartWith "Kunne ikke hente tiltakspengevedtak fra Arena."
+        }
+    }
+
     private fun lønnstilskudd(id: String, fraOgMed: LocalDate?, tilOgMed: LocalDate?) = testdeltakelse(
         id = id,
         tiltakstype = Tiltakstype.SomFratarRett(tiltakskodeFraKilden = "MIDLONTIL"),
@@ -914,6 +959,8 @@ class HentSaksopplysingerServiceTest {
     private fun serviceMedTiltakshistorikk(
         tiltak: TiltaksdeltakelseIntern,
         vararg andreDeltakelser: LibsTiltaksdeltakelse,
+        ytelser: Either<HttpKlientError, List<Ytelse>> = emptyList<Ytelse>().right(),
+        arenavedtak: Either<HttpKlientError, List<ArenaTPVedtak>> = emptyList<ArenaTPVedtak>().right(),
     ): HentSaksopplysingerService {
         val tiltaksdeltakerRepo = TiltaksdeltakerFakeRepo().apply {
             lagre(
@@ -949,14 +996,14 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     periode: Periode,
                     correlationId: CorrelationId,
-                ) = emptyList<Ytelse>().right()
+                ) = ytelser
             },
             tiltakspengerArenaClient = object : TiltakspengerArenaClient {
                 override suspend fun hentTiltakspengevedtakFraArena(
                     fnr: Fnr,
                     periode: Periode,
                     correlationId: CorrelationId,
-                ) = emptyList<ArenaTPVedtak>().right()
+                ) = arenavedtak
             },
             clock = Clock.fixed(1.februar(2023).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC),
             tiltaksdeltakerRepo = tiltaksdeltakerRepo,

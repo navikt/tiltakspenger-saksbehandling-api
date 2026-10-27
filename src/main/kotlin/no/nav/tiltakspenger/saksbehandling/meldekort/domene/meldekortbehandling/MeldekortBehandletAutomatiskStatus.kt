@@ -25,11 +25,13 @@ enum class MeldekortBehandletAutomatiskStatus(val loggnivå: Level, val kanPrøv
     HENTE_NAVKONTOR_FEILET(loggnivå = Level.ERROR, kanPrøvesPåNytt = true),
     BEHANDLING_FEILET_PÅ_SAK(loggnivå = Level.ERROR, kanPrøvesPåNytt = false),
     UTBETALING_FEILET_PÅ_SAK(loggnivå = Level.ERROR, kanPrøvesPåNytt = false),
-    UTDATERT_MELDEPERIODE(loggnivå = Level.ERROR, kanPrøvesPåNytt = false),
     FOR_MANGE_DAGER_REGISTRERT(loggnivå = Level.ERROR, kanPrøvesPåNytt = false),
     KAN_IKKE_MELDE_HELG(loggnivå = Level.ERROR, kanPrøvesPåNytt = false),
 
     /** Simuleringen viser feilutbetaling eller justering, som automatisk behandling ikke støtter. */
     HAR_FEILUTBETALING(loggnivå = Level.WARN, kanPrøvesPåNytt = false),
     HAR_JUSTERING(loggnivå = Level.WARN, kanPrøvesPåNytt = false),
+
+    /** Meldeperioden har fått en ny versjon etter at bruker sendte meldekortet, typisk fordi tiltaksdeltakelsen er endret. */
+    UTDATERT_MELDEPERIODE(loggnivå = Level.WARN, kanPrøvesPåNytt = false),
 }

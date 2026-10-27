@@ -11,6 +11,7 @@ class MeldekortBehandletAutomatiskStatusTest {
         MeldekortBehandletAutomatiskStatus.entries.filter { it.loggnivå == Level.WARN }.shouldContainExactly(
             MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING,
             MeldekortBehandletAutomatiskStatus.HAR_JUSTERING,
+            MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE,
         )
     }
 }

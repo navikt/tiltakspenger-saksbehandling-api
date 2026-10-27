@@ -60,6 +60,7 @@ fun Rammebehandling.tilBeslutning(
  *  - behandlingen kan ikke eies av en annen saksbehandler
  *  - behandlingen må være [UNDER_BEHANDLING] eller [UNDER_AUTOMATISK_BEHANDLING]
  *  - behandlingen kan ikke stå på vent
+ *  - behandlingen må ha vedtaksperiode og være ferdig utfylt
  *  - begrunnelsene som er valgt å journalføre som notat, må være utfylt
  */
 fun Rammebehandling.kanSendeTilBeslutning(saksbehandler: Saksbehandler): Either<KanIkkeSendeRammebehandlingTilBeslutter, Unit> {
@@ -73,6 +74,9 @@ fun Rammebehandling.kanSendeTilBeslutning(saksbehandler: Saksbehandler): Either<
     }
     if (ventestatus.erSattPåVent) {
         return KanIkkeSendeRammebehandlingTilBeslutter.ErPaVent.left()
+    }
+    if (vedtaksperiode == null || !erFerdigutfylt()) {
+        return KanIkkeSendeRammebehandlingTilBeslutter.ErIkkeFerdigutfylt.left()
     }
     if (skalJournalføreNotat.vilkårsvurdering && begrunnelseVilkårsvurdering == null) {
         return KanIkkeSendeRammebehandlingTilBeslutter.MåHaBegrunnelseForÅJournalføreNotat.left()

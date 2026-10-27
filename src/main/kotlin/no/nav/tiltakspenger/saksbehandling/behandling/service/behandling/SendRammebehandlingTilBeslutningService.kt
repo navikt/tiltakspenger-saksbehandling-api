@@ -84,7 +84,9 @@ class SendRammebehandlingTilBeslutningService(
         return behandlingMedUtbetalingskontroll.tilBeslutning(
             kommando = kommando,
             clock = clock,
-        ).map {
+        ).onLeft {
+            logger.warn { "Kan ikke sende behandlingen til beslutning: $it - ${behandlingMedUtbetalingskontroll.loggkontekst(kommando.correlationId)}" }
+        }.map {
             val oppdaterSak = sak.oppdaterRammebehandling(it)
 
             val statistikkDTO = statistikkService.generer(

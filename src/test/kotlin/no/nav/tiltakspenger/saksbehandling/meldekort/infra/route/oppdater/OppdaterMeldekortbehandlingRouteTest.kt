@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingType
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortDagStatusDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.httpKlientUventetStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
@@ -364,6 +365,34 @@ class OppdaterMeldekortbehandlingRouteTest {
                 kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
                 meldeperioder = listOf(sammeKjede, sammeKjede),
                 forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
+            )
+        }
+    }
+
+    @Test
+    fun `kan ikke oppdatere meldekortbehandling med flere utfylte dager enn meldeperioden tillater`() {
+        val clock = TikkendeKlokke(fixedClockAt(12.mai(2026)))
+
+        withTestApplicationContext(clock = clock) { tac ->
+            val (sak, _, _) = this.iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2026) til 30.april(2026)),
+            )
+            val kjede = sak.meldeperiodeKjeder[1]
+            val meldeperiode = kjede.hentSisteMeldeperiode()
+            val alleDagerDeltatt = meldeperiode.tilOppdatertMeldeperiodeDTO(
+                meldeperiode.periode.datoer.map { MeldekortDagStatusDTO.DELTATT_UTEN_LØNN_I_TILTAKET }.toList(),
+            )
+
+            opprettOgOppdaterMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = kjede.kjedeId,
+                meldeperioder = listOf(alleDagerDeltatt),
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+                medJsonBody = {
+                    it harKode "for_mange_dager_utfylt"
+                },
             )
         }
     }

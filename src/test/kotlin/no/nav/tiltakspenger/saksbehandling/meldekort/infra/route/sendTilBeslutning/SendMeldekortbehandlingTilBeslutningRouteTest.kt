@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortDagStatusDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
@@ -57,7 +58,10 @@ class SendMeldekortbehandlingTilBeslutningRouteTest {
                     tac = tac,
                     sakId = sak.id,
                     meldekortId = meldekortbehandling.id,
-                    forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
+                    forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+                    medJsonBody = {
+                        it harKode "ingen_dager_gir_rett"
+                    },
                 )
             }
         }

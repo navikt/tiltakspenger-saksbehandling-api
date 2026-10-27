@@ -162,15 +162,19 @@ data class MeldekortUnderBehandling(
 
         data object MeldekortperiodenKanIkkeVæreFremITid : TilgangEllerTilstandsfeil
 
+        data object IngenDagerGirRett : TilgangEllerTilstandsfeil
+
         fun tilKanIkkeOppdatereMeldekort(): KanIkkeOppdatereMeldekortbehandling {
             return when (this) {
                 is MeldekortperiodenKanIkkeVæreFremITid -> KanIkkeOppdatereMeldekortbehandling.MeldekortperiodenKanIkkeVæreFremITid
+                is IngenDagerGirRett -> KanIkkeOppdatereMeldekortbehandling.IngenDagerGirRett
             }
         }
 
         fun tilKanIkkeSendeMeldekortTilBeslutter(): KanIkkeSendeMeldekortbehandlingTilBeslutter {
             return when (this) {
                 is MeldekortperiodenKanIkkeVæreFremITid -> KanIkkeSendeMeldekortbehandlingTilBeslutter.MeldekortperiodenKanIkkeVæreFremITid
+                is IngenDagerGirRett -> KanIkkeSendeMeldekortbehandlingTilBeslutter.KanIkkeOppdatere(KanIkkeOppdatereMeldekortbehandling.IngenDagerGirRett)
             }
         }
     }
@@ -183,8 +187,8 @@ data class MeldekortUnderBehandling(
         krevSaksbehandlerRolle(saksbehandler)
         require(saksbehandler.navIdent == this.saksbehandler)
 
-        require(!perioder.ingenDagerGirRett) {
-            "Meldeperiodene må ha minst en dag med rett for å kunne behandles"
+        if (perioder.ingenDagerGirRett) {
+            return TilgangEllerTilstandsfeil.IngenDagerGirRett.left()
         }
 
         if (this.status != MeldekortbehandlingStatus.UNDER_BEHANDLING) {

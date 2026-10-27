@@ -85,6 +85,20 @@ suspend fun RoutingContext.respondWithError(meldekort: KanIkkeOppdatereMeldekort
             )
         }
 
+        is KanIkkeOppdatereMeldekortbehandling.IngenDagerGirRett -> {
+            call.respond400BadRequest(
+                melding = "Meldeperiodene må ha minst en dag med rett for å kunne behandles.",
+                kode = "ingen_dager_gir_rett",
+            )
+        }
+
+        is KanIkkeOppdatereMeldekortbehandling.ForMangeDagerUtfylt -> {
+            call.respond400BadRequest(
+                melding = "For mange dager utfylt: ${meldekort.antallUtfylt} dager er utfylt, men maks antall for perioden er ${meldekort.maksAntall}.",
+                kode = "for_mange_dager_utfylt",
+            )
+        }
+
         is KanIkkeOppdatereMeldekortbehandling.KjedeErUnderBehandling -> {
             call.respond400BadRequest(
                 melding = "Meldeperiodekjedene ${meldekort.kjedeIder} er allerede omfattet av en annen åpen meldekortbehandling.",
