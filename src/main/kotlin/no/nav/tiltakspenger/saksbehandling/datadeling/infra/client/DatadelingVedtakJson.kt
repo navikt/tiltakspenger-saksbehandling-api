@@ -77,6 +77,7 @@ private data class DatadelingVedtakJson(
         INSTITUSJONSOPPHOLD,
         FREMMET_FOR_SENT,
         IKKE_LOVLIG_OPPHOLD,
+        FORLENGET_VENTETID,
     }
 
     enum class DatadelingRettighet {
@@ -196,4 +197,5 @@ private fun Avslagsgrunnlag.toValgtHjemmelHarIkkeRettighetString(): DatadelingHj
         Avslagsgrunnlag.Livsoppholdytelser -> DatadelingHjemmelHarIkkeRettighet.LIVSOPPHOLDSYTELSER
         Avslagsgrunnlag.LønnFraAndre -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_ANDRE
         Avslagsgrunnlag.LønnFraTiltaksarrangør -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_TILTAKSARRANGOR
+        Avslagsgrunnlag.ForlengetVentetid -> DatadelingHjemmelHarIkkeRettighet.FORLENGET_VENTETID
     }

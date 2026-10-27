@@ -18,11 +18,13 @@ class AvslagsgrunnlagDbJsonKtTest {
             Avslagsgrunnlag.LønnFraAndre,
             Avslagsgrunnlag.Institusjonsopphold,
             Avslagsgrunnlag.FremmetForSent,
+            Avslagsgrunnlag.ForlengetVentetid,
         ).toDb().shouldEqualJson(
             """
             [
                 "AVSLAG_ALDER",
                 "AVSLAG_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK",
+                "AVSLAG_FORLENGET_VENTETID",
                 "AVSLAG_FREMMET_FOR_SENT",
                 "AVSLAG_INSTITUSJONSOPPHOLD",
                 "AVSLAG_INTRODUKSJONSPROGRAMMET",
@@ -47,7 +49,8 @@ class AvslagsgrunnlagDbJsonKtTest {
                 "AVSLAG_LØNN_FRA_TILTAKSARRANGØR",
                 "AVSLAG_LØNN_FRA_ANDRE",
                 "AVSLAG_INSTITUSJONSOPPHOLD",
-                "AVSLAG_FREMMET_FOR_SENT"
+                "AVSLAG_FREMMET_FOR_SENT",
+                "AVSLAG_FORLENGET_VENTETID"
             ]
         """.trimIndent().toAvslagsgrunnlag() shouldBe setOf(
             Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak,
@@ -59,6 +62,7 @@ class AvslagsgrunnlagDbJsonKtTest {
             Avslagsgrunnlag.LønnFraAndre,
             Avslagsgrunnlag.Institusjonsopphold,
             Avslagsgrunnlag.FremmetForSent,
+            Avslagsgrunnlag.ForlengetVentetid,
         )
     }
 }

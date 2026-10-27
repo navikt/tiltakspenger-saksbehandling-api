@@ -16,6 +16,7 @@ private enum class ValgtHjemmelForAvslagDb {
     AVSLAG_LØNN_FRA_ANDRE,
     AVSLAG_INSTITUSJONSOPPHOLD,
     AVSLAG_FREMMET_FOR_SENT,
+    AVSLAG_FORLENGET_VENTETID,
 }
 
 fun Set<Avslagsgrunnlag>.toDb(): String = serialize(this.map { it.toDb() }.sorted())
@@ -32,6 +33,7 @@ fun String.toAvslagsgrunnlag(): NonEmptySet<Avslagsgrunnlag> {
             ValgtHjemmelForAvslagDb.AVSLAG_LØNN_FRA_ANDRE -> Avslagsgrunnlag.LønnFraAndre
             ValgtHjemmelForAvslagDb.AVSLAG_INSTITUSJONSOPPHOLD -> Avslagsgrunnlag.Institusjonsopphold
             ValgtHjemmelForAvslagDb.AVSLAG_FREMMET_FOR_SENT -> Avslagsgrunnlag.FremmetForSent
+            ValgtHjemmelForAvslagDb.AVSLAG_FORLENGET_VENTETID -> Avslagsgrunnlag.ForlengetVentetid
         }
     }.toNonEmptySetOrNull()!!
 }
@@ -47,5 +49,6 @@ private fun Avslagsgrunnlag.toDb(): String {
         Avslagsgrunnlag.LønnFraAndre -> ValgtHjemmelForAvslagDb.AVSLAG_LØNN_FRA_ANDRE
         Avslagsgrunnlag.Institusjonsopphold -> ValgtHjemmelForAvslagDb.AVSLAG_INSTITUSJONSOPPHOLD
         Avslagsgrunnlag.FremmetForSent -> ValgtHjemmelForAvslagDb.AVSLAG_FREMMET_FOR_SENT
+        Avslagsgrunnlag.ForlengetVentetid -> ValgtHjemmelForAvslagDb.AVSLAG_FORLENGET_VENTETID
     }.toString()
 }

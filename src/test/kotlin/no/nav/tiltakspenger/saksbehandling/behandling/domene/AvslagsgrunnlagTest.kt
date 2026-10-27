@@ -118,4 +118,19 @@ class AvslagsgrunnlagTest {
             it.last().ledd shouldBe null
         }
     }
+
+    @Test
+    fun `ForlengetVentetid er lenket til riktig hjemler`() {
+        Avslagsgrunnlag.ForlengetVentetid.hjemler.let {
+            it.size shouldBe 2
+
+            it.first().paragraf shouldBe Paragraf("7")
+            it.first().rettskilde shouldBe Rettskilde.Tiltakspengeforskriften
+            it.first().ledd shouldBe Ledd(1)
+
+            it.last().paragraf shouldBe Paragraf("13")
+            it.last().rettskilde shouldBe Rettskilde.Arbeidsmarkedsloven
+            it.last().ledd shouldBe Ledd(1)
+        }
+    }
 }
