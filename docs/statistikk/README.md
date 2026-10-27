@@ -64,7 +64,7 @@ Koden ligger i [navikt/dvh_tiltakspenger](https://github.com/navikt/dvh_tiltaksp
   Datastream fjerner ikke kolonnen i BigQuery, den blir bare tom, så konsumenten får ingen feil og mister dataene uten å merke det.
 - Ny tabell: legg den inn i Datastream-strømmen i begge miljøer, og avklar tilgang med konsumenten.
 - Historiske rader: skriv en ren SQL-migrering som bare leser databasen, med vern mot dobbeltrader og en tørrkjøring i prod først; `V264__statistikk_sak_historiske_meldekortbehandlinger.sql` er mønsteret.
-- Retter du eksisterende rader samtidig som du endrer koden som skriver dem, kan den gamle poden skrive rader med gammel kode etter at migreringen har kjørt, fordi den er leder til den nye har tatt over; `V267__statistikk_utbetaling_vedtak_id_rammevedtak_etter_utrulling.sql` retter fire slike rader etter V265.
+- Retter du eksisterende rader samtidig som du endrer koden som skriver dem, kan den gamle poden skrive rader med gammel kode etter at migreringen har kjørt, fordi den er leder til den nye har tatt over; slik fikk fire rader i `statistikk_utbetaling` meldekortvedtakets id etter V265, og oppdateringen måtte kjøres på nytt.
   Kontroller radene fra utrullingen etterpå, eller lever kodeendringen før rettingen.
 - Tester: test insert-SQL og felt ved å lese radene tilbake med egen SQL, se `StatistikkLagringTest` og `SaksstatistikkMeldekortbehandlingTest`.
 

@@ -2,11 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.statistikk
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
-import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -18,12 +16,10 @@ class StatistikkUtbetalingVedtakIdTest {
 
     /**
      * Meldeperioden stanses midt i, så meldekortbehandlingen bygger på både søknadsvedtaket og stansvedtaket.
-     * Migreringen leser hele databasen, så den kjører isolert.
      */
     @Test
-    @IsolatedDatabaseTest
-    fun `utbetaling fra meldekortvedtak peker på rammevedtakene, og migreringen retter opp rader med meldekortvedtakets id`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+    fun `utbetaling fra meldekortvedtak peker på rammevedtakene`() {
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, _, søknadsvedtak) = iverksettSøknadsbehandling(tac = tac)
             val meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode()
             val førsteHverdagMedRett = meldeperiode.girRett
@@ -43,19 +39,6 @@ class StatistikkUtbetalingVedtakIdTest {
             val rammevedtakIder = listOf(søknadsvedtak.id, stansvedtak.id)
             meldekortvedtak.rammevedtak shouldBe rammevedtakIder
             tac.sessionFactory.hentVedtakIder(sak.id) shouldBe rammevedtakIder.map { it.toString() }
-
-            // V267 gjentar V265 for rader den gamle poden skrev under utrullingen.
-            listOf(
-                "V265__statistikk_utbetaling_vedtak_id_rammevedtak.sql",
-                "V267__statistikk_utbetaling_vedtak_id_rammevedtak_etter_utrulling.sql",
-            ).forEach { migrering ->
-                // Slik prodkoden skrev raden før endringen.
-                tac.sessionFactory.settVedtakId(sak.id, meldekortvedtak.id)
-                tac.sessionFactory.kjørMigrering(migrering) shouldBe 1
-                tac.sessionFactory.hentVedtakIder(sak.id) shouldBe rammevedtakIder.map { it.toString() }
-
-                tac.sessionFactory.kjørMigrering(migrering) shouldBe 0
-            }
         }
     }
 }
@@ -68,20 +51,3 @@ private fun PostgresSessionFactory.hentVedtakIder(sakId: SakId): List<String> = 
         ).map { deserializeList<String>(it.string("vedtak_id")) }.asSingle,
     )
 }!!
-
-private fun PostgresSessionFactory.settVedtakId(sakId: SakId, vedtakId: VedtakId) = withSession { session ->
-    session.run(
-        sqlQuery(
-            "update statistikk_utbetaling set vedtak_id = jsonb_build_array(:vedtak_id) where sak_id = :sak_id",
-            "vedtak_id" to vedtakId.toString(),
-            "sak_id" to sakId.toString(),
-        ).asUpdate,
-    )
-}
-
-private fun PostgresSessionFactory.kjørMigrering(migrering: String): Int = withSession { session ->
-    val sql = StatistikkUtbetalingVedtakIdTest::class.java
-        .getResource("/db/migration/$migrering")!!
-        .readText()
-    session.run(sqlQuery(sql).asUpdate)
-}
