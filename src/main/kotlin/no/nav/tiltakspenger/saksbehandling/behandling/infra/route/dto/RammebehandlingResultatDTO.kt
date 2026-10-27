@@ -58,11 +58,13 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
      * @param forlengesFraOgMed Dagen etter siste innvilgede dag i vedtaket som forlenges.
      * Til og med-datoen saksbehandler har valgt, er slutten på vedtaksperioden.
      * @param harEndretBarnetillegg Om saksbehandler har valgt barnetillegget selv, i stedet for at det er utledet fra vedtaket som forlenges.
+     * @param kanIkkeUtledeBarnetillegg Om barnetillegget ikke kunne utledes fra vedtaket som forlenges, slik at saksbehandler må vurdere det selv.
      */
     data class Forlengelse(
         val forlengerRammevedtakId: String,
         val forlengesFraOgMed: LocalDate,
         val harEndretBarnetillegg: Boolean,
+        val kanIkkeUtledeBarnetillegg: Boolean,
         override val innvilgelsesperioder: InnvilgelsesperioderDTO?,
         override val barnetillegg: BarnetilleggDTO?,
     ) : RevurderingResultatDTO,
@@ -154,6 +156,7 @@ fun Revurderingsresultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
             forlengerRammevedtakId = forlenger.rammevedtakId.toString(),
             forlengesFraOgMed = forlenger.forlengesFraOgMed,
             harEndretBarnetillegg = harEndretBarnetillegg,
+            kanIkkeUtledeBarnetillegg = kanIkkeUtledeBarnetillegg,
             innvilgelsesperioder = innvilgelsesperioder?.tilDTO(),
             barnetillegg = barnetillegg?.toBarnetilleggDTO(),
         )

@@ -136,6 +136,7 @@ class PdfgenrsHttpClientTest {
                 innvilgelsesperioder = revurdering.innvilgelsesperioder,
                 barnetillegg = revurdering.barnetillegg,
                 harEndretBarnetillegg = false,
+                kanIkkeUtledeBarnetillegg = false,
             ),
         )
         return ObjectMother.nyttRammevedtak(

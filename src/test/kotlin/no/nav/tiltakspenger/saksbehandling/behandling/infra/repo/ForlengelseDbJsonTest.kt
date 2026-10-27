@@ -17,7 +17,7 @@ class ForlengelseDbJsonTest {
         ),
     )
 
-    private val lagretJson = """{"rammevedtakId":"vedtak_01KAJ7K0Y7SJ1Y5BN5MN8Z9FDV","forlengesFraOgMed":"2025-04-01","harEndretBarnetillegg":false}"""
+    private val lagretJson = """{"rammevedtakId":"vedtak_01KAJ7K0Y7SJ1Y5BN5MN8Z9FDV","forlengesFraOgMed":"2025-04-01","harEndretBarnetillegg":false,"kanIkkeUtledeBarnetillegg":false}"""
 
     @Test
     fun `tilForlengelseDbJson() matcher med det som skal bli lagret`() {

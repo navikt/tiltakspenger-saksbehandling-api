@@ -113,12 +113,15 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
      *
      * @param harEndretBarnetillegg Om saksbehandler har valgt barnetillegget selv.
      * Er det false, er barnetillegget utledet fra vedtaket som forlenges, og utledes på nytt ved neste oppdatering.
+     * @param kanIkkeUtledeBarnetillegg Om barnetillegget ikke kunne utledes fra vedtaket som forlenges ved siste oppdatering.
+     * Da er antall barn i vedtaket videreført uendret, og saksbehandler må vurdere barnetillegget selv, så [harEndretBarnetillegg] er alltid true.
      */
     data class Forlengelse(
         val forlenger: ForlengerRammevedtak,
         override val innvilgelsesperioder: Innvilgelsesperioder?,
         override val barnetillegg: Barnetillegg?,
         val harEndretBarnetillegg: Boolean,
+        val kanIkkeUtledeBarnetillegg: Boolean,
     ) : Rammebehandlingsresultat.Innvilgelse,
         Revurderingsresultat {
         override val vedtaksperiode = innvilgelsesperioder?.totalPeriode
@@ -134,6 +137,9 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
             }
             if (harEndretBarnetillegg) {
                 require(barnetillegg != null) { "Forlengelsen har valgt barnetillegg, men mangler barnetillegg" }
+            }
+            if (kanIkkeUtledeBarnetillegg) {
+                require(harEndretBarnetillegg) { "Barnetillegget kan ikke utledes, så saksbehandler må ha valgt det" }
             }
         }
 
@@ -151,6 +157,7 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
             innvilgelsesperioder = null,
             barnetillegg = null,
             harEndretBarnetillegg = false,
+            kanIkkeUtledeBarnetillegg = false,
         )
 
         override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Forlengelse> {
@@ -171,6 +178,7 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
                 innvilgelsesperioder = null,
                 barnetillegg = null,
                 harEndretBarnetillegg = false,
+                kanIkkeUtledeBarnetillegg = false,
             )
         }
     }
