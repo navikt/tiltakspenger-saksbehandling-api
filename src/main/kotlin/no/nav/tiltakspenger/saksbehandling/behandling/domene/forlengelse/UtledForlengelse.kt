@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeForlenge
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDate
 
 /**
@@ -24,6 +23,7 @@ import java.time.LocalDate
 data class UtledetForlengelse(
     val innvilgelsesperioder: IkkeTomPeriodisering<InnvilgelsesperiodeKommando>,
     val barnetillegg: Barnetillegg,
+    val kanIkkeUtledeBarnetillegg: Boolean,
 ) {
     val forlengelsesperiode: Periode = innvilgelsesperioder.totalPeriode
 }
@@ -36,7 +36,8 @@ data class UtledetForlengelse(
  * Forlengelsen kan ikke overlappe andre vedtak, og tiltaksdeltakelsen i saksopplysningene må dekke hele forlengelsen.
  *
  * @param barnetillegg Barnetillegget saksbehandler har valgt.
- * Er det null, utledes det fra vedtaket som forlenges, se [utledBarnetillegg].
+ * Er det null, utledes det fra vedtaket som forlenges, se [utledAntallBarn].
+ * Kan det ikke utledes, videreføres antall barn i vedtaket uendret, og saksbehandler må vurdere barnetillegget selv.
  */
 fun Sak.utledForlengelse(
     revurdering: Revurdering,
@@ -73,6 +74,14 @@ fun Sak.utledForlengelse(
         return KanIkkeForlenge.BarnetilleggetGårUtoverForlengelsen(forlengelsesperiode).left()
     }
 
+    val antallBarnIVedtaket = rammevedtaksliste.barnetilleggsperioder.hentVerdiForDag(forlenger.sisteInnvilgedeDag) ?: AntallBarn.ZERO
+    val utledetAntallBarn = utledAntallBarn(
+        tiltaksdeltakerId = tiltaksdeltakerId,
+        sisteInnvilgedeDag = forlenger.sisteInnvilgedeDag,
+        antallBarnIVedtaket = antallBarnIVedtaket,
+        innvilgelsesperiode = forlengelsesperiode,
+    )
+
     return UtledetForlengelse(
         innvilgelsesperioder = SammenhengendePeriodisering(
             InnvilgelsesperiodeKommando(
@@ -82,39 +91,14 @@ fun Sak.utledForlengelse(
             ),
             forlengelsesperiode,
         ),
-        barnetillegg = barnetillegg?.tilBarnetillegg(forlengelsesperiode) ?: utledBarnetillegg(
-            tiltaksdeltakerId = tiltaksdeltakerId,
-            sisteInnvilgedeDag = forlenger.sisteInnvilgedeDag,
-            forlengelsesperiode = forlengelsesperiode,
-        ),
+        barnetillegg = barnetillegg?.tilBarnetillegg(forlengelsesperiode) ?: utledetAntallBarn
+            .getOrElse { SammenhengendePeriodisering(antallBarnIVedtaket, forlengelsesperiode) }
+            .let { antallBarn ->
+                Barnetillegg(
+                    periodisering = antallBarn,
+                    begrunnelse = lagBegrunnelseBarnetillegg(antallBarnIVedtaket = antallBarnIVedtaket, antallBarn = antallBarn),
+                )
+            },
+        kanIkkeUtledeBarnetillegg = utledetAntallBarn.isLeft(),
     ).right()
-}
-
-/**
- * Viderefører barnetillegget fra siste innvilgede dag i vedtaket som forlenges.
- * Barnetillegget faller bort for barn som fyller 16 år i forlengelsen, på samme måte som ved automatisk forlengelse.
- *
- * Kan ikke barna utledes fra søknaden, videreføres antall barn i vedtaket uendret for hele forlengelsen.
- * Saksbehandler kan endre barnetillegget i behandlingen.
- */
-private fun Sak.utledBarnetillegg(
-    tiltaksdeltakerId: TiltaksdeltakerId,
-    sisteInnvilgedeDag: LocalDate,
-    forlengelsesperiode: Periode,
-): Barnetillegg {
-    val antallBarnIVedtaket = rammevedtaksliste.barnetilleggsperioder.hentVerdiForDag(sisteInnvilgedeDag) ?: AntallBarn.ZERO
-    val antallBarn = utledAntallBarn(
-        tiltaksdeltakerId = tiltaksdeltakerId,
-        sisteInnvilgedeDag = sisteInnvilgedeDag,
-        antallBarnIVedtaket = antallBarnIVedtaket,
-        innvilgelsesperiode = forlengelsesperiode,
-    ).getOrElse { SammenhengendePeriodisering(antallBarnIVedtaket, forlengelsesperiode) }
-
-    return Barnetillegg(
-        periodisering = antallBarn,
-        begrunnelse = lagBegrunnelseBarnetillegg(
-            antallBarnIVedtaket = antallBarnIVedtaket,
-            antallBarn = antallBarn,
-        ),
-    )
 }

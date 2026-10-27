@@ -167,6 +167,7 @@ class ForlengelseRouteTest {
             val (_, oppdatert, oppdatertJson) = oppdaterForlengelse(tac, sak.id, valgt.id, tilOgMed = 30.juni(2025))
 
             JSONObject(oppdatertJson).getBoolean("harEndretBarnetillegg") shouldBe false
+            JSONObject(oppdatertJson).getBoolean("kanIkkeUtledeBarnetillegg") shouldBe false
             oppdatert.barnetilleggsperioder() shouldBe listOf(
                 PeriodeMedVerdi(AntallBarn(2), 1.april(2025) til 30.april(2025)),
                 PeriodeMedVerdi(AntallBarn(1), 1.mai(2025) til 30.juni(2025)),
@@ -175,16 +176,23 @@ class ForlengelseRouteTest {
     }
 
     @Test
-    fun `barnetillegget i vedtaket videreføres uendret når barna ikke kan utledes fra søknaden`() {
+    fun `barnetillegget i vedtaket videreføres uendret og må vurderes av saksbehandler når barna ikke kan utledes fra søknaden`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, vedtak) = iverksettVedtakSomKanForlenges(
                 tac = tac,
                 barnetillegg = barnetillegg(periode = vedtaksperiode, antallBarn = AntallBarn(1)),
             )
+            val (_, forlengelse) = startForlengelse(tac, sak.id, vedtak.id)!!
 
-            startOgOppdaterForlengelse(tac, sak, vedtak).barnetilleggsperioder() shouldBe listOf(
+            val (_, oppdatert, oppdatertJson) = oppdaterForlengelse(tac, sak.id, forlengelse.id, tilOgMed = 31.mai(2025))
+
+            oppdatert.barnetilleggsperioder() shouldBe listOf(
                 PeriodeMedVerdi(AntallBarn(1), 1.april(2025) til 31.mai(2025)),
             )
+            JSONObject(oppdatertJson).getBoolean("kanIkkeUtledeBarnetillegg") shouldBe true
+            JSONObject(oppdatertJson).getBoolean("harEndretBarnetillegg") shouldBe true
+            tac.behandlingContext.rammebehandlingRepo.hent(forlengelse.id).resultat
+                .shouldBeInstanceOf<Revurderingsresultat.Forlengelse>().kanIkkeUtledeBarnetillegg shouldBe true
         }
     }
 

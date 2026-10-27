@@ -177,9 +177,9 @@ class ForhåndsvisRammevedtaksbrevService(
                 Triple(
                     utledet.innvilgelsesperioder.tilInnvilgelsesperioder(behandling),
                     utledet.barnetillegg,
-                    when (kommando.barnetillegg) {
-                        null -> resultat.forlenger.barnSomFyller16(forlengetVedtak, utledet.barnetillegg.periodisering)
-                        else -> null
+                    when {
+                        kommando.barnetillegg != null || utledet.kanIkkeUtledeBarnetillegg -> null
+                        else -> resultat.forlenger.barnSomFyller16(forlengetVedtak, utledet.barnetillegg.periodisering)
                     },
                 )
             }

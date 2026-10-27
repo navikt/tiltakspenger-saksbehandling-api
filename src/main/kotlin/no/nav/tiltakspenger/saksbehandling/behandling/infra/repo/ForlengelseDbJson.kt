@@ -17,6 +17,7 @@ private data class ForlengelseDbJson(
     val rammevedtakId: String,
     val forlengesFraOgMed: LocalDate,
     val harEndretBarnetillegg: Boolean,
+    val kanIkkeUtledeBarnetillegg: Boolean = false,
 )
 
 fun Revurderingsresultat.Forlengelse.tilForlengelseDbJson(): String = serialize(
@@ -24,6 +25,7 @@ fun Revurderingsresultat.Forlengelse.tilForlengelseDbJson(): String = serialize(
         rammevedtakId = forlenger.rammevedtakId.toString(),
         forlengesFraOgMed = forlenger.forlengesFraOgMed,
         harEndretBarnetillegg = harEndretBarnetillegg,
+        kanIkkeUtledeBarnetillegg = kanIkkeUtledeBarnetillegg,
     ),
 )
 
@@ -40,5 +42,6 @@ fun String.tilForlengelse(
         innvilgelsesperioder = innvilgelsesperioder,
         barnetillegg = barnetillegg,
         harEndretBarnetillegg = json.harEndretBarnetillegg,
+        kanIkkeUtledeBarnetillegg = json.kanIkkeUtledeBarnetillegg,
     )
 }
