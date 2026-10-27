@@ -46,10 +46,6 @@ data class StatistikkStønadDTO(
     // Listen er tom for stans og avslag
     val innvilgelsesperioder: List<InnvilgelsesperiodeStatistikk>,
 
-    // TODO: erstattet av [omgjørRammevedtak].
-    // Team Spenn bruker det ikke lenger i dbt, men henter kolonnen fortsatt i etl/datalast_fra_bq.py i navikt/dvh_tiltakspenger; fjern den når de har tatt den ut der.
-    val omgjørRammevedtakId: String?,
-
     val omgjørRammevedtak: List<OmgjørRammevedtakStatistikk>,
 
     // IND

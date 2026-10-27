@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk
 
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.statistikk.GenererStønadsstatistikk
 import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.VedtakStatistikkResultat.Companion.toVedtakStatistikkResultat
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -50,13 +49,6 @@ fun genererStønadsstatistikkForRammevedtak(
             vedtaksperiodeFraOgMed = vedtak.periode.fraOgMed,
             vedtaksperiodeTilOgMed = vedtak.periode.tilOgMed,
             innvilgelsesperioder = innvilgelsesperioder ?: emptyList(),
-            // Ved omgjøring av flere vedtak sender vi det eldste, slik at kontrakten er bakoverkompatibel.
-            // Den fullstendige oversikten ligger i [StatistikkStønadDTO.omgjørRammevedtak].
-            omgjørRammevedtakId = if (vedtak.rammebehandlingsresultat is OmgjøringInnvilgelse) {
-                vedtak.rammebehandlingsresultat.omgjørRammevedtak.rammevedtakIDer.first().toString()
-            } else {
-                null
-            },
             omgjørRammevedtak = vedtak.rammebehandlingsresultat.omgjørRammevedtak.tilStatistikk(),
             ytelse = "IND",
 

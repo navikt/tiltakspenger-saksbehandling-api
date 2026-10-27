@@ -197,7 +197,6 @@ class IverksettRevurderingOmgjøringTest {
                 """.trimIndent(),
             )
             val stønadsstatistikk = genererStønadsstatistikkForRammevedtak(omgjøringsvedtak).genererStønadsstatistikk()
-            stønadsstatistikk.omgjørRammevedtakId shouldBe søknadsbehandlingVedtak.id.toString()
             stønadsstatistikk.omgjørRammevedtak.map { it.vedtakId } shouldBe listOf(
                 søknadsbehandlingVedtak.id.toString(),
                 stansvedtak.id.toString(),

@@ -104,7 +104,6 @@ object StatistikkStønadPostgresRepo {
                     "barnetillegg" to serialize(dto.barnetillegg),
                     "harBarnetillegg" to dto.harBarnetillegg,
                     "innvilgelsesperioder" to serialize(dto.innvilgelsesperioder),
-                    "omgjorRammevedtakId" to dto.omgjørRammevedtakId,
                     "omgjorRammevedtak" to serialize(dto.omgjørRammevedtak),
                 ),
             ).asUpdate,
@@ -166,7 +165,6 @@ private val lagreStonadSql =
         barnetillegg,
         har_barnetillegg,
         innvilgelsesperioder,
-        omgjor_rammevedtak_id,
         omgjor_rammevedtak
         ) values (
         :id,
@@ -191,7 +189,6 @@ private val lagreStonadSql =
         :barnetillegg::jsonb,
         :harBarnetillegg,
         :innvilgelsesperioder::jsonb,
-        :omgjorRammevedtakId,
         :omgjorRammevedtak::jsonb
         )
     """.trimIndent()
