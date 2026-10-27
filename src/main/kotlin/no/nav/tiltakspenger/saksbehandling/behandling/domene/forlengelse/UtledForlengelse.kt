@@ -12,8 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskForlengelse.lagBegrunnelseBarnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskForlengelse.utledAntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeForlenge
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -47,7 +45,7 @@ fun Sak.utledForlengelse(
 ): Either<KanIkkeForlenge, UtledetForlengelse> {
     val resultat = revurdering.resultat
     require(resultat is Revurderingsresultat.Forlengelse) {
-        "Behandlingen ${revurdering.id} er ikke en forlengelse, men ${resultat?.javaClass?.simpleName}"
+        "Behandlingen ${revurdering.id} er ikke en forlengelse, men ${resultat.javaClass.simpleName}"
     }
     val forlenger = resultat.forlenger
     val vedtak = hentRammevedtakForId(forlenger.rammevedtakId)
