@@ -19,7 +19,7 @@ enum class GrunnBrevDto {
     INSTITUSJONSOPPHOLD,
     IKKE_LOVLIG_OPPHOLD,
     FREMMET_FOR_SENT,
-    FORLENGET_VENTETID,
+    RETT_TIL_DAGPENGER,
 }
 
 fun Avslagsgrunnlag.tilGrunnBrevDto(): GrunnBrevDto = when (this) {
@@ -32,7 +32,7 @@ fun Avslagsgrunnlag.tilGrunnBrevDto(): GrunnBrevDto = when (this) {
     Avslagsgrunnlag.LønnFraAndre -> GrunnBrevDto.LØNN_FRA_ANDRE
     Avslagsgrunnlag.Institusjonsopphold -> GrunnBrevDto.INSTITUSJONSOPPHOLD
     Avslagsgrunnlag.FremmetForSent -> GrunnBrevDto.FREMMET_FOR_SENT
-    Avslagsgrunnlag.ForlengetVentetid -> GrunnBrevDto.FORLENGET_VENTETID
+    Avslagsgrunnlag.RettTilDagpenger -> GrunnBrevDto.RETT_TIL_DAGPENGER
 }
 
 fun HjemmelForStans.tilGrunnBrevDto(): GrunnBrevDto = when (this) {
