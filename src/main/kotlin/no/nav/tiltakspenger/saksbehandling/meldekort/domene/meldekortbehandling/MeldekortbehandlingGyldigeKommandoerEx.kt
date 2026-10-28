@@ -22,6 +22,8 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
 fun Meldekortbehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
     if (!saksbehandler.erSaksbehandlerEllerBeslutter) return emptyList()
     return buildList {
+        if (kanSaksbehandle(saksbehandler)) add(SaksbehandlerBehandlingKommando.Saksbehandle)
+        if (kanBeslutte(saksbehandler)) add(SaksbehandlerBehandlingKommando.Beslutte)
         if (kanTildeleSaksbehandler(saksbehandler)) add(SaksbehandlerBehandlingKommando.TildelSaksbehandler)
         if (kanTildeleBeslutter(saksbehandler)) add(SaksbehandlerBehandlingKommando.TildelBeslutter)
         if (kanOvertaSaksbehandler(saksbehandler)) add(SaksbehandlerBehandlingKommando.OvertaSaksbehandler)
@@ -35,6 +37,19 @@ fun Meldekortbehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): Lis
         if (kanAngreMeldekortbehandling(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.AngreSendTilBeslutning)
     }
 }
+
+private fun Meldekortbehandling.kanSaksbehandle(saksbehandler: Saksbehandler): Boolean =
+    status == UNDER_BEHANDLING &&
+        saksbehandler.erSaksbehandler &&
+        this.saksbehandler == saksbehandler.navIdent &&
+        !ventestatus.erSattPåVent
+
+private fun Meldekortbehandling.kanBeslutte(saksbehandler: Saksbehandler): Boolean =
+    status == UNDER_BESLUTNING &&
+        saksbehandler.erBeslutter &&
+        this.beslutter == saksbehandler.navIdent &&
+        this.saksbehandler != saksbehandler.navIdent &&
+        !ventestatus.erSattPåVent
 
 private fun Meldekortbehandling.kanTildeleSaksbehandler(saksbehandler: Saksbehandler): Boolean =
     status == KLAR_TIL_BEHANDLING && kanTaMeldekortbehandling(saksbehandler).isRight()

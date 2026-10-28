@@ -23,6 +23,8 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
 fun Rammebehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
     if (!saksbehandler.erSaksbehandlerEllerBeslutter) return emptyList()
     return buildList {
+        if (kanSaksbehandle(saksbehandler)) add(SaksbehandlerBehandlingKommando.Saksbehandle)
+        if (kanBeslutte(saksbehandler)) add(SaksbehandlerBehandlingKommando.Beslutte)
         if (kanTildeleSaksbehandler(saksbehandler)) add(SaksbehandlerBehandlingKommando.TildelSaksbehandler)
         if (kanTildeleBeslutter(saksbehandler)) add(SaksbehandlerBehandlingKommando.TildelBeslutter)
         if (kanAngreBehandling(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.AngreSendTilBeslutning)
@@ -41,6 +43,19 @@ fun Rammebehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<Sa
 
 private fun Rammebehandling.kanGjenåpne(saksbehandler: Saksbehandler): Boolean =
     this is Søknadsbehandling && erAvbrutt && this.søknad.erAvbrutt && saksbehandler.erSaksbehandler
+
+private fun Rammebehandling.kanSaksbehandle(saksbehandler: Saksbehandler): Boolean =
+    status == UNDER_BEHANDLING &&
+        saksbehandler.erSaksbehandler &&
+        this.saksbehandler == saksbehandler.navIdent &&
+        !ventestatus.erSattPåVent
+
+private fun Rammebehandling.kanBeslutte(saksbehandler: Saksbehandler): Boolean =
+    status == UNDER_BESLUTNING &&
+        saksbehandler.erBeslutter &&
+        this.beslutter == saksbehandler.navIdent &&
+        this.saksbehandler != saksbehandler.navIdent &&
+        !ventestatus.erSattPåVent
 
 private fun Rammebehandling.kanTildeleSaksbehandler(saksbehandler: Saksbehandler): Boolean =
     status == KLAR_TIL_BEHANDLING && kanTaBehandling(saksbehandler).isRight()

@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.AngreSendTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Avbryt
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Beslutte
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Gjenoppta
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.HentTilbake
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.LeggTilbakeBeslutter
@@ -21,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.OppdaterSettPåVent
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.OvertaBeslutter
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.OvertaSaksbehandler
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Saksbehandle
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.SettPåVent
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.TildelBeslutter
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.TildelSaksbehandler
@@ -146,7 +148,7 @@ class BenkGyldigeKommandoerTest {
             søknadsbehandling(
                 BenkBehandlingsstatus.UNDER_BEHANDLING,
                 felles(saksbehandler = saksbehandler.navIdent),
-            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(LeggTilbakeSaksbehandler, SettPåVent, Avbryt)
+            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(Saksbehandle, LeggTilbakeSaksbehandler, SettPåVent, Avbryt)
         }
 
         @Test
@@ -178,7 +180,7 @@ class BenkGyldigeKommandoerTest {
             søknadsbehandling(
                 BenkBehandlingsstatus.UNDER_BESLUTNING,
                 felles(saksbehandler = "Z999999", beslutter = beslutter.navIdent),
-            ).finnGyldigeKommandoer(beslutter) shouldBe listOf(LeggTilbakeBeslutter, SettPåVent, Avbryt)
+            ).finnGyldigeKommandoer(beslutter) shouldBe listOf(Beslutte, LeggTilbakeBeslutter, SettPåVent, Avbryt)
         }
 
         @Test
@@ -304,7 +306,7 @@ class BenkGyldigeKommandoerTest {
             meldekort(
                 BenkBehandlingsstatus.UNDER_BEHANDLING,
                 felles(saksbehandler = saksbehandler.navIdent),
-            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(LeggTilbakeSaksbehandler, SettPåVent, Avbryt)
+            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(Saksbehandle, LeggTilbakeSaksbehandler, SettPåVent, Avbryt)
         }
 
         @Test

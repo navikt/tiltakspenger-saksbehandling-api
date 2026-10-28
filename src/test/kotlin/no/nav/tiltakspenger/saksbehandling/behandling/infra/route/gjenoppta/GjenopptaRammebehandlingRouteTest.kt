@@ -27,7 +27,7 @@ class GjenopptaRammebehandlingRouteTest : GjenopptaRammebehandlingBuilder {
             val (sak, søknad, søknadsbehandling, json) = opprettSøknadsbehandlingOgGjenoppta(tac = tac)!!
 
             json.rammebehandlingJson(søknadsbehandling!!.id).toString().shouldBeSøknadsbehandlingDTO(
-                gyldigeKommandoer = listOf("LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"),
+                gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"),
                 behandlingId = søknadsbehandling.id,
                 sakId = sak.id,
                 klagebehandlingId = null,

@@ -152,7 +152,7 @@ class HentBenkRouteTest {
             val respons = hentBenk(tac, "/benk/soknader", """{}""")
 
             objectMapper.readTree(respons)["oversikt"]["behandlinger"].single()["gyldigeKommandoer"]
-                .toString() shouldEqualJson """["LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"]"""
+                .toString() shouldEqualJson """["Saksbehandle", "LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"]"""
         }
     }
 

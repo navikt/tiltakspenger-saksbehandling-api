@@ -386,7 +386,7 @@ class HentTilbakeRammebehandlingRouteTest {
 
             val kommandoerEtter = sakJsonEtter.rammebehandlingJson(opprettetBehandling.id).get("gyldigeKommandoer")
             (0 until kommandoerEtter.size()).map { kommandoerEtter.get(it).asString() } shouldBe
-                listOf("LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt")
+                listOf("Saksbehandle", "LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt")
         }
     }
 }

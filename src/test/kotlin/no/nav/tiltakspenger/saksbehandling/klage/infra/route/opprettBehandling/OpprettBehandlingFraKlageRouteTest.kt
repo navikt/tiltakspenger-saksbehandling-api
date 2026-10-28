@@ -77,7 +77,7 @@ class OpprettBehandlingFraKlageRouteTest {
             )
 
             json.toString().shouldBeSøknadsbehandlingDTO(
-                gyldigeKommandoer = listOf("LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"),
+                gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"),
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
@@ -142,7 +142,7 @@ class OpprettBehandlingFraKlageRouteTest {
             )
 
             json.toString().shouldBeRevurderingDTO(
-                gyldigeKommandoer = listOf("LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"),
+                gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"),
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 status = "UNDER_BEHANDLING",
                 sakId = sak.id,
@@ -206,7 +206,7 @@ class OpprettBehandlingFraKlageRouteTest {
             )
 
             json.toString().shouldBeRevurderingDTO(
-                gyldigeKommandoer = listOf("LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"),
+                gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"),
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 status = "UNDER_BEHANDLING",
                 sakId = rammebehandlingMedKlagebehandling.sakId,

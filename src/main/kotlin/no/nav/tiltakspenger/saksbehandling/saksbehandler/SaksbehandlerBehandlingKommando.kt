@@ -6,6 +6,11 @@ package no.nav.tiltakspenger.saksbehandling.saksbehandler
  *  Vi har mye logikk for dette i frontend nå for å avgjøre dette, tanken er å flytte det til backend etterhvert
  *  */
 enum class SaksbehandlerBehandlingKommando {
+    /** Saksbehandleren er tildelt behandlingen, og kan behandle den (behandlingen er under behandling og ikke satt på vent). */
+    Saksbehandle,
+
+    /** Beslutteren er tildelt behandlingen, og kan beslutte den (behandlingen er under beslutning og ikke satt på vent). */
+    Beslutte,
     TildelSaksbehandler,
     TildelBeslutter,
     AngreSendTilBeslutning,
@@ -23,6 +28,8 @@ enum class SaksbehandlerBehandlingKommando {
 
     fun tilDTO(): SaksbehandlerBehandlingKommandoDTO {
         return when (this) {
+            Saksbehandle -> SaksbehandlerBehandlingKommandoDTO.Saksbehandle
+            Beslutte -> SaksbehandlerBehandlingKommandoDTO.Beslutte
             TildelSaksbehandler -> SaksbehandlerBehandlingKommandoDTO.TildelSaksbehandler
             TildelBeslutter -> SaksbehandlerBehandlingKommandoDTO.TildelBeslutter
             OvertaSaksbehandler -> SaksbehandlerBehandlingKommandoDTO.OvertaSaksbehandler
@@ -41,6 +48,8 @@ enum class SaksbehandlerBehandlingKommando {
 }
 
 enum class SaksbehandlerBehandlingKommandoDTO {
+    Saksbehandle,
+    Beslutte,
     TildelSaksbehandler,
     TildelBeslutter,
     AngreSendTilBeslutning,

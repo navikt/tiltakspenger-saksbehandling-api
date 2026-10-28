@@ -54,6 +54,7 @@ class RammebehandlingGyldigeKommandoerExTest {
 
         behandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
         behandling.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(
+            SaksbehandlerBehandlingKommando.Saksbehandle,
             SaksbehandlerBehandlingKommando.LeggTilbakeSaksbehandler,
             SaksbehandlerBehandlingKommando.SettPåVent,
             SaksbehandlerBehandlingKommando.Avbryt,
@@ -112,6 +113,7 @@ class RammebehandlingGyldigeKommandoerExTest {
 
         behandling.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
         behandling.finnGyldigeKommandoer(beslutter) shouldBe listOf(
+            SaksbehandlerBehandlingKommando.Beslutte,
             SaksbehandlerBehandlingKommando.LeggTilbakeBeslutter,
             SaksbehandlerBehandlingKommando.SettPåVent,
             SaksbehandlerBehandlingKommando.Avbryt,
@@ -161,6 +163,7 @@ class RammebehandlingGyldigeKommandoerExTest {
 
         revurdering.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
         revurdering.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(
+            SaksbehandlerBehandlingKommando.Saksbehandle,
             SaksbehandlerBehandlingKommando.LeggTilbakeSaksbehandler,
             SaksbehandlerBehandlingKommando.SettPåVent,
             SaksbehandlerBehandlingKommando.Avbryt,
@@ -362,6 +365,18 @@ class RammebehandlingGyldigeKommandoerExTest {
         behandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
         behandling.ventestatus.erSattPåVent shouldBe true
         behandling.finnGyldigeKommandoer(saksbehandler) shouldBe emptyList()
+    }
+
+    @Test
+    fun `automatisk behandling under beslutning - tildelt beslutter kan beslutte`() {
+        val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(
+            saksbehandler = AUTOMATISK_SAKSBEHANDLER,
+            beslutter = beslutter,
+            automatiskBehandling = true,
+        )
+
+        behandling.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
+        behandling.finnGyldigeKommandoer(beslutter).first() shouldBe SaksbehandlerBehandlingKommando.Beslutte
     }
 
     @Test

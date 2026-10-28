@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.AngreSendTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Avbryt
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Beslutte
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Gjenoppta
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.HentTilbake
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.LeggTilbakeBeslutter
@@ -23,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.OppdaterSettPåVent
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.OvertaBeslutter
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.OvertaSaksbehandler
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Saksbehandle
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.SettPåVent
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.TildelBeslutter
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.TildelSaksbehandler
@@ -103,6 +105,12 @@ private fun finnGyldigeRammebehandlingKommandoer(
     val erSattPåVent = felles.ventestatus.erSattPåVent
 
     return buildList {
+        if (status == BenkBehandlingsstatus.UNDER_BEHANDLING && erSaksbehandler && felles.saksbehandler == navIdent && !erSattPåVent) {
+            add(Saksbehandle)
+        }
+        if (status == UNDER_BESLUTNING && erBeslutter && felles.beslutter == navIdent && felles.saksbehandler != navIdent && !erSattPåVent) {
+            add(Beslutte)
+        }
         if (status == KLAR_TIL_BEHANDLING && erSaksbehandler && felles.saksbehandler == null) {
             add(TildelSaksbehandler)
         }
@@ -180,6 +188,12 @@ private fun finnGyldigeMeldekortKommandoer(
     val erSattPåVent = felles.ventestatus.erSattPåVent
 
     return buildList {
+        if (status == BenkBehandlingsstatus.UNDER_BEHANDLING && erSaksbehandler && felles.saksbehandler == navIdent && !erSattPåVent) {
+            add(Saksbehandle)
+        }
+        if (status == UNDER_BESLUTNING && erBeslutter && felles.beslutter == navIdent && felles.saksbehandler != navIdent && !erSattPåVent) {
+            add(Beslutte)
+        }
         if (status == KLAR_TIL_BEHANDLING && felles.saksbehandler == null && erSaksbehandler) {
             add(TildelSaksbehandler)
         }
