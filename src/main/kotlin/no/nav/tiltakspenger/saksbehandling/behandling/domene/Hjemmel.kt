@@ -263,6 +263,12 @@ sealed interface Hjemmel {
             override val ledd = Ledd(1)
         }
 
+        data object TILTAKSPENGEFORSKRIFTEN_7_L1_P3 : TiltakspengeforskriftenHjemmel {
+            override val paragraf = Paragraf("7")
+            override val ledd = Ledd(1)
+            override val punktum = 3
+        }
+
         data object TILTAKSPENGEFORSKRIFTEN_7_L3 : TiltakspengeforskriftenHjemmel {
             override val paragraf = Paragraf("7")
             override val ledd = Ledd(3)

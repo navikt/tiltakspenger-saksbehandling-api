@@ -17,10 +17,6 @@ private enum class ValgtHjemmelForAvslagDb {
     AVSLAG_INSTITUSJONSOPPHOLD,
     AVSLAG_FREMMET_FOR_SENT,
     AVSLAG_RETT_TIL_DAGPENGER,
-
-    // TODO: Gammelt navn på AVSLAG_RETT_TIL_DAGPENGER, som bare leses og aldri skrives.
-    // Fjernes når prod er sjekket for rader med verdien, og eventuelle rader er migrert.
-    AVSLAG_FORLENGET_VENTETID,
 }
 
 fun Set<Avslagsgrunnlag>.toDb(): String = serialize(this.map { it.toDb() }.sorted())
@@ -38,7 +34,6 @@ fun String.toAvslagsgrunnlag(): NonEmptySet<Avslagsgrunnlag> {
             ValgtHjemmelForAvslagDb.AVSLAG_INSTITUSJONSOPPHOLD -> Avslagsgrunnlag.Institusjonsopphold
             ValgtHjemmelForAvslagDb.AVSLAG_FREMMET_FOR_SENT -> Avslagsgrunnlag.FremmetForSent
             ValgtHjemmelForAvslagDb.AVSLAG_RETT_TIL_DAGPENGER -> Avslagsgrunnlag.RettTilDagpenger
-            ValgtHjemmelForAvslagDb.AVSLAG_FORLENGET_VENTETID -> Avslagsgrunnlag.RettTilDagpenger
         }
     }.toNonEmptySetOrNull()!!
 }

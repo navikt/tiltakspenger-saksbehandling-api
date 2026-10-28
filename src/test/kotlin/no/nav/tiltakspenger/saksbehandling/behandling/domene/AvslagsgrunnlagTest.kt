@@ -127,6 +127,7 @@ class AvslagsgrunnlagTest {
             it.first().paragraf shouldBe Paragraf("7")
             it.first().rettskilde shouldBe Rettskilde.Tiltakspengeforskriften
             it.first().ledd shouldBe Ledd(1)
+            it.first().punktum shouldBe 3
 
             it.last().paragraf shouldBe Paragraf("13")
             it.last().rettskilde shouldBe Rettskilde.Arbeidsmarkedsloven
