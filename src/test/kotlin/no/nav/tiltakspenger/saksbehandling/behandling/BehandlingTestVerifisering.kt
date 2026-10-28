@@ -189,7 +189,8 @@ fun String.shouldBeRevurderingDTO(
                 "deltagelseTilOgMed": "$periodeTilOgMed",
                 "kilde": "Komet",
                 "internDeltakelseId": "$internDeltakelseId",
-                "deltakelseProsent": $deltakelseProsent
+                "deltakelseProsent": $deltakelseProsent,
+                "kanInnvilges": true
               }
             ],
             "tiltaksdeltakelserSomFratarRett": [],
@@ -307,7 +308,8 @@ fun String.shouldBeSøknadsbehandlingDTO(
                 "deltagelseTilOgMed": "$periodeTilOgMed",
                 "kilde": "Komet",
                 "internDeltakelseId": "$internDeltakelseId",
-                "deltakelseProsent": $deltakelseProsent
+                "deltakelseProsent": $deltakelseProsent,
+                "kanInnvilges": true
               }
             ],
             "tiltaksdeltakelserSomFratarRett": [],

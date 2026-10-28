@@ -16,6 +16,7 @@ data class TiltaksdeltakelseDTO(
     val kilde: String,
     val gjennomforingsprosent: Float?,
     val internDeltakelseId: String,
+    val kanInnvilges: Boolean,
 )
 
 fun TiltaksdeltakelseIntern.toDTO(): TiltaksdeltakelseDTO {
@@ -32,5 +33,6 @@ fun TiltaksdeltakelseIntern.toDTO(): TiltaksdeltakelseDTO {
         kilde = this.kilde.name,
         gjennomforingsprosent = this.deltidsprosentGjennomforing?.toFloat(),
         internDeltakelseId = this.internDeltakelseId.toString(),
+        kanInnvilges = this.kanInnvilges,
     )
 }
