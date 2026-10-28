@@ -120,8 +120,8 @@ class AvslagsgrunnlagTest {
     }
 
     @Test
-    fun `ForlengetVentetid er lenket til riktig hjemler`() {
-        Avslagsgrunnlag.ForlengetVentetid.hjemler.let {
+    fun `RettTilDagpenger er lenket til riktig hjemler`() {
+        Avslagsgrunnlag.RettTilDagpenger.hjemler.let {
             it.size shouldBe 2
 
             it.first().paragraf shouldBe Paragraf("7")

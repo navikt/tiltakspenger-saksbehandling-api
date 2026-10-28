@@ -14,6 +14,10 @@ enum class ValgtHjemmelForAvslagDTO {
     LønnFraAndre,
     Institusjonsopphold,
     FremmetForSent,
+    RettTilDagpenger,
+
+    // TODO: Gammelt navn på RettTilDagpenger, som bare tas imot og aldri sendes ut.
+    // Fjernes når frontend sender RettTilDagpenger i prod.
     ForlengetVentetid,
     ;
 
@@ -27,7 +31,8 @@ enum class ValgtHjemmelForAvslagDTO {
         LønnFraAndre -> Avslagsgrunnlag.LønnFraAndre
         Institusjonsopphold -> Avslagsgrunnlag.Institusjonsopphold
         FremmetForSent -> Avslagsgrunnlag.FremmetForSent
-        ForlengetVentetid -> Avslagsgrunnlag.ForlengetVentetid
+        RettTilDagpenger -> Avslagsgrunnlag.RettTilDagpenger
+        ForlengetVentetid -> Avslagsgrunnlag.RettTilDagpenger
     }
 }
 
@@ -46,7 +51,7 @@ fun Set<Avslagsgrunnlag>.toValgtHjemmelForAvslagDTO(): List<ValgtHjemmelForAvsla
             Avslagsgrunnlag.LønnFraAndre -> ValgtHjemmelForAvslagDTO.LønnFraAndre
             Avslagsgrunnlag.Institusjonsopphold -> ValgtHjemmelForAvslagDTO.Institusjonsopphold
             Avslagsgrunnlag.FremmetForSent -> ValgtHjemmelForAvslagDTO.FremmetForSent
-            Avslagsgrunnlag.ForlengetVentetid -> ValgtHjemmelForAvslagDTO.ForlengetVentetid
+            Avslagsgrunnlag.RettTilDagpenger -> ValgtHjemmelForAvslagDTO.RettTilDagpenger
         }
     }.sortedBy { it.name }
 }

@@ -16,6 +16,10 @@ private enum class ValgtHjemmelForAvslagDb {
     AVSLAG_LØNN_FRA_ANDRE,
     AVSLAG_INSTITUSJONSOPPHOLD,
     AVSLAG_FREMMET_FOR_SENT,
+    AVSLAG_RETT_TIL_DAGPENGER,
+
+    // TODO: Gammelt navn på AVSLAG_RETT_TIL_DAGPENGER, som bare leses og aldri skrives.
+    // Fjernes når prod er sjekket for rader med verdien, og eventuelle rader er migrert.
     AVSLAG_FORLENGET_VENTETID,
 }
 
@@ -33,7 +37,8 @@ fun String.toAvslagsgrunnlag(): NonEmptySet<Avslagsgrunnlag> {
             ValgtHjemmelForAvslagDb.AVSLAG_LØNN_FRA_ANDRE -> Avslagsgrunnlag.LønnFraAndre
             ValgtHjemmelForAvslagDb.AVSLAG_INSTITUSJONSOPPHOLD -> Avslagsgrunnlag.Institusjonsopphold
             ValgtHjemmelForAvslagDb.AVSLAG_FREMMET_FOR_SENT -> Avslagsgrunnlag.FremmetForSent
-            ValgtHjemmelForAvslagDb.AVSLAG_FORLENGET_VENTETID -> Avslagsgrunnlag.ForlengetVentetid
+            ValgtHjemmelForAvslagDb.AVSLAG_RETT_TIL_DAGPENGER -> Avslagsgrunnlag.RettTilDagpenger
+            ValgtHjemmelForAvslagDb.AVSLAG_FORLENGET_VENTETID -> Avslagsgrunnlag.RettTilDagpenger
         }
     }.toNonEmptySetOrNull()!!
 }
@@ -49,6 +54,6 @@ private fun Avslagsgrunnlag.toDb(): String {
         Avslagsgrunnlag.LønnFraAndre -> ValgtHjemmelForAvslagDb.AVSLAG_LØNN_FRA_ANDRE
         Avslagsgrunnlag.Institusjonsopphold -> ValgtHjemmelForAvslagDb.AVSLAG_INSTITUSJONSOPPHOLD
         Avslagsgrunnlag.FremmetForSent -> ValgtHjemmelForAvslagDb.AVSLAG_FREMMET_FOR_SENT
-        Avslagsgrunnlag.ForlengetVentetid -> ValgtHjemmelForAvslagDb.AVSLAG_FORLENGET_VENTETID
+        Avslagsgrunnlag.RettTilDagpenger -> ValgtHjemmelForAvslagDb.AVSLAG_RETT_TIL_DAGPENGER
     }.toString()
 }

@@ -18,20 +18,20 @@ class AvslagsgrunnlagDbJsonKtTest {
             Avslagsgrunnlag.LønnFraAndre,
             Avslagsgrunnlag.Institusjonsopphold,
             Avslagsgrunnlag.FremmetForSent,
-            Avslagsgrunnlag.ForlengetVentetid,
+            Avslagsgrunnlag.RettTilDagpenger,
         ).toDb().shouldEqualJson(
             """
             [
                 "AVSLAG_ALDER",
                 "AVSLAG_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK",
-                "AVSLAG_FORLENGET_VENTETID",
                 "AVSLAG_FREMMET_FOR_SENT",
                 "AVSLAG_INSTITUSJONSOPPHOLD",
                 "AVSLAG_INTRODUKSJONSPROGRAMMET",
                 "AVSLAG_KVALIFISERINGSPROGRAMMET",
                 "AVSLAG_LIVSOPPHOLDSYTELSER",
                 "AVSLAG_LØNN_FRA_ANDRE",
-                "AVSLAG_LØNN_FRA_TILTAKSARRANGØR"
+                "AVSLAG_LØNN_FRA_TILTAKSARRANGØR",
+                "AVSLAG_RETT_TIL_DAGPENGER"
             ]
             """.trimIndent(),
         )
@@ -50,7 +50,7 @@ class AvslagsgrunnlagDbJsonKtTest {
                 "AVSLAG_LØNN_FRA_ANDRE",
                 "AVSLAG_INSTITUSJONSOPPHOLD",
                 "AVSLAG_FREMMET_FOR_SENT",
-                "AVSLAG_FORLENGET_VENTETID"
+                "AVSLAG_RETT_TIL_DAGPENGER"
             ]
         """.trimIndent().toAvslagsgrunnlag() shouldBe setOf(
             Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak,
@@ -62,7 +62,12 @@ class AvslagsgrunnlagDbJsonKtTest {
             Avslagsgrunnlag.LønnFraAndre,
             Avslagsgrunnlag.Institusjonsopphold,
             Avslagsgrunnlag.FremmetForSent,
-            Avslagsgrunnlag.ForlengetVentetid,
+            Avslagsgrunnlag.RettTilDagpenger,
         )
+    }
+
+    @Test
+    fun `deserialiserer gammelt navn på rett til dagpenger`() {
+        """["AVSLAG_FORLENGET_VENTETID"]""".toAvslagsgrunnlag() shouldBe setOf(Avslagsgrunnlag.RettTilDagpenger)
     }
 }
