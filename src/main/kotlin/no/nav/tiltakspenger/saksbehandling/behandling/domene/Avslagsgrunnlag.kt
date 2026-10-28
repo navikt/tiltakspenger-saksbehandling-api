@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.Tiltakspeng
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_2
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_3
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_7_L1
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_7_L1_P3
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_7_L3
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_8
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_8_L2
@@ -30,5 +31,5 @@ enum class Avslagsgrunnlag(val hjemler: List<Hjemmel>) {
     LønnFraAndre(listOf(TILTAKSPENGEFORSKRIFTEN_8_L2, ARBEIDSMARKEDSLOVEN_13)),
     Institusjonsopphold(listOf(TILTAKSPENGEFORSKRIFTEN_9)),
     FremmetForSent(listOf(TILTAKSPENGEFORSKRIFTEN_11, ARBEIDSMARKEDSLOVEN_15)),
-    RettTilDagpenger(listOf(TILTAKSPENGEFORSKRIFTEN_7_L1, ARBEIDSMARKEDSLOVEN_13_L1)),
+    RettTilDagpenger(listOf(TILTAKSPENGEFORSKRIFTEN_7_L1_P3, ARBEIDSMARKEDSLOVEN_13_L1)),
 }
