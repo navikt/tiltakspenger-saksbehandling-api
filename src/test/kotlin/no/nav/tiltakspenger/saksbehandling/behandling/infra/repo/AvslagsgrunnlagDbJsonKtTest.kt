@@ -65,9 +65,4 @@ class AvslagsgrunnlagDbJsonKtTest {
             Avslagsgrunnlag.RettTilDagpenger,
         )
     }
-
-    @Test
-    fun `deserialiserer gammelt navn på rett til dagpenger`() {
-        """["AVSLAG_FORLENGET_VENTETID"]""".toAvslagsgrunnlag() shouldBe setOf(Avslagsgrunnlag.RettTilDagpenger)
-    }
 }

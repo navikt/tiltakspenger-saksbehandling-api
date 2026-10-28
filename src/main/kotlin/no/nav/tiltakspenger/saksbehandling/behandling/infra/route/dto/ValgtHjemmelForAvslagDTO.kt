@@ -15,10 +15,6 @@ enum class ValgtHjemmelForAvslagDTO {
     Institusjonsopphold,
     FremmetForSent,
     RettTilDagpenger,
-
-    // TODO: Gammelt navn på RettTilDagpenger, som bare tas imot og aldri sendes ut.
-    // Fjernes når frontend sender RettTilDagpenger i prod.
-    ForlengetVentetid,
     ;
 
     fun toDomain(): Avslagsgrunnlag = when (this) {
@@ -32,7 +28,6 @@ enum class ValgtHjemmelForAvslagDTO {
         Institusjonsopphold -> Avslagsgrunnlag.Institusjonsopphold
         FremmetForSent -> Avslagsgrunnlag.FremmetForSent
         RettTilDagpenger -> Avslagsgrunnlag.RettTilDagpenger
-        ForlengetVentetid -> Avslagsgrunnlag.RettTilDagpenger
     }
 }
 
