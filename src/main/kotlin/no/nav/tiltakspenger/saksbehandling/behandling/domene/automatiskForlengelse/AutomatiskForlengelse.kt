@@ -99,7 +99,7 @@ fun Sak.utledAutomatiskForlengelse(
         grunner.add(ManueltBehandlesGrunn.FORLENGELSE_VEDTAKET_ER_STANSET_ELLER_OPPHORT)
     }
     // Er vedtaket stanset eller opphørt, slutter innvilgelsen alltid før deltakelsen, og det er ikke en egen grunn.
-    val slutterFørDeltakelsen = gjeldende != null && !erStansetEllerOpphørt && tidligereDeltakelse!!.deltakelseTilOgMed != gjeldende.periode.tilOgMed
+    val slutterFørDeltakelsen = gjeldende != null && !erStansetEllerOpphørt && tidligereDeltakelse!!.periode.tilOgMed != gjeldende.periode.tilOgMed
     if (slutterFørDeltakelsen) {
         grunner.add(ManueltBehandlesGrunn.FORLENGELSE_INNVILGELSEN_SLUTTER_FOR_DELTAKELSEN)
     }
@@ -119,7 +119,7 @@ fun Sak.utledAutomatiskForlengelse(
         grunner.add(ManueltBehandlesGrunn.FORLENGELSE_TILTAKET_GIR_IKKE_RETT)
     }
 
-    val nySluttdato = nåtilstand?.deltakelseTilOgMed
+    val nySluttdato = nåtilstand?.periode?.tilOgMed
     if (nåtilstand != null && nySluttdato == null) {
         grunner.add(ManueltBehandlesGrunn.FORLENGELSE_DELTAKELSEN_MANGLER_SLUTTDATO)
     }
@@ -128,7 +128,7 @@ fun Sak.utledAutomatiskForlengelse(
         grunner.add(ManueltBehandlesGrunn.FORLENGELSE_SLUTTDATO_ER_IKKE_ETTER_INNVILGELSEN)
     }
 
-    if (tidligereDeltakelse != null && nåtilstand != null && nåtilstand.deltakelseFraOgMed != tidligereDeltakelse.deltakelseFraOgMed) {
+    if (tidligereDeltakelse != null && nåtilstand != null && nåtilstand.periode.fraOgMed != tidligereDeltakelse.periode.fraOgMed) {
         grunner.add(ManueltBehandlesGrunn.FORLENGELSE_ENDRET_STARTDATO)
     }
 

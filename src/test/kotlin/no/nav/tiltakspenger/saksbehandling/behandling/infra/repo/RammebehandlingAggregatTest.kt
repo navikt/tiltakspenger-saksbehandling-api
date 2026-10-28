@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSø
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import org.junit.jupiter.api.Test
 
 /**
@@ -83,8 +84,8 @@ class RammebehandlingAggregatTest {
     @IsolatedDatabaseTest
     fun `revurderingskøen tar kun revurderinger under automatisk behandling som ikke venter, sorterer eldst først og respekterer limit`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val eldst = opprettAutomatiskRevurdering(tac) { it.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 20.april(2025)) }
-            val nyest = opprettAutomatiskRevurdering(tac) { it.copy(deltakelseTilOgMed = 30.juni(2025)) }
+            val eldst = opprettAutomatiskRevurdering(tac) { it.medPeriode(tilOgMed = 20.april(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt) }
+            val nyest = opprettAutomatiskRevurdering(tac) { it.medPeriode(tilOgMed = 30.juni(2025)) }
             // Kandidatene som skal falle utenfor på type og status: søknadsbehandling under automatisk behandling og manuelt opprettet stans.
             opprettSøknadsbehandlingUnderAutomatiskBehandling(tac = tac)
             val (manuellSak) = iverksettSøknadsbehandling(tac = tac)
@@ -131,7 +132,7 @@ class RammebehandlingAggregatTest {
         val (sak) = iverksettSøknadsbehandling(
             tac = tac,
             tiltaksdeltakelse = deltakelse,
-            innvilgelsesperioder = ObjectMother.innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+            innvilgelsesperioder = ObjectMother.innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
         )
         tac.oppdaterTiltaksdeltakelse(sak.fnr, nåtilstand(deltakelse))
         tac.tiltakContext.tiltaksdeltakerRepo.registrerUbehandletEndring(

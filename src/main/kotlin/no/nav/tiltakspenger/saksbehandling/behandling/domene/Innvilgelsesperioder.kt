@@ -38,8 +38,7 @@ data class Innvilgelsesperioder(
         periodisering.perioderMedVerdi.forEach {
             val valgtTiltaksdeltakelse = it.verdi.valgtTiltaksdeltakelse
 
-            val deltakelsesperiode =
-                Periode(valgtTiltaksdeltakelse.deltakelseFraOgMed!!, valgtTiltaksdeltakelse.deltakelseTilOgMed!!)
+            val deltakelsesperiode = valgtTiltaksdeltakelse.periode as Periode
 
             require(deltakelsesperiode.inneholderHele(it.periode)) {
                 "Valgt deltakelsesperiode $deltakelsesperiode for tiltak med id ${valgtTiltaksdeltakelse.internDeltakelseId} må inneholde hele innvilgelsesperioden ${it.periode}"
@@ -121,7 +120,7 @@ data class InnvilgelsesperiodeVerdi(
     val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
 ) {
     init {
-        require(valgtTiltaksdeltakelse.deltakelseFraOgMed != null && valgtTiltaksdeltakelse.deltakelseTilOgMed != null) {
+        require(valgtTiltaksdeltakelse.periode is Periode) {
             "Kan ikke innvilge for tiltaksdeltakelse med id ${valgtTiltaksdeltakelse.internDeltakelseId} som mangler start- eller sluttdato"
         }
     }

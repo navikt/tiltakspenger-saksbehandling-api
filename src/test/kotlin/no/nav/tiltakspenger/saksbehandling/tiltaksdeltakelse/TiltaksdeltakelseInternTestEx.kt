@@ -13,6 +13,8 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TeamTiltakstatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testStatusOpprettet
+import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
+import java.time.LocalDate
 
 /**
  * Deltakelsen slik tiltakshistorikk ville levert den, til fakes og tester som trenger libs-domenet.
@@ -31,10 +33,8 @@ fun TiltaksdeltakelseIntern.tilLibsDeltakelse(): Tiltaksdeltakelse.GirRett {
         deltidsprosentPåGjennomføring = deltidsprosentGjennomforing?.toFloat(),
     )
     val gjennomføringId = gjennomføringId?.let { GjennomføringId(it) }
-    val fraOgMed = deltakelseFraOgMed
-    val tilOgMed = deltakelseTilOgMed
-    return if (fraOgMed != null && tilOgMed != null) {
-        Tiltaksdeltakelse.GirRett.MedPeriode(
+    return when (val periode = periode) {
+        is Periode -> Tiltaksdeltakelse.GirRett.MedPeriode(
             id = id,
             kildestatus = kildestatus,
             tiltakstype = tiltakstype,
@@ -44,10 +44,10 @@ fun TiltaksdeltakelseIntern.tilLibsDeltakelse(): Tiltaksdeltakelse.GirRett {
             arrangør = arrangør,
             omfang = omfang,
             gjennomføringId = gjennomføringId,
-            periode = Periode(fraOgMed, tilOgMed),
+            periode = periode,
         )
-    } else {
-        Tiltaksdeltakelse.GirRett.UtenPeriode(
+
+        is ÅpenPeriode -> Tiltaksdeltakelse.GirRett.UtenPeriode(
             id = id,
             kildestatus = kildestatus,
             tiltakstype = tiltakstype,
@@ -57,7 +57,7 @@ fun TiltaksdeltakelseIntern.tilLibsDeltakelse(): Tiltaksdeltakelse.GirRett {
             arrangør = arrangør,
             omfang = omfang,
             gjennomføringId = gjennomføringId,
-            periode = ÅpenPeriode(fraOgMed, tilOgMed),
+            periode = periode,
         )
     }
 }
@@ -137,3 +137,12 @@ private fun TiltakDeltakerstatus.tilKometstatusType(): Kometstatus.Type = when (
     TiltakDeltakerstatus.VenterPåOppstart -> Kometstatus.Type.VENTER_PA_OPPSTART
     TiltakDeltakerstatus.Vurderes -> Kometstatus.Type.VURDERES
 }
+
+/**
+ * Kopi med ny start- og/eller sluttdato.
+ * Datoene som ikke sendes inn beholdes.
+ */
+fun TiltaksdeltakelseIntern.medPeriode(
+    fraOgMed: LocalDate? = periode.fraOgMed,
+    tilOgMed: LocalDate? = periode.tilOgMed,
+): TiltaksdeltakelseIntern = copy(periode = lukketEllerÅpenPeriode(fraOgMed, tilOgMed))

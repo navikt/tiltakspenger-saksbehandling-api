@@ -43,6 +43,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.Oppdater
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringKunneIkkeBehandles
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -97,7 +98,7 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
     fun `registerfeil gir ingen revurdering, og nytt forsøk oppretter bare én`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, deltakelse) = opprettInnvilgetSak(tac)
-            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.medPeriode(tilOgMed = 5.juni(2025)))
             val deltaker = tac.registrerEndring(sak, deltakelse)
             var skalFeile = true
             var antallOppslag = 0
@@ -150,14 +151,14 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
                 "ukjent status" -> testdeltakelse(
                     id = deltakelse.eksternDeltakelseId,
                     kildestatus = Arenastatus.Ukjent("NY_STATUS"),
-                    fraOgMed = deltakelse.deltakelseFraOgMed,
+                    fraOgMed = deltakelse.periode.fraOgMed,
                     tilOgMed = 5.juni(2025),
                 )
 
                 "ukjent tiltakstype" -> testdeltakelse(
                     id = deltakelse.eksternDeltakelseId,
                     tiltakstype = Tiltakstype.Ukjent(tiltakskodeFraKilden = "NY_TILTAKSTYPE"),
-                    fraOgMed = deltakelse.deltakelseFraOgMed,
+                    fraOgMed = deltakelse.periode.fraOgMed,
                     tilOgMed = 5.juni(2025),
                 )
 
@@ -211,10 +212,9 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
             tac.oppdaterTiltaksdeltakelse(sak.fnr, null)
             tac.oppdaterTiltaksdeltakelse(
                 sak.fnr,
-                deltakelse.copy(
+                deltakelse.medPeriode(tilOgMed = 5.juni(2025)).copy(
                     eksternDeltakelseId = kometId,
                     kilde = Tiltakskilde.Komet,
-                    deltakelseTilOgMed = 5.juni(2025),
                 ),
             )
             val delegate = tac.tiltakContext.tiltaksdeltakelseKlient
@@ -243,7 +243,7 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
         val (sak) = iverksettSøknadsbehandling(
             tac = tac,
             tiltaksdeltakelse = deltakelse,
-            innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+            innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
         )
         return sak to deltakelse
     }

@@ -367,9 +367,7 @@ interface OppdaterRammebehandlingBuilder {
                 dto
             } else {
                 val dekkende = kjenteDeltakelser.firstOrNull { deltakelse ->
-                    deltakelse.deltakelseFraOgMed != null &&
-                        deltakelse.deltakelseTilOgMed != null &&
-                        Periode(deltakelse.deltakelseFraOgMed, deltakelse.deltakelseTilOgMed).inneholderHele(dto.periode.toDomain())
+                    deltakelse.lukketPeriode?.inneholderHele(dto.periode.toDomain()) == true
                 }
                 val erstatning = dekkende ?: kjenteDeltakelser.firstOrNull()
                 // Uten kjente deltakelser lar vi dto-en stå, slik at serveren svarer med sin egen feil.

@@ -76,7 +76,7 @@ fun Sak.utledAutomatiskStans(
     if (status !in avsluttedeDeltakerstatuser) {
         grunner.add(ManueltBehandlesGrunn.STANS_DELTAKELSEN_ER_IKKE_AVSLUTTET)
     }
-    val sluttdato = nåtilstand.deltakelseTilOgMed
+    val sluttdato = nåtilstand.periode.tilOgMed
         ?: return (grunner + ManueltBehandlesGrunn.STANS_DELTAKELSEN_MANGLER_SLUTTDATO).toNonEmptyListOrThrow().left()
     // Stansdatoen utledes fra sluttdatoen, og en sluttdato i fremtiden kan fortsatt endres.
     if (sluttdato.isAfter(iDag)) {

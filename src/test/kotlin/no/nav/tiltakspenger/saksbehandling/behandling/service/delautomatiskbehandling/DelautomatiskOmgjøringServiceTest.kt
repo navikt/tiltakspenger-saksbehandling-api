@@ -40,6 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.IngenRelevantEndring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.junit.jupiter.api.Test
 
@@ -113,9 +114,9 @@ class DelautomatiskOmgjøringServiceTest {
             val (sak, _, vedtak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
-            val avkortet = deltakelse.copy(deltakelseTilOgMed = 15.mai(2025))
+            val avkortet = deltakelse.medPeriode(tilOgMed = 15.mai(2025))
             val revurdering = tac.opprettAutomatiskOmgjøring(sak, vedtak, deltakelse, avkortet)
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
@@ -160,9 +161,9 @@ class DelautomatiskOmgjøringServiceTest {
             val (sak, _, vedtak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
-            val avkortet = deltakelse.copy(deltakelseTilOgMed = 15.mai(2025))
+            val avkortet = deltakelse.medPeriode(tilOgMed = 15.mai(2025))
             val revurdering = tac.opprettAutomatiskOmgjøring(sak, vedtak, deltakelse, avkortet)
             tac.oppdaterTiltaksdeltakelse(sak.fnr, avkortet.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt))
 
@@ -180,13 +181,13 @@ class DelautomatiskOmgjøringServiceTest {
             val (sak, _, vedtak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
-            val avkortet = deltakelse.copy(deltakelseTilOgMed = 15.mai(2025))
+            val avkortet = deltakelse.medPeriode(tilOgMed = 15.mai(2025))
             val revurdering = tac.opprettAutomatiskOmgjøring(sak, vedtak, deltakelse, avkortet)
             tac.oppdaterTiltaksdeltakelse(
                 sak.fnr,
-                avkortet.copy(deltakelseFraOgMed = 13.januar(2025), antallDagerPerUke = 2F, deltakelseProsent = 40F),
+                avkortet.medPeriode(fraOgMed = 13.januar(2025)).copy(antallDagerPerUke = 2F, deltakelseProsent = 40F),
             )
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
@@ -210,14 +211,14 @@ class DelautomatiskOmgjøringServiceTest {
             val (sak, _, vedtak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             utbetalFørsteMeldeperiode(tac, sak)
             val revurdering = tac.opprettAutomatiskOmgjøring(
                 sak = sak,
                 vedtak = vedtak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 10.januar(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 10.januar(2025)),
             )
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
@@ -239,14 +240,14 @@ class DelautomatiskOmgjøringServiceTest {
                 tac = tac,
                 fnr = Fnr.fromString(DevSimuleringsscenario.UBALANSERT_JUSTERING.fnr),
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             utbetalFørsteMeldeperiode(tac, sak)
             val revurdering = tac.opprettAutomatiskOmgjøring(
                 sak = sak,
                 vedtak = vedtak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 10.januar(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 10.januar(2025)),
             )
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
@@ -278,7 +279,7 @@ class DelautomatiskOmgjøringServiceTest {
                 sak = sak,
                 vedtak = søknadsvedtak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 15.mars(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 15.mars(2025)),
             )
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
@@ -318,7 +319,7 @@ class DelautomatiskOmgjøringServiceTest {
                 sak = sak,
                 vedtak = søknadsvedtak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 10.januar(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 10.januar(2025)),
             )
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
@@ -352,7 +353,7 @@ class DelautomatiskOmgjøringServiceTest {
                 sak = sak,
                 vedtak = søknadsvedtak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 15.mars(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 15.mars(2025)),
             )
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
@@ -392,7 +393,7 @@ class DelautomatiskOmgjøringServiceTest {
                 sakId = sak.id,
                 innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 30.juni(2025), deltakelse),
             )
-            val avkortet = deltakelse.copy(deltakelseTilOgMed = 15.mars(2025))
+            val avkortet = deltakelse.medPeriode(tilOgMed = 15.mars(2025))
             val revurdering = tac.opprettAutomatiskOmgjøring(sak, søknadsvedtak, deltakelse, avkortet)
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
@@ -430,7 +431,7 @@ class DelautomatiskOmgjøringServiceTest {
                 innvilgelsesperioder = innvilgelsesperioder(3.mars(2025) til 31.mai(2025), deltakelse),
             )
 
-            tac.behandleEndring(sak, deltakelse, deltakelse.copy(deltakelseTilOgMed = 20.februar(2025)))
+            tac.behandleEndring(sak, deltakelse, deltakelse.medPeriode(tilOgMed = 20.februar(2025)))
                 .shouldBeInstanceOf<RevurderingOpprettet>()
 
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()

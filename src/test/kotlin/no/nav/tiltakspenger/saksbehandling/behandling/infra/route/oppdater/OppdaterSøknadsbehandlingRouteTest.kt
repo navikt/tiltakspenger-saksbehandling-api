@@ -67,7 +67,7 @@ class OppdaterSøknadsbehandlingRouteTest {
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
 
             val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.first()
-            val nyInnvilgelsesperiode = tiltaksdeltakelse.periode!!.minusTilOgMed(1)
+            val nyInnvilgelsesperiode = tiltaksdeltakelse.lukketPeriode!!.minusTilOgMed(1)
 
             val barnetillegg = barnetillegg(
                 begrunnelse = Begrunnelse.create("barnetillegg begrunnelse"),
@@ -111,7 +111,7 @@ class OppdaterSøknadsbehandlingRouteTest {
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
 
             val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.first()
-            val nyInnvilgelsesperiode = tiltaksdeltakelse.periode!!.minusTilOgMed(1)
+            val nyInnvilgelsesperiode = tiltaksdeltakelse.lukketPeriode!!.minusTilOgMed(1)
 
             val barnetillegg = barnetillegg(
                 begrunnelse = Begrunnelse.create("barnetillegg begrunnelse"),
@@ -216,7 +216,7 @@ class OppdaterSøknadsbehandlingRouteTest {
             }
 
             val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.single()
-            val tiltaksdeltakelsePeriode = tiltaksdeltakelse.periode!!
+            val tiltaksdeltakelsePeriode = tiltaksdeltakelse.lukketPeriode!!
 
             val oppdatertTiltaksdeltakelsesPeriode = tiltaksdeltakelsePeriode.minusFraOgMed(7)
 

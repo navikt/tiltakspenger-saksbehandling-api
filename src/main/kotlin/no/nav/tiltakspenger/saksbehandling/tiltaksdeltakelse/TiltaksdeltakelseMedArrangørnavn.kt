@@ -1,8 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse
 
+import no.nav.tiltakspenger.libs.periode.LukketEllerÅpenPeriode
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periode.ÅpenPeriode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
-import java.time.LocalDate
+import no.nav.tiltakspenger.saksbehandling.felles.krevLukketNårBeggeDatoeneErKjent
+import no.nav.tiltakspenger.saksbehandling.felles.lukketPeriode
 
 /**
  * Tiltaksdeltakelse som også kan ha med [visningsnavn].
@@ -16,27 +19,25 @@ import java.time.LocalDate
  * @param typeNavn Navn på tiltakstypen, f.eks. "Arbeidsforberedende trening"
  * @param typeKode null dersom tiltakstypen fratar rett til tiltakspenger (i første omgang lønnstilskudd).
  * Slike deltakelser vises til saksbehandler, men kan ikke velges.
- * @param deltakelseFraOgMed startdato for deltakelsen.
- * Kan mangle, særlig når deltaker venter på oppstart
- * @param deltakelseTilOgMed sluttdato for deltakelsen.
- * Kan mangle.
+ * @param periode en [Periode] når både start- og sluttdato er kjent, ellers en [ÅpenPeriode].
+ * Datoene kan mangle, særlig startdatoen når deltaker venter på oppstart.
  */
 data class TiltaksdeltakelseMedArrangørnavn(
     val eksternDeltakelseId: String,
     val typeNavn: String,
     val typeKode: TiltakstypeSomGirRettDTO?,
-    val deltakelseFraOgMed: LocalDate?,
-    val deltakelseTilOgMed: LocalDate?,
+    val periode: LukketEllerÅpenPeriode,
     val visningsnavn: String,
     val status: TiltakDeltakerstatus,
 ) {
+    init {
+        periode.krevLukketNårBeggeDatoeneErKjent()
+    }
+
     val fratarRett: Boolean get() = typeKode == null
 
-    val periode: Periode? by lazy {
-        if (deltakelseFraOgMed != null && deltakelseTilOgMed != null) {
-            Periode(deltakelseFraOgMed, deltakelseTilOgMed)
-        } else {
-            null
-        }
-    }
+    /**
+     * null dersom start- eller sluttdato mangler.
+     */
+    val lukketPeriode: Periode? get() = periode.lukketPeriode
 }

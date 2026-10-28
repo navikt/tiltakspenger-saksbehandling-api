@@ -217,8 +217,8 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
                 tiltakJson = """
                     {
                       "eksternDeltakelseId": "${tiltaksdeltakelse.eksternDeltakelseId}",
-                      "deltakelseFraOgMed": "${tiltaksdeltakelse.deltakelseFraOgMed!!}",
-                      "deltakelseTilOgMed": "${tiltaksdeltakelse.deltakelseTilOgMed!!}",
+                      "deltakelseFraOgMed": "${tiltaksdeltakelse.periode.fraOgMed!!}",
+                      "deltakelseTilOgMed": "${tiltaksdeltakelse.periode.tilOgMed!!}",
                       "typeKode": "${tiltaksdeltakelse.typeKode.name}",
                       "typeNavn": "${tiltaksdeltakelse.typeNavn}"
                     }

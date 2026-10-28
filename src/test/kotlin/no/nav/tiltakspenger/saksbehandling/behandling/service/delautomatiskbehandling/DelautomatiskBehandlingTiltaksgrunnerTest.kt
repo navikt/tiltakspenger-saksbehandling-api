@@ -31,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadPåSakId
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -59,7 +60,7 @@ class DelautomatiskBehandlingTiltaksgrunnerTest {
         withTestApplicationContext { tac ->
             val søknadstiltak = tac.tiltaksdeltakelse()
             val (sak, søknad) = opprettSakOgSøknad(tac, tiltaksdeltakelse = søknadstiltak)
-            tac.oppdaterTiltaksdeltakelse(sak.fnr, søknadstiltak.copy(deltakelseTilOgMed = null))
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, søknadstiltak.medPeriode(tilOgMed = null))
 
             behandleAutomatisk(tac, søknad) shouldBe listOf(SAKSOPPLYSNING_TILTAK_MANGLER_PERIODE, SAKSOPPLYSNING_MANGLER_FULLSTENDIG_PERIODE)
         }
@@ -70,7 +71,7 @@ class DelautomatiskBehandlingTiltaksgrunnerTest {
         withTestApplicationContext { tac ->
             val søknadstiltak = tac.tiltaksdeltakelse()
             val (sak, søknad) = opprettSakOgSøknad(tac, tiltaksdeltakelse = søknadstiltak)
-            tac.oppdaterTiltaksdeltakelse(sak.fnr, søknadstiltak.copy(deltakelseTilOgMed = 28.februar(2023)))
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, søknadstiltak.medPeriode(tilOgMed = 28.februar(2023)))
 
             behandleAutomatisk(tac, søknad) shouldBe listOf(SAKSOPPLYSNING_ULIK_TILTAKSPERIODE)
         }
@@ -138,7 +139,7 @@ class DelautomatiskBehandlingTiltaksgrunnerTest {
             val (sak, søknad) = opprettSakOgSøknad(tac, tiltaksdeltakelse = søknadstiltak)
             val annet = tac.tiltaksdeltakelse(1.mars(2023) til 30.april(2023))
             opprettSøknadPåSakId(tac, sak.id, tiltaksdeltakelse = annet)
-            tac.oppdaterTiltaksdeltakelse(sak.fnr, annet.copy(deltakelseFraOgMed = null, deltakelseTilOgMed = null))
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, annet.medPeriode(fraOgMed = null, tilOgMed = null))
 
             behandleAutomatisk(tac, søknad) shouldBe listOf(SAKSOPPLYSNING_OVERLAPPENDE_TILTAK)
         }
@@ -155,7 +156,7 @@ class DelautomatiskBehandlingTiltaksgrunnerTest {
             val søknadstiltak = tac.tiltaksdeltakelse(1.januar(2023) til 31.mars(2023))
             val (sak, søknad) = opprettSakOgSøknad(tac, tiltaksdeltakelse = søknadstiltak)
             opprettSøknadPåSakId(tac, sak.id, tiltaksdeltakelse = tac.tiltaksdeltakelse(10.april(2023) til 30.april(2023)))
-            tac.oppdaterTiltaksdeltakelse(sak.fnr, søknadstiltak.copy(deltakelseTilOgMed = 30.april(2023)))
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, søknadstiltak.medPeriode(tilOgMed = 30.april(2023)))
 
             behandleAutomatisk(tac, søknad) shouldBe listOf(
                 SAKSOPPLYSNING_ULIK_TILTAKSPERIODE,

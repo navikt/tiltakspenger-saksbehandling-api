@@ -32,7 +32,7 @@ class OppdaterRevurderingInnvilgelseRouteTest {
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(tac)
 
             val tiltaksdeltakelse = revurdering.saksopplysninger.tiltaksdeltakelser.first()
-            val nyInnvilgelsesperiode = tiltaksdeltakelse.periode!!.minusTilOgMed(1)
+            val nyInnvilgelsesperiode = tiltaksdeltakelse.lukketPeriode!!.minusTilOgMed(1)
 
             val barnetillegg = barnetillegg(
                 begrunnelse = Begrunnelse.create("barnetillegg begrunnelse"),
@@ -74,7 +74,7 @@ class OppdaterRevurderingInnvilgelseRouteTest {
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(tac)
 
             val tiltaksdeltakelse = revurdering.saksopplysninger.tiltaksdeltakelser.first()
-            val nyInnvilgelsesperiode = tiltaksdeltakelse.periode!!.minusTilOgMed(1)
+            val nyInnvilgelsesperiode = tiltaksdeltakelse.lukketPeriode!!.minusTilOgMed(1)
 
             val barnetillegg = barnetillegg(
                 begrunnelse = Begrunnelse.create("barnetillegg begrunnelse"),
@@ -135,7 +135,7 @@ class OppdaterRevurderingInnvilgelseRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = revurdering.id,
-                innvilgelsesperioder = innvilgelsesperioder(revurdering.saksopplysninger.tiltaksdeltakelser.first().periode!!),
+                innvilgelsesperioder = innvilgelsesperioder(revurdering.saksopplysninger.tiltaksdeltakelser.first().lukketPeriode!!),
             )
 
             val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id)

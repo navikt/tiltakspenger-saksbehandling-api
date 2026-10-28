@@ -107,8 +107,8 @@ class OppdatertTiltaksdeltakelseEksternOppgaveTest {
     private suspend fun TestApplicationContextMedPostgres.registrerEndring(deltakelse: TiltaksdeltakelseIntern): Tiltaksdeltaker {
         val melding = KometTiltakHendelseDTO(
             id = UUID.fromString(deltakelse.eksternDeltakelseId),
-            startDato = deltakelse.deltakelseFraOgMed,
-            sluttDato = deltakelse.deltakelseTilOgMed,
+            startDato = deltakelse.periode.fraOgMed,
+            sluttDato = deltakelse.periode.tilOgMed,
             status = KometTiltakHendelseDTO.DeltakerStatusDto(KometDeltakerStatusTypeDTO.DELTAR),
             dagerPerUke = null,
             prosentStilling = null,

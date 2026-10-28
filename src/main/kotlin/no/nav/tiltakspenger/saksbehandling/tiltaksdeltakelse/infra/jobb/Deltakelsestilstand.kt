@@ -22,8 +22,8 @@ data class Deltakelsestilstand(
 )
 
 fun TiltaksdeltakelseIntern.tilDeltakelsestilstand() = Deltakelsestilstand(
-    deltakelseFraOgMed = deltakelseFraOgMed,
-    deltakelseTilOgMed = deltakelseTilOgMed,
+    deltakelseFraOgMed = periode.fraOgMed,
+    deltakelseTilOgMed = periode.tilOgMed,
     deltakelseStatus = deltakelseStatus,
     deltakelseProsent = deltakelseProsent ?: deltidsprosentGjennomforing?.toFloat(),
     antallDagerPerUke = antallDagerPerUke,

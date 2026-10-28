@@ -29,7 +29,7 @@ class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 innvilgelsesperioder = listOf(
                     InnvilgelsesperiodeDTO(
-                        periode = behandling.saksopplysninger.tiltaksdeltakelser.first().periode!!.toDTO(),
+                        periode = behandling.saksopplysninger.tiltaksdeltakelser.first().lukketPeriode!!.toDTO(),
                         antallDagerPerMeldeperiode = 10,
                         internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
                     ),

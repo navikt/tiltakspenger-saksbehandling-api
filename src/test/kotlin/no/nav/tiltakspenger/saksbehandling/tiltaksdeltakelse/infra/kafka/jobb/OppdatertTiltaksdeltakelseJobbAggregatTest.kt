@@ -52,6 +52,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.Oppdater
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.LagretTiltaksdeltakerEndring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltaksdeltakerEndringer
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.Duration
@@ -68,9 +69,9 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
                 val (sak) = iverksettSøknadsbehandling(
                     tac = tac,
                     tiltaksdeltakelse = deltakelse,
-                    innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                    innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
                 )
-                tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
+                tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.medPeriode(tilOgMed = 5.juni(2025)))
                 val repo = tac.tiltakContext.tiltaksdeltakerRepo
                 repo.registrerUbehandletEndring(deltakelse.internDeltakelseId, sak.id, nå(tac.clock).minusMinutes(20))
                 val task = jobber(isNais, tac, tac.clock).single { it.navn == "saksbehandling-jobb-endret-tiltaksdeltaker" }
@@ -178,14 +179,14 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
             val (førsteSak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = førsteDeltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(førsteDeltakelse.periode!!, førsteDeltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(førsteDeltakelse.lukketPeriode!!, førsteDeltakelse),
             )
             val (andreSak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = andreDeltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(andreDeltakelse.periode!!, andreDeltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(andreDeltakelse.lukketPeriode!!, andreDeltakelse),
             )
-            tac.oppdaterTiltaksdeltakelse(andreSak.fnr, andreDeltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
+            tac.oppdaterTiltaksdeltakelse(andreSak.fnr, andreDeltakelse.medPeriode(tilOgMed = 5.juni(2025)))
             val clock = fixedClockAt(nå(tac.clock).withNano(0))
             val førsteMarkør = nå(clock).minusMinutes(30)
             val repo = tac.tiltakContext.tiltaksdeltakerRepo
@@ -228,7 +229,7 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
                 ): Either<HttpKlientError, OppgaveId> {
                     val oppgave = delegate.opprettOppgaveUtenDuplikatkontroll(fnr, oppgavebehov, tilleggstekst)
                     tac.tiltakContext.tiltaksdeltakerRepo.registrerUbehandletEndring(deltakelse.internDeltakelseId, sak.id, nyMarkør)
-                    tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
+                    tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.medPeriode(tilOgMed = 5.juni(2025)))
                     return oppgave
                 }
             }
@@ -260,7 +261,7 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
                     if (antallOppslag == 1) {
                         // Den nye hendelsen kommer etter registerets snapshot, men før jobbens kvittering.
                         repo.registrerUbehandletEndring(deltakelse.internDeltakelseId, sak.id, nyMarkør)
-                        tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
+                        tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.medPeriode(tilOgMed = 5.juni(2025)))
                     }
                 },
             )
@@ -288,7 +289,7 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
     fun `feil i kvitteringen ruller tilbake revurderingen, og nytt forsøk oppretter én`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, deltakelse) = opprettInnvilgetSak(tac)
-            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.medPeriode(tilOgMed = 5.juni(2025)))
             val deltaker = tac.registrerEndring(sak, deltakelse)
             val delegate = tac.tiltakContext.tiltaksdeltakerRepo
             var antallKvitteringer = 0
@@ -336,7 +337,7 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
             val (gosysfeilSak, gosysfeilDeltakelse) = opprettInnvilgetSak(tac)
             val (okSak, okDeltakelse) = opprettInnvilgetSak(tac)
             tac.oppdaterTiltaksdeltakelse(gosysfeilSak.fnr, gosysfeilDeltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Venteliste))
-            tac.oppdaterTiltaksdeltakelse(okSak.fnr, okDeltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
+            tac.oppdaterTiltaksdeltakelse(okSak.fnr, okDeltakelse.medPeriode(tilOgMed = 5.juni(2025)))
             val registerfeil = tac.registrerEndring(registerfeilSak, registerfeilDeltakelse)
             val gosysfeil = tac.registrerEndring(gosysfeilSak, gosysfeilDeltakelse)
             tac.registrerEndring(okSak, okDeltakelse)
@@ -417,10 +418,10 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
             val (avsluttetSak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = avsluttetDeltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(avsluttetDeltakelse.periode!!, avsluttetDeltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(avsluttetDeltakelse.lukketPeriode!!, avsluttetDeltakelse),
             )
             val (manglerSak, manglerDeltakelse) = opprettInnvilgetSak(tac)
-            tac.oppdaterTiltaksdeltakelse(revurderingSak.fnr, revurderingDeltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
+            tac.oppdaterTiltaksdeltakelse(revurderingSak.fnr, revurderingDeltakelse.medPeriode(tilOgMed = 5.juni(2025)))
             tac.oppdaterTiltaksdeltakelse(oppgaveSak.fnr, oppgaveDeltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Venteliste))
             tac.oppdaterTiltaksdeltakelse(avsluttetSak.fnr, avsluttetDeltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Fullført))
             tac.oppdaterTiltaksdeltakelse(manglerSak.fnr, null)
@@ -495,7 +496,7 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
         val (sak) = iverksettSøknadsbehandling(
             tac = tac,
             tiltaksdeltakelse = deltakelse,
-            innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+            innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
         )
         return sak to deltakelse
     }

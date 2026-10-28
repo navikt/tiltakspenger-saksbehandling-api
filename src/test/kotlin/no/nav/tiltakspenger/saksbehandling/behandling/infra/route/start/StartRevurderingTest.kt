@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringOpphør
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import org.junit.jupiter.api.Test
 
 class StartRevurderingTest {
@@ -95,7 +96,7 @@ class StartRevurderingTest {
             val (sak, _, rammevedtakSøknadsbehandling, omgjøring) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(periode = 1 til 10.april(2025), valgtTiltaksdeltakelse = tiltaksdeltakelse),
-                oppdatertTiltaksdeltakelse = tiltaksdeltakelse.copy(deltakelseFraOgMed = 2.april(2025), deltakelseTilOgMed = 9.april(2025)),
+                oppdatertTiltaksdeltakelse = tiltaksdeltakelse.medPeriode(fraOgMed = 2.april(2025), tilOgMed = 9.april(2025)),
             )!!
             rammevedtakSøknadsbehandling.rammebehandling.vedtaksperiode shouldBe (1 til 10.april(2025))
             rammevedtakSøknadsbehandling.rammebehandling.innvilgelsesperioder!!.totalPeriode shouldBe (
@@ -161,7 +162,7 @@ class StartRevurderingTest {
             val (sak, _, rammevedtakSøknadsbehandling, omgjøring) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(periode = 2 til 9.april(2025), valgtTiltaksdeltakelse = tiltaksdeltakelse),
-                oppdatertTiltaksdeltakelse = tiltaksdeltakelse.copy(deltakelseFraOgMed = 1.april(2025), deltakelseTilOgMed = 10.april(2025)),
+                oppdatertTiltaksdeltakelse = tiltaksdeltakelse.medPeriode(fraOgMed = 1.april(2025), tilOgMed = 10.april(2025)),
             )!!
             rammevedtakSøknadsbehandling.rammebehandling.vedtaksperiode shouldBe (2 til 9.april(2025))
             rammevedtakSøknadsbehandling.rammebehandling.innvilgelsesperioder!!.totalPeriode shouldBe (

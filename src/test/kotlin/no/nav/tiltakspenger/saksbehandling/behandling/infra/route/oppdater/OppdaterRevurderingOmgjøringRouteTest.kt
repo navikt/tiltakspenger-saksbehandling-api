@@ -39,6 +39,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import org.junit.jupiter.api.Test
 
 class OppdaterRevurderingOmgjøringRouteTest {
@@ -55,9 +56,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
             val tiltaksdeltakelseVedOpprettelseAvRevurdering =
                 nyOmgjøring.saksopplysninger.tiltaksdeltakelser.first()
             val nyInnvilgelsesperiode = (3 til 9.april(2025))
-            val avbruttTiltaksdeltakelse = tiltaksdeltakelseVedOpprettelseAvRevurdering.copy(
-                deltakelseFraOgMed = tiltaksdeltakelseVedOpprettelseAvRevurdering.deltakelseFraOgMed!!,
-                deltakelseTilOgMed = tiltaksdeltakelseVedOpprettelseAvRevurdering.deltakelseTilOgMed!!.minusDays(1),
+            val avbruttTiltaksdeltakelse = tiltaksdeltakelseVedOpprettelseAvRevurdering.medPeriode(fraOgMed = tiltaksdeltakelseVedOpprettelseAvRevurdering.periode.fraOgMed!!, tilOgMed = tiltaksdeltakelseVedOpprettelseAvRevurdering.periode.tilOgMed!!.minusDays(1)).copy(
                 deltakelseStatus = TiltakDeltakerstatus.Avbrutt,
             )
 

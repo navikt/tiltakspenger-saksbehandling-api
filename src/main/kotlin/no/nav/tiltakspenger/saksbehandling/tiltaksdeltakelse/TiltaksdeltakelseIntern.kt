@@ -1,10 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse
 
+import no.nav.tiltakspenger.libs.periode.LukketEllerÅpenPeriode
 import no.nav.tiltakspenger.libs.periode.Overlapp
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.ÅpenPeriode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
-import java.time.LocalDate
+import no.nav.tiltakspenger.saksbehandling.felles.krevLukketNårBeggeDatoeneErKjent
+import no.nav.tiltakspenger.saksbehandling.felles.lukketPeriode
+import no.nav.tiltakspenger.saksbehandling.felles.overlapperMed
 
 /**
  * @param eksternDeltakelseId mappes fra aktivitetId som vi mottar fra søknadsfrontenden (via søknad-api).
@@ -16,10 +19,8 @@ import java.time.LocalDate
  * Dette er gjennomføringen sin ID, eksempelvis Rema 1000 i Strandveien.
  * En person knyttes til en gjennomføring og det kalles da en deltakelse.
  * Per nå mottar vi ikke denne fra Arena, men kun fra Komet.
- * @param deltakelseFraOgMed startdato for deltakelsen.
- * Kan mangle, særlig når deltaker venter på oppstart
- * @param deltakelseTilOgMed sluttdato for deltakelsen.
- * Kan mangle.
+ * @param periode en [Periode] når både start- og sluttdato er kjent, ellers en [ÅpenPeriode].
+ * Datoene kan mangle, særlig startdatoen når deltaker venter på oppstart.
  * @param internDeltakelseId vår interne id for tiltaksdeltakelsen som finnes i tiltaksdeltaker-tabellen.
  * Siden eksternId kan endres skal man alltid hente eksternId fra tiltaksdeltaker-tabellen for å finne nåværende eksternId.
  */
@@ -29,8 +30,7 @@ data class TiltaksdeltakelseIntern(
     val typeNavn: String,
     val typeKode: TiltakstypeSomGirRettDTO,
     val rettPåTiltakspenger: Boolean,
-    val deltakelseFraOgMed: LocalDate?,
-    val deltakelseTilOgMed: LocalDate?,
+    val periode: LukketEllerÅpenPeriode,
     val deltakelseStatus: TiltakDeltakerstatus,
     val deltakelseProsent: Float?,
     val antallDagerPerUke: Float?,
@@ -38,23 +38,25 @@ data class TiltaksdeltakelseIntern(
     val deltidsprosentGjennomforing: Double?,
     val internDeltakelseId: TiltaksdeltakerId,
 ) {
-    val kanInnvilges: Boolean get() = deltakelseStatus.deltarEllerHarDeltatt() && deltakelseFraOgMed != null && deltakelseTilOgMed != null
+    init {
+        periode.krevLukketNårBeggeDatoeneErKjent()
+    }
 
-    private val åpenPeriode: ÅpenPeriode get() = ÅpenPeriode(deltakelseFraOgMed, deltakelseTilOgMed)
+    val kanInnvilges: Boolean get() = deltakelseStatus.deltarEllerHarDeltatt() && periode is Periode
 
     /**
-     * null dersom [deltakelseFraOgMed] eller [deltakelseTilOgMed] er null.
+     * null dersom start- eller sluttdato mangler.
      */
-    val periode: Periode? get() = åpenPeriode.periode
+    val lukketPeriode: Periode? get() = periode.lukketPeriode
 
     /**
      * Se [ÅpenPeriode.overlapperMed].
      */
-    fun overlapperMed(periode: Periode): Overlapp = åpenPeriode.overlapperMed(periode)
+    fun overlapperMed(periode: Periode): Overlapp = this.periode.overlapperMed(periode)
 
     /**
      * Siden en tiltaksdeltakelse ikke nødvendigvis har en fraOgMed eller tilOgMed-dato, kan vi ikke alltid si med sikkerhet om to tiltaksdeltakelser overlapper.
      * Tvilstilfellene gir [Overlapp.Kanskje], og der vi er sikre gir den [Overlapp.Ja] eller [Overlapp.Nei].
      */
-    fun overlapperMed(other: TiltaksdeltakelseIntern): Overlapp = åpenPeriode.overlapperMed(other.åpenPeriode)
+    fun overlapperMed(other: TiltaksdeltakelseIntern): Overlapp = periode.overlapperMed(other.periode)
 }

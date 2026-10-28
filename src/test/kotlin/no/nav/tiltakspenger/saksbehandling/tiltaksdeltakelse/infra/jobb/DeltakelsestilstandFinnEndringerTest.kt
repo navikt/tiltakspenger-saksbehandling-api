@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.Tiltaksd
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.EndretStatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.Forlengelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.IkkeAktuellDeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -65,11 +66,10 @@ class DeltakelsestilstandFinnEndringerTest {
         prosent: Float,
         dager: Float,
     ) {
-        val nySluttdato = kjentTilstand.deltakelseTilOgMed!!.plusMonths(1)
-        val nåtilstand = kjentTilstand.copy(
+        val nySluttdato = kjentTilstand.periode.tilOgMed!!.plusMonths(1)
+        val nåtilstand = kjentTilstand.medPeriode(tilOgMed = nySluttdato).copy(
             deltakelseProsent = prosent,
             antallDagerPerUke = dager,
-            deltakelseTilOgMed = nySluttdato,
         )
 
         finnEndringer(kjentTilstand, nåtilstand) shouldBe Forlengelse(
@@ -218,23 +218,21 @@ class DeltakelsestilstandFinnEndringerTest {
 
     @Test
     fun `senere sluttdato med samme startdato er en forlengelse`() {
-        val nySluttdato = kjentTilstand.deltakelseTilOgMed!!.plusDays(1)
+        val nySluttdato = kjentTilstand.periode.tilOgMed!!.plusDays(1)
 
         finnEndringer(
             kjentTilstand,
-            kjentTilstand.copy(deltakelseTilOgMed = nySluttdato),
+            kjentTilstand.medPeriode(tilOgMed = nySluttdato),
         ) shouldBe Forlengelse(nySluttdato)
     }
 
     @Test
     fun `forlengelse fra i dag med statusendring til deltar gir bare forlengelse`() {
-        val kjent = kjentTilstand.copy(
-            deltakelseFraOgMed = iDag,
+        val kjent = kjentTilstand.medPeriode(fraOgMed = iDag).copy(
             deltakelseStatus = TiltakDeltakerstatus.VenterPåOppstart,
         )
-        val nySluttdato = kjent.deltakelseTilOgMed!!.plusDays(1)
-        val nåtilstand = kjent.copy(
-            deltakelseTilOgMed = nySluttdato,
+        val nySluttdato = kjent.periode.tilOgMed!!.plusDays(1)
+        val nåtilstand = kjent.medPeriode(tilOgMed = nySluttdato).copy(
             deltakelseStatus = TiltakDeltakerstatus.Deltar,
         )
 
@@ -244,7 +242,7 @@ class DeltakelsestilstandFinnEndringerTest {
     @ParameterizedTest
     @ValueSource(longs = [-1, 0])
     fun `avkorting til før eller på dagens dato er avbrutt selv uten statusendring`(dagerFraIDag: Long) {
-        val nåtilstand = kjentTilstand.copy(deltakelseTilOgMed = iDag.plusDays(dagerFraIDag))
+        val nåtilstand = kjentTilstand.medPeriode(tilOgMed = iDag.plusDays(dagerFraIDag))
 
         finnEndringer(kjentTilstand, nåtilstand) shouldBe AvbruttDeltakelse
     }
@@ -255,25 +253,25 @@ class DeltakelsestilstandFinnEndringerTest {
 
         finnEndringer(
             kjentTilstand,
-            kjentTilstand.copy(deltakelseTilOgMed = nySluttdato),
+            kjentTilstand.medPeriode(tilOgMed = nySluttdato),
         ) shouldBe AndreEndringer(endretSluttdato = EndretSluttdato(nySluttdato))
     }
 
     @ParameterizedTest
     @ValueSource(longs = [-1, 0])
     fun `åpen deltakelse får sluttdato før eller på dagens dato og blir avbrutt`(dagerFraIDag: Long) {
-        val kjent = kjentTilstand.copy(deltakelseTilOgMed = null)
-        val nåtilstand = kjent.copy(deltakelseTilOgMed = iDag.plusDays(dagerFraIDag))
+        val kjent = kjentTilstand.medPeriode(tilOgMed = null)
+        val nåtilstand = kjent.medPeriode(tilOgMed = iDag.plusDays(dagerFraIDag))
 
         finnEndringer(kjent, nåtilstand) shouldBe AvbruttDeltakelse
     }
 
     @Test
     fun `åpen deltakelse får sluttdato i fremtiden og er ikke en forlengelse`() {
-        val kjent = kjentTilstand.copy(deltakelseTilOgMed = null)
+        val kjent = kjentTilstand.medPeriode(tilOgMed = null)
         val nySluttdato = iDag.plusDays(1)
 
-        finnEndringer(kjent, kjent.copy(deltakelseTilOgMed = nySluttdato)) shouldBe
+        finnEndringer(kjent, kjent.medPeriode(tilOgMed = nySluttdato)) shouldBe
             AndreEndringer(endretSluttdato = EndretSluttdato(nySluttdato))
     }
 
@@ -281,34 +279,34 @@ class DeltakelsestilstandFinnEndringerTest {
     fun `fjernet sluttdato gir endret sluttdato med null`() {
         finnEndringer(
             kjentTilstand,
-            kjentTilstand.copy(deltakelseTilOgMed = null),
+            kjentTilstand.medPeriode(tilOgMed = null),
         ) shouldBe AndreEndringer(endretSluttdato = EndretSluttdato(null))
     }
 
     @Test
     fun `begge mangler sluttdato og gir ingen endringer`() {
-        val kjent = kjentTilstand.copy(deltakelseTilOgMed = null)
+        val kjent = kjentTilstand.medPeriode(tilOgMed = null)
 
         finnEndringer(kjent, kjent).shouldBeNull()
     }
 
     @Test
     fun `forlengelse av en utløpt deltakelse er ikke avbrutt selv om ny sluttdato også er i fortiden`() {
-        val kjent = kjentTilstand.copy(deltakelseTilOgMed = iDag.minusDays(2))
+        val kjent = kjentTilstand.medPeriode(tilOgMed = iDag.minusDays(2))
         val nySluttdato = iDag.minusDays(1)
 
-        finnEndringer(kjent, kjent.copy(deltakelseTilOgMed = nySluttdato)) shouldBe
+        finnEndringer(kjent, kjent.medPeriode(tilOgMed = nySluttdato)) shouldBe
             Forlengelse(nySluttdato)
     }
 
     @ParameterizedTest
     @ValueSource(longs = [-1, 1])
     fun `endret startdato gir den nye startdatoen`(dagerFraGammelStart: Long) {
-        val nyStartdato = kjentTilstand.deltakelseFraOgMed!!.plusDays(dagerFraGammelStart)
+        val nyStartdato = kjentTilstand.periode.fraOgMed!!.plusDays(dagerFraGammelStart)
 
         finnEndringer(
             kjentTilstand,
-            kjentTilstand.copy(deltakelseFraOgMed = nyStartdato),
+            kjentTilstand.medPeriode(fraOgMed = nyStartdato),
         ) shouldBe AndreEndringer(endretStartdato = EndretStartdato(nyStartdato))
     }
 
@@ -316,32 +314,29 @@ class DeltakelsestilstandFinnEndringerTest {
     fun `fjernet startdato gir endret startdato med null`() {
         finnEndringer(
             kjentTilstand,
-            kjentTilstand.copy(deltakelseFraOgMed = null),
+            kjentTilstand.medPeriode(fraOgMed = null),
         ) shouldBe AndreEndringer(endretStartdato = EndretStartdato(null))
     }
 
     @Test
     fun `manglende startdato erstattes med en dato`() {
-        val kjent = kjentTilstand.copy(deltakelseFraOgMed = null)
+        val kjent = kjentTilstand.medPeriode(fraOgMed = null)
 
-        finnEndringer(kjent, kjent.copy(deltakelseFraOgMed = iDag)) shouldBe AndreEndringer(endretStartdato = EndretStartdato(iDag))
+        finnEndringer(kjent, kjent.medPeriode(fraOgMed = iDag)) shouldBe AndreEndringer(endretStartdato = EndretStartdato(iDag))
     }
 
     @Test
     fun `begge mangler startdato og gir ingen endringer`() {
-        val kjent = kjentTilstand.copy(deltakelseFraOgMed = null)
+        val kjent = kjentTilstand.medPeriode(fraOgMed = null)
 
         finnEndringer(kjent, kjent).shouldBeNull()
     }
 
     @Test
     fun `senere sluttdato og endret startdato er to datoendringer og ikke forlengelse`() {
-        val nyStartdato = kjentTilstand.deltakelseFraOgMed!!.plusDays(1)
-        val nySluttdato = kjentTilstand.deltakelseTilOgMed!!.plusDays(1)
-        val nåtilstand = kjentTilstand.copy(
-            deltakelseFraOgMed = nyStartdato,
-            deltakelseTilOgMed = nySluttdato,
-        )
+        val nyStartdato = kjentTilstand.periode.fraOgMed!!.plusDays(1)
+        val nySluttdato = kjentTilstand.periode.tilOgMed!!.plusDays(1)
+        val nåtilstand = kjentTilstand.medPeriode(fraOgMed = nyStartdato, tilOgMed = nySluttdato)
 
         finnEndringer(kjentTilstand, nåtilstand) shouldBe AndreEndringer(
             endretStartdato = EndretStartdato(nyStartdato),
@@ -360,7 +355,7 @@ class DeltakelsestilstandFinnEndringerTest {
         nyStatus: TiltakDeltakerstatus,
         dagerFraIDag: Long,
     ) {
-        val kjent = kjentTilstand.copy(deltakelseTilOgMed = iDag.plusDays(dagerFraIDag))
+        val kjent = kjentTilstand.medPeriode(tilOgMed = iDag.plusDays(dagerFraIDag))
 
         finnEndringer(kjent, kjent.copy(deltakelseStatus = nyStatus)) shouldBe AvsluttetSomForventet
     }
@@ -368,7 +363,7 @@ class DeltakelsestilstandFinnEndringerTest {
     @ParameterizedTest
     @EnumSource(TiltakDeltakerstatus::class, names = ["Fullført", "HarSluttet"])
     fun `avsluttet status før sluttdato gir endret status`(nyStatus: TiltakDeltakerstatus) {
-        val kjent = kjentTilstand.copy(deltakelseTilOgMed = iDag.plusDays(1))
+        val kjent = kjentTilstand.medPeriode(tilOgMed = iDag.plusDays(1))
 
         finnEndringer(kjent, kjent.copy(deltakelseStatus = nyStatus)) shouldBe AndreEndringer(endretStatus = EndretStatus(nyStatus))
     }
@@ -376,7 +371,7 @@ class DeltakelsestilstandFinnEndringerTest {
     @ParameterizedTest
     @EnumSource(TiltakDeltakerstatus::class, names = ["Fullført", "HarSluttet"])
     fun `avsluttet status uten sluttdato gir endret status`(nyStatus: TiltakDeltakerstatus) {
-        val kjent = kjentTilstand.copy(deltakelseTilOgMed = null)
+        val kjent = kjentTilstand.medPeriode(tilOgMed = null)
 
         finnEndringer(kjent, kjent.copy(deltakelseStatus = nyStatus)) shouldBe AndreEndringer(endretStatus = EndretStatus(nyStatus))
     }
@@ -384,7 +379,7 @@ class DeltakelsestilstandFinnEndringerTest {
     @ParameterizedTest
     @EnumSource(TiltakDeltakerstatus::class, names = ["Fullført", "HarSluttet"])
     fun `forventet avslutning skjuler ikke samtidig endret deltakelsesmengde`(nyStatus: TiltakDeltakerstatus) {
-        val kjent = kjentTilstand.copy(deltakelseTilOgMed = iDag)
+        val kjent = kjentTilstand.medPeriode(tilOgMed = iDag)
         val nåtilstand = kjent.copy(deltakelseStatus = nyStatus, antallDagerPerUke = 1F)
 
         finnEndringer(kjent, nåtilstand) shouldBe AndreEndringer(
@@ -395,8 +390,7 @@ class DeltakelsestilstandFinnEndringerTest {
 
     @Test
     fun `kun statusendring fra venter på oppstart til deltar gir endret status`() {
-        val kjent = kjentTilstand.copy(
-            deltakelseFraOgMed = iDag.minusDays(1),
+        val kjent = kjentTilstand.medPeriode(fraOgMed = iDag.minusDays(1)).copy(
             deltakelseStatus = TiltakDeltakerstatus.VenterPåOppstart,
         )
 
@@ -431,13 +425,11 @@ class DeltakelsestilstandFinnEndringerTest {
 
     @Test
     fun `flere samtidige endringer returneres i rekkefølgen mengde startdato sluttdato status`() {
-        val nyStartdato = kjentTilstand.deltakelseFraOgMed!!.plusDays(1)
+        val nyStartdato = kjentTilstand.periode.fraOgMed!!.plusDays(1)
         val nySluttdato = iDag.plusDays(1)
-        val nåtilstand = kjentTilstand.copy(
+        val nåtilstand = kjentTilstand.medPeriode(fraOgMed = nyStartdato, tilOgMed = nySluttdato).copy(
             deltakelseProsent = 60F,
             antallDagerPerUke = 1F,
-            deltakelseFraOgMed = nyStartdato,
-            deltakelseTilOgMed = nySluttdato,
             deltakelseStatus = TiltakDeltakerstatus.HarSluttet,
         )
 
@@ -451,11 +443,9 @@ class DeltakelsestilstandFinnEndringerTest {
 
     @Test
     fun `statusendring til avbrutt prioriteres foran mengde og datoendringer`() {
-        val nåtilstand = kjentTilstand.copy(
+        val nåtilstand = kjentTilstand.medPeriode(fraOgMed = null, tilOgMed = kjentTilstand.periode.tilOgMed!!.plusDays(1)).copy(
             deltakelseProsent = 60F,
             antallDagerPerUke = 1F,
-            deltakelseFraOgMed = null,
-            deltakelseTilOgMed = kjentTilstand.deltakelseTilOgMed!!.plusDays(1),
             deltakelseStatus = TiltakDeltakerstatus.Avbrutt,
         )
 
@@ -464,15 +454,12 @@ class DeltakelsestilstandFinnEndringerTest {
 
     @Test
     fun `ikke aktuell prioriteres foran fjernede datoer og endret mengde`() {
-        val kjent = kjentTilstand.copy(
-            deltakelseFraOgMed = iDag.plusDays(1),
+        val kjent = kjentTilstand.medPeriode(fraOgMed = iDag.plusDays(1)).copy(
             deltakelseStatus = TiltakDeltakerstatus.VenterPåOppstart,
         )
-        val nåtilstand = kjent.copy(
+        val nåtilstand = kjent.medPeriode(fraOgMed = null, tilOgMed = null).copy(
             deltakelseProsent = null,
             antallDagerPerUke = null,
-            deltakelseFraOgMed = null,
-            deltakelseTilOgMed = null,
             deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell,
         )
 
@@ -482,11 +469,9 @@ class DeltakelsestilstandFinnEndringerTest {
     @ParameterizedTest
     @EnumSource(TiltakDeltakerstatus::class, names = ["Fullført", "HarSluttet", "IkkeAktuell"])
     fun `avkorting til fortiden prioriteres foran ny status og andre endringer`(nyStatus: TiltakDeltakerstatus) {
-        val nåtilstand = kjentTilstand.copy(
+        val nåtilstand = kjentTilstand.medPeriode(fraOgMed = kjentTilstand.periode.fraOgMed!!.plusDays(1), tilOgMed = iDag.minusDays(1)).copy(
             deltakelseProsent = 60F,
             antallDagerPerUke = 1F,
-            deltakelseFraOgMed = kjentTilstand.deltakelseFraOgMed!!.plusDays(1),
-            deltakelseTilOgMed = iDag.minusDays(1),
             deltakelseStatus = nyStatus,
         )
 

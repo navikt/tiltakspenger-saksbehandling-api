@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.libs.tiltak.toTiltakstypeSomGirRett
+import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.sak.SøknadstiltakIdGenerator
@@ -50,8 +51,7 @@ interface TiltakMother {
             typeKode = typeKode,
             typeNavn = typeNavn,
             rettPåTiltakspenger = rettPåTiltakspenger,
-            deltakelseFraOgMed = fom,
-            deltakelseTilOgMed = tom,
+            periode = lukketEllerÅpenPeriode(fom, tom),
             deltakelseStatus = status,
             deltakelseProsent = prosent,
             kilde = kilde,
@@ -84,8 +84,7 @@ interface TiltakMother {
             typeKode = typeKode,
             typeNavn = typeNavn,
             rettPåTiltakspenger = rettPåTiltakspenger,
-            deltakelseFraOgMed = fom,
-            deltakelseTilOgMed = tom,
+            periode = lukketEllerÅpenPeriode(fom, tom),
             deltakelseStatus = status,
             deltakelseProsent = prosent,
             kilde = kilde,
@@ -120,8 +119,7 @@ interface TiltakMother {
             typeKode = typeKode,
             typeNavn = typeNavn,
             rettPåTiltakspenger = rettPåTiltakspenger,
-            deltakelseFraOgMed = fom,
-            deltakelseTilOgMed = tom,
+            periode = lukketEllerÅpenPeriode(fom, tom),
             deltakelseStatus = status,
             deltakelseProsent = prosent,
             kilde = kilde,
@@ -154,8 +152,7 @@ interface TiltakMother {
             typeKode = typeKode,
             typeNavn = typeNavn,
             rettPåTiltakspenger = rettPåTiltakspenger,
-            deltakelseFraOgMed = registerFraOgMed,
-            deltakelseTilOgMed = registerTilOgMed,
+            periode = lukketEllerÅpenPeriode(registerFraOgMed, registerTilOgMed),
             deltakelseStatus = status,
             deltakelseProsent = prosent,
             kilde = kilde,
@@ -188,8 +185,7 @@ interface TiltakMother {
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
             typeKode = typeKode,
             typeNavn = typeNavn,
-            deltakelseFraOgMed = fom,
-            deltakelseTilOgMed = tom,
+            periode = lukketEllerÅpenPeriode(fom, tom),
             visningsnavn = visningsnavn,
             status = status,
         )
@@ -210,8 +206,7 @@ interface TiltakMother {
             eksternDeltakelseId = eksternDeltakelseId,
             typeNavn = typeNavn,
             tiltakskodeFraKilden = tiltakskodeFraKilden,
-            deltakelseFraOgMed = fom,
-            deltakelseTilOgMed = tom,
+            periode = lukketEllerÅpenPeriode(fom, tom),
             deltakelseStatus = status,
             deltakelseProsent = deltakelseProsent,
             antallDagerPerUke = antallDagerPerUke,
@@ -239,8 +234,8 @@ fun Søknadstiltak.toTiltak(
 fun TiltaksdeltakelseIntern.toSøknadstiltak(tiltaksdeltakerId: TiltaksdeltakerId = TiltaksdeltakerId.random()): Søknadstiltak {
     return søknadstiltak(
         id = this.eksternDeltakelseId,
-        deltakelseFom = this.deltakelseFraOgMed!!,
-        deltakelseTom = this.deltakelseTilOgMed!!,
+        deltakelseFom = this.periode.fraOgMed!!,
+        deltakelseTom = this.periode.tilOgMed!!,
         typeKode = this.typeKode.tilTiltakstype(),
         typeNavn = this.typeNavn,
         tiltaksdeltakerId = tiltaksdeltakerId,

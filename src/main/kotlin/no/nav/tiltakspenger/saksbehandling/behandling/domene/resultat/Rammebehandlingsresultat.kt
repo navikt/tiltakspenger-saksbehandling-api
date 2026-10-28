@@ -116,8 +116,8 @@ fun skalNullstilleResultatVedNyeSaksopplysninger(
                     // Vi nullstiller resultatet og vedtaksperioden dersom det har kommet nye tiltaksdeltakelser eller noen er fjernet.
                     // Nullstiller også dersom periodene har endret seg.
                     forrige.internDeltakelseId != nye.internDeltakelseId ||
-                        forrige.deltakelseFraOgMed != nye.deltakelseFraOgMed ||
-                        forrige.deltakelseTilOgMed != nye.deltakelseTilOgMed
+                        forrige.periode.fraOgMed != nye.periode.fraOgMed ||
+                        forrige.periode.tilOgMed != nye.periode.tilOgMed
                 }.any { it }
             )
     }

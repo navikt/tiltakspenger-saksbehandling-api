@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.dato.oktober
 import no.nav.tiltakspenger.libs.periode.Overlapp
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
+import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -156,8 +157,7 @@ class TiltaksdeltakelseTest {
             typeNavn = "Avklaring",
             typeKode = TiltakstypeSomGirRettDTO.AVKLARING,
             rettPåTiltakspenger = true,
-            deltakelseFraOgMed = fom,
-            deltakelseTilOgMed = tom,
+            periode = lukketEllerÅpenPeriode(fom, tom),
             deltakelseStatus = TiltakDeltakerstatus.Deltar,
             deltakelseProsent = 50.0F,
             antallDagerPerUke = 2.0F,

@@ -1011,9 +1011,7 @@ fun List<InnvilgelsesperiodeKommando>.medDeltakelseFra(saksopplysninger: Saksopp
             kommando
         } else {
             val dekkende = saksopplysninger.tiltaksdeltakelser.firstOrNull { deltakelse ->
-                deltakelse.deltakelseFraOgMed != null &&
-                    deltakelse.deltakelseTilOgMed != null &&
-                    Periode(deltakelse.deltakelseFraOgMed, deltakelse.deltakelseTilOgMed).inneholderHele(kommando.periode)
+                deltakelse.lukketPeriode?.inneholderHele(kommando.periode) == true
             }
             val erstatning = dekkende ?: saksopplysninger.tiltaksdeltakelser.firstOrNull()
             if (erstatning == null) kommando else kommando.copy(internDeltakelseId = erstatning.internDeltakelseId)

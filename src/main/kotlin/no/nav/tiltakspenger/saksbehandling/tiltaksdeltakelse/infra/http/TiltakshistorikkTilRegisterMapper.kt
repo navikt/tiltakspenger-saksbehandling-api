@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelser
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakshistorikk
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
+import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus.Deltar
@@ -94,8 +95,7 @@ fun Tiltaksdeltakelse.GirRett.tilTiltaksdeltakelseIntern(
         typeNavn = tiltakstypenavn,
         typeKode = tiltakstype.tilDTO(),
         rettPåTiltakspenger = true,
-        deltakelseFraOgMed = fraOgMed,
-        deltakelseTilOgMed = tilOgMed,
+        periode = periode,
         deltakelseStatus = tiltakDeltakerstatus(clock),
         deltakelseProsent = omfang.deltakelsesprosent,
         antallDagerPerUke = omfang.dagerPerUke,
@@ -109,8 +109,7 @@ fun Tiltaksdeltakelse.FratarRett.tilTiltaksdeltakelseSomFratarRett(clock: Clock)
         eksternDeltakelseId = id.verdi,
         typeNavn = tiltakstypenavn,
         tiltakskodeFraKilden = tiltakskodeFraKilden,
-        deltakelseFraOgMed = fraOgMed,
-        deltakelseTilOgMed = tilOgMed,
+        periode = periode,
         deltakelseStatus = tiltakDeltakerstatus(clock),
         deltakelseProsent = omfang.deltakelsesprosent,
         antallDagerPerUke = omfang.dagerPerUke,
@@ -133,8 +132,7 @@ fun Tiltakshistorikk.tilTiltaksdeltakelserMedArrangørnavn(
             eksternDeltakelseId = deltakelse.id.verdi,
             typeNavn = deltakelse.tiltakstypenavn,
             typeKode = (deltakelse as? Tiltaksdeltakelse.GirRett)?.tiltakstype?.tilDTO(),
-            deltakelseFraOgMed = deltakelse.fraOgMed,
-            deltakelseTilOgMed = deltakelse.tilOgMed,
+            periode = lukketEllerÅpenPeriode(deltakelse.fraOgMed, deltakelse.tilOgMed),
             visningsnavn = if (harAdressebeskyttelse) {
                 deltakelse.tiltakstypenavn
             } else {

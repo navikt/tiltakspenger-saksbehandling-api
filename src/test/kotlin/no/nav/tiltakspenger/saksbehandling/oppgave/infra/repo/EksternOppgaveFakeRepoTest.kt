@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag
 import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag.EndretTiltaksdeltakelse.Kilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -75,7 +76,7 @@ class EksternOppgaveFakeRepoTest {
                 dagerPrUke = 2.5f,
                 prosent = 50.0f,
                 kilde = Tiltakskilde.Komet,
-            ).copy(deltakelseTilOgMed = null).tilLibsDeltakelse(),
+            ).medPeriode(tilOgMed = null).tilLibsDeltakelse(),
         ),
         tilleggstekst = "Endret tiltaksdeltakelse",
     )

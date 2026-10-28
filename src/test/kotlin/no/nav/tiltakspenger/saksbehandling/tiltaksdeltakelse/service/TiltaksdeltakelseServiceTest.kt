@@ -79,7 +79,7 @@ class TiltaksdeltakelseServiceTest {
 
             tiltaksdeltakelserForPeriode.getOrFail().size shouldBe 1
             tiltaksdeltakelserForPeriode.getOrFail().all {
-                it.periode?.overlapperMed(oppslagsperiode) == true shouldBe true
+                it.lukketPeriode?.overlapperMed(oppslagsperiode) == true shouldBe true
             }
         }
 
@@ -130,7 +130,7 @@ class TiltaksdeltakelseServiceTest {
 
             tiltaksdeltakelserForPeriode.getOrFail().size shouldBe 3
             tiltaksdeltakelserForPeriode.getOrFail().all {
-                it.periode?.overlapperMed(oppslagsperiode) == true shouldBe true
+                it.lukketPeriode?.overlapperMed(oppslagsperiode) == true shouldBe true
             }
         }
 
@@ -181,7 +181,7 @@ class TiltaksdeltakelseServiceTest {
 
             tiltaksdeltakelserForPeriode.getOrFail().size shouldBe 1
             tiltaksdeltakelserForPeriode.getOrFail().all {
-                it.periode?.overlapperMed(oppslagsperiode) == true shouldBe true
+                it.lukketPeriode?.overlapperMed(oppslagsperiode) == true shouldBe true
             }
         }
 

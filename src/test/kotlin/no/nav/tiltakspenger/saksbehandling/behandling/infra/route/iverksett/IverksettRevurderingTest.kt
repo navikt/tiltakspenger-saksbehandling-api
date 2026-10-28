@@ -43,6 +43,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.routes.shouldBeEqualToRammevedtakDTO
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.routes.shouldBeEqualToRammevedtakDTOinnvilgelse
 import org.json.JSONObject
@@ -108,10 +109,7 @@ class IverksettRevurderingTest {
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
                 tac,
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(periode = søknadsbehandlingVedtaksperiode, valgtTiltaksdeltakelse = tiltaksdeltakelse),
-                oppdatertTiltaksdeltakelse = tiltaksdeltakelse.copy(
-                    deltakelseFraOgMed = revurderingInnvilgelsesperiode.fraOgMed,
-                    deltakelseTilOgMed = revurderingInnvilgelsesperiode.tilOgMed,
-                ),
+                oppdatertTiltaksdeltakelse = tiltaksdeltakelse.medPeriode(fraOgMed = revurderingInnvilgelsesperiode.fraOgMed, tilOgMed = revurderingInnvilgelsesperiode.tilOgMed),
             )
 
             val barnetillegg = barnetillegg(
@@ -150,10 +148,7 @@ class IverksettRevurderingTest {
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
                 tac,
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(periode = søknadsbehandlingVedtaksperiode, valgtTiltaksdeltakelse = tiltaksdeltakelse),
-                oppdatertTiltaksdeltakelse = tiltaksdeltakelse.copy(
-                    deltakelseFraOgMed = revurderingInnvilgelsesperiode.fraOgMed,
-                    deltakelseTilOgMed = revurderingInnvilgelsesperiode.tilOgMed,
-                ),
+                oppdatertTiltaksdeltakelse = tiltaksdeltakelse.medPeriode(fraOgMed = revurderingInnvilgelsesperiode.fraOgMed, tilOgMed = revurderingInnvilgelsesperiode.tilOgMed),
             )
 
             val barnetillegg = barnetillegg(
@@ -493,10 +488,7 @@ class IverksettRevurderingTest {
             val (sak, _, rammevedtakSøknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
                 tac,
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(periode = søknadsbehandlingPeriode, valgtTiltaksdeltakelse = tiltaksdeltakelse),
-                oppdatertTiltaksdeltakelse = tiltaksdeltakelse.copy(
-                    deltakelseFraOgMed = revurderingPeriode.fraOgMed,
-                    deltakelseTilOgMed = revurderingPeriode.tilOgMed,
-                ),
+                oppdatertTiltaksdeltakelse = tiltaksdeltakelse.medPeriode(fraOgMed = revurderingPeriode.fraOgMed, tilOgMed = revurderingPeriode.tilOgMed),
             )
 
             oppdaterRevurderingInnvilgelse(

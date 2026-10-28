@@ -32,6 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSø
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startBehandlingAvManueltRegistrertSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import org.junit.jupiter.api.Test
 
 /**
@@ -133,7 +134,7 @@ class BehandlingsgrunnlagsperioderTest {
     fun `revurdering til innvilgelse gir tiltaksdeltakelsen utover vedtaksperioden`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakelse = tac.tiltaksdeltakelse(søknadsperiode)
-            val forlenget = deltakelse.copy(deltakelseTilOgMed = 24.april(2025))
+            val forlenget = deltakelse.medPeriode(tilOgMed = 24.april(2025))
 
             val (sak, _, _, revurderingsvedtak) = iverksettSøknadsbehandlingOgRevurderingInnvilgelse(
                 tac = tac,
@@ -156,7 +157,7 @@ class BehandlingsgrunnlagsperioderTest {
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(søknadsperiode, deltakelse),
-                oppdatertTiltaksdeltakelse = deltakelse.copy(deltakelseTilOgMed = 24.april(2025)),
+                oppdatertTiltaksdeltakelse = deltakelse.medPeriode(tilOgMed = 24.april(2025)),
             )
 
             revurdering.saksopplysninger.tiltaksdeltakelser.perioder shouldBe listOf(1.april(2025) til 24.april(2025))
@@ -186,7 +187,7 @@ class BehandlingsgrunnlagsperioderTest {
                 tac = tac,
                 innvilgelsesperioder = innvilgelsesperioder(søknadsperiode, deltakelse),
             )
-            val forlenget = deltakelse.copy(deltakelseTilOgMed = 20.april(2025))
+            val forlenget = deltakelse.medPeriode(tilOgMed = 20.april(2025))
             tac.oppdaterTiltaksdeltakelse(sak.fnr, forlenget)
 
             val (_, omgjøringsvedtak) = iverksettOmgjøringInnvilgelse(
@@ -237,8 +238,8 @@ class BehandlingsgrunnlagsperioderTest {
         """
             {
               "eksternDeltakelseId": "$eksternDeltakelseId",
-              "deltakelseFraOgMed": "$deltakelseFraOgMed",
-              "deltakelseTilOgMed": "$deltakelseTilOgMed",
+              "deltakelseFraOgMed": "${periode.fraOgMed}",
+              "deltakelseTilOgMed": "${periode.tilOgMed}",
               "typeKode": "${typeKode.name}",
               "typeNavn": "$typeNavn"
             }

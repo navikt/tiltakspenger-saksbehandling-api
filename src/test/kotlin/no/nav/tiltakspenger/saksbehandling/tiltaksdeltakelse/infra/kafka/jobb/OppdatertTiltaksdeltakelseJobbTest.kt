@@ -56,6 +56,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.Tiltaksd
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -133,7 +134,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val (sak, _, vedtak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = tiltaksdeltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.periode!!, tiltaksdeltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.lukketPeriode!!, tiltaksdeltakelse),
             )
             if (opphør) {
                 iverksettOmgjøringOpphør(
@@ -150,7 +151,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val oppdatertSak = tac.registrerEndringOgBehandle(
                 sak,
                 tiltaksdeltakelse,
-                nåtilstand = tiltaksdeltakelse.copy(deltakelseTilOgMed = opprinneligSluttdato.plusMonths(1)),
+                nåtilstand = tiltaksdeltakelse.medPeriode(tilOgMed = opprinneligSluttdato.plusMonths(1)),
                 forventetResultat = IngenRelevantEndring::class,
             )
 
@@ -165,13 +166,13 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = tiltaksdeltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.periode!!, tiltaksdeltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.lukketPeriode!!, tiltaksdeltakelse),
             )
 
             val oppdatertSak = tac.registrerEndringOgBehandle(
                 sak,
                 tiltaksdeltakelse,
-                nåtilstand = tiltaksdeltakelse.copy(deltakelseTilOgMed = 5.juni(2025)),
+                nåtilstand = tiltaksdeltakelse.medPeriode(tilOgMed = 5.juni(2025)),
                 forventetResultat = RevurderingOpprettet::class,
             )
 
@@ -217,8 +218,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 nåtilstand = if (nåtilstandMangler) {
                     null
                 } else {
-                    tiltaksdeltakelse.copy(
-                        deltakelseFraOgMed = 1.mai(2025),
+                    tiltaksdeltakelse.medPeriode(fraOgMed = 1.mai(2025)).copy(
                         deltakelseStatus = TiltakDeltakerstatus.Deltar,
                     )
                 },
@@ -248,7 +248,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val sak = iverksettSøknadsbehandling(
                 tac = tac,
                 fnr = fnr,
-                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.periode!!, tiltaksdeltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.lukketPeriode!!, tiltaksdeltakelse),
                 tiltaksdeltakelse = tiltaksdeltakelse,
             ).first
 
@@ -270,7 +270,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
 
             val oppdatert = tac.registrerEndringOgBehandle(
@@ -295,7 +295,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val sak = iverksettSøknadsbehandling(
                 tac = tac,
                 fnr = fnr,
-                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.periode!!, tiltaksdeltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.lukketPeriode!!, tiltaksdeltakelse),
                 tiltaksdeltakelse = tiltaksdeltakelse,
             ).first
 
@@ -330,16 +330,14 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val sak = iverksettSøknadsbehandling(
                 tac = tac,
                 fnr = fnr,
-                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.periode!!, tiltaksdeltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.lukketPeriode!!, tiltaksdeltakelse),
                 tiltaksdeltakelse = tiltaksdeltakelse,
             ).first
 
             val oppdatertSak = tac.registrerEndringOgBehandle(
                 sak,
                 tiltaksdeltakelse,
-                nåtilstand = tiltaksdeltakelse.copy(
-                    deltakelseFraOgMed = 5.januar(2025),
-                    deltakelseTilOgMed = 5.juni(2025),
+                nåtilstand = tiltaksdeltakelse.medPeriode(fraOgMed = 5.januar(2025), tilOgMed = 5.juni(2025)).copy(
                     antallDagerPerUke = if (endretDeltakelsesmengde) 3F else tiltaksdeltakelse.antallDagerPerUke,
                 ),
                 forventetResultat = RevurderingOpprettet::class,
@@ -375,16 +373,14 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val sak = iverksettSøknadsbehandling(
                 tac = tac,
                 fnr = fnr,
-                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.periode!!, tiltaksdeltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.lukketPeriode!!, tiltaksdeltakelse),
                 tiltaksdeltakelse = tiltaksdeltakelse,
             ).first
 
             val oppdatertSak = tac.registrerEndringOgBehandle(
                 sak,
                 tiltaksdeltakelse,
-                nåtilstand = tiltaksdeltakelse.copy(
-                    deltakelseFraOgMed = 6.januar(2025),
-                ),
+                nåtilstand = tiltaksdeltakelse.medPeriode(fraOgMed = 6.januar(2025)),
                 forventetResultat = RevurderingOpprettet::class,
             )
 
@@ -418,7 +414,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val sak = iverksettSøknadsbehandling(
                 tac = tac,
                 fnr = fnr,
-                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.periode!!, tiltaksdeltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.lukketPeriode!!, tiltaksdeltakelse),
                 tiltaksdeltakelse = tiltaksdeltakelse,
             ).first
 
@@ -446,7 +442,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val oppdatert = tac.registrerEndringOgBehandle(
                 sak,
                 deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseFraOgMed = 6.januar(2025), antallDagerPerUke = 3F),
+                nåtilstand = deltakelse.medPeriode(fraOgMed = 6.januar(2025)).copy(antallDagerPerUke = 3F),
                 forventetOppgavetekst = "- Endret deltakelsesmengde\n- Endret startdato",
                 forventetResultat = OppgaveOpprettet::class,
             )
@@ -461,7 +457,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
             val (sak) = opprettSakOgSøknad(tac, fnr = gyldigFnr(), tiltaksdeltakelse = deltakelse)
 
-            val oppdatert = tac.registrerEndringOgBehandle(sak, deltakelse, deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)), forventetResultat = IngenRelevantEndring::class)
+            val oppdatert = tac.registrerEndringOgBehandle(sak, deltakelse, deltakelse.medPeriode(tilOgMed = 5.juni(2025)), forventetResultat = IngenRelevantEndring::class)
 
             oppdatert.rammebehandlinger.shouldBeEmpty()
         }
@@ -481,7 +477,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val oppdatert = tac.registrerEndringOgBehandle(
                 sak,
                 deltakelse,
-                deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)),
+                deltakelse.medPeriode(tilOgMed = 5.juni(2025)),
                 forventetOppgavetekst = if (automatisk) null else "Deltakelsen har blitt forlenget.",
                 forventetResultat = if (automatisk) IngenRelevantEndring::class else OppgaveOpprettet::class,
             )
@@ -499,7 +495,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val (_, revurdering) = startRevurderingStans(tac, sak.id)!!
             settRammebehandlingPåVent(tac, sak.id, revurdering.id, frist = 5.juni(2025))
@@ -508,7 +504,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val oppdatert = tac.registrerEndringOgBehandle(
                 sak,
                 deltakelse,
-                deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)),
+                deltakelse.medPeriode(tilOgMed = 5.juni(2025)),
                 forventetOppgavetekst = "Deltakelsen har blitt forlenget.",
                 forventetResultat = OppgaveOpprettet::class,
             )
@@ -526,7 +522,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = innvilget,
-                innvilgelsesperioder = innvilgelsesperioder(innvilget.periode!!, innvilget),
+                innvilgelsesperioder = innvilgelsesperioder(innvilget.lukketPeriode!!, innvilget),
             )
             opprettSøknadPåSakId(tac, sakId = sak.id, tiltaksdeltakelse = annen)
 
@@ -547,14 +543,14 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = første,
-                innvilgelsesperioder = innvilgelsesperioder(første.periode!!, første),
+                innvilgelsesperioder = innvilgelsesperioder(første.lukketPeriode!!, første),
                 resultat = if (avslagFørst) SøknadsbehandlingsresultatType.AVSLAG else SøknadsbehandlingsresultatType.INNVILGELSE,
             )
             val (sakMedBeggeVedtak) = iverksettSøknadsbehandling(
                 tac = tac,
                 sakId = sak.id,
                 tiltaksdeltakelse = andre,
-                innvilgelsesperioder = innvilgelsesperioder(andre.periode!!, andre),
+                innvilgelsesperioder = innvilgelsesperioder(andre.lukketPeriode!!, andre),
                 resultat = if (avslagFørst) SøknadsbehandlingsresultatType.INNVILGELSE else SøknadsbehandlingsresultatType.AVSLAG,
             )
 
@@ -586,13 +582,13 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val (sak, _, førsteVedtak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = første,
-                innvilgelsesperioder = innvilgelsesperioder(første.periode!!, første),
+                innvilgelsesperioder = innvilgelsesperioder(første.lukketPeriode!!, første),
             )
             iverksettSøknadsbehandling(
                 tac = tac,
                 sakId = sak.id,
                 tiltaksdeltakelse = andre,
-                innvilgelsesperioder = innvilgelsesperioder(andre.periode!!, andre),
+                innvilgelsesperioder = innvilgelsesperioder(andre.lukketPeriode!!, andre),
             )
 
             val oppdatert = tac.registrerEndringOgBehandle(sak, første, første.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt), forventetResultat = RevurderingOpprettet::class)
@@ -612,7 +608,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
 
             val oppdatert = tac.registrerEndringOgBehandle(
@@ -635,9 +631,9 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
-            val forlenget = deltakelse.copy(deltakelseTilOgMed = 5.juni(2025))
+            val forlenget = deltakelse.medPeriode(tilOgMed = 5.juni(2025))
             tac.oppdaterTiltaksdeltakelse(sak.fnr, forlenget)
             val (sakMedForlengelse) = iverksettRevurderingInnvilgelse(
                 tac = tac,
@@ -666,18 +662,18 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val (sak, _, førsteVedtak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = første,
-                innvilgelsesperioder = innvilgelsesperioder(første.periode!!, første),
+                innvilgelsesperioder = innvilgelsesperioder(første.lukketPeriode!!, første),
             )
             val (sakMedBeggeVedtak) = iverksettSøknadsbehandling(
                 tac = tac,
                 sakId = sak.id,
                 tiltaksdeltakelse = andre,
-                innvilgelsesperioder = innvilgelsesperioder(andre.periode!!, andre),
+                innvilgelsesperioder = innvilgelsesperioder(andre.lukketPeriode!!, andre),
             )
             val oppdatert = tac.registrerEndringOgBehandle(
                 sakMedBeggeVedtak,
                 første,
-                første.copy(deltakelseTilOgMed = 9.mai(2025), antallDagerPerUke = if (endreMengde) 3F else første.antallDagerPerUke),
+                første.medPeriode(tilOgMed = 9.mai(2025)).copy(antallDagerPerUke = if (endreMengde) 3F else første.antallDagerPerUke),
                 forventetOppgavetekst = if (endreMengde) null else "Deltakelsen har blitt forlenget.",
                 forventetResultat = if (endreMengde) RevurderingOpprettet::class else OppgaveOpprettet::class,
             )
@@ -704,10 +700,10 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val (sak, _, vedtak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
 
-            val oppdatert = tac.registrerEndringOgBehandle(sak, deltakelse, deltakelse.copy(deltakelseTilOgMed = 3.mai(2025)), forventetResultat = RevurderingOpprettet::class)
+            val oppdatert = tac.registrerEndringOgBehandle(sak, deltakelse, deltakelse.medPeriode(tilOgMed = 3.mai(2025)), forventetResultat = RevurderingOpprettet::class)
 
             oppdatert.rammebehandlinger shouldHaveSize 2
             val revurdering = oppdatert.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
@@ -746,7 +742,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val (sak, _, førsteVedtak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             if (opphør) {
                 iverksettOmgjøringOpphør(
@@ -774,25 +770,25 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 )
 
                 EndringEtterNyInnvilgelse.STARTDATO -> Triple(
-                    deltakelse.copy(deltakelseFraOgMed = 1.februar(2025)),
+                    deltakelse.medPeriode(fraOgMed = 1.februar(2025)),
                     TiltaksdeltakerEndring.AndreEndringer(endretStartdato = TiltaksdeltakerEndring.EndretStartdato(1.februar(2025))),
                     førsteVedtak.id,
                 )
 
                 EndringEtterNyInnvilgelse.FORLENGELSE -> Triple(
-                    deltakelse.copy(deltakelseTilOgMed = 31.juli(2025)),
+                    deltakelse.medPeriode(tilOgMed = 31.juli(2025)),
                     TiltaksdeltakerEndring.Forlengelse(31.juli(2025)),
                     null,
                 )
 
                 EndringEtterNyInnvilgelse.AVKORTET_SLUTTDATO -> Triple(
-                    deltakelse.copy(deltakelseTilOgMed = 31.mai(2025)),
+                    deltakelse.medPeriode(tilOgMed = 31.mai(2025)),
                     TiltaksdeltakerEndring.Avkortet(31.mai(2025)),
                     nyInnvilgelse.id,
                 )
 
                 EndringEtterNyInnvilgelse.AVBRUTT_I_BORTFALLSPERIODEN -> Triple(
-                    deltakelse.copy(deltakelseTilOgMed = 15.mars(2025), deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
+                    deltakelse.medPeriode(tilOgMed = 15.mars(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
                     TiltaksdeltakerEndring.AvbruttDeltakelse,
                     null,
                 )
@@ -837,7 +833,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val (sak, _, førsteVedtak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val (sakMedOpphør) = iverksettOmgjøringOpphør(
                 tac = tac,
@@ -850,11 +846,11 @@ class OppdatertTiltaksdeltakelseJobbTest {
                     endretDeltakelsesmengde = TiltaksdeltakerEndring.EndretDeltakelsesmengde(deltakelse.deltakelseProsent, 3F),
                 )
 
-                "STARTDATO" -> deltakelse.copy(deltakelseFraOgMed = 1.februar(2025)) to TiltaksdeltakerEndring.AndreEndringer(
+                "STARTDATO" -> deltakelse.medPeriode(fraOgMed = 1.februar(2025)) to TiltaksdeltakerEndring.AndreEndringer(
                     endretStartdato = TiltaksdeltakerEndring.EndretStartdato(1.februar(2025)),
                 )
 
-                else -> deltakelse.copy(deltakelseTilOgMed = 31.mai(2025)) to TiltaksdeltakerEndring.Avkortet(31.mai(2025))
+                else -> deltakelse.medPeriode(tilOgMed = 31.mai(2025)) to TiltaksdeltakerEndring.Avkortet(31.mai(2025))
             }
 
             val oppdatert = tac.registrerEndringOgBehandle(sakMedOpphør, deltakelse, nåtilstand, forventetResultat = RevurderingOpprettet::class)

@@ -54,7 +54,7 @@ class TiltaksdeltakelseService(
 
         // Viser bare tiltaksdeltakelser som overlapper med perioden, tiltak med manglende fom og tom vises ikke.
         return alleTiltaksdeltakelser.filter {
-            it.periode?.overlapperMed(oppslagsperiode) == true
+            it.lukketPeriode?.overlapperMed(oppslagsperiode) == true
         }.right()
     }
 }

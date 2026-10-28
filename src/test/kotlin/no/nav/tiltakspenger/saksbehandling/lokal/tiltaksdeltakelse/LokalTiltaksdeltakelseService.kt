@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
+import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import no.nav.tiltakspenger.saksbehandling.lokal.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeLokalKlient
 import no.nav.tiltakspenger.saksbehandling.lokal.tiltaksdeltakelse.infra.repo.LokalTiltaksdeltakelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
@@ -113,8 +114,7 @@ class LokalTiltaksdeltakelseService(
                     typeNavn = command.typeNavn ?: tiltakstypeSomGirRett.tilTiltakstype().navn,
                     typeKode = tiltakstypeSomGirRett,
                     rettPåTiltakspenger = true,
-                    deltakelseFraOgMed = command.fraOgMed,
-                    deltakelseTilOgMed = command.tilOgMed,
+                    periode = lukketEllerÅpenPeriode(command.fraOgMed, command.tilOgMed),
                     deltakelseStatus = command.status ?: TiltakDeltakerstatus.Deltar,
                     deltakelseProsent = command.deltakelseProsent ?: 100f,
                     antallDagerPerUke = command.antallDagerPerUke ?: 5f,
@@ -130,8 +130,7 @@ class LokalTiltaksdeltakelseService(
                     eksternDeltakelseId = eksternId,
                     typeNavn = command.typeNavn ?: standardnavn(tiltakskode),
                     tiltakskodeFraKilden = tiltakskode,
-                    deltakelseFraOgMed = command.fraOgMed,
-                    deltakelseTilOgMed = command.tilOgMed,
+                    periode = lukketEllerÅpenPeriode(command.fraOgMed, command.tilOgMed),
                     deltakelseStatus = command.status ?: TiltakDeltakerstatus.Deltar,
                     deltakelseProsent = command.deltakelseProsent ?: 100f,
                     antallDagerPerUke = command.antallDagerPerUke ?: 5f,

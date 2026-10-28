@@ -103,6 +103,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.konsumerTilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -714,7 +715,7 @@ class BenkAggregatTest {
     fun `revurderingsfanen viser revurderinger under automatisk behandling`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val revurdering = opprettAutomatiskRevurdering(tac) {
-                it.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 20.april(2025))
+                it.medPeriode(tilOgMed = 20.april(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)
             }
             val repo = tac.benkContext.benkRepo
 
@@ -751,7 +752,7 @@ class BenkAggregatTest {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sakManuell, _, _, manuell) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac = tac)
             settRammebehandlingPåVent(tac = tac, sakId = sakManuell.id, rammebehandlingId = manuell.id, frist = 10.mai(2025))!!
-            val automatisk = opprettAutomatiskRevurdering(tac) { it.copy(deltakelseTilOgMed = 30.juni(2025)) }
+            val automatisk = opprettAutomatiskRevurdering(tac) { it.medPeriode(tilOgMed = 30.juni(2025)) }
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(automatisk.id)
             val (sakIkkePåVent) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac = tac)
             val repo = tac.benkContext.benkRepo
@@ -787,7 +788,7 @@ class BenkAggregatTest {
         val (sak) = iverksettSøknadsbehandling(
             tac = tac,
             tiltaksdeltakelse = deltakelse,
-            innvilgelsesperioder = ObjectMother.innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+            innvilgelsesperioder = ObjectMother.innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
         )
         tac.oppdaterTiltaksdeltakelse(sak.fnr, nåtilstand(deltakelse))
         tac.tiltakContext.tiltaksdeltakerRepo.registrerUbehandletEndring(

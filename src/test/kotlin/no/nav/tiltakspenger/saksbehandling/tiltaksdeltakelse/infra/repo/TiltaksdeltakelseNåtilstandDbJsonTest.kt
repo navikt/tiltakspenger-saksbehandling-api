@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -107,10 +108,8 @@ class TiltaksdeltakelseNåtilstandDbJsonTest {
 
     @Test
     fun `deltakelse uten datoer, gjennomføring og omfang lagres med null-verdier`() {
-        val nåtilstand = deltakelse().copy(
+        val nåtilstand = deltakelse().medPeriode(fraOgMed = null, tilOgMed = null).copy(
             gjennomføringId = null,
-            deltakelseFraOgMed = null,
-            deltakelseTilOgMed = null,
             deltakelseProsent = null,
             antallDagerPerUke = null,
             deltidsprosentGjennomforing = null,

@@ -85,7 +85,7 @@ fun Sak.utledAutomatiskOmgjøringAvSluttdato(
         grunner.add(ManueltBehandlesGrunn.OMGJORING_TILTAKET_GIR_IKKE_RETT)
     }
 
-    val nySluttdato = nåtilstand?.deltakelseTilOgMed
+    val nySluttdato = nåtilstand?.periode?.tilOgMed
     if (nåtilstand != null && nySluttdato == null) {
         grunner.add(ManueltBehandlesGrunn.OMGJORING_DELTAKELSEN_MANGLER_SLUTTDATO)
     }
@@ -106,7 +106,7 @@ fun Sak.utledAutomatiskOmgjøringAvSluttdato(
         ?.filter { it.internDeltakelseId == tiltaksdeltakerId }
         .orEmpty()
 
-    if (nåtilstand != null && tidligereDeltakelser.any { it.deltakelseFraOgMed != nåtilstand.deltakelseFraOgMed }) {
+    if (nåtilstand != null && tidligereDeltakelser.any { it.periode.fraOgMed != nåtilstand.periode.fraOgMed }) {
         grunner.add(ManueltBehandlesGrunn.OMGJORING_ENDRET_STARTDATO)
     }
 
@@ -141,7 +141,7 @@ fun Sak.utledAutomatiskOmgjøringAvSluttdato(
             ?.krympTilPerioder(innvilgelsesperioder.perioder)
             ?: Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         begrunnelse = lagBegrunnelse(
-            tidligereSluttdato = tidligereDeltakelser.last().deltakelseTilOgMed!!,
+            tidligereSluttdato = tidligereDeltakelser.last().periode.tilOgMed!!,
             nySluttdato = nySluttdato!!,
         ),
         fritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create(FRITEKST_TIL_VEDTAKSBREV_VED_AVKORTET_SLUTTDATO)!!,

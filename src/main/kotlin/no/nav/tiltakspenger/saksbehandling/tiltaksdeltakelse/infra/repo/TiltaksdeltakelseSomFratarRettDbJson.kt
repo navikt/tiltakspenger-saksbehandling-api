@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
+import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseSomFratarRett
 import java.time.LocalDate
 
@@ -22,8 +23,7 @@ data class TiltaksdeltakelseSomFratarRettDbJson(
             eksternDeltakelseId = eksternDeltakelseId,
             typeNavn = typeNavn,
             tiltakskodeFraKilden = tiltakskodeFraKilden,
-            deltakelseFraOgMed = deltakelseFraOgMed,
-            deltakelseTilOgMed = deltakelseTilOgMed,
+            periode = lukketEllerÅpenPeriode(deltakelseFraOgMed, deltakelseTilOgMed),
             deltakelseStatus = deltakelseStatus.toTiltakDeltakerstatus(),
             deltakelseProsent = deltakelseProsent,
             antallDagerPerUke = antallDagerPerUke,
@@ -37,8 +37,8 @@ fun TiltaksdeltakelseSomFratarRett.toDbJson(): TiltaksdeltakelseSomFratarRettDbJ
         eksternDeltakelseId = eksternDeltakelseId,
         typeNavn = typeNavn,
         tiltakskodeFraKilden = tiltakskodeFraKilden,
-        deltakelseFraOgMed = deltakelseFraOgMed,
-        deltakelseTilOgMed = deltakelseTilOgMed,
+        deltakelseFraOgMed = periode.fraOgMed,
+        deltakelseTilOgMed = periode.tilOgMed,
         deltakelseStatus = deltakelseStatus.toDb(),
         deltakelseProsent = deltakelseProsent,
         antallDagerPerUke = antallDagerPerUke,

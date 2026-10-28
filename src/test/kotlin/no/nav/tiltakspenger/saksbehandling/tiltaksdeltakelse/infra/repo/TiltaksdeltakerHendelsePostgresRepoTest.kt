@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -114,7 +115,7 @@ class TiltaksdeltakerHendelsePostgresRepoTest {
                     prosent = 50f,
                     kilde = Tiltakskilde.Komet,
                     deltidsprosentGjennomforing = 80.0,
-                ).copy(deltakelseFraOgMed = deltakelseFraOgMed, deltakelseTilOgMed = deltakelseTilOgMed).tilLibsDeltakelse(),
+                ).medPeriode(fraOgMed = deltakelseFraOgMed, tilOgMed = deltakelseTilOgMed).tilLibsDeltakelse(),
                 endring = null,
                 behandlingId = null,
                 oppgaveId = null,

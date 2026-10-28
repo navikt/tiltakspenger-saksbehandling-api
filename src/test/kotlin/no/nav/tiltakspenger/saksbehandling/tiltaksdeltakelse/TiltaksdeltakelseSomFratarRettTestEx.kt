@@ -1,11 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse
 
-import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.libs.periode.ÅpenPeriode
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Arrangør
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Deltakelsesomfang
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.EksternDeltakelseId
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
+import java.time.LocalDate
 
 /**
  * Deltakelsen slik tiltakshistorikk ville levert den, til fakes som trenger libs-domenet.
@@ -13,8 +13,6 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
  * Tittel, arrangør og gjennomføring finnes ikke i den interne modellen, og blir tomme.
  */
 fun TiltaksdeltakelseSomFratarRett.tilLibsDeltakelse(): Tiltaksdeltakelse.FratarRett {
-    val fraOgMed = deltakelseFraOgMed
-    val tilOgMed = deltakelseTilOgMed
     return Tiltaksdeltakelse.FratarRett(
         id = EksternDeltakelseId(eksternDeltakelseId),
         kildestatus = tilKildestatus(kilde, deltakelseStatus),
@@ -28,6 +26,15 @@ fun TiltaksdeltakelseSomFratarRett.tilLibsDeltakelse(): Tiltaksdeltakelse.Fratar
             deltidsprosentPåGjennomføring = null,
         ),
         gjennomføringId = null,
-        periode = if (fraOgMed != null && tilOgMed != null) Periode(fraOgMed, tilOgMed) else ÅpenPeriode(fraOgMed, tilOgMed),
+        periode = periode,
     )
 }
+
+/**
+ * Kopi med ny start- og/eller sluttdato.
+ * Datoene som ikke sendes inn beholdes.
+ */
+fun TiltaksdeltakelseSomFratarRett.medPeriode(
+    fraOgMed: LocalDate? = periode.fraOgMed,
+    tilOgMed: LocalDate? = periode.tilOgMed,
+): TiltaksdeltakelseSomFratarRett = copy(periode = lukketEllerÅpenPeriode(fraOgMed, tilOgMed))

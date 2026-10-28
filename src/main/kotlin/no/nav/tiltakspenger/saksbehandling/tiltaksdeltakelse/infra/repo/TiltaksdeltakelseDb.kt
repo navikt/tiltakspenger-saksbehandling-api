@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
+import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDate
@@ -25,8 +26,7 @@ data class TiltaksdeltakelseDb(
             gjennomføringId = gjennomføringId,
             typeNavn = typeNavn,
             typeKode = typeKode.toTiltakstypeSomGirRett(),
-            deltakelseFraOgMed = deltagelseFraOgMed,
-            deltakelseTilOgMed = deltagelseTilOgMed,
+            periode = lukketEllerÅpenPeriode(deltagelseFraOgMed, deltagelseTilOgMed),
             deltakelseStatus = deltakelseStatus.toTiltakDeltakerstatus(),
             deltakelseProsent = deltakelseProsent,
             antallDagerPerUke = antallDagerPerUke,
@@ -44,8 +44,8 @@ fun TiltaksdeltakelseIntern.toDbJson(): TiltaksdeltakelseDb {
         gjennomføringId = this.gjennomføringId,
         typeNavn = this.typeNavn,
         typeKode = this.typeKode.toDb(),
-        deltagelseFraOgMed = this.deltakelseFraOgMed,
-        deltagelseTilOgMed = this.deltakelseTilOgMed,
+        deltagelseFraOgMed = this.periode.fraOgMed,
+        deltagelseTilOgMed = this.periode.tilOgMed,
         deltakelseStatus = this.deltakelseStatus.toDb(),
         deltakelseProsent = this.deltakelseProsent,
         antallDagerPerUke = this.antallDagerPerUke,

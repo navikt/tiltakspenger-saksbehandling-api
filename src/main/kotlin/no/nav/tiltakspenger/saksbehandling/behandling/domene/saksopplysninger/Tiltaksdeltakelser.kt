@@ -23,8 +23,8 @@ data class Tiltaksdeltakelser(
         }
     }
 
-    val tidligsteFraOgMed by lazy { value.mapNotNull { it.deltakelseFraOgMed }.minOrNull() }
-    val senesteTilOgMed by lazy { value.mapNotNull { it.deltakelseTilOgMed }.maxOrNull() }
+    val tidligsteFraOgMed by lazy { value.mapNotNull { it.periode.fraOgMed }.minOrNull() }
+    val senesteTilOgMed by lazy { value.mapNotNull { it.periode.tilOgMed }.maxOrNull() }
 
     /**
      * Denne ignorerer mellomrom mellom tiltaksdeltakelsene.
@@ -44,7 +44,7 @@ data class Tiltaksdeltakelser(
     }
 
     /** Filtrerer bort tiltaksdeltakelser med ufullstendige perioder */
-    val perioder by lazy { value.mapNotNull { it.periode } }
+    val perioder by lazy { value.mapNotNull { it.lukketPeriode } }
 
     inline fun filter(predicate: (TiltaksdeltakelseIntern) -> Boolean): Tiltaksdeltakelser {
         return Tiltaksdeltakelser(filterTo(ArrayList(), predicate))

@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testStart
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testStatusOpprettet
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
+import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
@@ -31,6 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseSomFratarRett
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -93,8 +95,7 @@ class TiltakshistorikkTilRegisterMapperTest {
             eksternDeltakelseId = "TA123",
             typeNavn = "Oppfølging",
             tiltakskodeFraKilden = "MIDLONTIL",
-            deltakelseFraOgMed = testStart,
-            deltakelseTilOgMed = testSlutt,
+            periode = lukketEllerÅpenPeriode(testStart, testSlutt),
             deltakelseStatus = TiltakDeltakerstatus.Deltar,
             deltakelseProsent = 60f,
             antallDagerPerUke = 3f,
@@ -151,8 +152,7 @@ class TiltakshistorikkTilRegisterMapperTest {
             typeNavn = "Oppfølging",
             typeKode = TiltakstypeSomGirRettDTO.OPPFØLGING,
             rettPåTiltakspenger = true,
-            deltakelseFraOgMed = deltakelse.fraOgMed,
-            deltakelseTilOgMed = deltakelse.tilOgMed,
+            periode = lukketEllerÅpenPeriode(deltakelse.fraOgMed, deltakelse.tilOgMed),
             deltakelseStatus = TiltakDeltakerstatus.Deltar,
             deltakelseProsent = 60f,
             antallDagerPerUke = 3f,
@@ -347,18 +347,15 @@ class TiltakshistorikkTilRegisterMapperTest {
             eksternDeltakelseId = "TA1",
             typeNavn = "Midlertidig lønnstilskudd",
             tiltakskodeFraKilden = "MIDLONTIL",
-            deltakelseFraOgMed = 1.januar(2024),
-            deltakelseTilOgMed = 31.mars(2024),
+            periode = lukketEllerÅpenPeriode(1.januar(2024), 31.mars(2024)),
             deltakelseStatus = TiltakDeltakerstatus.Deltar,
             deltakelseProsent = 50f,
             antallDagerPerUke = 2.5f,
             kilde = Tiltakskilde.Arena,
         )
-        val utenDatoer = medDatoer.copy(
+        val utenDatoer = medDatoer.medPeriode(fraOgMed = null, tilOgMed = null).copy(
             eksternDeltakelseId = "8d6a2b1e-7c0e-4f4b-9a8e-0f6c7f1a2b3c",
             tiltakskodeFraKilden = "VARIG_LONNSTILSKUDD",
-            deltakelseFraOgMed = null,
-            deltakelseTilOgMed = null,
             deltakelseStatus = TiltakDeltakerstatus.HarSluttet,
             kilde = Tiltakskilde.TeamTiltak,
         )

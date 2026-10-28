@@ -33,6 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
+import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import no.nav.tiltakspenger.saksbehandling.felles.uventetStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
@@ -879,8 +880,7 @@ class HentSaksopplysingerServiceTest {
                 eksternDeltakelseId = "TA1",
                 typeNavn = "Oppfølging",
                 tiltakskodeFraKilden = "MIDLONTIL",
-                deltakelseFraOgMed = 1.januar(2023),
-                deltakelseTilOgMed = 31.januar(2023),
+                periode = lukketEllerÅpenPeriode(1.januar(2023), 31.januar(2023)),
                 deltakelseStatus = TiltakDeltakerstatus.Deltar,
                 deltakelseProsent = 60f,
                 antallDagerPerUke = 3f,

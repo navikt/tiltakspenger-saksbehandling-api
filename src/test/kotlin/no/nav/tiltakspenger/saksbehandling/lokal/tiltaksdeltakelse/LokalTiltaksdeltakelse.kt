@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.lokal.tiltaksdeltakelse
 
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseSomFratarRett
@@ -36,8 +37,7 @@ sealed interface LokalTiltaksdeltakelse {
             eksternDeltakelseId = deltakelse.eksternDeltakelseId,
             typeNavn = deltakelse.typeNavn,
             typeKode = deltakelse.typeKode,
-            deltakelseFraOgMed = deltakelse.deltakelseFraOgMed,
-            deltakelseTilOgMed = deltakelse.deltakelseTilOgMed,
+            periode = deltakelse.periode,
             visningsnavn = deltakelse.typeNavn,
             status = deltakelse.deltakelseStatus,
         )
@@ -45,8 +45,10 @@ sealed interface LokalTiltaksdeltakelse {
         override fun endre(command: OpprettEllerOppdaterLokalTiltaksdeltakelseCommand) = GirRett(
             deltakelse.copy(
                 typeNavn = command.typeNavn ?: deltakelse.typeNavn,
-                deltakelseFraOgMed = command.fraOgMed ?: deltakelse.deltakelseFraOgMed,
-                deltakelseTilOgMed = command.tilOgMed ?: deltakelse.deltakelseTilOgMed,
+                periode = lukketEllerÅpenPeriode(
+                    command.fraOgMed ?: deltakelse.periode.fraOgMed,
+                    command.tilOgMed ?: deltakelse.periode.tilOgMed,
+                ),
                 deltakelseStatus = command.status ?: deltakelse.deltakelseStatus,
                 deltakelseProsent = command.deltakelseProsent ?: deltakelse.deltakelseProsent,
                 antallDagerPerUke = command.antallDagerPerUke ?: deltakelse.antallDagerPerUke,
@@ -65,8 +67,7 @@ sealed interface LokalTiltaksdeltakelse {
             eksternDeltakelseId = deltakelse.eksternDeltakelseId,
             typeNavn = deltakelse.typeNavn,
             typeKode = null,
-            deltakelseFraOgMed = deltakelse.deltakelseFraOgMed,
-            deltakelseTilOgMed = deltakelse.deltakelseTilOgMed,
+            periode = deltakelse.periode,
             visningsnavn = deltakelse.typeNavn,
             status = deltakelse.deltakelseStatus,
         )
@@ -74,8 +75,10 @@ sealed interface LokalTiltaksdeltakelse {
         override fun endre(command: OpprettEllerOppdaterLokalTiltaksdeltakelseCommand) = FratarRett(
             deltakelse.copy(
                 typeNavn = command.typeNavn ?: deltakelse.typeNavn,
-                deltakelseFraOgMed = command.fraOgMed ?: deltakelse.deltakelseFraOgMed,
-                deltakelseTilOgMed = command.tilOgMed ?: deltakelse.deltakelseTilOgMed,
+                periode = lukketEllerÅpenPeriode(
+                    command.fraOgMed ?: deltakelse.periode.fraOgMed,
+                    command.tilOgMed ?: deltakelse.periode.tilOgMed,
+                ),
                 deltakelseStatus = command.status ?: deltakelse.deltakelseStatus,
                 deltakelseProsent = command.deltakelseProsent ?: deltakelse.deltakelseProsent,
                 antallDagerPerUke = command.antallDagerPerUke ?: deltakelse.antallDagerPerUke,

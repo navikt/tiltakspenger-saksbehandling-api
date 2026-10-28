@@ -58,6 +58,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.IngenRelevantEndring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
@@ -129,12 +130,12 @@ class DelautomatiskForlengelseServiceTest {
             val (sak, _, vedtak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val revurdering = tac.opprettAutomatiskForlengelse(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 30.juni(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 30.juni(2025)),
             )
 
             tac.behandleForlengelseAutomatisk(revurdering)
@@ -185,7 +186,7 @@ class DelautomatiskForlengelseServiceTest {
         førBehandling: suspend ApplicationTestBuilder.(Sak) -> Unit = {},
     ): Revurdering {
         val deltakelse = tidligereTilstand(tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025)))
-        val innvilgelsesperiode = deltakelse.deltakelseFraOgMed!! til innvilgetTilOgMed
+        val innvilgelsesperiode = deltakelse.periode.fraOgMed!! til innvilgetTilOgMed
         val (sak) = iverksettSøknadsbehandling(
             tac = tac,
             tiltaksdeltakelse = deltakelse,
@@ -197,7 +198,7 @@ class DelautomatiskForlengelseServiceTest {
             toggleKanSendeHelgForMeldekort(tac, sak.id, kanSendeHelg = true)
         }
         etterInnvilgelse(sak)
-        val forlenget = deltakelse.copy(deltakelseTilOgMed = 30.juni(2025))
+        val forlenget = deltakelse.medPeriode(tilOgMed = 30.juni(2025))
         val revurdering = tac.opprettAutomatiskForlengelse(sak = sak, tiltaksdeltakelse = deltakelse, nåtilstand = forlenget)
         førBehandling(sak)
         tac.oppdaterTiltaksdeltakelse(sak.fnr, nåtilstand(forlenget))
@@ -290,7 +291,7 @@ class DelautomatiskForlengelseServiceTest {
     @Test
     fun `startdatoen er endret - overlates til saksbehandler`() {
         withTestApplicationContextAndPostgres { tac ->
-            forlengOgBehandleAutomatisk(tac, nåtilstand = { it.copy(deltakelseFraOgMed = 6.januar(2025)) })
+            forlengOgBehandleAutomatisk(tac, nåtilstand = { it.medPeriode(fraOgMed = 6.januar(2025)) })
                 .skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.FORLENGELSE_ENDRET_STARTDATO)
         }
     }
@@ -298,7 +299,7 @@ class DelautomatiskForlengelseServiceTest {
     @Test
     fun `sluttdatoen er satt tilbake til siste innvilgede dag før behandlingen - overlates til saksbehandler`() {
         withTestApplicationContextAndPostgres { tac ->
-            forlengOgBehandleAutomatisk(tac, nåtilstand = { it.copy(deltakelseTilOgMed = 5.mai(2025)) })
+            forlengOgBehandleAutomatisk(tac, nåtilstand = { it.medPeriode(tilOgMed = 5.mai(2025)) })
                 .skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.FORLENGELSE_SLUTTDATO_ER_IKKE_ETTER_INNVILGELSEN)
         }
     }
@@ -306,7 +307,7 @@ class DelautomatiskForlengelseServiceTest {
     @Test
     fun `sluttdatoen er fjernet før behandlingen - overlates til saksbehandler`() {
         withTestApplicationContextAndPostgres { tac ->
-            forlengOgBehandleAutomatisk(tac, nåtilstand = { it.copy(deltakelseTilOgMed = null) })
+            forlengOgBehandleAutomatisk(tac, nåtilstand = { it.medPeriode(tilOgMed = null) })
                 .skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.FORLENGELSE_DELTAKELSEN_MANGLER_SLUTTDATO)
         }
     }
@@ -462,9 +463,8 @@ class DelautomatiskForlengelseServiceTest {
             forlengOgBehandleAutomatisk(
                 tac,
                 nåtilstand = {
-                    it.copy(
+                    it.medPeriode(fraOgMed = 6.januar(2025)).copy(
                         deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell,
-                        deltakelseFraOgMed = 6.januar(2025),
                         antallDagerPerUke = 2.5F,
                         deltakelseProsent = 50F,
                     )
@@ -505,7 +505,7 @@ class DelautomatiskForlengelseServiceTest {
             forlengOgBehandleAutomatisk(
                 tac,
                 innvilgetTilOgMed = 30.april(2025),
-                nåtilstand = { it.copy(deltakelseFraOgMed = 6.januar(2025)) },
+                nåtilstand = { it.medPeriode(fraOgMed = 6.januar(2025)) },
                 etterInnvilgelse = { sak ->
                     tac.leggTilYtelserFraUtbetaldata(
                         fnr = sak.fnr,
@@ -535,7 +535,7 @@ class DelautomatiskForlengelseServiceTest {
                         sakId = sak.id,
                         fnr = sak.fnr,
                         tiltaksdeltakelse = annenDeltakelse,
-                        innvilgelsesperioder = innvilgelsesperioder(annenDeltakelse.periode!!, annenDeltakelse),
+                        innvilgelsesperioder = innvilgelsesperioder(annenDeltakelse.lukketPeriode!!, annenDeltakelse),
                     )
                 },
             ).skalVæreOverlattTilSaksbehandler(
@@ -558,7 +558,7 @@ class DelautomatiskForlengelseServiceTest {
                         fnr = sak.fnr,
                         resultat = SøknadsbehandlingsresultatType.AVSLAG,
                         tiltaksdeltakelse = annenDeltakelse,
-                        innvilgelsesperioder = innvilgelsesperioder(annenDeltakelse.periode!!, annenDeltakelse),
+                        innvilgelsesperioder = innvilgelsesperioder(annenDeltakelse.lukketPeriode!!, annenDeltakelse),
                     )
                 },
             ).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.FORLENGELSE_OVERLAPPENDE_TILTAK)
@@ -671,14 +671,14 @@ class DelautomatiskForlengelseServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
-                barnetillegg = barnetillegg(periode = deltakelse.periode!!, antallBarn = AntallBarn(2)),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
+                barnetillegg = barnetillegg(periode = deltakelse.lukketPeriode!!, antallBarn = AntallBarn(2)),
                 barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015)), barnetilleggMedIdent(fødselsdato = 1.juni(2009))),
             )
             val revurdering = tac.opprettAutomatiskForlengelse(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 30.juni(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 30.juni(2025)),
             )
             tac.behandleForlengelseAutomatisk(revurdering)
 
@@ -774,12 +774,12 @@ class DelautomatiskForlengelseServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val revurdering = tac.opprettAutomatiskForlengelse(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 30.juni(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 30.juni(2025)),
             )
             iverksettRevurderingStans(tac = tac, sakId = sak.id, stansFraOgMed = 2.mai(2025))
 
@@ -796,12 +796,12 @@ class DelautomatiskForlengelseServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val revurdering = tac.opprettAutomatiskForlengelse(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 30.juni(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 30.juni(2025)),
             )
             iverksettRevurderingStans(tac = tac, sakId = sak.id)
 
@@ -823,14 +823,14 @@ class DelautomatiskForlengelseServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val revurdering = tac.opprettAutomatiskForlengelse(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 30.juni(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 30.juni(2025)),
             )
-            val forlengetIgjen = deltakelse.copy(deltakelseTilOgMed = 31.juli(2025))
+            val forlengetIgjen = deltakelse.medPeriode(tilOgMed = 31.juli(2025))
 
             tac.behandleEndring(sak, deltakelse, forlengetIgjen).shouldBeInstanceOf<IngenRelevantEndring>()
 
@@ -865,12 +865,12 @@ class DelautomatiskForlengelseServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val revurdering = tac.opprettAutomatiskForlengelse(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 30.juni(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 30.juni(2025)),
             )
             tac.clock.spolTil(12.mai(2025).atStartOfDay())
             val meldeperiode = sak.meldeperiodeKjeder.single().siste
@@ -885,7 +885,7 @@ class DelautomatiskForlengelseServiceTest {
                         dager = meldeperiode.periode.tilDager().map {
                             OppdaterMeldekortdagDTO(
                                 dato = it,
-                                status = if (deltakelse.periode!!.inneholder(it)) {
+                                status = if (deltakelse.lukketPeriode!!.inneholder(it)) {
                                     MeldekortDagStatusDTO.DELTATT_UTEN_LØNN_I_TILTAKET
                                 } else {
                                     MeldekortDagStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
@@ -924,12 +924,12 @@ class DelautomatiskForlengelseServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val revurdering = tac.opprettAutomatiskForlengelse(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 30.juni(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 30.juni(2025)),
             )
             startRevurderingInnvilgelse(tac, sak.id).shouldNotBeNull()
 
@@ -944,7 +944,7 @@ class DelautomatiskForlengelseServiceTest {
         withTestApplicationContextAndPostgres { tac ->
             forlengOgBehandleAutomatisk(
                 tac,
-                nåtilstand = { it.copy(deltakelseFraOgMed = 6.januar(2025)) },
+                nåtilstand = { it.medPeriode(fraOgMed = 6.januar(2025)) },
                 førBehandling = { sak -> startRevurderingInnvilgelse(tac, sak.id).shouldNotBeNull() },
             ).skalVæreOverlattTilSaksbehandler(
                 ManueltBehandlesGrunn.ANNET_APEN_BEHANDLING,
@@ -963,12 +963,12 @@ class DelautomatiskForlengelseServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val revurdering = tac.opprettAutomatiskForlengelse(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 30.juni(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 30.juni(2025)),
             )
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
@@ -1001,12 +1001,12 @@ class DelautomatiskForlengelseServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val revurdering = tac.opprettAutomatiskForlengelse(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 30.juni(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 30.juni(2025)),
             )
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
@@ -1030,12 +1030,12 @@ class DelautomatiskForlengelseServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val revurdering = tac.opprettAutomatiskForlengelse(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 30.juni(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 30.juni(2025)),
             )
             startRevurderingInnvilgelse(tac, sak.id).shouldNotBeNull()
 
@@ -1066,17 +1066,17 @@ class DelautomatiskForlengelseServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val revurdering = tac.opprettAutomatiskForlengelse(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 30.juni(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 30.juni(2025)),
             )
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
             tac.hentRevurdering(sak, revurdering).skalVæreSattPåVentTilFireDagerFørStartdatoen()
 
-            val forlengetIgjen = deltakelse.copy(deltakelseTilOgMed = 31.juli(2025))
+            val forlengetIgjen = deltakelse.medPeriode(tilOgMed = 31.juli(2025))
             tac.behandleEndring(sak, deltakelse, forlengetIgjen).shouldBeInstanceOf<IngenRelevantEndring>()
 
             val fremskyndetVenterTil = tac.hentRevurdering(sak, revurdering).also {
@@ -1090,7 +1090,7 @@ class DelautomatiskForlengelseServiceTest {
             tac.hentRevurdering(sak, revurdering).also {
                 it.skalVæreSattPåVentTilFireDagerFørStartdatoen(tilOgMed = 31.juli(2025))
                 it.saksopplysninger.getTiltaksdeltakelse(deltakelse.internDeltakelseId).shouldNotBeNull()
-                    .deltakelseTilOgMed shouldBe 31.juli(2025)
+                    .periode.tilOgMed shouldBe 31.juli(2025)
             }
 
             tac.clock.spolTil(2.mai(2025).atTime(7, 0))
@@ -1117,12 +1117,12 @@ class DelautomatiskForlengelseServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val revurdering = tac.opprettAutomatiskForlengelse(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseTilOgMed = 30.juni(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 30.juni(2025)),
             )
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
@@ -1140,7 +1140,7 @@ class DelautomatiskForlengelseServiceTest {
                 it.ventestatus.sattPåVentFrist shouldBe 10.mai(2025)
             }
 
-            val forlengetIgjen = deltakelse.copy(deltakelseTilOgMed = 31.juli(2025))
+            val forlengetIgjen = deltakelse.medPeriode(tilOgMed = 31.juli(2025))
             tac.behandleEndring(sak, deltakelse, forlengetIgjen).shouldBeInstanceOf<IngenRelevantEndring>()
             val fremskyndetVenterTil = tac.hentRevurdering(sak, revurdering).venterTil.shouldNotBeNull()
             fremskyndetVenterTil.isBefore(2.mai(2025).atTime(6, 0)) shouldBe true
@@ -1179,7 +1179,7 @@ class DelautomatiskForlengelseServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val (_, revurdering) = startRevurderingInnvilgelse(tac, sak.id)!!
 

@@ -96,10 +96,11 @@ class DelautomatiskBehandlingService(
     private fun skalSettePaVent(behandling: Søknadsbehandling, correlationId: CorrelationId): Boolean {
         val soknadstiltakFraSaksopplysning = getSoknadstiltakFraSaksopplysning(behandling) ?: return false
 
-        if (!soknadstiltakFraSaksopplysning.deltakelseStatus.harIkkeStartet() || soknadstiltakFraSaksopplysning.deltakelseFraOgMed == null) {
+        val startdato = soknadstiltakFraSaksopplysning.periode.fraOgMed
+        if (!soknadstiltakFraSaksopplysning.deltakelseStatus.harIkkeStartet() || startdato == null) {
             return false
         }
-        if (soknadstiltakFraSaksopplysning.deltakelseFraOgMed.isAfter(LocalDate.now(clock))) {
+        if (startdato.isAfter(LocalDate.now(clock))) {
             log.info { "Startdato for deltakelse for behandling ${behandling.id} er ikke passert, setter på vent. CorrelationId: $correlationId" }
             return true
         }
@@ -107,7 +108,7 @@ class DelautomatiskBehandlingService(
     }
 
     private suspend fun settBehandlingPaVent(behandling: Søknadsbehandling, correlationId: CorrelationId) {
-        val startdatoForTiltak = getSoknadstiltakFraSaksopplysning(behandling)?.deltakelseFraOgMed
+        val startdatoForTiltak = getSoknadstiltakFraSaksopplysning(behandling)?.periode?.fraOgMed
             ?: throw IllegalStateException("Skal ikke sette behandling med id ${behandling.id} på vent siden startdato mangler")
         val venterTil = startdatoForTiltak.atTime(6, 0)
         if (behandling.ventestatus.erSattPåVent) {
@@ -391,15 +392,15 @@ class DelautomatiskBehandlingService(
     private fun tiltakManglerPeriode(
         tiltakFraSaksopplysning: TiltaksdeltakelseIntern,
     ): Boolean {
-        return tiltakFraSaksopplysning.deltakelseFraOgMed == null || tiltakFraSaksopplysning.deltakelseTilOgMed == null
+        return tiltakFraSaksopplysning.periode !is Periode
     }
 
     private fun tiltakFraSoknadHarEndretPeriode(
         tiltakFraSoknad: Søknadstiltak,
         tiltakFraSaksopplysning: TiltaksdeltakelseIntern,
     ): Boolean =
-        tiltakFraSaksopplysning.deltakelseFraOgMed != tiltakFraSoknad.deltakelseFom ||
-            tiltakFraSaksopplysning.deltakelseTilOgMed != tiltakFraSoknad.deltakelseTom
+        tiltakFraSaksopplysning.periode.fraOgMed != tiltakFraSoknad.deltakelseFom ||
+            tiltakFraSaksopplysning.periode.tilOgMed != tiltakFraSoknad.deltakelseTom
 
     private fun utledBarnetillegg(behandling: Søknadsbehandling): Barnetillegg {
         require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad" }

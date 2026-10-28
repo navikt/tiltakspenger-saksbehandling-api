@@ -50,6 +50,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.Tiltaksd
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.IngenRelevantEndring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.junit.jupiter.api.Test
 
@@ -109,7 +110,7 @@ class DelautomatiskStansServiceTest {
         val (sak, _, søknadsvedtak) = iverksettSøknadsbehandling(
             tac = tac,
             tiltaksdeltakelse = deltakelse,
-            innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+            innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
         )
         val (sakMedUtbetaling) = opprettOgIverksettMeldekortbehandling(
             tac = tac,
@@ -127,12 +128,12 @@ class DelautomatiskStansServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val revurdering = tac.opprettAutomatiskStans(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 20.april(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 20.april(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
             )
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
@@ -165,7 +166,7 @@ class DelautomatiskStansServiceTest {
             val revurdering = tac.opprettAutomatiskStans(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 10.januar(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 10.januar(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
             )
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
@@ -188,12 +189,12 @@ class DelautomatiskStansServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val revurdering = tac.opprettAutomatiskStans(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 20.februar(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 20.februar(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
             )
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
@@ -220,7 +221,7 @@ class DelautomatiskStansServiceTest {
             tac.behandleEndring(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 9.januar(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 9.januar(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
             ).shouldBeInstanceOf<RevurderingOpprettet>()
 
             val opphør = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
@@ -269,7 +270,7 @@ class DelautomatiskStansServiceTest {
             tac.behandleEndring(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 9.januar(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 9.januar(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
             ).shouldBeInstanceOf<OppgaveOpprettet>()
 
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.filterIsInstance<Revurdering>()
@@ -290,7 +291,7 @@ class DelautomatiskStansServiceTest {
             val revurdering = tac.opprettAutomatiskStans(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 7.januar(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 7.januar(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
             )
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
@@ -318,12 +319,12 @@ class DelautomatiskStansServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val revurdering = tac.opprettAutomatiskStans(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 7.januar(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 7.januar(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
             )
 
             tac.clock.spolTil(1.mai(2025).atStartOfDay())
@@ -338,7 +339,7 @@ class DelautomatiskStansServiceTest {
                         dager = meldeperiode.periode.tilDager().map {
                             OppdaterMeldekortdagDTO(
                                 dato = it,
-                                status = if (deltakelse.periode!!.inneholder(it)) {
+                                status = if (deltakelse.lukketPeriode!!.inneholder(it)) {
                                     MeldekortDagStatusDTO.DELTATT_UTEN_LØNN_I_TILTAKET
                                 } else {
                                     MeldekortDagStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
@@ -364,7 +365,7 @@ class DelautomatiskStansServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val revurdering = tac.opprettAutomatiskStans(
                 sak = sak,
@@ -385,12 +386,12 @@ class DelautomatiskStansServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val revurdering = tac.opprettAutomatiskStans(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 20.april(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 20.april(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
             )
             tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse)
 
@@ -415,11 +416,11 @@ class DelautomatiskStansServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
-            val avbrutt = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 20.april(2025))
+            val avbrutt = deltakelse.medPeriode(tilOgMed = 20.april(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)
             val revurdering = tac.opprettAutomatiskStans(sak = sak, tiltaksdeltakelse = deltakelse, nåtilstand = avbrutt)
-            val avbruttTidligere = avbrutt.copy(deltakelseTilOgMed = 15.april(2025))
+            val avbruttTidligere = avbrutt.medPeriode(tilOgMed = 15.april(2025))
 
             tac.behandleEndring(sak, deltakelse, avbruttTidligere).shouldBeInstanceOf<IngenRelevantEndring>()
 
@@ -450,12 +451,12 @@ class DelautomatiskStansServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val revurdering = tac.opprettAutomatiskStans(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 20.april(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 20.april(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
             )
             startRevurderingInnvilgelse(tac, sak.id).shouldNotBeNull()
 
@@ -472,15 +473,15 @@ class DelautomatiskStansServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val revurdering = tac.opprettAutomatiskStans(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
-                nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 20.april(2025)),
+                nåtilstand = deltakelse.medPeriode(tilOgMed = 20.april(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
             )
             startRevurderingInnvilgelse(tac, sak.id).shouldNotBeNull()
-            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 2.mai(2025)))
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.medPeriode(tilOgMed = 2.mai(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt))
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
@@ -498,7 +499,7 @@ class DelautomatiskStansServiceTest {
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
             )
             val (_, revurdering) = startRevurderingStans(tac, sak.id)!!
 

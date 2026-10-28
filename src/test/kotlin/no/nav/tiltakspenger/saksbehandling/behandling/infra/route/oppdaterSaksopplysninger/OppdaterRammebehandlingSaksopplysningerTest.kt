@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringInnvilgelse
@@ -25,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -47,8 +49,7 @@ class OppdaterRammebehandlingSaksopplysningerTest {
                     typeNavn = "Testnavn",
                     typeKode = TiltakstypeSomGirRettDTO.JOBBKLUBB,
                     rettPåTiltakspenger = true,
-                    deltakelseFraOgMed = behandling.saksopplysningsperiode!!.fraOgMed,
-                    deltakelseTilOgMed = behandling.saksopplysningsperiode!!.tilOgMed,
+                    periode = lukketEllerÅpenPeriode(behandling.saksopplysningsperiode!!.fraOgMed, behandling.saksopplysningsperiode!!.tilOgMed),
                     deltakelseStatus = TiltakDeltakerstatus.Deltar,
                     deltakelseProsent = 100.0f,
                     antallDagerPerUke = 5.0f,
@@ -105,9 +106,7 @@ class OppdaterRammebehandlingSaksopplysningerTest {
             )
 
             val forrigeTiltaksdeltakelse = revurdering.saksopplysninger.tiltaksdeltakelser.first()
-            val avbruttTiltaksdeltakelse = forrigeTiltaksdeltakelse.copy(
-                deltakelseFraOgMed = forrigeTiltaksdeltakelse.deltakelseFraOgMed!!,
-                deltakelseTilOgMed = forrigeTiltaksdeltakelse.deltakelseTilOgMed!!.minusDays(1),
+            val avbruttTiltaksdeltakelse = forrigeTiltaksdeltakelse.medPeriode(fraOgMed = forrigeTiltaksdeltakelse.periode.fraOgMed!!, tilOgMed = forrigeTiltaksdeltakelse.periode.tilOgMed!!.minusDays(1)).copy(
                 deltakelseStatus = TiltakDeltakerstatus.Avbrutt,
             )
 
