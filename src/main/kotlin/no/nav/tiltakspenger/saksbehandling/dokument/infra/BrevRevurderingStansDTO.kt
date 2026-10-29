@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
-import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
@@ -19,10 +18,10 @@ private data class BrevRevurderingStansDTO(
     override val saksnummer: String,
     override val saksbehandlerNavn: String,
     override val beslutterNavn: String?,
-    override val datoForUtsending: String,
+    override val datoForUtsending: LocalDate,
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
-    val stansFraOgMedDato: String,
+    val stansFraOgMedDato: LocalDate,
     val stansgrunner: List<GrunnBrevDto>,
     val barnetillegg: Boolean,
 ) : BrevRammevedtakBaseDTO
@@ -75,12 +74,12 @@ suspend fun genererStansbrev(
             fornavn = brukersNavn.fornavn,
             etternavn = brukersNavn.mellomnavnOgEtternavn,
         ),
-        stansFraOgMedDato = stansperiode.fraOgMed.format(norskDatoFormatter),
+        stansFraOgMedDato = stansperiode.fraOgMed,
         saksnummer = saksnummer.verdi,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
         // Dette er vår dato, det brukes typisk når bruker klager på vedtaksbrev på dato ...
-        datoForUtsending = vedtaksdato.format(norskDatoFormatter),
+        datoForUtsending = vedtaksdato,
         forhandsvisning = forhåndsvisning,
         stansgrunner = valgteHjemler.map { it.tilGrunnBrevDto() },
         tilleggstekst = tilleggstekst?.verdi,

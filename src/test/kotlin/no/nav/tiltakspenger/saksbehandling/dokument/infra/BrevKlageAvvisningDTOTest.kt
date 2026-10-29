@@ -39,7 +39,7 @@ class BrevKlageAvvisningDTOTest {
                   },
                   "saksnummer":"202501012000",
                   "saksbehandlerNavn":null,
-                  "datoForUtsending":"1. januar 2025",
+                  "datoForUtsending":"2025-01-01",
                   "tilleggstekst":[
                     {
                       "tittel":"Hva klagesaken gjelder",

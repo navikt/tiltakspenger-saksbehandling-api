@@ -1,9 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
-import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
-import no.nav.tiltakspenger.libs.dato.norskTidspunktFormatter
-import no.nav.tiltakspenger.libs.dato.norskUkedagOgDatoUtenÅrFormatter
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
@@ -26,12 +23,8 @@ private data class BrevMeldekortvedtakDTO(
     val saksbehandlerNavn: String?,
     val beslutterNavn: String?,
     val tiltak: List<String>,
-    /** Overgang: pdfgenrs viser `datoForUtsending`, og vi fjerner feltet når pdfgenrs ikke lenger leser det. */
-    val iverksattTidspunkt: String?,
-    /** Overgang: pdfgenrs viser `personalia`, og vi fjerner feltet når pdfgenrs ikke lenger leser det. */
-    val fødselsnummer: String,
     val personalia: BrevPersonaliaDTO,
-    val datoForUtsending: String,
+    val datoForUtsending: LocalDate,
     val meldeperioder: List<BrevMeldeperiode>,
     val totaltBelop: Int,
     val totalDifferanse: Int,
@@ -49,7 +42,7 @@ private data class BrevMeldekortvedtakDTO(
     )
 
     data class Dag(
-        val dato: String,
+        val dato: LocalDate,
         val status: ForrigeOgGjeldendeDTO<String>,
         val beløp: ForrigeOgGjeldendeDTO<Int>,
         val barnetillegg: ForrigeOgGjeldendeDTO<Int>,
@@ -114,7 +107,7 @@ private fun byggBrevMeldeperiode(
 
 private fun SammenligningAvBeregninger.DagSammenligning.tilBrevDag(): BrevMeldekortvedtakDTO.Dag =
     BrevMeldekortvedtakDTO.Dag(
-        dato = dato.format(norskUkedagOgDatoUtenÅrFormatter),
+        dato = dato,
         status = BrevMeldekortvedtakDTO.ForrigeOgGjeldendeDTO(
             forrige = status.forrige?.toStatus(),
             gjeldende = status.gjeldende.toStatus(),
@@ -164,9 +157,8 @@ suspend fun Meldekortvedtak.tilBrevMeldekortvedtakJson(
     val meldeperioder = meldeperioderMedBeregninger.map { it.tilBrevMeldeperiode(sammenlign) }
 
     return BrevMeldekortvedtakDTO(
-        fødselsnummer = fnr.verdi,
         personalia = brevPersonalia(fnr, hentBrukersNavn(fnr)),
-        datoForUtsending = vedtaksdato.format(norskDatoFormatter),
+        datoForUtsending = vedtaksdato,
         erAutomatiskBehandlet = erAutomatiskBehandlet,
         saksbehandlerNavn = if (erAutomatiskBehandlet) null else hentSaksbehandlersNavn(saksbehandler),
         beslutterNavn = if (erAutomatiskBehandlet) null else hentSaksbehandlersNavn(beslutter),
@@ -174,7 +166,6 @@ suspend fun Meldekortvedtak.tilBrevMeldekortvedtakJson(
         saksnummer = saksnummer.toString(),
         periode = BrevPeriodeDTO.fraPeriode(beregningsperiode),
         tiltak = tiltaksdeltakelser.map { it.typeNavn },
-        iverksattTidspunkt = opprettet.format(norskTidspunktFormatter),
         brevTekst = this.meldekortbehandling.fritekstTilVedtaksbrev?.verdi,
         forhandsvisning = false,
         totaltBelop = meldekortbehandling.beløpTotal,
@@ -199,9 +190,8 @@ suspend fun GenererMeldekortvedtakBrevKommando.tilBrevMeldekortvedtakJson(
     }
 
     return BrevMeldekortvedtakDTO(
-        fødselsnummer = fnr.verdi,
         personalia = brevPersonalia(fnr, hentBrukersNavn(fnr)),
-        datoForUtsending = vedtaksdato.format(norskDatoFormatter),
+        datoForUtsending = vedtaksdato,
         erAutomatiskBehandlet = erAutomatiskBehandlet,
         saksbehandlerNavn = if (erAutomatiskBehandlet) null else saksbehandler?.let { hentSaksbehandlersNavn(it) },
         beslutterNavn = if (erAutomatiskBehandlet) null else beslutter?.let { hentSaksbehandlersNavn(it) },
@@ -209,7 +199,6 @@ suspend fun GenererMeldekortvedtakBrevKommando.tilBrevMeldekortvedtakJson(
         saksnummer = saksnummer.verdi,
         periode = BrevPeriodeDTO.fraPeriode(beregningsperiode),
         tiltak = tiltaksdeltakelser.map { it.typeNavn },
-        iverksattTidspunkt = iverksattTidspunkt?.format(norskTidspunktFormatter),
         brevTekst = tekstTilVedtaksbrev?.value,
         forhandsvisning = forhåndsvisning,
         totaltBelop = totaltBeløp,

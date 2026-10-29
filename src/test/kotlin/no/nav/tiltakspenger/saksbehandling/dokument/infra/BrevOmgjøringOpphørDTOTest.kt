@@ -56,12 +56,12 @@ class BrevOmgjøringOpphørDTOTest {
                   "saksnummer": "202501012000",
                   "saksbehandlerNavn": "Saksbehandlernavn",
                   "beslutterNavn": null,
-                  "datoForUtsending": "1. april 2025",
+                  "datoForUtsending": "2025-04-01",
                   "tilleggstekst": "genererer og serialiserer brevdata for pdf test",
                   "forhandsvisning": true,
                   "vedtaksperiode": {
-                    "fraOgMed": "1. januar 2026",
-                    "tilOgMed": "31. januar 2026"
+                    "fraOgMed": "2026-01-01",
+                    "tilOgMed": "2026-01-31"
                   },
                   "opphørsgrunner": ["INTRODUKSJONSPROGRAMMET"],
                   "barnetillegg": false
@@ -105,12 +105,12 @@ class BrevOmgjøringOpphørDTOTest {
                   "saksnummer": "202501012000",
                   "saksbehandlerNavn": "Saksbehandlernavn",
                   "beslutterNavn": null,
-                  "datoForUtsending": "1. april 2025",
+                  "datoForUtsending": "2025-04-01",
                   "tilleggstekst": "genererer og serialiserer brevdata for pdf test",
                   "forhandsvisning": true,
                   "vedtaksperiode": {
-                    "fraOgMed": "1. januar 2026",
-                    "tilOgMed": "31. januar 2026"
+                    "fraOgMed": "2026-01-01",
+                    "tilOgMed": "2026-01-31"
                   },
                   "opphørsgrunner": ["INTRODUKSJONSPROGRAMMET"],
                   "barnetillegg": true

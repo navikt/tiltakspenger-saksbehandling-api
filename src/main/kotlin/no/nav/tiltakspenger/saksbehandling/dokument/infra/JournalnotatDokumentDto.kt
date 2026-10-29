@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
-import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalnotat
 import no.nav.tiltakspenger.saksbehandling.person.Navn
+import java.time.LocalDate
 
 /**
  * Payload til journalnotat-malen i pdfgenrs (templates/tpts/journalnotat.typ).
@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.person.Navn
 data class JournalnotatDokumentDto(
     val personalia: BrevPersonaliaDTO,
     val saksnummer: String,
-    val notatsdato: String,
+    val notatsdato: LocalDate,
     val saksbehandlerNavn: String,
     val beslutterNavn: String,
     val begrunnelser: List<BegrunnelseDto>,
@@ -42,7 +42,7 @@ suspend fun Journalnotat.tilJournalnotatDokumentJson(
             etternavn = brukersNavn.mellomnavnOgEtternavn,
         ),
         saksnummer = saksnummer.verdi,
-        notatsdato = notatsdato.format(norskDatoFormatter),
+        notatsdato = notatsdato,
         saksbehandlerNavn = hentSaksbehandlersNavn(saksbehandler),
         beslutterNavn = hentSaksbehandlersNavn(beslutter),
         begrunnelser = begrunnelser.map {

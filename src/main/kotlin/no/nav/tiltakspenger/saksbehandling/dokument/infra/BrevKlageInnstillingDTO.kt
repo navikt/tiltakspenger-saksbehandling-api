@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
-import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.dokument.TittelOgTekstDTO
 import no.nav.tiltakspenger.saksbehandling.dokument.toDto
@@ -16,11 +15,11 @@ data class BrevKlageInnstillingDTO private constructor(
     val saksnummer: String,
     /** null når ingen saksbehandler er tildelt (forhåndsvisning); brevet viser da «ingen saksbehandler tildelt». */
     val saksbehandlerNavn: String?,
-    val datoForUtsending: String,
+    val datoForUtsending: LocalDate,
     val tilleggstekst: List<TittelOgTekstDTO>,
     val forhandsvisning: Boolean,
-    val vedtaksdato: String,
-    val innsendingsdato: String,
+    val vedtaksdato: LocalDate,
+    val innsendingsdato: LocalDate,
 ) {
     @JsonInclude
     companion object {
@@ -48,9 +47,9 @@ data class BrevKlageInnstillingDTO private constructor(
                 tilleggstekst = tilleggstekst.toDto(),
                 forhandsvisning = forhåndsvisning,
                 saksbehandlerNavn = saksbehandlersNavn,
-                datoForUtsending = datoForUtsending.format(norskDatoFormatter),
-                vedtaksdato = vedtaksdato.format(norskDatoFormatter),
-                innsendingsdato = innsendingsdato.format(norskDatoFormatter),
+                datoForUtsending = datoForUtsending,
+                vedtaksdato = vedtaksdato,
+                innsendingsdato = innsendingsdato,
             ).let {
                 serialize(it)
             }

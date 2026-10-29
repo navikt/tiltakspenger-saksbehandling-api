@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
-import java.time.LocalDateTime
 
 data class GenererMeldekortvedtakBrevKommando(
     val sakId: SakId,
@@ -19,7 +18,6 @@ data class GenererMeldekortvedtakBrevKommando(
     val meldekortbehandlingId: MeldekortId,
     val beregningsperiode: Periode,
     val tiltaksdeltakelser: Tiltaksdeltakelser,
-    val iverksattTidspunkt: LocalDateTime?,
     val erKorrigering: Boolean,
     val beregninger: List<Pair<MeldeperiodeBeregning?, MeldeperiodeBeregning>>,
     val totaltBeløp: Int,

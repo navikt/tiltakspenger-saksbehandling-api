@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
-import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -20,7 +19,7 @@ private data class BrevRevurderingInnvilgetDTO(
     override val saksnummer: String,
     override val saksbehandlerNavn: String,
     override val beslutterNavn: String?,
-    override val datoForUtsending: String,
+    override val datoForUtsending: LocalDate,
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
     override val harBarnetillegg: Boolean,
@@ -80,7 +79,7 @@ suspend fun genererRevurderingInnvilgetBrev(
         tilleggstekst = tilleggstekst?.verdi,
         forhandsvisning = forhåndsvisning,
         harBarnetillegg = barnetillegg != null && barnetillegg.any { it.verdi.value > 0 },
-        datoForUtsending = vedtaksdato.format(norskDatoFormatter),
+        datoForUtsending = vedtaksdato,
         innvilgelsesperioder = tilInnvilgelsesperioder(innvilgelsesperioder),
         barnetillegg = tilBarnetillegg(barnetillegg),
     ).let { serialize(it) }

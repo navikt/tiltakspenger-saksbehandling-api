@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
-import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
@@ -20,7 +19,7 @@ private data class BrevSøknadAvslagDTO(
     override val saksnummer: String,
     override val saksbehandlerNavn: String,
     override val beslutterNavn: String?,
-    override val datoForUtsending: String,
+    override val datoForUtsending: LocalDate,
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
     val avslagsgrunner: List<GrunnBrevDto>,
@@ -30,8 +29,8 @@ private data class BrevSøknadAvslagDTO(
      * pdfgenrs bruker dem til å lage setningen med de samlede hjemlene når avslaget har flere grunner.
      */
     val hjemler: List<HjemmelBrevDto>,
-    val avslagFraOgMed: String,
-    val avslagTilOgMed: String,
+    val avslagFraOgMed: LocalDate,
+    val avslagTilOgMed: LocalDate,
 ) : BrevRammevedtakBaseDTO
 
 suspend fun genererAvslagSøknadsbrev(
@@ -66,9 +65,9 @@ suspend fun genererAvslagSøknadsbrev(
         harSøktMedBarn = harSøktBarnetillegg,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
-        avslagFraOgMed = avslagsperiode.fraOgMed.format(norskDatoFormatter),
-        avslagTilOgMed = avslagsperiode.tilOgMed.format(norskDatoFormatter),
-        datoForUtsending = datoForUtsending.format(norskDatoFormatter),
+        avslagFraOgMed = avslagsperiode.fraOgMed,
+        avslagTilOgMed = avslagsperiode.tilOgMed,
+        datoForUtsending = datoForUtsending,
     ).let { serialize(it) }
 }
 

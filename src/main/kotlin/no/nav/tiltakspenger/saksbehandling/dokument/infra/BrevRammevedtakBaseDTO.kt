@@ -2,6 +2,8 @@
 
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
+import java.time.LocalDate
+
 sealed interface BrevRammevedtakBaseDTO {
     val personalia: BrevPersonaliaDTO
     val saksnummer: String
@@ -9,7 +11,7 @@ sealed interface BrevRammevedtakBaseDTO {
     val beslutterNavn: String?
 
     // Dette er vår dato, det brukes typisk når bruker klager på vedtaksbrev på dato ...
-    val datoForUtsending: String
+    val datoForUtsending: LocalDate
     val tilleggstekst: String?
     val forhandsvisning: Boolean
 }

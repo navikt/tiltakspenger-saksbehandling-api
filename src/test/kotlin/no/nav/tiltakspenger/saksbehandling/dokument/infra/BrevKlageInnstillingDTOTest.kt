@@ -41,7 +41,7 @@ class BrevKlageInnstillingDTOTest {
                   },
                   "saksnummer":"202501012000",
                   "saksbehandlerNavn":null,
-                  "datoForUtsending":"1. januar 2025",
+                  "datoForUtsending":"2025-01-01",
                   "tilleggstekst":[
                     {
                       "tittel":"Vurdering av klagen",
@@ -49,8 +49,8 @@ class BrevKlageInnstillingDTOTest {
                     }
                   ],
                   "forhandsvisning":true,
-                  "vedtaksdato":"15. desember 2024",
-                  "innsendingsdato":"20. desember 2024"
+                  "vedtaksdato":"2024-12-15",
+                  "innsendingsdato":"2024-12-20"
                 }
             """.trimIndent()
 

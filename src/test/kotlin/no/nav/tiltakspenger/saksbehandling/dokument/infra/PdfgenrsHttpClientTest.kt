@@ -364,7 +364,7 @@ class PdfgenrsHttpClientTest {
                 sammenligning = { sammenlign(meldekortvedtak.utbetaling.beregning.beregninger.first()) },
             ).getOrFail()
 
-            actual.json shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","periode":{"fraOgMed":"6. januar 2025","tilOgMed":"19. januar 2025"},"erAutomatiskBehandlet":false,"saksbehandlerNavn":"Sak Behandler","beslutterNavn":"Sak Behandler","tiltak":["Arbeidsmarkedsoppfølging gruppe"],"iverksattTidspunkt":"1. januar 2025 01:02:03","fødselsnummer":"${fnr.verdi}","personalia":{"ident":"${fnr.verdi}","fornavn":"Fornavn","etternavn":"Etternavn"},"datoForUtsending":"2. januar 2023","meldeperioder":[{"korrigering":false,"periode":{"fraOgMed":"6. januar 2025","tilOgMed":"19. januar 2025"},"beløp":2980,"beløpDiff":0,"harBarnetillegg":false,"dager":[]}],"totaltBelop":2980,"totalDifferanse":0,"brevTekst":null,"forhandsvisning":false}"""
+            actual.json shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","periode":{"fraOgMed":"2025-01-06","tilOgMed":"2025-01-19"},"erAutomatiskBehandlet":false,"saksbehandlerNavn":"Sak Behandler","beslutterNavn":"Sak Behandler","tiltak":["Arbeidsmarkedsoppfølging gruppe"],"personalia":{"ident":"${fnr.verdi}","fornavn":"Fornavn","etternavn":"Etternavn"},"datoForUtsending":"2023-01-02","meldeperioder":[{"korrigering":false,"periode":{"fraOgMed":"2025-01-06","tilOgMed":"2025-01-19"},"beløp":2980,"beløpDiff":0,"harBarnetillegg":false,"dager":[]}],"totaltBelop":2980,"totalDifferanse":0,"brevTekst":null,"forhandsvisning":false}"""
         }
     }
 
@@ -386,7 +386,7 @@ class PdfgenrsHttpClientTest {
                 vedtaksdato = 2.januar(2023),
             ).getOrFail()
 
-            actual.json shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","periode":{"fraOgMed":"1. mai 2025","tilOgMed":"7. mai 2025"},"erAutomatiskBehandlet":false,"saksbehandlerNavn":"Sak Behandler","beslutterNavn":null,"tiltak":[],"iverksattTidspunkt":null,"fødselsnummer":"${fnr.verdi}","personalia":{"ident":"${fnr.verdi}","fornavn":"Fornavn","etternavn":"Etternavn"},"datoForUtsending":"2. januar 2023","meldeperioder":[],"totaltBelop":50,"totalDifferanse":0,"brevTekst":"Bacon ipsum dolor amet","forhandsvisning":true}"""
+            actual.json shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","periode":{"fraOgMed":"2025-05-01","tilOgMed":"2025-05-07"},"erAutomatiskBehandlet":false,"saksbehandlerNavn":"Sak Behandler","beslutterNavn":null,"tiltak":[],"personalia":{"ident":"${fnr.verdi}","fornavn":"Fornavn","etternavn":"Etternavn"},"datoForUtsending":"2023-01-02","meldeperioder":[],"totaltBelop":50,"totalDifferanse":0,"brevTekst":"Bacon ipsum dolor amet","forhandsvisning":true}"""
         }
     }
 
@@ -459,7 +459,6 @@ class PdfgenrsHttpClientTest {
         meldekortbehandlingId = meldekortId,
         beregningsperiode = Periode(1.mai(2025), 7.mai(2025)),
         tiltaksdeltakelser = Tiltaksdeltakelser(emptyList()),
-        iverksattTidspunkt = null,
         erKorrigering = false,
         beregninger = listOf(),
         totaltBeløp = 50,

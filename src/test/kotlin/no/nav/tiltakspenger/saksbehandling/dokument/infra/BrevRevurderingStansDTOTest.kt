@@ -49,10 +49,10 @@ class BrevRevurderingStansDTOTest {
                   "saksnummer": "202501012000",
                   "saksbehandlerNavn": "Saksbehandlernavn",
                   "beslutterNavn": null,
-                  "datoForUtsending": "1. april 2025",
+                  "datoForUtsending": "2025-04-01",
                   "tilleggstekst": "genererer og serialiserer brevdata for pdf test",
                   "forhandsvisning": true,
-                  "stansFraOgMedDato": "1. januar 2023",
+                  "stansFraOgMedDato": "2023-01-01",
                   "stansgrunner": ["INTRODUKSJONSPROGRAMMET"],
                   "barnetillegg": false
 
@@ -93,10 +93,10 @@ class BrevRevurderingStansDTOTest {
                   "saksnummer": "202501012000",
                   "saksbehandlerNavn": "Saksbehandlernavn",
                   "beslutterNavn": null,
-                  "datoForUtsending": "1. april 2025",
+                  "datoForUtsending": "2025-04-01",
                   "tilleggstekst": "genererer og serialiserer brevdata for pdf test",
                   "forhandsvisning": true,
-                  "stansFraOgMedDato": "1. januar 2023",
+                  "stansFraOgMedDato": "2023-01-01",
                   "stansgrunner": ["INTRODUKSJONSPROGRAMMET"],
                   "barnetillegg": true
 

@@ -91,7 +91,6 @@ class ForhåndsvisBrevMeldekortbehandlingService(
                 meldekortbehandlingId = meldekortbehandling.id,
                 beregningsperiode = beregningsperiode,
                 tiltaksdeltakelser = tiltaksdeltakelser,
-                iverksattTidspunkt = null,
                 erKorrigering = meldekortbehandling.harKorrigering,
                 beregninger = nåværendeBeregningMedTidligereBeregning,
                 totaltBeløp = beregning.sumOf { it.totalBeløp },

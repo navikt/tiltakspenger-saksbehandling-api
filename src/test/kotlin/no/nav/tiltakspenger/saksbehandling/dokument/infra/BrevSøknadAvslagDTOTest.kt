@@ -59,9 +59,9 @@ class BrevSøknadAvslagDTOTest {
                   "harSøktMedBarn":true,
                   "hjemler":[{"rettskilde":"TILTAKSPENGEFORSKRIFTEN","paragraf":"3","ledd":null},{"rettskilde":"TILTAKSPENGEFORSKRIFTEN","paragraf":"3","ledd":null}],
                   "forhandsvisning":true,
-                  "avslagFraOgMed":"1. januar 2023",
-                  "avslagTilOgMed":"31. mars 2023",
-                  "datoForUtsending": "1. januar 2025"
+                  "avslagFraOgMed":"2023-01-01",
+                  "avslagTilOgMed":"2023-03-31",
+                  "datoForUtsending": "2025-01-01"
                   
                 }
             """.trimIndent()
@@ -95,9 +95,9 @@ class BrevSøknadAvslagDTOTest {
                   "harSøktMedBarn":false,
                   "hjemler":[{"rettskilde":"TILTAKSPENGEFORSKRIFTEN","paragraf":"3","ledd":null}],
                   "forhandsvisning":false,
-                  "avslagFraOgMed":"1. januar 2023",
-                  "avslagTilOgMed":"31. mars 2023",
-                  "datoForUtsending": "1. januar 2025"
+                  "avslagFraOgMed":"2023-01-01",
+                  "avslagTilOgMed":"2023-03-31",
+                  "datoForUtsending": "2025-01-01"
                   
                 }
                 """.trimIndent(),

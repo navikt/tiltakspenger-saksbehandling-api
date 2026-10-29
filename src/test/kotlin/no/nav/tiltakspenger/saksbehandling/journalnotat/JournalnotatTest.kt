@@ -118,7 +118,7 @@ class JournalnotatTest {
                 "etternavn": "Mellom Nordmann"
               },
               "saksnummer": "202501011001",
-              "notatsdato": "2. januar 2025",
+              "notatsdato": "2025-01-02",
               "saksbehandlerNavn": "Navn for Z123456",
               "beslutterNavn": "Navn for B123456",
               "begrunnelser": [
