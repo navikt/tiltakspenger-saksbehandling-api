@@ -18,4 +18,10 @@ interface JournalførKlagebrevKlient {
         pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,
     ): Either<KunneIkkeJournalføre, JournalførteDokumenter>
+
+    suspend fun journalførForvaltningsmelding(
+        klagebehandling: Klagebehandling,
+        pdfOgJson: PdfOgJson,
+        correlationId: CorrelationId,
+    ): Either<KunneIkkeJournalføre, JournalførteDokumenter>
 }

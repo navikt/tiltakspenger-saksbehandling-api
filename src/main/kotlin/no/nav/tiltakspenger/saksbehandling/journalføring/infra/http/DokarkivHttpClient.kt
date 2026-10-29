@@ -37,6 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.journalpost.DokumentInfoId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.JournalførKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
+import no.nav.tiltakspenger.saksbehandling.klage.infra.http.toForvaltningsmeldingJournalpostRequest
 import no.nav.tiltakspenger.saksbehandling.klage.infra.http.toJournalpostRequest
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.JournalførMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
@@ -123,6 +124,14 @@ class DokarkivHttpClient(
         correlationId: CorrelationId,
     ): Either<KunneIkkeJournalføre, JournalførteDokumenter> {
         return opprettJournalpost({ klagebehandling.toJournalpostRequest(pdfOgJson) }, correlationId)
+    }
+
+    override suspend fun journalførForvaltningsmelding(
+        klagebehandling: Klagebehandling,
+        pdfOgJson: PdfOgJson,
+        correlationId: CorrelationId,
+    ): Either<KunneIkkeJournalføre, JournalførteDokumenter> {
+        return opprettJournalpost({ klagebehandling.toForvaltningsmeldingJournalpostRequest(pdfOgJson) }, correlationId)
     }
 
     override suspend fun journalførJournalnotat(

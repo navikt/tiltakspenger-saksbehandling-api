@@ -28,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.V
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.KlagebehandlingAvbrutt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
+import no.nav.tiltakspenger.saksbehandling.klage.domene.forvaltningsmelding.KlageForvaltningsmelding
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -55,6 +56,7 @@ data class Klagebehandling(
     val formkrav: KlageFormkrav,
     val avbrutt: KlagebehandlingAvbrutt?,
     val ventestatus: Ventestatus,
+    val forvaltningsmelding: KlageForvaltningsmelding?,
 ) : Behandling {
 
     val brevtekst: Brevtekster? = resultat?.brevtekst

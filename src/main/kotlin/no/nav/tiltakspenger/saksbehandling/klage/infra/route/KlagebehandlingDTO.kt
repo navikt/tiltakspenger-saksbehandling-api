@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
+import no.nav.tiltakspenger.saksbehandling.klage.domene.forvaltningsmelding.KlageForvaltningsmelding
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagehjemmelDto.Companion.toKlagehjemmelDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagestatustypeDto.Companion.toKlagestatustypeDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt.KlagebehandlingAvbruttDTO
@@ -44,6 +45,25 @@ data class KlagebehandlingDTO(
     val formkrav: KlageFormkravDTO,
     val tilknyttedeBehandlingIder: List<String>,
     val åpenBehandlingId: String?,
+    val forvaltningsmelding: KlageForvaltningsmeldingDTO?,
+)
+
+data class KlageForvaltningsmeldingDTO(
+    val tekster: List<TittelOgSladdbarTekstDTO>,
+    val saksbehandler: String,
+    val sendtTidspunkt: LocalDateTime,
+    val journalpostId: String?,
+    val journalføringstidspunkt: LocalDateTime?,
+    val distribusjonstidspunkt: LocalDateTime?,
+)
+
+fun KlageForvaltningsmelding.toDTO(): KlageForvaltningsmeldingDTO = KlageForvaltningsmeldingDTO(
+    tekster = brevtekst.tilTittelOgSladdbarTekstDTO(),
+    saksbehandler = saksbehandler,
+    sendtTidspunkt = sendtTidspunkt,
+    journalpostId = journalpostId?.toString(),
+    journalføringstidspunkt = journalføringstidspunkt,
+    distribusjonstidspunkt = distribusjonstidspunkt,
 )
 
 data class KlageFormkravDTO(
@@ -142,6 +162,7 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
     formkrav = formkrav.toDTO(),
     tilknyttedeBehandlingIder = behandlingId.map { it.toString() },
     åpenBehandlingId = åpenBehandlingId?.toString(),
+    forvaltningsmelding = forvaltningsmelding?.toDTO(),
 )
 
 fun Klagebehandlingsresultat.tilKlagebehandlingsresultatDTO(): KlagebehandlingsresultatDTO {

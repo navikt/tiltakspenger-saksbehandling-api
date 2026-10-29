@@ -118,4 +118,41 @@ class DistribuerKlagebrevJobb(
             log.error(it) { "Feil ved distribuering av innstillingsbrev. $kontekstTilLog" }
         }
     }
+
+    suspend fun distribuerForvaltningsmeldinger() {
+        Either.catch {
+            klagebehandlingRepo.hentForvaltningsmeldingerSomSkalDistribueres().forEach { klagebehandling ->
+                distribuerForvaltningsmelding(klagebehandling)
+            }
+        }.onLeft {
+            log.error(it) { "Ukjent feil skjedde under distribuering av forvaltningsmeldinger for klage." }
+        }
+    }
+
+    private suspend fun distribuerForvaltningsmelding(klagebehandling: Klagebehandling) {
+        val correlationId = CorrelationId.generate()
+        val forvaltningsmelding = klagebehandling.forvaltningsmelding!!
+        val journalpostId: JournalpostId = forvaltningsmelding.journalpostId!!
+        val kontekstTilLog =
+            "sakId: ${klagebehandling.sakId}, saksnummer: ${klagebehandling.saksnummer}, klagebehandlingId: ${klagebehandling.id}, journalpostId: $journalpostId"
+        log.info { "Prøver å distribuere forvaltningsmelding for klage. $kontekstTilLog" }
+        Either.catch {
+            val distribusjonId =
+                dokumentdistribusjonsklient.distribuerDokument(journalpostId, correlationId).getOrElse {
+                    log.error { "Kunne ikke distribuere forvaltningsmelding for klage. Underliggende feil: $it. $kontekstTilLog" }
+                    return
+                }
+            log.info { "Forvaltningsmelding for klage distribuert. distribusjonId: $distribusjonId, $kontekstTilLog" }
+            klagebehandlingRepo.markerForvaltningsmeldingDistribuert(
+                klagebehandlingId = klagebehandling.id,
+                forvaltningsmelding = forvaltningsmelding.oppdaterDistribusjon(
+                    distribusjonId = distribusjonId,
+                    tidspunkt = nå(clock),
+                ),
+            )
+            log.info { "Forvaltningsmelding for klage markert som distribuert. distribusjonId: $distribusjonId, $kontekstTilLog" }
+        }.onLeft {
+            log.error(it) { "Feil ved distribuering av forvaltningsmelding for klage. $kontekstTilLog" }
+        }
+    }
 }

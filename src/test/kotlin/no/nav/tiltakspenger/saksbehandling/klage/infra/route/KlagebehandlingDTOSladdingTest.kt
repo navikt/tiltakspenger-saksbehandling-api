@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.sladdet
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.AvbruttKlagebehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.TittelOgTekst
+import no.nav.tiltakspenger.saksbehandling.klage.domene.forvaltningsmelding.KlageForvaltningsmelding
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt.KlagebehandlingAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
@@ -30,7 +31,19 @@ class KlagebehandlingDTOSladdingTest {
             avbrutt = klagebehandlingDTO.avbrutt?.sladdet(),
             ventestatus = klagebehandlingDTO.ventestatus.map { it.sladdet() },
             resultat = klagebehandlingDTO.resultat?.sladdet(),
+            forvaltningsmelding = klagebehandlingDTO.forvaltningsmelding?.sladdet(),
         )
+    }
+
+    @Test
+    fun `teksten i forvaltningsmeldingen sladdes mens tittel og metadata beholdes`() {
+        val forvaltningsmelding = klagebehandlingDTO().forvaltningsmelding!!
+
+        forvaltningsmelding.sladdet().let {
+            it.tekster.single().tittel shouldBe forvaltningsmelding.tekster.single().tittel
+            it.tekster.single().tekst shouldBe SladdetVerdi
+            it shouldBe forvaltningsmelding.copy(tekster = it.tekster)
+        }
     }
 
     @Test
@@ -117,5 +130,10 @@ class KlagebehandlingDTOSladdingTest {
                     frist = null,
                 ),
             ),
+            forvaltningsmelding = KlageForvaltningsmelding.ny(
+                brevtekst = brevtekster,
+                saksbehandler = "Z12345",
+                sendtTidspunkt = 1.januarDateTime(2025),
+            ).toDTO(),
         )
 }

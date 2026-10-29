@@ -9,6 +9,8 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.brev.oppdaterTekstT
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.brev.visInnstillingsbrevKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.ferdigstill.ferdigstillKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav.oppdaterKlagebehandlingFormkravRoute
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.forvaltningsmelding.forhåndsvisForvaltningsmeldingRoute
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.forvaltningsmelding.sendForvaltningsmeldingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.gjenoppta.gjenopptaKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.iverksett.iverksettAvvistKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.leggTilbake.leggTilbakeKlagebehandlingRoute
@@ -22,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder.vurderKlageb
 import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.FerdigstillKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisBrevKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisForvaltningsmeldingKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.GjenopptaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettAvvistKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.LeggTilbakeKlagebehandlingService
@@ -31,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettBehandlingForKla
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettholdKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OvertaKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.klage.service.SendForvaltningsmeldingKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.SettKlagebehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.klage.service.TaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.VisInnstillingsbrevKlagebehandlingService
@@ -56,6 +60,8 @@ fun Route.klagebehandlingRoutes(
     opprettholdKlagebehandlingService: OpprettholdKlagebehandlingService,
     ferdigstillKlagebehandlingService: FerdigstillKlagebehandlingService,
     visInnstillingsbrevKlagebehandlingService: VisInnstillingsbrevKlagebehandlingService,
+    sendForvaltningsmeldingKlagebehandlingService: SendForvaltningsmeldingKlagebehandlingService,
+    forhåndsvisForvaltningsmeldingKlagebehandlingService: ForhåndsvisForvaltningsmeldingKlagebehandlingService,
     clock: Clock,
 ) {
     opprettKlagebehandlingRoute(
@@ -143,6 +149,16 @@ fun Route.klagebehandlingRoutes(
     )
     visInnstillingsbrevKlagebehandlingRoute(
         visInnstillingsbrevService = visInnstillingsbrevKlagebehandlingService,
+        auditService = auditService,
+        tilgangskontrollService = tilgangskontrollService,
+    )
+    sendForvaltningsmeldingRoute(
+        sendForvaltningsmeldingKlagebehandlingService = sendForvaltningsmeldingKlagebehandlingService,
+        auditService = auditService,
+        tilgangskontrollService = tilgangskontrollService,
+    )
+    forhåndsvisForvaltningsmeldingRoute(
+        forhåndsvisForvaltningsmeldingKlagebehandlingService = forhåndsvisForvaltningsmeldingKlagebehandlingService,
         auditService = auditService,
         tilgangskontrollService = tilgangskontrollService,
     )

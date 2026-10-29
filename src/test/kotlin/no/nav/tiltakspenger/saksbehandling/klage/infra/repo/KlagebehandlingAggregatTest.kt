@@ -1,10 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
 
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOpprettholdKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSendForvaltningsmelding
 import org.junit.jupiter.api.Test
 
 /**
@@ -15,6 +18,7 @@ import org.junit.jupiter.api.Test
  *
  * Køene er en kjede: journalføring gjør behandlingen klar for distribusjon, og distribusjon gjør saken klar for oversendelse til klageinstansen.
  * Derfor testes de sammen — hver kø sitt neste steg er den forrige køens utgang.
+ * Forvaltningsmeldingen har sine egne to køer, journalføring og distribusjon, som testes på samme måte.
  */
 class KlagebehandlingAggregatTest {
 
@@ -57,6 +61,48 @@ class KlagebehandlingAggregatTest {
             repo.hentInnstillingsbrevSomSkalJournalføres(limit = 10).shouldBeEmpty()
             repo.hentInnstillingsbrevSomSkalDistribueres(limit = 10).shouldBeEmpty()
             repo.hentSakerSomSkalOversendesKlageinstansen(limit = 10).shouldBeEmpty()
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `forvaltningsmeldingen går gjennom journalføring og distribusjon, eldst først og med limit`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (_, eldst) = opprettSakOgSendForvaltningsmelding(tac = tac)!!
+            val (_, nyest) = opprettSakOgSendForvaltningsmelding(tac = tac)!!
+            // En klagebehandling uten forvaltningsmelding skal aldri havne i køene.
+            opprettSakOgKlagebehandlingTilAvvisning(tac = tac)!!
+
+            val repo = tac.klagebehandlingContext.klagebehandlingRepo
+
+            repo.hentForvaltningsmeldingerSomSkalJournalføres(limit = 10).map { it.id } shouldBe listOf(eldst.id, nyest.id)
+            repo.hentForvaltningsmeldingerSomSkalJournalføres(limit = 1).map { it.id } shouldBe listOf(eldst.id)
+            repo.hentForvaltningsmeldingerSomSkalDistribueres(limit = 10).shouldBeEmpty()
+
+            tac.klagebehandlingContext.journalførKlagebrevJobb.journalførForvaltningsmeldinger()
+
+            repo.hentForvaltningsmeldingerSomSkalJournalføres(limit = 10).shouldBeEmpty()
+            repo.hentForvaltningsmeldingerSomSkalDistribueres(limit = 10).map { it.id } shouldBe listOf(eldst.id, nyest.id)
+            repo.hentForvaltningsmeldingerSomSkalDistribueres(limit = 1).map { it.id } shouldBe listOf(eldst.id)
+            repo.hentForKlagebehandlingId(eldst.id)!!.forvaltningsmelding!!.let {
+                it.journalpostId.shouldNotBeNull()
+                it.journalføringstidspunkt.shouldNotBeNull()
+                it.brevdato.shouldNotBeNull()
+                it.brevtekst shouldBe eldst.forvaltningsmelding!!.brevtekst
+            }
+
+            tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerForvaltningsmeldinger()
+
+            repo.hentForvaltningsmeldingerSomSkalJournalføres(limit = 10).shouldBeEmpty()
+            repo.hentForvaltningsmeldingerSomSkalDistribueres(limit = 10).shouldBeEmpty()
+            val distribuert = repo.hentForKlagebehandlingId(eldst.id)!!.forvaltningsmelding!!
+            distribuert.distribusjonId.shouldNotBeNull()
+            distribuert.distribusjonstidspunkt.shouldNotBeNull()
+
+            // En lagring med en utdatert klagebehandling, lest før jobbene kjørte, skal ikke nullstille journalføringen eller distribusjonen.
+            repo.lagreKlagebehandling(eldst)
+            repo.hentForKlagebehandlingId(eldst.id)!!.forvaltningsmelding shouldBe distribuert
+            repo.hentForvaltningsmeldingerSomSkalJournalføres(limit = 10).shouldBeEmpty()
         }
     }
 }

@@ -50,6 +50,7 @@ fun String.shouldBeKlagebehandlingDTO(
     klageinstanshendelser: List<String> = emptyList(),
     ferdigstiltTidspunkt: Boolean = false,
     begrunnelseFerdigstilling: String? = null,
+    forvaltningsmelding: String? = null,
 ) {
     val expected =
         //language=json
@@ -68,6 +69,7 @@ fun String.shouldBeKlagebehandlingDTO(
          "status": "$status",
           "tilknyttedeBehandlingIder": ${if (behandlingId.isNullOrEmpty()) "[]" else behandlingId.map { "\"$it\"" }},
           "åpenBehandlingId": ${åpenBehandlingId?.toJsonValue()},
+          "forvaltningsmelding": ${forvaltningsmelding ?: "null"},
          "resultat": ${
             when (resultat) {
                 "OPPRETTHOLDT" -> """
@@ -173,6 +175,7 @@ fun String.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
         """.trimIndent(),
     ),
     begrunnelseFerdigstilling: String? = null,
+    forvaltningsmelding: String? = null,
 ) {
     val expected =
         //language=json
@@ -191,6 +194,7 @@ fun String.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
          "status": "FERDIGSTILT",
           "tilknyttedeBehandlingIder": ${if (behandlingId.isEmpty()) "[]" else behandlingId.map { "\"$it\"" }},
           "åpenBehandlingId": ${åpenBehandlingId?.toJsonValue()},
+          "forvaltningsmelding": ${forvaltningsmelding ?: "null"},
          "resultat": {
             "brevtekst": [${brevtekst.joinToString()}],
             "hjemler": [ ${hjemler.joinToString { "\"$it\"" }} ],
@@ -274,7 +278,8 @@ fun String.shouldBeKlagevedtakJson(
                     "innsendingskilde": "DIGITAL"
                   },
                   "tilknyttedeBehandlingIder": [],
-                  "åpenBehandlingId": null
+                  "åpenBehandlingId": null,
+                  "forvaltningsmelding": null
                 }
     """.trimIndent()
 
