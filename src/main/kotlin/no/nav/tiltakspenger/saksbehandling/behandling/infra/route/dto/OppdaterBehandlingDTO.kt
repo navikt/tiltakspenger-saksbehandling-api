@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterBe
     JsonSubTypes.Type(value = OppdaterRevurderingDTO.OmgjøringInnvilgelse::class, name = "OMGJØRING"),
     JsonSubTypes.Type(value = OppdaterRevurderingDTO.OmgjøringOpphør::class, name = "OMGJØRING_OPPHØR"),
     JsonSubTypes.Type(value = OppdaterRevurderingDTO.OmgjøringIkkeValgt::class, name = "OMGJØRING_IKKE_VALGT"),
+    JsonSubTypes.Type(value = OppdaterRevurderingDTO.Forlengelse::class, name = "FORLENGELSE"),
 )
 sealed interface OppdaterBehandlingDTO {
     val resultat: RammebehandlingResultatTypeDTO?

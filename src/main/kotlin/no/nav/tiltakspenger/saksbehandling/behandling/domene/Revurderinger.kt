@@ -7,6 +7,8 @@ data class Revurderinger(
 ) : List<Revurdering> by revurderinger {
 
     fun harÅpenRevurderingSomKanFjerneRett(): Boolean {
-        return revurderinger.any { !it.erAvsluttet && it.resultat !is Revurderingsresultat.Innvilgelse }
+        return revurderinger.any {
+            !it.erAvsluttet && it.resultat !is Revurderingsresultat.Innvilgelse && it.resultat !is Revurderingsresultat.Forlengelse
+        }
     }
 }

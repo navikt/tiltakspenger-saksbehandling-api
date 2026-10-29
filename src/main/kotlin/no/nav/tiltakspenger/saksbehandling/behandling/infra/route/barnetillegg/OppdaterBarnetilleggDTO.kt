@@ -5,6 +5,7 @@ import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ValgtBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 
 /**
@@ -27,4 +28,9 @@ data class OppdaterBarnetilleggDTO(
         } else {
             Barnetillegg.utenBarnetillegg(innvilgelsesperioder)
         }
+
+    fun tilValgtBarnetillegg(): ValgtBarnetillegg = ValgtBarnetillegg(
+        perioderMedBarn = perioder.map { it.periode.toDomain() to AntallBarn(it.antallBarn) },
+        begrunnelse = begrunnelse?.let { Begrunnelse.create(it) },
+    )
 }

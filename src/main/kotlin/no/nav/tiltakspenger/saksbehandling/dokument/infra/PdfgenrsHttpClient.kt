@@ -27,6 +27,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.BarnSomFyller16
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
@@ -95,6 +97,7 @@ class PdfgenrsHttpClient(
     private val pdfgenrsOpphørUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/vedtakOpphør")
     private val pdfgenrsRevurderingInnvilgelseUri =
         URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/revurderingInnvilgelse")
+    private val pdfgenrsForlengelseUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/vedtakForlengelse")
     private val pdfgenrsKlageAvvisUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/klageAvvis")
     private val pdfgenrsKlageInnstillingUrl = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/klageInnstilling")
     private val pdfgenrsJournalnotatUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/journalnotat")
@@ -107,6 +110,9 @@ class PdfgenrsHttpClient(
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return when (vedtak.rammebehandling) {
+            is Revurdering if vedtak.rammebehandlingsresultat is Revurderingsresultat.Forlengelse ->
+                throw IllegalArgumentException("Vedtaksbrevet for forlengelsen ${vedtak.id} må genereres med genererForlengelseBrev")
+
             is Revurdering -> {
                 val json = vedtak.tilRevurderingInnvilgetBrev(
                     hentBrukersNavn = hentBrukersNavn,
@@ -192,6 +198,59 @@ class PdfgenrsHttpClient(
         }
 
         return pdfgenrsRequest(jsonPayload = jsonPayload, uri = pdfgenrsRevurderingInnvilgelseUri)
+    }
+
+    override suspend fun genererForlengelseBrev(
+        vedtak: Rammevedtak,
+        barnSomFyller16: BarnSomFyller16?,
+        vedtaksdato: LocalDate,
+        tilleggstekst: FritekstTilVedtaksbrev?,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        val json = vedtak.tilForlengelseBrev(
+            hentBrukersNavn = hentBrukersNavn,
+            hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+            vedtaksdato = vedtaksdato,
+            tilleggstekst = tilleggstekst,
+            barnSomFyller16 = barnSomFyller16,
+        )
+
+        return pdfgenrsRequest(jsonPayload = { json }, uri = pdfgenrsForlengelseUri)
+    }
+
+    override suspend fun genererForlengelseBrevForhåndsvisning(
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+        vedtaksdato: LocalDate,
+        fnr: Fnr,
+        saksbehandlerNavIdent: String,
+        beslutterNavIdent: String?,
+        saksnummer: Saksnummer,
+        sakId: SakId,
+        innvilgelsesperioder: Innvilgelsesperioder,
+        barnetilleggsperioder: Periodisering<AntallBarn>?,
+        barnSomFyller16: BarnSomFyller16?,
+        tilleggstekst: FritekstTilVedtaksbrev?,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        val jsonPayload = suspend {
+            genererForlengelseBrev(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                fnr = fnr,
+                saksbehandlerNavIdent = saksbehandlerNavIdent,
+                beslutterNavIdent = beslutterNavIdent,
+                saksnummer = saksnummer,
+                forhåndsvisning = true,
+                innvilgelsesperioder = innvilgelsesperioder,
+                tilleggstekst = tilleggstekst,
+                barnetillegg = barnetilleggsperioder,
+                barnSomFyller16 = barnSomFyller16,
+                vedtaksdato = vedtaksdato,
+            )
+        }
+
+        return pdfgenrsRequest(jsonPayload = jsonPayload, uri = pdfgenrsForlengelseUri)
     }
 
     override suspend fun genererMeldekortvedtakBrev(

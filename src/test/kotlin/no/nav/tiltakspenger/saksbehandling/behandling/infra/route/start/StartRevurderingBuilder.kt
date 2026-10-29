@@ -213,6 +213,24 @@ interface StartRevurderingBuilder {
         )
     }
 
+    /** Starter en forlengelse av [rammevedtakIdSomForlenges] på [sakId]. */
+    suspend fun ApplicationTestBuilder.startForlengelse(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        rammevedtakIdSomForlenges: VedtakId,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
+    ): Triple<Sak, Revurdering, RammebehandlingDTOJson>? {
+        return startRevurderingForSakId(
+            tac = tac,
+            sakId = sakId,
+            type = RevurderingsresultatType.FORLENGELSE,
+            saksbehandler = saksbehandler,
+            rammevedtakIdSomForlenges = rammevedtakIdSomForlenges,
+            forventet = forventet,
+        )
+    }
+
     /** Forventer at det allerede finnes en sak og søknad. */
     suspend fun ApplicationTestBuilder.startRevurderingForSakId(
         tac: TestApplicationContext,
@@ -220,6 +238,7 @@ interface StartRevurderingBuilder {
         type: RevurderingsresultatType,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         rammevedtakIdSomOmgjøres: VedtakId? = null,
+        rammevedtakIdSomForlenges: VedtakId? = null,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Revurdering, RammebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
@@ -233,7 +252,8 @@ interface StartRevurderingBuilder {
             """
                 {
                 "revurderingType": "${type.tilStartRevurderingTypeDTO()}", 
-                "rammevedtakIdSomOmgjøres": ${if (rammevedtakIdSomOmgjøres != null) """"$rammevedtakIdSomOmgjøres"""" else null}
+                "rammevedtakIdSomOmgjøres": ${if (rammevedtakIdSomOmgjøres != null) """"$rammevedtakIdSomOmgjøres"""" else null},
+                "rammevedtakIdSomForlenges": ${if (rammevedtakIdSomForlenges != null) """"$rammevedtakIdSomForlenges"""" else null}
                 }
             """.trimIndent(),
         )

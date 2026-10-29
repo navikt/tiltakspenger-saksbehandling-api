@@ -39,6 +39,7 @@ interface ForhåndsvisRammevedtaksbrevTestbuilder {
         resultat: RammebehandlingResultatTypeDTO,
         avslagsgrunner: List<ValgtHjemmelForAvslagDTO>? = null,
         innvilgelsesperioder: InnvilgelsesperioderDTO? = null,
+        tilOgMed: LocalDate? = null,
     ): Triple<Sak, Rammebehandling, String> {
         if (resultat in listOf(
                 RammebehandlingResultatTypeDTO.INNVILGELSE,
@@ -66,6 +67,7 @@ interface ForhåndsvisRammevedtaksbrevTestbuilder {
             ) { """{"antallBarn":${it.antallBarn},"periode":{"fraOgMed":"${it.periode.fraOgMed}","tilOgMed":"${it.periode.tilOgMed}"}}""" }
         },
                 "resultat": "$resultat",
+                "tilOgMed": ${tilOgMed?.let { "\"$it\"" }},
                 "avslagsgrunner": ${avslagsgrunner?.joinToString(prefix = "[", postfix = "]") { """"$it"""" }},
                 "innvilgelsesperioder": ${
             innvilgelsesperioder?.let {

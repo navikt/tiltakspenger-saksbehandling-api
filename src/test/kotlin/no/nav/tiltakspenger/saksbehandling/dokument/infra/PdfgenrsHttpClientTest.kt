@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 import arrow.core.Either
 import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotContain
@@ -20,6 +21,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -30,7 +32,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.createOrThrow
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.BarnSomFyller16
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ForlengerRammevedtak
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
@@ -44,6 +49,8 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.TittelOgTekst
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.person.Navn
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 /**
@@ -115,6 +122,84 @@ class PdfgenrsHttpClientTest {
                 hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
             )
+        }
+    }
+
+    private fun forlengelsesvedtak(): Rammevedtak {
+        val revurdering = ObjectMother.nyVedtattRevurderingInnvilgelse()
+        val behandling = revurdering.copy(
+            resultat = Revurderingsresultat.Forlengelse(
+                forlenger = ForlengerRammevedtak(
+                    rammevedtakId = VedtakId.random(),
+                    forlengesFraOgMed = revurdering.innvilgelsesperioder!!.fraOgMed,
+                ),
+                innvilgelsesperioder = revurdering.innvilgelsesperioder,
+                barnetillegg = revurdering.barnetillegg,
+                harEndretBarnetillegg = false,
+                kanIkkeUtledeBarnetillegg = false,
+            ),
+        )
+        return ObjectMother.nyttRammevedtak(
+            sakId = behandling.sakId,
+            fnr = behandling.fnr,
+            behandling = behandling,
+            periode = behandling.innvilgelsesperioder!!.totalPeriode,
+        )
+    }
+
+    @Test
+    fun `genererInnvilgetVedtakBrev for forlengelse avvises, siden forlengelser har eget brev`() {
+        runTest {
+            shouldThrow<IllegalArgumentException> {
+                nyKlient(FakeHttpTransport()).genererInnvilgetVedtakBrev(
+                    vedtak = forlengelsesvedtak(),
+                    vedtaksdato = 2.januar(2023),
+                    tilleggstekst = null,
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `genererForlengelseBrev treffer vedtakForlengelse og sender med barna som fyller 16 år`() {
+        verifiserKunPdfgenrs("vedtakForlengelse") { klient ->
+            klient.genererForlengelseBrev(
+                vedtak = forlengelsesvedtak(),
+                barnSomFyller16 = BarnSomFyller16(antall = 1, antallBarnIVedtaket = 2, sisteDagMedBarnetillegg = 31.mars(2023)),
+                vedtaksdato = 2.januar(2023),
+                tilleggstekst = null,
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+            ).onRight {
+                val barn = JSONObject(it.json).getJSONObject("barnSomFyller16")
+                barn.getInt("antall") shouldBe 1
+                barn.getInt("antallBarnIVedtaket") shouldBe 2
+                barn.getString("sisteDagMedBarnetillegg") shouldBe "31. mars 2023"
+            }
+        }
+    }
+
+    @Test
+    fun `genererForlengelseBrevForhåndsvisning treffer vedtakForlengelse`() {
+        verifiserKunPdfgenrs("vedtakForlengelse") {
+            it.genererForlengelseBrevForhåndsvisning(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                vedtaksdato = 2.januar(2025),
+                fnr = Fnr.random(),
+                saksbehandlerNavIdent = "Z123456",
+                beslutterNavIdent = null,
+                saksnummer = saksnummer,
+                sakId = SakId.random(),
+                innvilgelsesperioder = ObjectMother.innvilgelsesperioder(),
+                barnetilleggsperioder = null,
+                barnSomFyller16 = null,
+                tilleggstekst = FritekstTilVedtaksbrev.createOrThrow("tilleggstekst"),
+            ).onRight {
+                JSONObject(it.json).isNull("barnSomFyller16") shouldBe true
+            }
         }
     }
 

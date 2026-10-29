@@ -69,6 +69,7 @@ fun Route.sendRammebehandlingTilBeslutningRoute(
 
                         KanIkkeSendeRammebehandlingTilBeslutter.UgyldigeMeldeperioderHelg,
                         is KanIkkeSendeRammebehandlingTilBeslutter.OmgjøringsgrunnlagetErEndret,
+                        KanIkkeSendeRammebehandlingTilBeslutter.ForlengelsesgrunnlagetErEndret,
                         -> call.respondJson(it.toErrorJson(saksbehandler))
                     }
                 }.onRight { (sak, behandling) ->
@@ -125,6 +126,11 @@ private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(saksbehandler: S
     )
 
     is KanIkkeSendeRammebehandlingTilBeslutter.OmgjøringsgrunnlagetErEndret -> omgjøringsgrunnlagetErEndretForSaksbehandler
+
+    KanIkkeSendeRammebehandlingTilBeslutter.ForlengelsesgrunnlagetErEndret -> HttpStatusCode.Conflict to ErrorJson(
+        "Vedtaket kan ikke lenger forlenges, fordi et annet vedtak er iverksatt etter at forlengelsen ble opprettet. Forlengelsen må avsluttes.",
+        "forlengelsesgrunnlaget_er_endret",
+    )
 
     KanIkkeSendeRammebehandlingTilBeslutter.MåHaBegrunnelseForÅJournalføreNotat -> HttpStatusCode.BadRequest to Standardfeil.måHaBegrunnelseForÅJournalføreNotat()
 

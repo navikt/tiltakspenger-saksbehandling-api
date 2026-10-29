@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -14,6 +15,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.barnSomFyller16
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.utledForlengelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilInnvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -104,6 +107,12 @@ class ForhåndsvisRammevedtaksbrevService(
                         kommando = k,
                     )
 
+                    is ForhåndsvisVedtaksbrevForForlengelseKommando -> genererForlengelseBrev(
+                        sak = sak,
+                        behandling = behandling,
+                        kommando = k,
+                    )
+
                     is ForhåndsvisVedtaksbrevForOmgjøringOpphørKommando -> genererOmgjøringOpphørBrev(
                         sak = sak,
                         behandling = behandling,
@@ -139,6 +148,64 @@ class ForhåndsvisRammevedtaksbrevService(
             innvilgelsesperioder = innvilgelsesperioder,
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
             barnetilleggsperioder = kommando.barnetillegg,
+        )
+    }
+
+    /**
+     * Under behandling utledes perioden og barnetillegget fra skjemaet, som ved oppdatering av forlengelsen.
+     * Ellers brukes verdiene som er lagret på behandlingen.
+     */
+    private suspend fun genererForlengelseBrev(
+        sak: Sak,
+        behandling: Revurdering,
+        kommando: ForhåndsvisVedtaksbrevForForlengelseKommando,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        val resultat = behandling.resultat
+        require(resultat is Revurderingsresultat.Forlengelse) {
+            "Behandlingen ${behandling.id} er ikke en forlengelse, men ${resultat?.javaClass?.simpleName}"
+        }
+        val forlengetVedtak = sak.hentRammevedtakForId(resultat.forlenger.rammevedtakId)
+        val (innvilgelsesperioder, barnetillegg, barnSomFyller16) = when (behandling.status) {
+            Rammebehandlingsstatus.UNDER_BEHANDLING -> {
+                val utledet = sak.utledForlengelse(
+                    revurdering = behandling,
+                    tilOgMed = kommando.tilOgMed,
+                    barnetillegg = kommando.barnetillegg,
+                ).getOrElse {
+                    throw IllegalArgumentException("Kan ikke forhåndsvise vedtaksbrev for forlengelsen ${behandling.id}: $it")
+                }
+                Triple(
+                    utledet.innvilgelsesperioder.tilInnvilgelsesperioder(behandling),
+                    utledet.barnetillegg,
+                    when {
+                        kommando.barnetillegg != null || utledet.kanIkkeUtledeBarnetillegg -> null
+                        else -> resultat.forlenger.barnSomFyller16(forlengetVedtak, utledet.barnetillegg.periodisering)
+                    },
+                )
+            }
+
+            Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
+            Rammebehandlingsstatus.KLAR_TIL_BEHANDLING,
+            Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
+            Rammebehandlingsstatus.UNDER_BESLUTNING,
+            Rammebehandlingsstatus.VEDTATT,
+            Rammebehandlingsstatus.AVBRUTT,
+            -> Triple(behandling.innvilgelsesperioder!!, behandling.barnetillegg, resultat.barnSomFyller16(forlengetVedtak))
+        }
+
+        return genererInnvilgelsesbrevClient.genererForlengelseBrevForhåndsvisning(
+            hentBrukersNavn = personService::hentNavn,
+            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
+            vedtaksdato = LocalDate.now(clock),
+            fnr = sak.fnr,
+            saksbehandlerNavIdent = behandling.saksbehandler!!,
+            beslutterNavIdent = behandling.beslutter,
+            saksnummer = sak.saksnummer,
+            sakId = sak.id,
+            innvilgelsesperioder = innvilgelsesperioder,
+            barnetilleggsperioder = barnetillegg?.periodisering,
+            barnSomFyller16 = barnSomFyller16,
+            tilleggstekst = kommando.fritekstTilVedtaksbrev,
         )
     }
 

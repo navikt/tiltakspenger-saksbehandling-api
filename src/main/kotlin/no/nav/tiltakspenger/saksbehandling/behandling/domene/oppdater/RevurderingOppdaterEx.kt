@@ -6,8 +6,11 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.UtledetForlengelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat.Forlengelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat.Innvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat.Stans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilInnvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import java.time.Clock
 import java.time.LocalDate
@@ -41,6 +44,41 @@ fun Revurdering.oppdaterInnvilgelse(
         prioritering = kommando.prioritering,
     ).also {
         // TODO jah: Etter omgjøring, fjern denne sjekken, fjern nullstill resultat og påse at dette gjøres ved send til beslutter + iverksett.
+        require(it.resultat.erFerdigutfylt(saksopplysninger))
+    }.right()
+}
+
+/**
+ * Oppdaterer en forlengelse med verdiene som er utledet fra ny til og med-dato.
+ * Forutsetningene håndheves av [kanOppdatere], og feilene derfra returneres som venstre-verdi.
+ */
+fun Revurdering.oppdaterForlengelse(
+    kommando: OppdaterRevurderingKommando.Forlengelse,
+    utledetForlengelse: UtledetForlengelse,
+    utbetaling: BehandlingUtbetaling?,
+    clock: Clock,
+): Either<KanIkkeOppdatereBehandling, Revurdering> {
+    kanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
+
+    val resultat = this.resultat
+    require(resultat is Forlengelse)
+
+    return this.copy(
+        sistEndret = nå(clock),
+        begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
+        fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
+        resultat = Forlengelse(
+            forlenger = resultat.forlenger,
+            innvilgelsesperioder = utledetForlengelse.innvilgelsesperioder.tilInnvilgelsesperioder(this),
+            barnetillegg = utledetForlengelse.barnetillegg,
+            harEndretBarnetillegg = kommando.barnetillegg != null || utledetForlengelse.kanIkkeUtledeBarnetillegg,
+            kanIkkeUtledeBarnetillegg = utledetForlengelse.kanIkkeUtledeBarnetillegg,
+        ),
+        utbetaling = utbetaling,
+        skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
+        skalJournalføreNotat = kommando.skalJournalføreNotat,
+        prioritering = kommando.prioritering,
+    ).also {
         require(it.resultat.erFerdigutfylt(saksopplysninger))
     }.right()
 }

@@ -16,6 +16,7 @@ enum class BenkRevurderingResultatDTO {
     OMGJØRING,
     OMGJØRING_OPPHØR,
     OMGJØRING_IKKE_VALGT,
+    FORLENGELSE,
 }
 
 data class BenkRevurderingDTO(
@@ -68,6 +69,7 @@ private fun BenkRevurderingResultat.toDTO(): BenkRevurderingResultatDTO = when (
     BenkRevurderingResultat.OMGJØRING -> BenkRevurderingResultatDTO.OMGJØRING
     BenkRevurderingResultat.OMGJØRING_OPPHØR -> BenkRevurderingResultatDTO.OMGJØRING_OPPHØR
     BenkRevurderingResultat.OMGJØRING_IKKE_VALGT -> BenkRevurderingResultatDTO.OMGJØRING_IKKE_VALGT
+    BenkRevurderingResultat.FORLENGELSE -> BenkRevurderingResultatDTO.FORLENGELSE
 }
 
 fun BenkRevurderingResultatDTO.tilDomene(): BenkRevurderingResultat = when (this) {
@@ -76,4 +78,5 @@ fun BenkRevurderingResultatDTO.tilDomene(): BenkRevurderingResultat = when (this
     BenkRevurderingResultatDTO.OMGJØRING -> BenkRevurderingResultat.OMGJØRING
     BenkRevurderingResultatDTO.OMGJØRING_OPPHØR -> BenkRevurderingResultat.OMGJØRING_OPPHØR
     BenkRevurderingResultatDTO.OMGJØRING_IKKE_VALGT -> BenkRevurderingResultat.OMGJØRING_IKKE_VALGT
+    BenkRevurderingResultatDTO.FORLENGELSE -> BenkRevurderingResultat.FORLENGELSE
 }

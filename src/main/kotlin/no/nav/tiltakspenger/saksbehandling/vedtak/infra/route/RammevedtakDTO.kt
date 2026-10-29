@@ -74,7 +74,7 @@ enum class OmgjøringsgradDTO {
     }
 }
 
-fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
+fun Rammevedtak.tilRammevedtakDTO(rammevedtaksliste: Rammevedtaksliste): RammevedtakDTO {
     return RammevedtakDTO(
         id = id.toString(),
         behandlingId = rammebehandling.id.toString(),
@@ -92,7 +92,7 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
         opprinneligInnvilgetPerioder = this.opprinneligInnvilgetPerioder.map { it.toDTO() },
         gjeldendeInnvilgetPerioder = this.gjeldendeInnvilgetPerioder.map { it.toDTO() },
         erGjeldende = this.erGjeldende,
-        gyldigeKommandoer = this.gyldigeKommandoer.toDTO(),
+        gyldigeKommandoer = rammevedtaksliste.gyldigeKommandoer(this).toDTO(),
         omgjortGrad = this.omgjortGrad?.tilDTO(),
         skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
     )
@@ -147,6 +147,7 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
 
         is Søknadsbehandlingsresultat.Innvilgelse,
         is Revurderingsresultat.Innvilgelse,
+        is Revurderingsresultat.Forlengelse,
         is Revurderingsresultat.Stans,
         ->
             listOf(
@@ -157,6 +158,7 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
                         is Omgjøringsresultat -> throw IllegalStateException("Omgjøring skal bli håndtert spesielt")
                         is Søknadsbehandlingsresultat.Avslag -> throw IllegalStateException("Avslag kan ikke forekomme i tidslinje")
                         is Revurderingsresultat.Innvilgelse -> TidslinjeResultat.REVURDERING_INNVILGELSE
+                        is Revurderingsresultat.Forlengelse -> TidslinjeResultat.FORLENGELSE
                         is Søknadsbehandlingsresultat.Innvilgelse -> TidslinjeResultat.SØKNADSBEHANDLING_INNVILGELSE
                         is Revurderingsresultat.Stans -> TidslinjeResultat.STANS
                     },

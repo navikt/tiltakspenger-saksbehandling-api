@@ -125,7 +125,9 @@ class IverksettRammebehandlingService(
                 val melding = "Kunne ikke opprette rammevedtak: $feil - ${iverksattRammebehandling.loggkontekst(correlationId)}"
                 when (feil) {
                     // Forventet tilstand: et annet vedtak har omgjort de samme periodene mens behandlingen lå til beslutning.
-                    is OpprettRammevedtakFeil.OmgjøringsgrunnlagetErEndret -> logger.warn { melding }
+                    is OpprettRammevedtakFeil.OmgjøringsgrunnlagetErEndret,
+                    is OpprettRammevedtakFeil.ForlengelsesgrunnlagetErEndret,
+                    -> logger.warn { melding }
 
                     is OpprettRammevedtakFeil.RammebehandlingIkkeVedtatt,
                     is OpprettRammevedtakFeil.UgyldigKlagebehandlingStatus,
@@ -215,6 +217,7 @@ class IverksettRammebehandlingService(
 
             is Omgjøringsresultat.OmgjøringInnvilgelse,
             is Revurderingsresultat.Innvilgelse,
+            is Revurderingsresultat.Forlengelse,
             is Omgjøringsresultat.OmgjøringOpphør,
             is Revurderingsresultat.Stans,
             is Søknadsbehandlingsresultat.Innvilgelse,

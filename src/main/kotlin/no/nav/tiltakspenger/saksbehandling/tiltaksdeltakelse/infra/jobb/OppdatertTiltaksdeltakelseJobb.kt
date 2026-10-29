@@ -264,6 +264,7 @@ class OppdatertTiltaksdeltakelseJobb(
                     saksbehandler = null,
                     revurderingType = StartRevurderingType.OMGJØRING,
                     vedtakIdSomOmgjøres = revurderingSomSkalOpprettes.vedtakIdSomOmgjøres,
+                    vedtakIdSomForlenges = null,
                     klagebehandlingId = null,
                     automatiskOpprettetGrunn = automatiskOpprettetGrunn,
                 ),

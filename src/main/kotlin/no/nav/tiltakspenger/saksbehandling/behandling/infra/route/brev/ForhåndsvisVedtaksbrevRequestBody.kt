@@ -9,7 +9,9 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev.Companion.toFritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ValgtBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.HjemmelForOpphørDTO
@@ -19,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemm
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toAvslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDomain
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevForForlengelseKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevForOmgjøringInnvilgelseKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevForOmgjøringOpphørKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevForRevurderingInnvilgelseKommando
@@ -45,6 +48,7 @@ import java.time.LocalDate
     JsonSubTypes.Type(value = ForhåndsvisVedtaksbrevRequestBody.RevurderingStans::class, name = "STANS"),
     JsonSubTypes.Type(value = ForhåndsvisVedtaksbrevRequestBody.OmgjøringInnvilgelse::class, name = "OMGJØRING"),
     JsonSubTypes.Type(value = ForhåndsvisVedtaksbrevRequestBody.OmgjøringOpphør::class, name = "OMGJØRING_OPPHØR"),
+    JsonSubTypes.Type(value = ForhåndsvisVedtaksbrevRequestBody.Forlengelse::class, name = "FORLENGELSE"),
 )
 sealed interface ForhåndsvisVedtaksbrevRequestBody {
     fun toDomain(
@@ -187,6 +191,37 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
                 fritekstTilVedtaksbrev = fritekst?.toFritekstTilVedtaksbrev(),
                 vedtaksperiode = vedtaksperiode.toDomain(),
                 valgteHjemler = valgteHjemler.toDomain(),
+            )
+        }
+    }
+
+    /**
+     * @param barnetillegg Null betyr at barnetillegget utledes fra vedtaket som forlenges.
+     */
+    data class Forlengelse(
+        val fritekst: String?,
+        val tilOgMed: LocalDate,
+        val barnetillegg: List<BarnetilleggPeriodeDTO>?,
+    ) : ForhåndsvisVedtaksbrevRequestBody {
+        override fun toDomain(
+            sakId: SakId,
+            behandlingId: RammebehandlingId,
+            correlationId: CorrelationId,
+            saksbehandler: Saksbehandler,
+        ): ForhåndsvisVedtaksbrevForForlengelseKommando {
+            return ForhåndsvisVedtaksbrevForForlengelseKommando(
+                sakId = sakId,
+                behandlingId = behandlingId,
+                correlationId = correlationId,
+                saksbehandler = saksbehandler,
+                fritekstTilVedtaksbrev = fritekst?.toFritekstTilVedtaksbrev(),
+                tilOgMed = tilOgMed,
+                barnetillegg = barnetillegg?.let { perioder ->
+                    ValgtBarnetillegg(
+                        perioderMedBarn = perioder.map { it.periode.toDomain() to AntallBarn(it.antallBarn) },
+                        begrunnelse = null,
+                    )
+                },
             )
         }
     }
