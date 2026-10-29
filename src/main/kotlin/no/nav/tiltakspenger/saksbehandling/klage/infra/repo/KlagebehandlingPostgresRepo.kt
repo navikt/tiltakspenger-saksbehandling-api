@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
+import no.nav.tiltakspenger.saksbehandling.klage.domene.forvaltningsmelding.KlageForvaltningsmelding
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.OversendtKlageTilKabalMetadata
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo.Companion.overtaBehandling
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo.Companion.taBehandling
@@ -110,6 +111,89 @@ class KlagebehandlingPostgresRepo(private val sessionFactory: PostgresSessionFac
                     limit $limit
                     """.trimIndent(),
                 ).map { fromRow(it) }.asList,
+            )
+        }
+    }
+
+    override fun hentForvaltningsmeldingerSomSkalJournalføres(limit: Int): List<Klagebehandling> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select
+                      k.*,
+                      s.fnr,
+                      s.saksnummer
+                    from klagebehandling k
+                    join sak s on s.id = k.sak_id
+                    where k.forvaltningsmelding is not null
+                    and k.forvaltningsmelding->>'journalpostId' is null
+                    order by k.forvaltningsmelding->>'sendtTidspunkt', k.id
+                    limit $limit
+                    """.trimIndent(),
+                ).map { fromRow(it) }.asList,
+            )
+        }
+    }
+
+    override fun markerForvaltningsmeldingJournalført(
+        klagebehandlingId: KlagebehandlingId,
+        forvaltningsmelding: KlageForvaltningsmelding,
+        metadata: JournalførBrevMetadata,
+    ) {
+        sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    update klagebehandling set
+                        forvaltningsmelding = :forvaltningsmelding::jsonb,
+                        forvaltningsmelding_brev_metadata = :brev_metadata::jsonb
+                    where id = :id
+                    """,
+                    "id" to klagebehandlingId.toString(),
+                    "forvaltningsmelding" to forvaltningsmelding.toDbJson(),
+                    "brev_metadata" to metadata.toDbJson(),
+                ).asUpdate,
+            )
+        }
+    }
+
+    override fun hentForvaltningsmeldingerSomSkalDistribueres(limit: Int): List<Klagebehandling> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select
+                      k.*,
+                      s.fnr,
+                      s.saksnummer
+                    from klagebehandling k
+                    join sak s on s.id = k.sak_id
+                    where k.forvaltningsmelding->>'journalpostId' is not null
+                    and k.forvaltningsmelding->>'distribusjonId' is null
+                    order by k.forvaltningsmelding->>'sendtTidspunkt', k.id
+                    limit $limit
+                    """.trimIndent(),
+                ).map { fromRow(it) }.asList,
+            )
+        }
+    }
+
+    override fun markerForvaltningsmeldingDistribuert(
+        klagebehandlingId: KlagebehandlingId,
+        forvaltningsmelding: KlageForvaltningsmelding,
+    ) {
+        sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    update klagebehandling set
+                        forvaltningsmelding = :forvaltningsmelding::jsonb
+                    where id = :id
+                    """,
+                    "id" to klagebehandlingId.toString(),
+                    "forvaltningsmelding" to forvaltningsmelding.toDbJson(),
+                ).asUpdate,
             )
         }
     }
@@ -224,7 +308,8 @@ class KlagebehandlingPostgresRepo(private val sessionFactory: PostgresSessionFac
                         brevtekst,
                         iverksatt_tidspunkt,
                         avbrutt,
-                        ventestatus
+                        ventestatus,
+                        forvaltningsmelding
                     ) values (
                         :id,
                         :sak_id,
@@ -239,7 +324,8 @@ class KlagebehandlingPostgresRepo(private val sessionFactory: PostgresSessionFac
                         :brevtekst::jsonb,
                         :iverksatt_tidspunkt,
                         :avbrutt::jsonb,
-                        :ventestatus::jsonb
+                        :ventestatus::jsonb,
+                        :forvaltningsmelding::jsonb
                     ) on conflict (id) do update set
                         sak_id = :sak_id,
                         opprettet = :opprettet,
@@ -253,7 +339,8 @@ class KlagebehandlingPostgresRepo(private val sessionFactory: PostgresSessionFac
                         brevtekst = :brevtekst::jsonb,
                         iverksatt_tidspunkt = :iverksatt_tidspunkt,
                         avbrutt = :avbrutt::jsonb,
-                        ventestatus = :ventestatus::jsonb
+                        ventestatus = :ventestatus::jsonb,
+                        forvaltningsmelding = coalesce(klagebehandling.forvaltningsmelding, :forvaltningsmelding::jsonb)
                     """.trimIndent(),
                     mapOf(
                         "id" to klagebehandling.id.toString(),
@@ -270,6 +357,7 @@ class KlagebehandlingPostgresRepo(private val sessionFactory: PostgresSessionFac
                         "iverksatt_tidspunkt" to klagebehandling.iverksattTidspunkt,
                         "avbrutt" to klagebehandling.avbrutt?.toDbJson(),
                         "ventestatus" to klagebehandling.ventestatus.toDbJson(),
+                        "forvaltningsmelding" to klagebehandling.forvaltningsmelding?.toDbJson(),
                     ),
                 ).asUpdate,
             )
@@ -347,6 +435,7 @@ class KlagebehandlingPostgresRepo(private val sessionFactory: PostgresSessionFac
                 iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
                 avbrutt = row.stringOrNull("avbrutt")?.toKlagebehandlingAvbrutt(),
                 ventestatus = row.ventestatus(),
+                forvaltningsmelding = row.stringOrNull("forvaltningsmelding")?.toKlageForvaltningsmelding(),
             )
         }
     }

@@ -28,6 +28,7 @@ class JournalførFakeKlagevedtakKlient(
 
     private val journalpostIdData = Atomic(mutableMapOf<Ulid, JournalpostId>())
     private val dokumentInfoIdData = Atomic(mutableMapOf<Ulid, List<DokumentInfoId>>())
+    private val forvaltningsmeldingJournalpostIdData = Atomic(mutableMapOf<Ulid, JournalpostId>())
 
     val journalførBrevMetadata by lazy {
         JournalførBrevMetadata(
@@ -74,6 +75,21 @@ class JournalførFakeKlagevedtakKlient(
                 .also {
                     dokumentInfoIdData.get().putIfAbsent(klagebehandling.id, it.toList())
                 },
+            metadata = journalførBrevMetadata,
+        ).right()
+    }
+
+    override suspend fun journalførForvaltningsmelding(
+        klagebehandling: Klagebehandling,
+        pdfOgJson: PdfOgJson,
+        correlationId: CorrelationId,
+    ): Either<KunneIkkeJournalføre, JournalførteDokumenter> {
+        return JournalførteDokumenter(
+            journalpostId = forvaltningsmeldingJournalpostIdData.get()[klagebehandling.id]
+                ?: journalpostIdGenerator.generer().also {
+                    forvaltningsmeldingJournalpostIdData.get().putIfAbsent(klagebehandling.id, it)
+                },
+            dokumentInfoIder = listOf(dokumentInfoIdGeneratorGenerator.generer()).toNonEmptyListOrThrow(),
             metadata = journalførBrevMetadata,
         ).right()
     }

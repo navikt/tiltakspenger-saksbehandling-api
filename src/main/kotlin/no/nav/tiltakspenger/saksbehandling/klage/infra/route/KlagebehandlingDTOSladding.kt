@@ -17,6 +17,11 @@ fun KlagebehandlingDTO.sladdet(): KlagebehandlingDTO = this.copy(
     avbrutt = avbrutt?.sladdet(),
     ventestatus = ventestatus.map { it.sladdet() },
     resultat = resultat?.sladdet(),
+    forvaltningsmelding = forvaltningsmelding?.sladdet(),
+)
+
+fun KlageForvaltningsmeldingDTO.sladdet(): KlageForvaltningsmeldingDTO = this.copy(
+    tekster = tekster.sladdet(),
 )
 
 fun KlagebehandlingAvbruttDTO.sladdet(): KlagebehandlingAvbruttDTO = this.copy(

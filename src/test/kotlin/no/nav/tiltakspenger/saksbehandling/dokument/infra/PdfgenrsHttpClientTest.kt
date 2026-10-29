@@ -275,6 +275,23 @@ class PdfgenrsHttpClientTest {
     }
 
     @Test
+    fun `genererForvaltningsmelding treffer klageForvaltningsmelding`() {
+        verifiserKunPdfgenrs("klageForvaltningsmelding") {
+            it.genererForvaltningsmelding(
+                saksnummer = saksnummer,
+                fnr = Fnr.random(),
+                tilleggstekst = brevtekster,
+                saksbehandlerNavIdent = "Z123456",
+                forhåndsvisning = true,
+                innsendingsdato = 1.januar(2025),
+                brevdato = 2.januar(2025),
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+            )
+        }
+    }
+
+    @Test
     fun `bygger default transport når transport ikke sendes inn`() {
         PdfgenrsHttpClient(
             basePdfgenrsUrl = "http://pdfgenrs",

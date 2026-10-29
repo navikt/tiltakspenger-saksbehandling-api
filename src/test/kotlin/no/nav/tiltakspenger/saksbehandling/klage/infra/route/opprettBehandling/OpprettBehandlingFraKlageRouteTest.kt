@@ -74,6 +74,7 @@ class OpprettBehandlingFraKlageRouteTest {
                 iverksattTidspunkt = null,
                 avbrutt = null,
                 ventestatus = Ventestatus(),
+                forvaltningsmelding = null,
             )
 
             json.toString().shouldBeSøknadsbehandlingDTO(
@@ -139,6 +140,7 @@ class OpprettBehandlingFraKlageRouteTest {
                 iverksattTidspunkt = null,
                 avbrutt = null,
                 ventestatus = Ventestatus(),
+                forvaltningsmelding = null,
             )
 
             json.toString().shouldBeRevurderingDTO(
@@ -203,6 +205,7 @@ class OpprettBehandlingFraKlageRouteTest {
                 iverksattTidspunkt = null,
                 avbrutt = null,
                 ventestatus = Ventestatus(),
+                forvaltningsmelding = null,
             )
 
             json.toString().shouldBeRevurderingDTO(

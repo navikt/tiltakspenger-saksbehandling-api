@@ -38,5 +38,6 @@ fun Klagebehandling.Companion.opprett(
         iverksattTidspunkt = null,
         avbrutt = null,
         ventestatus = Ventestatus(),
+        forvaltningsmelding = null,
     )
 }

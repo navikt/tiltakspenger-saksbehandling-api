@@ -146,6 +146,20 @@ private fun klageJobber(
         },
     ),
     Task(
+        navn = "saksbehandling-jobb-journalfør-klagebrev-forvaltningsmelding",
+        utfør = { _ ->
+            applicationContext.klagebehandlingContext.journalførKlagebrevJobb.journalførForvaltningsmeldinger()
+            TaskResultat.Ferdig
+        },
+    ),
+    Task(
+        navn = "saksbehandling-jobb-distribuer-klagebrev-forvaltningsmelding",
+        utfør = { _ ->
+            applicationContext.klagebehandlingContext.distribuerKlagebrevJobb.distribuerForvaltningsmeldinger()
+            TaskResultat.Ferdig
+        },
+    ),
+    Task(
         navn = "saksbehandling-jobb-oversend-klage",
         utfør = { _ ->
             applicationContext.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstans()

@@ -97,6 +97,7 @@ class PdfgenrsHttpClient(
         URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/revurderingInnvilgelse")
     private val pdfgenrsKlageAvvisUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/klageAvvis")
     private val pdfgenrsKlageInnstillingUrl = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/klageInnstilling")
+    private val pdfgenrsKlageForvaltningsmeldingUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/klageForvaltningsmelding")
     private val pdfgenrsJournalnotatUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/journalnotat")
 
     override suspend fun genererInnvilgetVedtakBrev(
@@ -385,6 +386,34 @@ class PdfgenrsHttpClient(
         }
 
         return pdfgenrsRequest(jsonPayload = jsonPayload, uri = pdfgenrsKlageInnstillingUrl)
+    }
+
+    override suspend fun genererForvaltningsmelding(
+        saksnummer: Saksnummer,
+        fnr: Fnr,
+        tilleggstekst: Brevtekster,
+        saksbehandlerNavIdent: String?,
+        forhåndsvisning: Boolean,
+        innsendingsdato: LocalDate,
+        brevdato: LocalDate,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        val jsonPayload = suspend {
+            BrevKlageForvaltningsmeldingDTO.create(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                datoForUtsending = brevdato,
+                tilleggstekst = tilleggstekst,
+                saksbehandlerNavIdent = saksbehandlerNavIdent,
+                saksnummer = saksnummer,
+                forhåndsvisning = forhåndsvisning,
+                fnr = fnr,
+                innsendingsdato = innsendingsdato,
+            )
+        }
+
+        return pdfgenrsRequest(jsonPayload = jsonPayload, uri = pdfgenrsKlageForvaltningsmeldingUri)
     }
 
     override suspend fun genererOpphørBrev(

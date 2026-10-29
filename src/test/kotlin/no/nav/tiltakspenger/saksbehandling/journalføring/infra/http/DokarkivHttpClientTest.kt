@@ -315,6 +315,20 @@ class DokarkivHttpClientTest {
     }
 
     @Test
+    fun `journalfører forvaltningsmelding for klagebehandling med egen eksternReferanseId`() = runTest {
+        val transport = FakeHttpTransport().apply { leggIKøJson(dokarkivOkJson(), statusCode = 201) }
+        val klagebehandling = ObjectMother.opprettKlagebehandling()
+
+        val dokumenter = nyKlient(transport).journalførForvaltningsmelding(klagebehandling, pdfOgJson, correlationId).getOrFail()
+
+        dokumenter.journalpostId shouldBe JournalpostId("467010363")
+        transport.mottatteKall.single().bodyTekst.let {
+            it shouldContain "KLAGE-FORVALTNINGSMELDING-TILTAKSPENGER"
+            it shouldContain "${klagebehandling.id}-forvaltningsmelding"
+        }
+    }
+
+    @Test
     fun `journalfører journalnotat som NOTAT med egen eksternReferanseId`() = runTest {
         val transport = FakeHttpTransport().apply { leggIKøJson(dokarkivOkJson(), statusCode = 201) }
         val journalnotat = Journalnotat(

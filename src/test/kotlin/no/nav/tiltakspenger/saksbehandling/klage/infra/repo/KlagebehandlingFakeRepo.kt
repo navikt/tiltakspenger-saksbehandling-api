@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.forvaltningsmelding.KlageForvaltningsmelding
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.OversendtKlageTilKabalMetadata
 
 class KlagebehandlingFakeRepo : KlagebehandlingRepo {
@@ -21,7 +22,10 @@ class KlagebehandlingFakeRepo : KlagebehandlingRepo {
         klagebehandling: Klagebehandling,
         sessionContext: SessionContext?,
     ) {
-        data.get()[klagebehandling.id] = klagebehandling
+        val lagretForvaltningsmelding = data.get()[klagebehandling.id]?.forvaltningsmelding
+        data.get()[klagebehandling.id] = klagebehandling.copy(
+            forvaltningsmelding = lagretForvaltningsmelding ?: klagebehandling.forvaltningsmelding,
+        )
     }
 
     override fun hentForKlagebehandlingId(klagebehandlingId: KlagebehandlingId): Klagebehandling? {
@@ -50,6 +54,44 @@ class KlagebehandlingFakeRepo : KlagebehandlingRepo {
                 it.resultat.journalpostIdInnstillingsbrev != null &&
                 it.resultat.distribusjonIdInnstillingsbrev == null
         }.take(limit)
+    }
+
+    override fun hentForvaltningsmeldingerSomSkalJournalføres(limit: Int): List<Klagebehandling> {
+        return data.get().values.filter {
+            it.forvaltningsmelding != null && it.forvaltningsmelding.journalpostId == null
+        }.take(limit)
+    }
+
+    override fun markerForvaltningsmeldingJournalført(
+        klagebehandlingId: KlagebehandlingId,
+        forvaltningsmelding: KlageForvaltningsmelding,
+        metadata: JournalførBrevMetadata,
+    ) {
+        oppdaterForvaltningsmelding(klagebehandlingId, forvaltningsmelding)
+    }
+
+    override fun hentForvaltningsmeldingerSomSkalDistribueres(limit: Int): List<Klagebehandling> {
+        return data.get().values.filter {
+            it.forvaltningsmelding != null &&
+                it.forvaltningsmelding.journalpostId != null &&
+                it.forvaltningsmelding.distribusjonId == null
+        }.take(limit)
+    }
+
+    override fun markerForvaltningsmeldingDistribuert(
+        klagebehandlingId: KlagebehandlingId,
+        forvaltningsmelding: KlageForvaltningsmelding,
+    ) {
+        oppdaterForvaltningsmelding(klagebehandlingId, forvaltningsmelding)
+    }
+
+    private fun oppdaterForvaltningsmelding(
+        klagebehandlingId: KlagebehandlingId,
+        forvaltningsmelding: KlageForvaltningsmelding,
+    ) {
+        data.get().computeIfPresent(klagebehandlingId) { _, klagebehandling ->
+            klagebehandling.copy(forvaltningsmelding = forvaltningsmelding)
+        }
     }
 
     override fun hentSakerSomSkalOversendesKlageinstansen(limit: Int): List<SakId> {

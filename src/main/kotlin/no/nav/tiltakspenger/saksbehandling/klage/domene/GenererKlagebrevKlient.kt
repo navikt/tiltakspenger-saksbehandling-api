@@ -34,4 +34,16 @@ interface GenererKlagebrevKlient {
         innsendingsdato: LocalDate,
         clock: Clock,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
+
+    suspend fun genererForvaltningsmelding(
+        saksnummer: Saksnummer,
+        fnr: Fnr,
+        tilleggstekst: Brevtekster,
+        saksbehandlerNavIdent: String?,
+        forhåndsvisning: Boolean,
+        innsendingsdato: LocalDate,
+        brevdato: LocalDate,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }

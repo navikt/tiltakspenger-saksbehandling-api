@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagevedtakRepo
+import no.nav.tiltakspenger.saksbehandling.klage.domene.forvaltningsmelding.genererForvaltningsmelding
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.hentNavnForNavIdentEllerKast
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
@@ -196,6 +197,70 @@ class JournalførKlagebrevJobb(
             errorEveryNLogger.reset()
         }.onLeft {
             errorEveryNLogger.log(it) { "Feil ved journalføring av innstillingsbrev. $loggkontekst" }
+        }
+    }
+
+    suspend fun journalførForvaltningsmeldinger() {
+        Either.catch {
+            klagebehandlingRepo.hentForvaltningsmeldingerSomSkalJournalføres().forEach { klagebehandling ->
+                journalførForvaltningsmelding(klagebehandling)
+            }
+        }.onLeft {
+            errorEveryNLogger.log(it) { "Ukjent feil skjedde under journalføring av forvaltningsmeldinger for klage." }
+        }
+    }
+
+    private suspend fun journalførForvaltningsmelding(klagebehandling: Klagebehandling) {
+        val loggkontekst = "sakId: ${klagebehandling.sakId}, saksnummer: ${klagebehandling.saksnummer}, klagebehandlingId: ${klagebehandling.id}"
+        Either.catch {
+            val forvaltningsmelding = klagebehandling.forvaltningsmelding!!
+            val correlationId = CorrelationId.generate()
+            val brevdato = LocalDate.now(clock)
+
+            log.info { "Genererer forvaltningsmelding for klage. $loggkontekst" }
+            val pdfOgJson = klagebehandling.genererForvaltningsmelding(
+                generer = { saksnummer, fnr, saksbehandlerNavIdent, tilleggstekst, forhåndsvisning, innsendingsdato, dato ->
+                    genererKlagebrevKlient.genererForvaltningsmelding(
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        tilleggstekst = tilleggstekst,
+                        saksbehandlerNavIdent = saksbehandlerNavIdent,
+                        forhåndsvisning = forhåndsvisning,
+                        innsendingsdato = innsendingsdato,
+                        brevdato = dato,
+                        hentBrukersNavn = personService::hentNavn,
+                        hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
+                    )
+                },
+                brevdato = brevdato,
+            ).getOrElse {
+                it.feil.loggFeil(log, "generering av forvaltningsmelding for klage", loggkontekst)
+                return
+            }
+
+            log.info { "Forvaltningsmelding for klage generert. $loggkontekst" }
+            val (journalpostId, _, metadata) = journalførKlagevedtaksbrevKlient.journalførForvaltningsmelding(
+                klagebehandling = klagebehandling,
+                pdfOgJson = pdfOgJson,
+                correlationId = correlationId,
+            ).getOrElse {
+                it.loggFeil(log, "journalføring av forvaltningsmelding for klage", loggkontekst)
+                return
+            }
+            log.info { "Forvaltningsmelding for klage journalført. Prøver å lagre. journalpostId: $journalpostId, $loggkontekst" }
+            klagebehandlingRepo.markerForvaltningsmeldingJournalført(
+                klagebehandlingId = klagebehandling.id,
+                forvaltningsmelding = forvaltningsmelding.oppdaterJournalpost(
+                    brevdato = brevdato,
+                    journalpostId = journalpostId,
+                    tidspunkt = metadata.journalføringsTidspunkt,
+                ),
+                metadata = metadata,
+            )
+            log.info { "Forvaltningsmelding for klage markert som journalført. journalpostId: $journalpostId, $loggkontekst" }
+            errorEveryNLogger.reset()
+        }.onLeft {
+            errorEveryNLogger.log(it) { "Feil ved journalføring av forvaltningsmelding for klage. $loggkontekst" }
         }
     }
 }

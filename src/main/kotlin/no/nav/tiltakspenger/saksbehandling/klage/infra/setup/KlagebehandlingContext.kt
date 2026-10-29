@@ -35,6 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakPostgresR
 import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.FerdigstillKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisBrevKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisForvaltningsmeldingKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.GjenopptaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettAvvistKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.LeggTilbakeKlagebehandlingService
@@ -44,6 +45,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettBehandlingForKla
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettholdKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OvertaKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.klage.service.SendForvaltningsmeldingKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.SettKlagebehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.klage.service.TaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.VisInnstillingsbrevKlagebehandlingService
@@ -155,6 +157,22 @@ open class KlagebehandlingContext(
             sakService = sakService,
             clock = clock,
             klagebehandlingRepo = klagebehandlingRepo,
+        )
+    }
+    open val sendForvaltningsmeldingKlagebehandlingService: SendForvaltningsmeldingKlagebehandlingService by lazy {
+        SendForvaltningsmeldingKlagebehandlingService(
+            sakService = sakService,
+            clock = clock,
+            klagebehandlingRepo = klagebehandlingRepo,
+        )
+    }
+    open val forhåndsvisForvaltningsmeldingKlagebehandlingService: ForhåndsvisForvaltningsmeldingKlagebehandlingService by lazy {
+        ForhåndsvisForvaltningsmeldingKlagebehandlingService(
+            sakService = sakService,
+            clock = clock,
+            personService = personService,
+            navIdentClient = navIdentClient,
+            genererKlagebrevKlient = genererKlagebrevKlient,
         )
     }
     open val iverksettAvvistKlagebehandlingService: IverksettAvvistKlagebehandlingService by lazy {
