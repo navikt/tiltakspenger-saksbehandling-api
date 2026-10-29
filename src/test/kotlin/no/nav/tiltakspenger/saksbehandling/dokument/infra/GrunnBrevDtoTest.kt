@@ -56,6 +56,7 @@ class GrunnBrevDtoTest {
             HjemmelForStans.LønnFraAndre to GrunnBrevDto.LØNN_FRA_ANDRE,
             HjemmelForStans.Institusjonsopphold to GrunnBrevDto.INSTITUSJONSOPPHOLD,
             HjemmelForStans.IkkeLovligOpphold to GrunnBrevDto.IKKE_LOVLIG_OPPHOLD,
+            HjemmelForStans.RettTilDagpenger to GrunnBrevDto.RETT_TIL_DAGPENGER,
         )
     }
 
@@ -72,6 +73,7 @@ class GrunnBrevDtoTest {
             HjemmelForOpphør.Institusjonsopphold to GrunnBrevDto.INSTITUSJONSOPPHOLD,
             HjemmelForOpphør.IkkeLovligOpphold to GrunnBrevDto.IKKE_LOVLIG_OPPHOLD,
             HjemmelForOpphør.FremmetForSent to GrunnBrevDto.FREMMET_FOR_SENT,
+            HjemmelForOpphør.RettTilDagpenger to GrunnBrevDto.RETT_TIL_DAGPENGER,
         )
     }
 }

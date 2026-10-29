@@ -14,4 +14,5 @@ enum class HjemmelForOpphør {
     Institusjonsopphold,
     IkkeLovligOpphold,
     FremmetForSent,
+    RettTilDagpenger,
 }
