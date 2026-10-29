@@ -31,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SendUtbetalingerService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
+import java.time.LocalDateTime
 
 open class UtbetalingContext(
     sessionFactory: SessionFactory,
@@ -80,6 +81,8 @@ open class UtbetalingContext(
     open val utbetalingsoversiktRepo: UtbetalingsoversiktRepo by lazy {
         UtbetalingsoversiktPostgresRepo(
             sessionFactory as PostgresSessionFactory,
+            // De to testsakene i dev ble opprettet 25.09.2026; starttidspunktet i prod avtales før jobben slås på der.
+            oppfølgesFra = if (erDev) LocalDateTime.of(2026, 9, 25, 0, 0) else null,
         )
     }
     open val simulerService: SimulerService by lazy {

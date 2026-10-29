@@ -16,8 +16,13 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider
 import java.time.LocalDateTime
 
+/**
+ * @param oppfølgesFra Utbetalinger sendt før dette tidspunktet gir ingen oppslag, verken første oppslag eller oppslaget hver 30. dag; null følger opp alle.
+ * En gammel sak kommer likevel i køen når den får en ny utbetaling.
+ */
 class UtbetalingsoversiktPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
+    private val oppfølgesFra: LocalDateTime?,
 ) : UtbetalingsoversiktRepo {
     override fun lagre(oversikt: Utbetalingsoversikt, metadata: UtbetalingsoversiktMetadata) {
         sessionFactory.withSession { session ->
@@ -105,6 +110,7 @@ class UtbetalingsoversiktPostgresRepo(
                     FROM utbetaling
                     WHERE status = 'OK'
                       AND sendt_til_utbetaling_tidspunkt < :sendt_foer
+                      AND (CAST(:oppfolges_fra AS timestamptz) IS NULL OR sendt_til_utbetaling_tidspunkt >= :oppfolges_fra)
                     GROUP BY sak_id
                 )
                 SELECT sendte_utbetalinger.sak_id
@@ -133,6 +139,7 @@ class UtbetalingsoversiktPostgresRepo(
                 "dagens_start" to nå.toLocalDate().atStartOfDay(),
                 "sendt_etter" to nå.minusDays(30),
                 "sendt_foer" to Åpningstider.senesteSendetidspunktSomKanStåIReskontroen(nå),
+                "oppfolges_fra" to oppfølgesFra,
                 "limit" to limit,
             ).map { SakId.fromString(it.string("sak_id")) }.asList,
         )

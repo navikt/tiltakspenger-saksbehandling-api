@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.Loggfanger
 import no.nav.tiltakspenger.saksbehandling.common.Sikkerloggfanger
@@ -32,6 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsoversiktJobb
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 /**
  * Køspørringen og kjøringen går på tvers av saker, så testene kjører isolert.
@@ -51,6 +53,21 @@ class UtbetalingsoversiktAggregatTest {
 
             spolTilÅpent(tac, 6.mai(2025))
             kø(tac) shouldBe listOf(sak.id)
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `utbetalinger sendt før starttidspunktet gir ingen oppslag`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val sak = sakMedOkUtbetaling(tac)
+            spolTilÅpent(tac, 6.mai(2025))
+
+            fun kø(oppfølgesFra: LocalDateTime) = UtbetalingsoversiktPostgresRepo(tac.sessionFactory as PostgresSessionFactory, oppfølgesFra)
+                .hentSakerKlareForOppslag(nå = nå(tac.clock), limit = 10)
+
+            kø(oppfølgesFra = 1.mai(2025).atStartOfDay()) shouldBe listOf(sak.id)
+            kø(oppfølgesFra = 6.mai(2025).atStartOfDay()) shouldBe emptyList()
         }
     }
 
@@ -173,6 +190,7 @@ class UtbetalingsoversiktAggregatTest {
     /**
      * Når lagringen kaster, vet vi ikke hvorfor, og da skal ikke neste sak gi et nytt kall mot tjenesten.
      * Oppslaget logges først etter lagringen, slik at feilen gir én error-linje og ingen info-linje om et oppslag som ikke ble lagret.
+     * Jobben pauser etter feilen og logger pausen som en warn-linje etter feillinja.
      */
     @Test
     @IsolatedDatabaseTest
@@ -201,10 +219,14 @@ class UtbetalingsoversiktAggregatTest {
 
             tac.utbetalingsoversiktFakeKlient.sisteOppslagFor(første.fnr).shouldNotBeNull()
             tac.utbetalingsoversiktFakeKlient.sisteOppslagFor(andre.fnr) shouldBe null
-            val linje = loggfanger.logglinjer.single()
+            loggfanger.logglinjer.size shouldBe 2
+            val linje = loggfanger.logglinjer.first()
             linje.nivå shouldBe Level.ERROR
             linje.melding!! shouldContain "Uventet feil ved oppdatering av utbetalingsoversikt"
             linje.feil!!.message shouldBe "databasen svarer ikke"
+            val pauselinje = loggfanger.logglinjer.last()
+            pauselinje.nivå shouldBe Level.WARN
+            pauselinje.melding!! shouldContain "Pauser oppdatering av utbetalingsoversikter"
             sikkerloggfanger.sikkerlogglinjer.shouldBeEmpty()
         }
     }
@@ -265,6 +287,44 @@ class UtbetalingsoversiktAggregatTest {
             spolTilÅpent(tac, 7.mai(2025))
             jobb(tac).oppdaterUtbetalingsoversikter()
             status(tac, sak).shouldBeInstanceOf<Utbetalingsoversiktstatus.SisteOppslagVellykket>()
+        }
+    }
+
+    /**
+     * Uten pausen ville jobben slått opp saken igjen så snart ventetiden var ute, etter ett og fem minutter.
+     * Testklokka går litt fram for hvert kall, så kontrollpunktene ligger ett minutt etter at pausen er over.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `feil som rammer alle saker gir en pause som øker, og et svar fra tjenesten avslutter den`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val sak = sakMedOkUtbetaling(tac)
+            tac.utbetalingsoversiktFakeKlient.leggTilFeil(sak.fnr, tjenestefeil())
+
+            fun antallPauserPåRad() =
+                tac.meterRegistry.get("tpts_saksbehandlingapi_utbetalingsoversikt_systempauser_paa_rad").gauge().value()
+
+            suspend fun kjørKl(tidspunkt: LocalDateTime): Int {
+                tac.clock.spolTil(tidspunkt)
+                jobb(tac).oppdaterUtbetalingsoversikter()
+                return status(tac, sak).antallFeilPåRad
+            }
+
+            kjørKl(6.mai(2025).atTime(7, 0)) shouldBe 1
+            antallPauserPåRad() shouldBe 1.0
+            kjørKl(6.mai(2025).atTime(7, 4)) shouldBe 1
+            kjørKl(6.mai(2025).atTime(7, 6)) shouldBe 2
+            antallPauserPåRad() shouldBe 2.0
+            kjørKl(6.mai(2025).atTime(7, 20)) shouldBe 2
+
+            tac.utbetalingsoversiktFakeKlient.leggTilUtbetalinger(sak.fnr, emptyList())
+            kjørKl(6.mai(2025).atTime(7, 22)) shouldBe 0
+            antallPauserPåRad() shouldBe 0.0
+
+            val nesteOppslag = status(tac, sak).shouldBeInstanceOf<Utbetalingsoversiktstatus.SisteOppslagVellykket>().oversikt.plan.nesteOppslag
+            tac.utbetalingsoversiktFakeKlient.leggTilFeil(sak.fnr, tjenestefeil())
+            kjørKl(nesteOppslag) shouldBe 1
+            kjørKl(nesteOppslag.plusMinutes(6)) shouldBe 2
         }
     }
 
