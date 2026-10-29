@@ -8,11 +8,17 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.sladdet
 /**
  * Sladding av [SøknadDTO].
  * Barna i barnetillegget er identifiserte personer og sladdes på linje med bruker selv.
+ * Begrunnelsen for å avbryte eller gjenåpne søknaden er fritekst og sladdes.
  * Tiltaket, svarene i søknaden og journalpost-ID-en er ikke personopplysninger og beholdes.
  */
 
 fun SøknadDTO.sladdet(): SøknadDTO = this.copy(
     barnetillegg = barnetillegg.map { it.sladdet() },
+    avbrutt = avbrutt.map { it.sladdet() },
+)
+
+fun SøknadshendelseDTO.sladdet(): SøknadshendelseDTO = this.copy(
+    begrunnelse = SladdetVerdi,
 )
 
 fun SøknadDTO.BarnetilleggFraSøknadDTO.sladdet(): SøknadDTO.BarnetilleggFraSøknadDTO = this.copy(

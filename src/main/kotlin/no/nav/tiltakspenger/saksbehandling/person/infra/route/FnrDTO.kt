@@ -6,7 +6,7 @@ data class FnrDTO(
     val fnr: String,
 ) {
     /**
-     * @throws no.nav.tiltakspenger.libs.common.UgyldigFnrException ved ugyldig fnr
+     * @throws no.nav.tiltakspenger.libs.common.personopplysning.UgyldigFnrException ved ugyldig fnr
      */
     fun toDomain(): Fnr = Fnr.fromString(fnr)
 }

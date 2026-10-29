@@ -4,17 +4,17 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val kotlinxCoroutinesVersion = "1.11.0"
 val kotestVersion = "6.2.4"
-val felleslibVersion = "0.0.20261023134736"
+val felleslibVersion = "0.0.20261029085422"
 val mockkVersion = "1.14.11"
-val ktorVersion = "3.5.2"
+val ktorVersion = "3.6.0"
 val testContainersVersion = "2.0.5"
-val confluentVersion = "8.3.1"
+val confluentVersion = "8.3.2"
 val avroVersion = "1.12.2"
 val prometeusVersion = "1.17.1"
-val jackson2Version = "2.22.2"
-val lz4Version = "1.11.2"
+val jackson2Version = "2.22.4"
+val lz4Version = "1.12.0"
 // Samme versjon som `kafka` i tiltakspenger-libs sin versjonskatalog; se constraint-blokka for hvorfor den må være strict.
-val kafkaVersion = "4.3.1"
+val kafkaVersion = "4.3.2"
 
 // Avro-pluginen drar inn `avro-tools` på buildscript-classpathen, og derfra kommer
 // `avro-mapred` → `avro-ipc-jetty` → Jetty 9.4, som er EOL og ikke får sikkerhetsfikser.
@@ -37,8 +37,8 @@ buildscript {
             add("classpath", "org.apache.commons:commons-lang3:3.20.0")
             // Avro drar inn en gammel jackson-bom her. Buildscript-classpathen er en egen
             // konfigurasjon, så `implementation(platform(...))` i dependencies-blokka når den ikke.
-            add("classpath", "com.fasterxml.jackson.core:jackson-core:2.22.2")
-            add("classpath", "com.fasterxml.jackson.core:jackson-databind:2.22.2")
+            add("classpath", "com.fasterxml.jackson.core:jackson-core:2.22.4")
+            add("classpath", "com.fasterxml.jackson.core:jackson-databind:2.22.4")
         }
     }
 }
@@ -64,13 +64,10 @@ dependencies {
     implementation(platform("com.fasterxml.jackson:jackson-bom:$jackson2Version"))
 
     constraints {
-        // Konsist 0.17.3 setter opp kompilatormiljøet sitt mot kotlin-compiler-embeddable 2.0.21 og krasjer med 2.4.20
-        // («Extensions storage is not registered»), som kotlin-bom ellers løfter den til. Låst til Konsists egen versjon, som i libs.
-        testImplementation("org.jetbrains.kotlin:kotlin-compiler-embeddable") { version { strictly("2.0.21") } }
-        // Confluent publiserer sin egen fork av kafka-clients som `8.3.1-ccs`.
-        // Den taper ikke konfliktoppløsningen mot Apache 4.3.1 fra libs:kafka - Gradle leser "8.3.1-ccs" som høyere enn "4.3.1" - så uten `strictly` er det Confluent-forken som havner i imaget.
+        // Confluent publiserer sin egen fork av kafka-clients som `8.3.2-ccs`.
+        // Den taper ikke konfliktoppløsningen mot Apache 4.3.2 fra libs:kafka - Gradle leser "8.3.2-ccs" som høyere enn "4.3.2" - så uten `strictly` er det Confluent-forken som havner i imaget.
         // Pinnet kom av at forken på 8.1-linja dro inn den avviklede `org.lz4:lz4-java` 1.8.0, med både out-of-bounds-lesing (GHSA-vqf4-7m7x-wgfc) og en informasjonslekkasje i den trygge dekomprimereren (GHSA-cmp6-m4wj-q63q) - sistnevnte uten fiks på de koordinatene.
-        // Forken på 8.3.1 er bygd på Kafka 4.3 og bruker `at.yawk.lz4:lz4-java` som Apache, så lz4-hullet er borte.
+        // Forken på 8.3.2 er bygd på Kafka 4.3 og bruker `at.yawk.lz4:lz4-java` som Apache, så lz4-hullet er borte.
         // `strictly` blir stående fordi versjonsvalget ellers faller tilbake på forken uten at noen har bestemt det.
         implementation("org.apache.kafka:kafka-clients") {
             version { strictly(kafkaVersion) }
@@ -159,7 +156,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.junit.jupiter:junit-jupiter-params")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    // Delte arkitekturregler; drar inn konsist transitivt (api-avhengighet). Egen versjon inntil felleslibVersion bumpes.
+    // Delte arkitekturregler; drar inn konsist transitivt (api-avhengighet).
     testImplementation("no.nav.tiltakspenger.libs:konsist-regler:$felleslibVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("io.mockk:mockk-dsl-jvm:$mockkVersion")
