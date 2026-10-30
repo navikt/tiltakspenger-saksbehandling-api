@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
-import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.dokument.TittelOgTekstDTO
 import no.nav.tiltakspenger.saksbehandling.dokument.toDto
@@ -15,10 +14,10 @@ data class BrevKlageForvaltningsmeldingDTO private constructor(
     val personalia: BrevPersonaliaDTO,
     val saksnummer: String,
     val saksbehandlerNavn: String?,
-    val datoForUtsending: String,
+    val datoForUtsending: LocalDate,
     val tilleggstekst: List<TittelOgTekstDTO>,
     val forhandsvisning: Boolean,
-    val innsendingsdato: String,
+    val innsendingsdato: LocalDate,
 ) {
     @JsonInclude
     companion object {
@@ -45,8 +44,8 @@ data class BrevKlageForvaltningsmeldingDTO private constructor(
                 tilleggstekst = tilleggstekst.toDto(),
                 forhandsvisning = forhåndsvisning,
                 saksbehandlerNavn = saksbehandlersNavn,
-                datoForUtsending = datoForUtsending.format(norskDatoFormatter),
-                innsendingsdato = innsendingsdato.format(norskDatoFormatter),
+                datoForUtsending = datoForUtsending,
+                innsendingsdato = innsendingsdato,
             ).let {
                 serialize(it)
             }
