@@ -51,6 +51,7 @@ fun String.shouldBeKlagebehandlingDTO(
     ferdigstiltTidspunkt: Boolean = false,
     begrunnelseFerdigstilling: String? = null,
     forvaltningsmelding: String? = null,
+    gyldigeKommandoer: List<String> = emptyList(),
 ) {
     val expected =
         //language=json
@@ -63,6 +64,7 @@ fun String.shouldBeKlagebehandlingDTO(
          "opprettet": "TIMESTAMP",
          "sistEndret": "TIMESTAMP",
          "iverksattTidspunkt": ${iverksattTidspunkt.toJsonValue()},
+         "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }},
          "saksbehandler": ${saksbehandler.toJsonValue()},
          "klagensJournalpostId": "$journalpostId",
          "klagensJournalpostOpprettet": "TIMESTAMP",
@@ -188,6 +190,7 @@ fun String.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
          "opprettet": "TIMESTAMP",
          "sistEndret": "TIMESTAMP",
          "iverksattTidspunkt": null,
+         "gyldigeKommandoer": [],
          "saksbehandler": ${saksbehandler.toJsonValue()},
          "klagensJournalpostId": "$journalpostId",
          "klagensJournalpostOpprettet": "TIMESTAMP",
@@ -251,6 +254,7 @@ fun String.shouldBeKlagevedtakJson(
                   "opprettet": "TIMESTAMP",
                   "sistEndret": "TIMESTAMP",
                   "iverksattTidspunkt": "TIMESTAMP",
+                  "gyldigeKommandoer": [],
                   "saksbehandler": "saksbehandlerKlagebehandling",
                   "klagensJournalpostId": "12345",
                   "klagensJournalpostOpprettet": "TIMESTAMP",

@@ -31,6 +31,7 @@ class VurderKlagebehandlingRouteTest {
                 tac = tac,
             )!!
             json.toString().shouldBeKlagebehandlingDTO(
+                gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbake", "SettPåVent", "Avbryt"),
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
@@ -61,6 +62,7 @@ class VurderKlagebehandlingRouteTest {
                 ),
             )!!
             json.toString().shouldBeKlagebehandlingDTO(
+                gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbake", "SettPåVent", "Avbryt"),
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
@@ -96,6 +98,7 @@ class VurderKlagebehandlingRouteTest {
                 hjemler = null,
             )!!
             json.toString().shouldBeKlagebehandlingDTO(
+                gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbake", "SettPåVent"),
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,

@@ -23,6 +23,7 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
                 tac = tac,
             )!!
             json.toString().shouldBeKlagebehandlingDTO(
+                gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbake", "SettPåVent", "Avbryt"),
                 sakId = behandling.sakId,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = behandling.id,
@@ -41,6 +42,7 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
                 tac = tac,
             )!!
             json.toString().shouldBeKlagebehandlingDTO(
+                gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbake", "SettPåVent", "Avbryt"),
                 sakId = klagebehandling.sakId,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,

@@ -41,6 +41,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                     journalpostId = JournalpostId("123456"),
                 )!!
             json.toString().shouldBeKlagebehandlingDTO(
+                gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbake", "SettPåVent", "Avbryt"),
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
@@ -90,6 +91,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                 journalpostId = JournalpostId("123456"),
             )!!
             json.toString().shouldBeKlagebehandlingDTO(
+                gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbake", "SettPåVent", "Avbryt"),
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
@@ -151,6 +153,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
             )!!
 
             json.toString().shouldBeKlagebehandlingDTO(
+                gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbake", "SettPåVent", "Avbryt"),
                 sakId = oppdatertSak.id,
                 saksnummer = oppdatertSak.saksnummer,
                 klagebehandlingId = klagebehandling.id,

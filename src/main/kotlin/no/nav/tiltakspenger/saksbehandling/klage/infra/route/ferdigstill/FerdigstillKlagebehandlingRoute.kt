@@ -61,7 +61,7 @@ fun Route.ferdigstillKlagebehandlingRoute(
                         ifLeft = {
                             call.respondJson(it.toStatusAndErrorJson())
                         },
-                        ifRight = { klagebehandling ->
+                        ifRight = { (sak, klagebehandling) ->
                             logger.info { "Ferdigstilt klagebehandling med id ${klagebehandling.id} for sak $sakId" }
                             auditService.logMedSakId(
                                 sakId = sakId,
@@ -71,7 +71,7 @@ fun Route.ferdigstillKlagebehandlingRoute(
                                 correlationId = correlationId,
                                 behandlingId = klagebehandling.id,
                             )
-                            call.respondJson(value = klagebehandling.tilKlagebehandlingDTO())
+                            call.respondJson(value = sak.tilKlagebehandlingDTO(klagebehandling.id, saksbehandler))
                         },
                     )
                 }

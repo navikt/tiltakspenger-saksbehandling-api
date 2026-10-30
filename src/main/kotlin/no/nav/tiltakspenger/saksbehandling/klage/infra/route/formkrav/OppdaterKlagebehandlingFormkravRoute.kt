@@ -56,7 +56,7 @@ fun Route.oppdaterKlagebehandlingFormkravRoute(
                             ifLeft = {
                                 call.respondJson(it.toStatusAndErrorJson())
                             },
-                            ifRight = { (_, behandling) ->
+                            ifRight = { (sak, behandling) ->
                                 val behandlingId = behandling.id
                                 auditService.logMedSakId(
                                     sakId = sakId,
@@ -66,7 +66,7 @@ fun Route.oppdaterKlagebehandlingFormkravRoute(
                                     correlationId = correlationId,
                                     behandlingId = behandlingId,
                                 )
-                                call.respondJson(value = behandling.tilKlagebehandlingDTO())
+                                call.respondJson(value = sak.tilKlagebehandlingDTO(behandling.id, saksbehandler))
                             },
                         )
                 }

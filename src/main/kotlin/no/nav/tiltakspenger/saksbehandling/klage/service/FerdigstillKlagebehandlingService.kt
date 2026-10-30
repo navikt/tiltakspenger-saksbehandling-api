@@ -8,6 +8,8 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.ferdigstill.FerdigstillKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.ferdigstill.KunneIkkeFerdigstilleKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.ferdigstill.ferdigstillKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.oppdaterKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import java.time.Clock
 
@@ -20,7 +22,7 @@ class FerdigstillKlagebehandlingService(
 ) {
     suspend fun ferdigstill(
         kommando: FerdigstillKlagebehandlingKommando,
-    ): Either<KunneIkkeFerdigstilleKlagebehandling, Klagebehandling> {
+    ): Either<KunneIkkeFerdigstilleKlagebehandling, Pair<Sak, Klagebehandling>> {
         val sak = sakService.hentForSakId(kommando.sakId)
 
         return sak.ferdigstillKlagebehandling(kommando, clock).map { (oppdatertKlagebehandling, statistikkhendelser) ->
@@ -29,7 +31,7 @@ class FerdigstillKlagebehandlingService(
                 klagebehandlingRepo.lagreKlagebehandling(oppdatertKlagebehandling, tx)
                 statistikkService.lagre(statistikkDTO, tx)
             }
-            oppdatertKlagebehandling
+            sak.oppdaterKlagebehandling(oppdatertKlagebehandling) to oppdatertKlagebehandling
         }
     }
 }

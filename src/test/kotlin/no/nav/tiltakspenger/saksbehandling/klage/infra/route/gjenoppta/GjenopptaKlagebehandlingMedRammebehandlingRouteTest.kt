@@ -35,6 +35,7 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
             json.toString().shouldBeKlagebehandlingDTO(
+                gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbake", "SettPåVent"),
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,

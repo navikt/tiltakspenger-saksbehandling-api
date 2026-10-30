@@ -1,14 +1,18 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route
 
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.VentestatusHendelseDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 import no.nav.tiltakspenger.saksbehandling.infra.route.tilDto
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.klage.domene.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.klage.domene.forvaltningsmelding.KlageForvaltningsmelding
+import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagehjemmelDto.Companion.toKlagehjemmelDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagestatustypeDto.Companion.toKlagestatustypeDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt.KlagebehandlingAvbruttDTO
@@ -16,6 +20,10 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt.toDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav.KlageInnsendingskildeDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav.KlageInnsendingskildeDto.Companion.toDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav.KlagefristUnntakSvarordDto
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerKlagebehandlingKommandoDTO
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.tilDTO
 import java.time.LocalDateTime
 
 data class KlagebehandlingDTO(
@@ -46,6 +54,7 @@ data class KlagebehandlingDTO(
     val tilknyttedeBehandlingIder: List<String>,
     val åpenBehandlingId: String?,
     val forvaltningsmelding: KlageForvaltningsmeldingDTO?,
+    val gyldigeKommandoer: List<SaksbehandlerKlagebehandlingKommandoDTO>,
 )
 
 data class KlageForvaltningsmeldingDTO(
@@ -142,7 +151,19 @@ sealed interface KlagebehandlingsresultatDTO {
     }
 }
 
-fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
+fun Sak.tilKlagebehandlingDTO(
+    klagebehandlingId: KlagebehandlingId,
+    saksbehandler: Saksbehandler,
+): KlagebehandlingDTO {
+    val klagebehandling = hentKlagebehandling(klagebehandlingId)
+    return klagebehandling.tilKlagebehandlingDTO(
+        gyldigeKommandoer = finnGyldigeKommandoer(klagebehandling, saksbehandler),
+    )
+}
+
+fun Klagebehandling.tilKlagebehandlingDTO(
+    gyldigeKommandoer: List<SaksbehandlerKlagebehandlingKommando>,
+) = KlagebehandlingDTO(
     id = id.toString(),
     sakId = sakId.toString(),
     saksnummer = saksnummer.toString(),
@@ -163,6 +184,7 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
     tilknyttedeBehandlingIder = behandlingId.map { it.toString() },
     åpenBehandlingId = åpenBehandlingId?.toString(),
     forvaltningsmelding = forvaltningsmelding?.toDTO(),
+    gyldigeKommandoer = gyldigeKommandoer.tilDTO(),
 )
 
 fun Klagebehandlingsresultat.tilKlagebehandlingsresultatDTO(): KlagebehandlingsresultatDTO {

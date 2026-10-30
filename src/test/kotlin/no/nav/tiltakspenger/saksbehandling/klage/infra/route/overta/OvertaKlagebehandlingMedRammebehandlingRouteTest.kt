@@ -30,6 +30,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
             json.get("klagebehandlinger").first().toString().shouldBeKlagebehandlingDTO(
+                gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbake", "SettPåVent"),
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
@@ -74,6 +75,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
             val resultat = oppdatertKlagebehandling.resultat!! as Klagebehandlingsresultat.Opprettholdt
             json.get("rammebehandlinger").last().get("saksbehandler").stringValue() shouldBe saksbehandlerSomOvertar.navIdent
             json.get("klagebehandlinger").single().toString().shouldBeKlagebehandlingDTO(
+                gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbake", "SettPåVent"),
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,

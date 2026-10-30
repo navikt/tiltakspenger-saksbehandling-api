@@ -17,6 +17,7 @@ class OpprettKlagebehandlingRouteTest {
             val fnr = ObjectMother.gyldigFnr()
             val (sak, klagebehandling, json) = opprettSakOgKlagebehandlingTilAvvisning(tac = tac, fnr = fnr)!!
             json.toString().shouldBeKlagebehandlingDTO(
+                gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbake", "SettPåVent", "Avbryt"),
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,

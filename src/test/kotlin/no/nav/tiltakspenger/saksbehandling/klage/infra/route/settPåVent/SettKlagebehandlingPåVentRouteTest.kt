@@ -49,6 +49,7 @@ class SettKlagebehandlingPåVentRouteTest {
                 tac = tac,
             )!!
             json.get("klagebehandlinger").first().toString().shouldBeKlagebehandlingDTO(
+                gyldigeKommandoer = listOf("Tildel", "OppdatereSettPåVent", "Gjenoppta"),
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
@@ -79,6 +80,7 @@ class SettKlagebehandlingPåVentRouteTest {
 
             val resultat = klagebehandlingPåVent.resultat as Klagebehandlingsresultat.Opprettholdt
             sakJson.get("klagebehandlinger").first().toString().shouldBeKlagebehandlingDTO(
+                gyldigeKommandoer = listOf("Tildel", "OppdatereSettPåVent", "Gjenoppta"),
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,

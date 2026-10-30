@@ -17,6 +17,7 @@ class LeggTilbakeKlagebehandlingRouteTest {
                 tac = tac,
             )!!
             json.get("klagebehandlinger").first().toString().shouldBeKlagebehandlingDTO(
+                gyldigeKommandoer = listOf("Tildel"),
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,

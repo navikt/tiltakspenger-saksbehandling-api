@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.TittelOgTekst
 import no.nav.tiltakspenger.saksbehandling.klage.domene.forvaltningsmelding.KlageForvaltningsmelding
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt.KlagebehandlingAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerKlagebehandlingKommando
 import org.junit.jupiter.api.Test
 
 class KlagebehandlingDTOSladdingTest {
@@ -109,7 +110,9 @@ class KlagebehandlingDTOSladdingTest {
      * Domenet krever en full behandlingsflyt for å få dem satt, og sladdingen bryr seg bare om feltene.
      */
     private fun klagebehandlingDTO(): KlagebehandlingDTO =
-        ObjectMother.opprettKlagebehandling().tilKlagebehandlingDTO().copy(
+        ObjectMother.opprettKlagebehandling().tilKlagebehandlingDTO(
+            gyldigeKommandoer = listOf(SaksbehandlerKlagebehandlingKommando.Saksbehandle),
+        ).copy(
             resultat = ObjectMother.klagebehandlingresultatOpprettholdt(
                 brevtekst = brevtekster,
                 begrunnelseFerdigstilling = Begrunnelse.createOrThrow("Sendt til klageinstansen"),

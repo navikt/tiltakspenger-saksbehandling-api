@@ -54,7 +54,7 @@ fun Route.sendForvaltningsmeldingRoute(
                         ifLeft = {
                             call.respondJson(it.tilStatusOgErrorJson())
                         },
-                        ifRight = { (_, behandling) ->
+                        ifRight = { (sak, behandling) ->
                             auditService.logMedSakId(
                                 sakId = sakId,
                                 navIdent = saksbehandler.navIdent,
@@ -63,7 +63,7 @@ fun Route.sendForvaltningsmeldingRoute(
                                 correlationId = correlationId,
                                 behandlingId = behandling.id,
                             )
-                            call.respondJson(value = behandling.tilKlagebehandlingDTO())
+                            call.respondJson(value = sak.tilKlagebehandlingDTO(behandling.id, saksbehandler))
                         },
                     )
                 }

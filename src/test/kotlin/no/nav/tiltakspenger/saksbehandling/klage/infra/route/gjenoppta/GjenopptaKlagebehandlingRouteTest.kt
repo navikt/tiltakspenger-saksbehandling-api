@@ -17,6 +17,7 @@ class GjenopptaKlagebehandlingRouteTest {
                 tac = tac,
             )!!
             json.get("klagebehandlinger").first().toString().shouldBeKlagebehandlingDTO(
+                gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbake", "SettPåVent", "Avbryt"),
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,

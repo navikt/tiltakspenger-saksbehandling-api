@@ -59,7 +59,7 @@ fun Route.opprettKlagebehandlingRoute(
                             },
                         )
                     },
-                    ifRight = { (_, behandling) ->
+                    ifRight = { (sak, behandling) ->
                         val behandlingId = behandling.id
                         auditService.logMedSakId(
                             sakId = sakId,
@@ -69,7 +69,7 @@ fun Route.opprettKlagebehandlingRoute(
                             correlationId = correlationId,
                             behandlingId = behandlingId,
                         )
-                        call.respondJson(value = behandling.tilKlagebehandlingDTO())
+                        call.respondJson(value = sak.tilKlagebehandlingDTO(behandling.id, saksbehandler))
                     },
                 )
             }
