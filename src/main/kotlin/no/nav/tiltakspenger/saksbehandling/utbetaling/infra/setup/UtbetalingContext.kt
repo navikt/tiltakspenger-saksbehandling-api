@@ -98,6 +98,7 @@ open class UtbetalingContext(
             meldekortvedtakRepo = meldekortvedtakRepo,
             utbetalingsklient = utbetalingsklient,
             statistikkService = statistikkService,
+            sessionFactory = sessionFactory,
             clock = clock,
         )
     }

@@ -7,11 +7,13 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.statistikk.hentUtbetalingsstatistikkIder
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeUtbetale
 import org.junit.jupiter.api.Test
 
 /**
  * Går utbetalingen i stykker mot helved, skal requesten vi sendte lagres på utbetalingen slik at forsøket kan ettergås.
+ * Statistikken og markeringen som sendt skrives i samme transaksjon som kallet, og skal rulles tilbake.
  * Utbetalingen blir liggende i utsjekkskøen og prøves på nytt; at den ikke slipper ut er spørringens kontrakt og asserteres i `UtbetalingAggregatTest`.
  *
  * Testen kjører isolert fordi `sendUtbetalingerTilHelved`-jobben går gjennom alle utbetalinger i skjemaet, ikke bare denne sakens.
@@ -21,7 +23,7 @@ class SendUtbetalingerMedFeilTest {
 
     @Test
     @IsolatedDatabaseTest
-    fun `feilrespons fra helved lagres på utbetalingen`() {
+    fun `feilrespons fra helved lagres på utbetalingen og statistikk og markering som sendt rulles tilbake`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val feil = KunneIkkeUtbetale(
                 request = "requesten vi sendte",
@@ -44,6 +46,11 @@ class SendUtbetalingerMedFeilTest {
             tac.utbetalingContext.utbetalingRepo.hentUtbetalingJson(
                 meldekortvedtak.utbetaling.id,
             ) shouldBe feil.request
+
+            tac.sessionFactory.hentUtbetalingsstatistikkIder(sak.id) shouldBe emptyList()
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.utbetalinger
+                .single { it.id == meldekortvedtak.utbetaling.id }
+                .sendtTilUtbetaling shouldBe null
         }
     }
 }

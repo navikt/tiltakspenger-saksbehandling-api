@@ -4,8 +4,6 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk.Companion.opprett
 import no.nav.tiltakspenger.saksbehandling.fixedClock
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeUtbetale
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
@@ -30,15 +28,15 @@ class UtbetalingFakeRepo : UtbetalingRepo {
     override fun markerSendtTilUtbetaling(
         utbetalingId: UtbetalingId,
         tidspunkt: LocalDateTime,
-        utbetalingsrespons: SendtUtbetaling,
+        context: TransactionContext,
     ) {
         data.get()[utbetalingId] = data.get()[utbetalingId]!!.copy(sendtTilUtbetaling = tidspunkt)
-        response.get()[utbetalingId] = utbetalingsrespons
     }
 
-    override fun lagreFeilResponsFraUtbetaling(
+    override fun lagreUtbetalingsrespons(
         utbetalingId: UtbetalingId,
-        utbetalingsrespons: KunneIkkeUtbetale,
+        utbetalingsrespons: UtbetalingResponse,
+        context: TransactionContext?,
     ) {
         response.get()[utbetalingId] = utbetalingsrespons
     }

@@ -19,11 +19,10 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toForsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeUtbetale
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingResponse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDateTime
@@ -34,30 +33,29 @@ class UtbetalingPostgresRepo(
     override fun markerSendtTilUtbetaling(
         utbetalingId: UtbetalingId,
         tidspunkt: LocalDateTime,
-        utbetalingsrespons: SendtUtbetaling,
+        context: TransactionContext,
     ) {
-        sessionFactory.withSession { session ->
+        sessionFactory.withSession(context) { session ->
             session.run(
                 sqlQuery(
                     """
                     update utbetaling
-                    set sendt_til_utbetaling_tidspunkt = :tidspunkt, 
-                        utbetaling_metadata = :metadata::jsonb
+                    set sendt_til_utbetaling_tidspunkt = :tidspunkt
                     where id = :id
                     """,
                     "id" to utbetalingId.toString(),
                     "tidspunkt" to tidspunkt,
-                    "metadata" to utbetalingsrespons.toJson(),
                 ).asUpdate,
             )
         }
     }
 
-    override fun lagreFeilResponsFraUtbetaling(
+    override fun lagreUtbetalingsrespons(
         utbetalingId: UtbetalingId,
-        utbetalingsrespons: KunneIkkeUtbetale,
+        utbetalingsrespons: UtbetalingResponse,
+        context: TransactionContext?,
     ) {
-        sessionFactory.withSession { session ->
+        sessionFactory.withSession(context) { session ->
             session.run(
                 sqlQuery(
                     """

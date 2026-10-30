@@ -5,15 +5,22 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import java.time.LocalDateTime
 
 interface UtbetalingRepo {
+    /**
+     * Krever en transaksjon fordi markeringen skal rulles tilbake dersom iverksettingen mot helved feiler.
+     */
     fun markerSendtTilUtbetaling(
         utbetalingId: UtbetalingId,
         tidspunkt: LocalDateTime,
-        utbetalingsrespons: SendtUtbetaling,
+        context: TransactionContext,
     )
 
-    fun lagreFeilResponsFraUtbetaling(
+    /**
+     * Lagrer requesten vi sendte til helved og svaret vi fikk, enten kallet lyktes eller feilet.
+     */
+    fun lagreUtbetalingsrespons(
         utbetalingId: UtbetalingId,
-        utbetalingsrespons: KunneIkkeUtbetale,
+        utbetalingsrespons: UtbetalingResponse,
+        context: TransactionContext? = null,
     )
 
     fun hentUtbetalingJson(utbetalingId: UtbetalingId): String?

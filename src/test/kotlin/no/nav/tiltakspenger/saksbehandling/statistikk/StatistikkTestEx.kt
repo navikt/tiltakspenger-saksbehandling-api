@@ -24,6 +24,16 @@ fun PostgresSessionFactory.hentStønadsstatistikkBrukerIder(sakId: SakId): List<
     )
 }
 
+/** Id-ene til utbetalingene DVH ville sett for saken i utbetalingstabellen. */
+fun PostgresSessionFactory.hentUtbetalingsstatistikkIder(sakId: SakId): List<String> = withSession { session ->
+    session.run(
+        queryOf(
+            "select id from statistikk_utbetaling where sak_id = :sak_id",
+            mapOf("sak_id" to sakId.toString()),
+        ).map { row -> row.string("id") }.asList,
+    )
+}
+
 /** Radene DVH ville sett for saken, eldst først. */
 fun PostgresSessionFactory.hentSaksstatistikk(sakId: SakId): List<SaksstatistikkDTO> = withSession { session ->
     session.run(
