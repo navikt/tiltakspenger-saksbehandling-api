@@ -13,4 +13,5 @@ enum class HjemmelForStans {
     LønnFraAndre,
     Institusjonsopphold,
     IkkeLovligOpphold,
+    RettTilDagpenger,
 }

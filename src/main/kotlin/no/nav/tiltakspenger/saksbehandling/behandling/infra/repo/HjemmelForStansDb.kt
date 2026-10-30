@@ -15,6 +15,7 @@ private enum class HjemmelForStansDb {
     STANS_LØNN_FRA_ANDRE,
     STANS_INSTITUSJONSOPPHOLD,
     STANS_IKKE_LOVLIG_OPPHOLD,
+    STANS_RETT_TIL_DAGPENGER,
 }
 
 fun NonEmptySet<HjemmelForStans>?.toHjemmelForStansDbJson(): String {
@@ -31,6 +32,7 @@ fun NonEmptySet<HjemmelForStans>?.toHjemmelForStansDbJson(): String {
                 HjemmelForStans.LønnFraAndre -> HjemmelForStansDb.STANS_LØNN_FRA_ANDRE
                 HjemmelForStans.LønnFraTiltaksarrangør -> HjemmelForStansDb.STANS_LØNN_FRA_TILTAKSARRANGØR
                 HjemmelForStans.IkkeLovligOpphold -> HjemmelForStansDb.STANS_IKKE_LOVLIG_OPPHOLD
+                HjemmelForStans.RettTilDagpenger -> HjemmelForStansDb.STANS_RETT_TIL_DAGPENGER
             }
         }.sortedBy { it.name },
     )
@@ -51,5 +53,6 @@ private fun HjemmelForStansDb.tilHjemmelForStans(): HjemmelForStans {
         HjemmelForStansDb.STANS_LØNN_FRA_ANDRE -> HjemmelForStans.LønnFraAndre
         HjemmelForStansDb.STANS_INSTITUSJONSOPPHOLD -> HjemmelForStans.Institusjonsopphold
         HjemmelForStansDb.STANS_IKKE_LOVLIG_OPPHOLD -> HjemmelForStans.IkkeLovligOpphold
+        HjemmelForStansDb.STANS_RETT_TIL_DAGPENGER -> HjemmelForStans.RettTilDagpenger
     }
 }

@@ -18,6 +18,7 @@ fun HjemmelForStans.toBehandlingAarsak(): StatistikkBehandlingAarsak {
         HjemmelForStans.LønnFraTiltaksarrangør -> StatistikkBehandlingAarsak.LONN_FRA_TILTAKSARRANGOR
         HjemmelForStans.LønnFraAndre -> StatistikkBehandlingAarsak.LONN_FRA_ANDRE
         HjemmelForStans.IkkeLovligOpphold -> StatistikkBehandlingAarsak.IKKE_LOVLIG_OPPHOLD
+        HjemmelForStans.RettTilDagpenger -> StatistikkBehandlingAarsak.RETT_TIL_DAGPENGER
     }
 }
 
@@ -33,6 +34,7 @@ fun HjemmelForOpphør.toBehandlingAarsak(): StatistikkBehandlingAarsak {
         HjemmelForOpphør.LønnFraAndre -> StatistikkBehandlingAarsak.LONN_FRA_ANDRE
         HjemmelForOpphør.IkkeLovligOpphold -> StatistikkBehandlingAarsak.IKKE_LOVLIG_OPPHOLD
         HjemmelForOpphør.FremmetForSent -> StatistikkBehandlingAarsak.FREMMET_FOR_SENT
+        HjemmelForOpphør.RettTilDagpenger -> StatistikkBehandlingAarsak.RETT_TIL_DAGPENGER
     }
 }
 

@@ -45,6 +45,7 @@ fun HjemmelForStans.tilGrunnBrevDto(): GrunnBrevDto = when (this) {
     HjemmelForStans.LønnFraAndre -> GrunnBrevDto.LØNN_FRA_ANDRE
     HjemmelForStans.Institusjonsopphold -> GrunnBrevDto.INSTITUSJONSOPPHOLD
     HjemmelForStans.IkkeLovligOpphold -> GrunnBrevDto.IKKE_LOVLIG_OPPHOLD
+    HjemmelForStans.RettTilDagpenger -> GrunnBrevDto.RETT_TIL_DAGPENGER
 }
 
 fun HjemmelForOpphør.tilGrunnBrevDto(): GrunnBrevDto = when (this) {
@@ -58,4 +59,5 @@ fun HjemmelForOpphør.tilGrunnBrevDto(): GrunnBrevDto = when (this) {
     HjemmelForOpphør.Institusjonsopphold -> GrunnBrevDto.INSTITUSJONSOPPHOLD
     HjemmelForOpphør.IkkeLovligOpphold -> GrunnBrevDto.IKKE_LOVLIG_OPPHOLD
     HjemmelForOpphør.FremmetForSent -> GrunnBrevDto.FREMMET_FOR_SENT
+    HjemmelForOpphør.RettTilDagpenger -> GrunnBrevDto.RETT_TIL_DAGPENGER
 }
