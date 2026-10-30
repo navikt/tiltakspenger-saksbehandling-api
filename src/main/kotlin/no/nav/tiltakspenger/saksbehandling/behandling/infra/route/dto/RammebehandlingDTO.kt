@@ -11,6 +11,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnGyldigeKommandoer
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.tiltaksdeltakelserSomKanForlenges
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.UtbetalingskontrollDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilUtbetalingskontrollDTO
@@ -28,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.tilDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.toSøknadDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.vedtak.TidslinjeFørOgEtter
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.TidslinjeFørOgEtterDTO
@@ -193,6 +196,10 @@ fun Sak.tilRammebehandlingDTO(
             rammevedtakId = rammevedtakId,
             kallendeSaksbehandler = kallendeSaksbehandler,
             tidslinjeFørOgEtter = tidslinjeFørOgEtter,
+            tiltaksdeltakelserSomKanForlenges = (behandling.resultat as? Revurderingsresultat.Forlengelse)?.let { resultat ->
+                tiltaksdeltakelserSomKanForlenges(resultat.forlenger, behandling.saksopplysninger)
+                    .map { it.tiltaksdeltakelse.internDeltakelseId }
+            } ?: emptyList(),
         )
 
         is Søknadsbehandling -> behandling.tilSøknadsbehandlingDTO(
@@ -262,6 +269,7 @@ fun Revurdering.tilRevurderingDTO(
     rammevedtakId: VedtakId?,
     kallendeSaksbehandler: Saksbehandler,
     tidslinjeFørOgEtter: TidslinjeFørOgEtter?,
+    tiltaksdeltakelserSomKanForlenges: List<TiltaksdeltakerId>,
 ): RevurderingDTO {
     return RevurderingDTO(
         id = this.id.toString(),
@@ -284,7 +292,7 @@ fun Revurdering.tilRevurderingDTO(
         venterTil = venterTilNårPåVent(),
         utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger, tilbakekrevingId),
         utbetalingskontroll = utbetalingskontroll?.tilUtbetalingskontrollDTO(utbetaling, beregninger),
-        resultatDTO = this.resultat.tilRevurderingResultatDTO(),
+        resultatDTO = this.resultat.tilRevurderingResultatDTO(tiltaksdeltakelserSomKanForlenges),
         klagebehandlingId = this.klagebehandling?.id?.toString(),
         tilbakekrevingId = tilbakekrevingId?.toString(),
         automatiskOpprettetGrunn = this.automatiskOpprettetGrunn?.toDTO(),

@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ValgtBarnetillegg
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDate
 
 /**
@@ -21,5 +22,6 @@ data class ForhåndsvisVedtaksbrevForForlengelseKommando(
     override val saksbehandler: Saksbehandler,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val tilOgMed: LocalDate,
+    val tiltaksdeltakerId: TiltaksdeltakerId,
     val barnetillegg: ValgtBarnetillegg?,
 ) : ForhåndsvisVedtaksbrevForRevurderingKommando

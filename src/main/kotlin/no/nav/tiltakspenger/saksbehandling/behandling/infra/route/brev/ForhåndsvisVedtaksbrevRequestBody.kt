@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.Fo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevForSøknadsbehandlingAvslagKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevForSøknadsbehandlingInnvilgelseKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevKommando
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDate
 
 /**
@@ -201,6 +202,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
     data class Forlengelse(
         val fritekst: String?,
         val tilOgMed: LocalDate,
+        val internDeltakelseId: String,
         val barnetillegg: List<BarnetilleggPeriodeDTO>?,
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
@@ -216,6 +218,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
                 saksbehandler = saksbehandler,
                 fritekstTilVedtaksbrev = fritekst?.toFritekstTilVedtaksbrev(),
                 tilOgMed = tilOgMed,
+                tiltaksdeltakerId = TiltaksdeltakerId.fromString(internDeltakelseId),
                 barnetillegg = barnetillegg?.let { perioder ->
                     ValgtBarnetillegg(
                         perioderMedBarn = perioder.map { it.periode.toDomain() to AntallBarn(it.antallBarn) },

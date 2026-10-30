@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeForlenge
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDate
 
 /**
@@ -29,10 +30,10 @@ data class UtledetForlengelse(
 }
 
 /**
- * Utleder innvilgelsesperioden og barnetillegget til forlengelsen [revurdering] når saksbehandler har valgt [tilOgMed].
+ * Utleder innvilgelsesperioden og barnetillegget til forlengelsen [revurdering] når saksbehandler har valgt [tilOgMed] og [tiltaksdeltakerId].
  *
  * Innvilgelsesperioden går fra dagen etter vedtaket som forlenges, til og med [tilOgMed].
- * Tiltaksdeltakelsen og antall dager per meldeperiode videreføres fra siste innvilgede dag i vedtaket.
+ * Tiltaksdeltakelsen må være en av [tiltaksdeltakelserSomKanForlenges], og antall dager per meldeperiode videreføres fra den siste perioden vedtaket innvilget for den.
  * Forlengelsen kan ikke overlappe andre vedtak, og tiltaksdeltakelsen i saksopplysningene må dekke hele forlengelsen.
  *
  * @param barnetillegg Barnetillegget saksbehandler har valgt.
@@ -42,6 +43,7 @@ data class UtledetForlengelse(
 fun Sak.utledForlengelse(
     revurdering: Revurdering,
     tilOgMed: LocalDate,
+    tiltaksdeltakerId: TiltaksdeltakerId,
     barnetillegg: ValgtBarnetillegg?,
 ): Either<KanIkkeForlenge, UtledetForlengelse> {
     val resultat = revurdering.resultat
@@ -49,7 +51,6 @@ fun Sak.utledForlengelse(
         "Behandlingen ${revurdering.id} er ikke en forlengelse, men ${resultat.javaClass.simpleName}"
     }
     val forlenger = resultat.forlenger
-    val vedtak = hentRammevedtakForId(forlenger.rammevedtakId)
 
     if (!rammevedtaksliste.kanFortsattForlenges(forlenger)) {
         return KanIkkeForlenge.VedtaketKanIkkeLengerForlenges.left()
@@ -64,8 +65,11 @@ fun Sak.utledForlengelse(
         return KanIkkeForlenge.OverlapperAndreVedtak(forlengelsesperiode).left()
     }
 
-    val tiltaksdeltakerId = vedtak.valgteTiltaksdeltakelser!!.hentVerdiForDag(forlenger.sisteInnvilgedeDag)!!.internDeltakelseId
-    val deltakelsesperiode = revurdering.saksopplysninger.getTiltaksdeltakelse(tiltaksdeltakerId)?.periode
+    val valgtTiltaksdeltakelse = tiltaksdeltakelserSomKanForlenges(forlenger, revurdering.saksopplysninger)
+        .find { it.tiltaksdeltakelse.internDeltakelseId == tiltaksdeltakerId }
+        ?: return KanIkkeForlenge.TiltaksdeltakelsenKanIkkeForlenges(tiltaksdeltakerId).left()
+
+    val deltakelsesperiode = valgtTiltaksdeltakelse.tiltaksdeltakelse.periode
     if (deltakelsesperiode == null || !deltakelsesperiode.inneholderHele(forlengelsesperiode)) {
         return KanIkkeForlenge.TiltaksdeltakelsenDekkerIkkeForlengelsen(forlengelsesperiode).left()
     }
@@ -86,7 +90,7 @@ fun Sak.utledForlengelse(
         innvilgelsesperioder = SammenhengendePeriodisering(
             InnvilgelsesperiodeKommando(
                 periode = forlengelsesperiode,
-                antallDagerPerMeldeperiode = vedtak.antallDagerPerMeldeperiode!!.hentVerdiForDag(forlenger.sisteInnvilgedeDag)!!,
+                antallDagerPerMeldeperiode = valgtTiltaksdeltakelse.antallDagerPerMeldeperiode,
                 internDeltakelseId = tiltaksdeltakerId,
             ),
             forlengelsesperiode,

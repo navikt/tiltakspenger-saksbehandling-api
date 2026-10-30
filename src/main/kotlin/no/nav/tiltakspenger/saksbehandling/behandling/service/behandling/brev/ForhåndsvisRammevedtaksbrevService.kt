@@ -170,6 +170,7 @@ class ForhåndsvisRammevedtaksbrevService(
                 val utledet = sak.utledForlengelse(
                     revurdering = behandling,
                     tilOgMed = kommando.tilOgMed,
+                    tiltaksdeltakerId = kommando.tiltaksdeltakerId,
                     barnetillegg = kommando.barnetillegg,
                 ).getOrElse {
                     throw IllegalArgumentException("Kan ikke forhåndsvise vedtaksbrev for forlengelsen ${behandling.id}: $it")

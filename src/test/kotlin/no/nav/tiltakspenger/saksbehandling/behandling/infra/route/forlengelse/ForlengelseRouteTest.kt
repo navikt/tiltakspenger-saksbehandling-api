@@ -37,6 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startFo
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
@@ -110,6 +111,8 @@ class ForlengelseRouteTest {
 
             val (_, oppdatert, oppdatertJson) = oppdaterForlengelse(tac, sak.id, startet.id, tilOgMed = 31.mai(2025))
             JSONObject(oppdatertJson).getBoolean("harEndretBarnetillegg") shouldBe false
+            JSONObject(oppdatertJson).getJSONArray("tiltaksdeltakelserSomKanForlenges").toString() shouldBe
+                """["${vedtak.valgteTiltaksdeltakelser!!.verdier.single().internDeltakelseId}"]"""
             oppdatert.innvilgelsesperioder.shouldNotBeNull().totalPeriode shouldBe (1.april(2025) til 31.mai(2025))
             oppdatert.barnetilleggsperioder() shouldBe listOf(PeriodeMedVerdi(AntallBarn.ZERO, 1.april(2025) til 31.mai(2025)))
 
@@ -217,7 +220,7 @@ class ForlengelseRouteTest {
     }
 
     @Test
-    fun `ugyldig til og med-dato eller barnetillegg avvises`() {
+    fun `ugyldig til og med-dato, tiltaksdeltakelse eller barnetillegg avvises`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, vedtak) = iverksettVedtakSomKanForlenges(tac)
             val (_, forlengelse) = startForlengelse(tac, sak.id, vedtak.id)!!
@@ -227,6 +230,8 @@ class ForlengelseRouteTest {
 
             oppdater(31.mars(2025)).skalHaFeilkode("forlengelse_til_og_med_må_være_etter_vedtaket")
             oppdater(1.juli(2025)).skalHaFeilkode("tiltaksdeltakelsen_dekker_ikke_forlengelsen")
+            oppdaterForlengelse(tac, sak.id, forlengelse.id, tilOgMed = 31.mai(2025), tiltaksdeltakerId = TiltaksdeltakerId.random(), forventet = feil(400))
+                .third.skalHaFeilkode("tiltaksdeltakelsen_kan_ikke_forlenges")
             oppdater(30.april(2025), barnetillegg(periode = 1.april(2025) til 31.mai(2025)))
                 .skalHaFeilkode("barnetillegget_går_utover_forlengelsen")
         }

@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.OppdaterBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse.Companion.toBegrunnelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDate
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "resultat")
@@ -68,6 +69,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         override val fritekstTilVedtaksbrev: String?,
         override val begrunnelseVilkårsvurdering: String?,
         val tilOgMed: LocalDate,
+        val internDeltakelseId: String,
         val barnetillegg: OppdaterBarnetilleggDTO?,
         override val skalSendeVedtaksbrev: Boolean = true,
         override val prioritering: OppdaterPrioriteringDTO? = null,
@@ -89,6 +91,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
                 tilOgMed = tilOgMed,
+                tiltaksdeltakerId = TiltaksdeltakerId.fromString(internDeltakelseId),
                 barnetillegg = barnetillegg?.tilValgtBarnetillegg(),
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                 prioritering = prioritering?.tilDomene(),

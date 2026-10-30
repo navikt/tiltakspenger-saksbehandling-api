@@ -90,6 +90,11 @@ fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, Erro
         "forlengelse_overlapper_andre_vedtak",
     )
 
+    is KanIkkeForlenge.TiltaksdeltakelsenKanIkkeForlenges -> HttpStatusCode.BadRequest to ErrorJson(
+        "Vedtaket kan ikke forlenges for tiltaksdeltakelsen ${this.tiltaksdeltakerId}",
+        "tiltaksdeltakelsen_kan_ikke_forlenges",
+    )
+
     is KanIkkeForlenge.TiltaksdeltakelsenDekkerIkkeForlengelsen -> HttpStatusCode.BadRequest to ErrorJson(
         "Tiltaksdeltakelsen dekker ikke hele forlengelsen ${this.forlengelsesperiode}",
         "tiltaksdeltakelsen_dekker_ikke_forlengelsen",

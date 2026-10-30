@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ValgtBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDate
 
 sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
@@ -96,7 +97,7 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         OppdaterBehandlingKommando.Innvilgelse
 
     /**
-     * Saksbehandler velger bare ny til og med-dato.
+     * Saksbehandler velger bare ny til og med-dato og hvilken tiltaksdeltakelse vedtaket forlenges for.
      * Resten utledes fra vedtaket som forlenges, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.utledForlengelse].
      *
      * @param barnetillegg Null betyr at barnetillegget utledes på nytt fra vedtaket som forlenges.
@@ -109,6 +110,7 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val begrunnelseVilkårsvurdering: Begrunnelse?,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         val tilOgMed: LocalDate,
+        val tiltaksdeltakerId: TiltaksdeltakerId,
         val barnetillegg: ValgtBarnetillegg?,
         override val skalSendeVedtaksbrev: Boolean,
         override val prioritering: Prioritering?,

@@ -71,6 +71,7 @@ class OppdaterRammebehandlingService(
             sak.utledForlengelse(
                 revurdering = behandling as Revurdering,
                 tilOgMed = it.tilOgMed,
+                tiltaksdeltakerId = it.tiltaksdeltakerId,
                 barnetillegg = it.barnetillegg,
             ).getOrElse { feil -> return feil.left() }
         }
