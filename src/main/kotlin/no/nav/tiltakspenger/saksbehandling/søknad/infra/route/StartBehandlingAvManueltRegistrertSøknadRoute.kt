@@ -30,7 +30,6 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.søknad.service.StartBehandlingAvManueltRegistrertSøknadService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilTiltakstypeDTO
 import java.time.LocalDate
 
 private val logger = KotlinLogging.logger {}
@@ -83,8 +82,7 @@ fun Route.startBehandlingAvManueltRegistrertSøknadRoute(
                 val internTiltaksdeltakelsesId = body.svar.tiltak?.let {
                     tiltaksdeltakerRepo.hentEllerLagre(
                         eksternId = it.eksternDeltakelseId,
-                        // TODO: la frontend sende den faktiske typekoden istedenfor å gjøre denne rare mappingen
-                        tiltakskode = it.typeKode.tilTiltakstypeDTO().name,
+                        tiltakskode = it.tiltakskodeFraKilden,
                         sakId = sakService.hentForSaksnummer(saksnummer).id,
                     )
                 }

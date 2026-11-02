@@ -342,6 +342,16 @@ class TiltakshistorikkTilRegisterMapperTest {
     }
 
     @Test
+    fun `MedArrangørnavn - tiltakskoden fra kilden er med for alle deltakelser`() {
+        val girRett = testdeltakelse(id = "TA1")
+        val fratarRett = fratarRett(id = "TA2", tiltakskode = "MIDLONTIL")
+
+        val resultat = historikk(girRett, fratarRett).tilTiltaksdeltakelserMedArrangørnavn(harAdressebeskyttelse = false, clock = fixedClock)
+
+        resultat.map { it.tiltakskodeFraKilden } shouldBe listOf("INDOPPFAG", "MIDLONTIL")
+    }
+
+    @Test
     fun `libs-deltakelsen testene lager av en deltakelse som fratar rett mappes tilbake til det samme`() {
         val medDatoer = TiltaksdeltakelseSomFratarRett(
             eksternDeltakelseId = "TA1",

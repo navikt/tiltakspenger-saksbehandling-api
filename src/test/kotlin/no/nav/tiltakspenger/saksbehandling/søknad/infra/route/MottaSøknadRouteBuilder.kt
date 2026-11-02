@@ -92,6 +92,7 @@ interface MottaSøknadRouteBuilder {
                 søknadId = søknadId.toString(),
                 clock = tac.clock,
                 tiltaksdeltakelse = tiltaksdeltakelse.toSøknadstiltak(),
+                tiltakstypekode = tiltaksdeltakelse.typeKode.tilTiltakstypeDTO().name,
                 barnetillegg = barnetillegg,
             ),
         ).apply {
@@ -116,6 +117,7 @@ interface MottaSøknadRouteBuilder {
         journalpostId: String = "123456789",
         fnr: String = Fnr.random().toString(),
         tiltaksdeltakelse: Søknadstiltak,
+        tiltakstypekode: String,
         barnetillegg: List<BarnetilleggFraSøknad> = emptyList(),
         opprettet: LocalDateTime = tiltaksdeltakelse.deltakelseFom.atTime(0, 0, 0, 0),
     ): String {
@@ -132,7 +134,7 @@ interface MottaSøknadRouteBuilder {
             "tiltak": {
               "id": "${tiltaksdeltakelse.id}",
               "arrangør": "Testarrangør",
-              "typeKode": "${tiltaksdeltakelse.typeKode.name}",
+              "typeKode": "$tiltakstypekode",
               "typeNavn": "${tiltaksdeltakelse.typeNavn}",
               "deltakelseFom": "${tiltaksdeltakelse.deltakelseFom}",
               "deltakelseTom": "${tiltaksdeltakelse.deltakelseTom}"

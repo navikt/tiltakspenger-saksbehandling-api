@@ -409,7 +409,6 @@ fun String.shouldBeSøknadsbehandlingDTO(
             "antallVedlegg": 0,
             "tiltak": {
             "fraOgMed": "$periodeFraOgMed",
-            "typeKode": "GRUPPEAMO",
             "tilOgMed": "$periodeTilOgMed",
             "typeNavn": "$søknadTiltakTypeNavn",
             "id": "$søknadTiltakId"

@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
@@ -31,7 +30,6 @@ interface SøknadMother {
         id: String = UUID.randomUUID().toString(),
         deltakelseFom: LocalDate = 1.januar(2022),
         deltakelseTom: LocalDate = 31.januar(2022),
-        typeKode: TiltakResponsDTO.TiltakTypeDTO = TiltakResponsDTO.TiltakTypeDTO.GRUPPEAMO,
         typeNavn: String = "Gruppe AMO",
         tiltaksdeltakerId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
     ): Søknadstiltak =
@@ -39,7 +37,6 @@ interface SøknadMother {
             id = id,
             deltakelseFom = deltakelseFom,
             deltakelseTom = deltakelseTom,
-            typeKode = typeKode,
             typeNavn = typeNavn,
             tiltaksdeltakerId = tiltaksdeltakerId,
         )

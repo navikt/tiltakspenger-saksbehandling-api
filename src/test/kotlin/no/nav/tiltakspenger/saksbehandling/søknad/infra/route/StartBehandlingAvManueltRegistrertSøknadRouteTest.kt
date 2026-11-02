@@ -219,7 +219,7 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
                       "eksternDeltakelseId": "${tiltaksdeltakelse.eksternDeltakelseId}",
                       "deltakelseFraOgMed": "${tiltaksdeltakelse.periode.fraOgMed!!}",
                       "deltakelseTilOgMed": "${tiltaksdeltakelse.periode.tilOgMed!!}",
-                      "typeKode": "${tiltaksdeltakelse.typeKode.name}",
+                      "tiltakskodeFraKilden": "GRUPPEAMO",
                       "typeNavn": "${tiltaksdeltakelse.typeNavn}"
                     }
                 """.trimIndent(),

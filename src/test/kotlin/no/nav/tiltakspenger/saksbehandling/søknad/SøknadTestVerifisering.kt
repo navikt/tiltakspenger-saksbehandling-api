@@ -12,7 +12,6 @@ fun String.shouldBeSøknadDTO(
     tiltakId: String,
     tiltakFraOgMed: String = "2023-01-01",
     tiltakTilOgMed: String = "2023-03-31",
-    tiltakTypeKode: String = "GRUPPEAMO",
     tiltakTypeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
     manueltSattTiltak: String? = null,
     søknadstype: String = "DIGITAL",
@@ -67,7 +66,6 @@ fun String.shouldBeSøknadDTO(
             "id": "$tiltakId",
             "fraOgMed": "$tiltakFraOgMed",
             "tilOgMed": "$tiltakTilOgMed",
-            "typeKode": "$tiltakTypeKode",
             "typeNavn": "$tiltakTypeNavn"
           },
           "tiltaksdeltakelseperiodeDetErSøktOm": {

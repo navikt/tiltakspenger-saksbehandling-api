@@ -6,7 +6,6 @@ import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.UlidBase.Companion.random
-import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periode
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
@@ -46,7 +45,6 @@ object SøknadTiltakDAO {
                     "id" to random(ULID_PREFIX_TILTAK).toString(),
                     "soknad_id" to søknadId.toString(),
                     "ekstern_id" to søknadstiltak.id,
-                    "typekode" to søknadstiltak.typeKode.name,
                     "typenavn" to søknadstiltak.typeNavn,
                     "deltakelse_periode" to tilDbPeriode(søknadstiltak.deltakelseFom, søknadstiltak.deltakelseTom),
                     "tiltaksdeltaker_id" to søknadstiltak.tiltaksdeltakerId.toString(),
@@ -64,7 +62,6 @@ object SøknadTiltakDAO {
 
     private fun Row.toTiltak(): Søknadstiltak {
         val eksternId = string("ekstern_id")
-        val typekode = string("typekode")
         val typenavn = string("typenavn")
         val deltakelse = periode("deltakelse_periode")
         val tiltaksdeltakerId = string("tiltaksdeltaker_id")
@@ -72,7 +69,6 @@ object SøknadTiltakDAO {
             id = eksternId,
             deltakelseFom = deltakelse.fraOgMed,
             deltakelseTom = deltakelse.tilOgMed,
-            typeKode = TiltakResponsDTO.TiltakTypeDTO.valueOf(typekode),
             typeNavn = typenavn,
             tiltaksdeltakerId = TiltaksdeltakerId.fromString(tiltaksdeltakerId),
         )
@@ -91,7 +87,6 @@ object SøknadTiltakDAO {
             id,
             søknad_id,
             ekstern_id,
-            typekode,
             typenavn,
             deltakelse_periode,
             tiltaksdeltaker_id
@@ -99,7 +94,6 @@ object SøknadTiltakDAO {
             :id,
             :soknad_id,
             :ekstern_id,
-            :typekode,
             :typenavn,
             :deltakelse_periode::periode,
             :tiltaksdeltaker_id

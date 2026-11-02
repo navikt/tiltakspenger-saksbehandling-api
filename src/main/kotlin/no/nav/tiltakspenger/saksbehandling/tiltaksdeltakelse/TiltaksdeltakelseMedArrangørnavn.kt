@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.lukketPeriode
  * @param typeNavn Navn på tiltakstypen, f.eks. "Arbeidsforberedende trening"
  * @param typeKode null dersom tiltakstypen fratar rett til tiltakspenger (i første omgang lønnstilskudd).
  * Slike deltakelser vises til saksbehandler, men kan ikke velges.
+ * @param tiltakskodeFraKilden tiltakskoden slik kilden oppga den, f.eks. Arenas `ARBFORB` eller Komets `ARBEIDSFORBEREDENDE_TRENING`.
  * @param periode en [Periode] når både start- og sluttdato er kjent, ellers en [ÅpenPeriode].
  * Datoene kan mangle, særlig startdatoen når deltaker venter på oppstart.
  */
@@ -26,6 +27,7 @@ data class TiltaksdeltakelseMedArrangørnavn(
     val eksternDeltakelseId: String,
     val typeNavn: String,
     val typeKode: TiltakstypeSomGirRettDTO?,
+    val tiltakskodeFraKilden: String,
     val periode: LukketEllerÅpenPeriode,
     val visningsnavn: String,
     val status: TiltakDeltakerstatus,

@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
@@ -10,7 +9,6 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Oppholdssted
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilTiltakstypeDTO
 import java.time.LocalDate
 
 data class ManueltRegistrertSøknadBody(
@@ -55,7 +53,7 @@ data class ManueltRegistrertSøknadBody(
         val eksternDeltakelseId: String,
         val deltakelseFraOgMed: LocalDate,
         val deltakelseTilOgMed: LocalDate,
-        val typeKode: TiltakstypeSomGirRettDTO,
+        val tiltakskodeFraKilden: String,
         val typeNavn: String,
     ) {
         fun tilDomene(internTiltaksdeltakelsesId: TiltaksdeltakerId?): Søknadstiltak =
@@ -63,7 +61,6 @@ data class ManueltRegistrertSøknadBody(
                 id = this.eksternDeltakelseId,
                 deltakelseFom = this.deltakelseFraOgMed,
                 deltakelseTom = this.deltakelseTilOgMed,
-                typeKode = this.typeKode.tilTiltakstypeDTO(),
                 typeNavn = this.typeNavn,
                 tiltaksdeltakerId = internTiltaksdeltakelsesId
                     ?: throw IllegalArgumentException("Mangler intern tiltaksdeltakerid for eksternid ${this.eksternDeltakelseId} for manuelt registrert søknad"),

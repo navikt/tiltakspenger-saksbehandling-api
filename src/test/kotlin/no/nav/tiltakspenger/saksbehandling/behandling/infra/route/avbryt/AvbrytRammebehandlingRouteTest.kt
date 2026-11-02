@@ -30,7 +30,6 @@ class AvbrytRammebehandlingRouteTest {
                 tiltakId = søknad.tiltak!!.id,
                 tiltakFraOgMed = "2023-01-01",
                 tiltakTilOgMed = "2023-03-31",
-                tiltakTypeKode = "GRUPPEAMO",
                 tiltakTypeNavn = "Arbeidsmarkedsoppfølging gruppe",
                 manueltSattTiltak = null,
                 søknadstype = "DIGITAL",

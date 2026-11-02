@@ -1,12 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
-import arrow.core.getOrElse
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
-import no.nav.tiltakspenger.libs.tiltak.toTiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
@@ -20,7 +18,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseSo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde.Komet
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilTiltakstypeDTO
 import java.time.LocalDate
 import java.util.UUID
 
@@ -164,7 +161,6 @@ interface TiltakMother {
             id = eksternTiltaksdeltakelseId,
             deltakelseFom = søknadFraOgMed,
             deltakelseTom = søknadTilOgMed,
-            typeKode = typeKode.tilTiltakstypeDTO(),
             typeNavn = typeNavn,
             tiltaksdeltakerId = tiltaksdeltakerId,
         )
@@ -173,6 +169,7 @@ interface TiltakMother {
     fun tiltaksdeltakelseMedArrangørnavn(
         eksternTiltaksdeltakelseId: String = UUID.randomUUID().toString(),
         typeKode: TiltakstypeSomGirRettDTO? = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+        tiltakskodeFraKilden: String = typeKode?.name ?: "MIDLONTIL",
         typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
         arrangørnavn: String? = "Testarrangør med geolokaliserende navn",
         fom: LocalDate? = 1.januar(2023),
@@ -184,6 +181,7 @@ interface TiltakMother {
         return TiltaksdeltakelseMedArrangørnavn(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
             typeKode = typeKode,
+            tiltakskodeFraKilden = tiltakskodeFraKilden,
             typeNavn = typeNavn,
             periode = lukketEllerÅpenPeriode(fom, tom),
             visningsnavn = visningsnavn,
@@ -221,9 +219,6 @@ fun Søknadstiltak.toTiltak(
     return tiltaksdeltakelse(
         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
         eksternTiltaksdeltakelseId = this.id,
-        typeKode = this.typeKode.toTiltakstypeSomGirRett().getOrElse {
-            throw IllegalArgumentException("Ugyldig typekode ${this.typeKode}")
-        },
         typeNavn = this.typeNavn,
         fom = this.deltakelseFom,
         tom = this.deltakelseTom,
@@ -236,7 +231,6 @@ fun TiltaksdeltakelseIntern.toSøknadstiltak(tiltaksdeltakerId: TiltaksdeltakerI
         id = this.eksternDeltakelseId,
         deltakelseFom = this.periode.fraOgMed!!,
         deltakelseTom = this.periode.tilOgMed!!,
-        typeKode = this.typeKode.tilTiltakstypeDTO(),
         typeNavn = this.typeNavn,
         tiltaksdeltakerId = tiltaksdeltakerId,
     )

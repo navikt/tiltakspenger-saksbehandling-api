@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
-import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
@@ -70,7 +69,6 @@ class OlderMottaSøknadTest {
                         id = "123",
                         deltakelseFom = 1.april(2025),
                         deltakelseTom = 10.april(2025),
-                        typeKode = TiltakResponsDTO.TiltakTypeDTO.ANNUTDANN,
                         typeNavn = "Annen utdanning",
                         tiltaksdeltakerId = internTiltaksdeltakerId!!,
                     ),

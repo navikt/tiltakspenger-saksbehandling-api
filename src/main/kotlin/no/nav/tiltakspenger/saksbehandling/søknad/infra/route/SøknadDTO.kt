@@ -37,7 +37,6 @@ data class SøknadDTO(
         val id: String,
         val fraOgMed: String?,
         val tilOgMed: String?,
-        val typeKode: String,
         val typeNavn: String,
     )
 
@@ -237,7 +236,6 @@ fun Søknadstiltak.toDTO(): SøknadDTO.TiltaksdeltagelseFraSøknadDTO {
         id = id,
         fraOgMed = this.deltakelseFom.toString(),
         tilOgMed = this.deltakelseTom.toString(),
-        typeKode = this.typeKode.name,
         typeNavn = this.typeNavn,
     )
 }

@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.libs.soknad.PeriodeSpmDTO
 import no.nav.tiltakspenger.libs.soknad.SpmSvarDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadsTiltakDTO
-import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
@@ -98,7 +97,6 @@ object SøknadDTOMapper {
             id = this.id,
             deltakelseFom = this.deltakelseFom,
             deltakelseTom = this.deltakelseTom,
-            typeKode = TiltakResponsDTO.TiltakTypeDTO.valueOf(this.typeKode),
             typeNavn = this.typeNavn,
             tiltaksdeltakerId = internTiltaksdeltakelsesId,
         )

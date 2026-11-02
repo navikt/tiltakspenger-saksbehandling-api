@@ -132,6 +132,7 @@ fun Tiltakshistorikk.tilTiltaksdeltakelserMedArrangørnavn(
             eksternDeltakelseId = deltakelse.id.verdi,
             typeNavn = deltakelse.tiltakstypenavn,
             typeKode = (deltakelse as? Tiltaksdeltakelse.GirRett)?.tiltakstype?.tilDTO(),
+            tiltakskodeFraKilden = deltakelse.tiltakskodeFraKilden,
             periode = lukketEllerÅpenPeriode(deltakelse.fraOgMed, deltakelse.tilOgMed),
             visningsnavn = if (harAdressebeskyttelse) {
                 deltakelse.tiltakstypenavn
