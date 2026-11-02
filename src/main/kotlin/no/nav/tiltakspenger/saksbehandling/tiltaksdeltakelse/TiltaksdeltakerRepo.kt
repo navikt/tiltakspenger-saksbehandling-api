@@ -2,22 +2,25 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse
 
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
-import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
+import org.jetbrains.annotations.TestOnly
 import java.time.LocalDateTime
 
 interface TiltaksdeltakerRepo {
+    /**
+     * [tiltakskode] Benyttes kun for sporbarhet/feilsøking
+     * */
     fun hentEllerLagre(
         eksternId: String,
-        tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+        tiltakskode: String,
         sakId: SakId,
         sessionContext: SessionContext? = null,
     ): TiltaksdeltakerId
 
-    // denne er primært tenkt brukt for testformål
+    @TestOnly
     fun lagre(
         id: TiltaksdeltakerId,
         eksternId: String,
-        tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+        tiltakskode: String,
         sakId: SakId,
         sessionContext: SessionContext? = null,
     )

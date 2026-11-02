@@ -24,12 +24,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Yt
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.medPaddingForAndreYtelser
 import no.nav.tiltakspenger.saksbehandling.felles.min
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.loggFeil
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilTiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilTiltaksdeltakelseSomFratarRett
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
@@ -179,7 +177,7 @@ class HentSaksopplysingerService(
         val tiltaksdeltakelser = aktuelleTiltaksdeltakelser.map {
             val internDeltakelseId = tiltaksdeltakerRepo.hentEllerLagre(
                 eksternId = it.id.verdi,
-                tiltakstype = it.tiltakstype.tilDTO().tilTiltakstype(),
+                tiltakskode = it.tiltakskodeFraKilden,
                 sakId = sakId,
                 sessionContext = sessionContext,
             )

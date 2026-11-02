@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.soknad.SøknadDTO
 import no.nav.tiltakspenger.libs.texas.systembruker
-import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
@@ -43,7 +42,7 @@ fun Route.mottaSøknadRoute(
             )
             val internTiltaksdeltakelsesId = tiltaksdeltakerRepo.hentEllerLagre(
                 eksternId = søknadDTO.tiltak.id,
-                tiltakstype = TiltakResponsDTO.TiltakTypeDTO.valueOf(søknadDTO.tiltak.typeKode),
+                tiltakskode = søknadDTO.tiltak.typeKode,
                 sakId = sak.id,
             )
 

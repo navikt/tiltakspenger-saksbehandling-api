@@ -13,13 +13,13 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEllerOpprettSakForSystembruker
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseKilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.KometTiltakHendelseDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.TeamTiltakHendelseDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.LagretTiltaksdeltakerEndring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltaksdeltakerEndringerForEksternId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilTiltakstypeDTO
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -52,7 +52,7 @@ class TiltaksdeltakerConsumerTest {
             tac.tiltakContext.tiltaksdeltakerRepo.lagre(
                 id = tiltaksdeltakelse.internDeltakelseId,
                 eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-                tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
+                tiltakskode = tiltaksdeltakelse.typeKode.tilTiltakstypeDTO().name,
                 sakId = sakId,
             )
 
@@ -97,7 +97,7 @@ class TiltaksdeltakerConsumerTest {
             val oppdatertTiltaksdeltaker = tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(nyEksternId.toString())
             oppdatertTiltaksdeltaker?.id shouldBe tiltaksdeltakelse.internDeltakelseId
             oppdatertTiltaksdeltaker?.eksternId shouldBe nyEksternId.toString()
-            oppdatertTiltaksdeltaker?.tiltakstype shouldBe tiltaksdeltakelse.typeKode.tilTiltakstype()
+            oppdatertTiltaksdeltaker?.tiltakstype shouldBe tiltaksdeltakelse.typeKode.tilTiltakstypeDTO()
             oppdatertTiltaksdeltaker?.utdatertEksternId shouldBe id
 
             tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(id).shouldBeEmpty()
@@ -168,7 +168,7 @@ class TiltaksdeltakerConsumerTest {
             tac.tiltakContext.tiltaksdeltakerRepo.lagre(
                 id = tiltaksdeltakelse.internDeltakelseId,
                 eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-                tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
+                tiltakskode = tiltaksdeltakelse.typeKode.tilTiltakstypeDTO().name,
                 sakId = sakId,
             )
 
@@ -242,7 +242,7 @@ class TiltaksdeltakerConsumerTest {
             tac.tiltakContext.tiltaksdeltakerRepo.lagre(
                 id = tiltaksdeltakelse.internDeltakelseId,
                 eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-                tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
+                tiltakskode = tiltaksdeltakelse.typeKode.tilTiltakstypeDTO().name,
                 sakId = sakId,
             )
 

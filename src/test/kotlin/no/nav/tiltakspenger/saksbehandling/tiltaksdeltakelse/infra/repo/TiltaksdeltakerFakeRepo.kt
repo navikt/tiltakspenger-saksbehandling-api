@@ -15,7 +15,7 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
 
     override fun hentEllerLagre(
         eksternId: String,
-        tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+        tiltakskode: String,
         sakId: SakId,
         sessionContext: SessionContext?,
     ): TiltaksdeltakerId {
@@ -25,7 +25,7 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
         lagre(
             id = id,
             eksternId = eksternId,
-            tiltakstype = tiltakstype,
+            tiltakskode = tiltakskode,
             sakId = sakId,
         )
         return id
@@ -99,7 +99,7 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
     override fun lagre(
         id: TiltaksdeltakerId,
         eksternId: String,
-        tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+        tiltakskode: String,
         sakId: SakId,
         sessionContext: SessionContext?,
     ) {

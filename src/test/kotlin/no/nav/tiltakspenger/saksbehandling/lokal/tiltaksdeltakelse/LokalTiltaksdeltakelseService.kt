@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import no.nav.tiltakspenger.saksbehandling.lokal.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeLokalKlient
 import no.nav.tiltakspenger.saksbehandling.lokal.tiltaksdeltakelse.infra.repo.LokalTiltaksdeltakelsePostgresRepo
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseSomFratarRett
@@ -23,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilTiltakstypeDTO
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -111,7 +111,7 @@ class LokalTiltaksdeltakelseService(
                 TiltaksdeltakelseIntern(
                     eksternDeltakelseId = eksternId,
                     gjennomføringId = null,
-                    typeNavn = command.typeNavn ?: tiltakstypeSomGirRett.tilTiltakstype().navn,
+                    typeNavn = command.typeNavn ?: tiltakstypeSomGirRett.tilTiltakstypeDTO().navn,
                     typeKode = tiltakstypeSomGirRett,
                     rettPåTiltakspenger = true,
                     periode = lukketEllerÅpenPeriode(command.fraOgMed, command.tilOgMed),
@@ -146,7 +146,7 @@ class LokalTiltaksdeltakelseService(
                     ny.deltakelse.copy(
                         internDeltakelseId = tiltaksdeltakerRepo.hentEllerLagre(
                             eksternId = eksternId,
-                            tiltakstype = ny.deltakelse.typeKode.tilTiltakstype(),
+                            tiltakskode = ny.deltakelse.typeKode.tilTiltakstypeDTO().name,
                             sakId = sakId,
                             sessionContext = tx,
                         ),

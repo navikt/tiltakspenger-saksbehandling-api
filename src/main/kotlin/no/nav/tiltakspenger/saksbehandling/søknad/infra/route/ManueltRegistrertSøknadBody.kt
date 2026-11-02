@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
-import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
@@ -11,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Oppholdssted
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilTiltakstypeDTO
 import java.time.LocalDate
 
 data class ManueltRegistrertSøknadBody(
@@ -57,13 +57,18 @@ data class ManueltRegistrertSøknadBody(
         val deltakelseTilOgMed: LocalDate,
         val typeKode: TiltakstypeSomGirRettDTO,
         val typeNavn: String,
-    )
-
-    data class PersonopplysningerDTO(
-        val ident: String,
-        val fornavn: String,
-        val etternavn: String,
-    )
+    ) {
+        fun tilDomene(internTiltaksdeltakelsesId: TiltaksdeltakerId?): Søknadstiltak =
+            Søknadstiltak(
+                id = this.eksternDeltakelseId,
+                deltakelseFom = this.deltakelseFraOgMed,
+                deltakelseTom = this.deltakelseTilOgMed,
+                typeKode = this.typeKode.tilTiltakstypeDTO(),
+                typeNavn = this.typeNavn,
+                tiltaksdeltakerId = internTiltaksdeltakelsesId
+                    ?: throw IllegalArgumentException("Mangler intern tiltaksdeltakerid for eksternid ${this.eksternDeltakelseId} for manuelt registrert søknad"),
+            )
+    }
 
     data class BarnetilleggDTO(
         val fødselsdato: LocalDate?,
@@ -72,7 +77,39 @@ data class ManueltRegistrertSøknadBody(
         val etternavn: String?,
         val oppholdssted: OppholdsstedSpmDTO,
         val fnr: String?,
-    )
+    ) {
+
+        fun tilDomeneManuell(): BarnetilleggFraSøknad.Manuell {
+            checkNotNull(this.fornavn) { "Fornavn kan ikke være null for barnetillegg, manuelle barn " }
+            checkNotNull(this.etternavn) { "Etternavn kan ikke være null for barnetillegg, manuelle barn " }
+            checkNotNull(this.fødselsdato) { "Fødselsdato kan ikke være null for barnetillegg, manuelle barn " }
+
+            return BarnetilleggFraSøknad.Manuell(
+                oppholderSegIEØS = this.oppholderSegIEØS(),
+                oppholdssted = this.oppholdssted.tilDomene(),
+                fornavn = this.fornavn,
+                mellomnavn = this.mellomnavn,
+                etternavn = this.etternavn,
+                fødselsdato = this.fødselsdato,
+            )
+        }
+
+        fun tilDomenePdl(): BarnetilleggFraSøknad.FraPdl {
+            checkNotNull(this.fødselsdato) { "Fødselsdato kan ikke være null for barnetillegg fra PDL" }
+            return BarnetilleggFraSøknad.FraPdl(
+                oppholderSegIEØS = this.oppholderSegIEØS(),
+                oppholdssted = this.oppholdssted.tilDomene(),
+                fornavn = this.fornavn,
+                mellomnavn = this.mellomnavn,
+                etternavn = this.etternavn,
+                fødselsdato = this.fødselsdato,
+                fnr = this.fnr?.let { Fnr.fromString(it) },
+            )
+        }
+
+        private fun oppholderSegIEØS(): Søknad.JaNeiSpm =
+            this.oppholdssted.tilDomene()?.tilOppholderSegIEØS() ?: Søknad.JaNeiSpm.IkkeBesvart
+    }
 
     enum class OppholdsstedSvar {
         NORGE,
@@ -101,126 +138,74 @@ data class ManueltRegistrertSøknadBody(
 
     data class JaNeiSpmDTO(
         val svar: JaNeiSvar,
-    )
+    ) {
+        fun tilDomene(): Søknad.JaNeiSpm =
+            when (this.svar) {
+                JaNeiSvar.IKKE_BESVART -> Søknad.JaNeiSpm.IkkeBesvart
+                JaNeiSvar.NEI -> Søknad.JaNeiSpm.Nei
+                JaNeiSvar.JA -> Søknad.JaNeiSpm.Ja
+            }
+    }
 
     data class PeriodeSpmDTO(
         val svar: JaNeiSvar,
-        val fraOgMed: String?,
-        val tilOgMed: String?,
+        val periode: PeriodeSvarDTO?,
+    ) {
+        fun tilDomene(): Søknad.PeriodeSpm =
+            when (this.svar) {
+                JaNeiSvar.IKKE_BESVART -> Søknad.PeriodeSpm.IkkeBesvart
+
+                JaNeiSvar.NEI -> Søknad.PeriodeSpm.Nei
+
+                JaNeiSvar.JA -> {
+                    Søknad.PeriodeSpm.Ja(
+                        fraOgMed = this.periode?.fraOgMed,
+                        tilOgMed = this.periode?.tilOgMed,
+                    )
+                }
+            }
+    }
+
+    data class PeriodeSvarDTO(
+        val fraOgMed: LocalDate?,
+        val tilOgMed: LocalDate?,
     )
 
     data class FraOgMedDatoSpmDTO(
         val svar: JaNeiSvar,
         val fraOgMed: LocalDate?,
-    )
+    ) {
+        fun tilDomene(): Søknad.FraOgMedDatoSpm {
+            return when (this.svar) {
+                JaNeiSvar.IKKE_BESVART -> Søknad.FraOgMedDatoSpm.IkkeBesvart
 
-    fun PersonopplysningerDTO.tilDomene(): Søknad.Personopplysninger = Søknad.Personopplysninger(
-        fnr = Fnr.fromString(this.ident),
-        fornavn = this.fornavn,
-        etternavn = this.etternavn,
-    )
+                JaNeiSvar.NEI -> Søknad.FraOgMedDatoSpm.Nei
 
-    fun PeriodeSpmDTO.tilDomene(): Søknad.PeriodeSpm =
-        when (this.svar) {
-            JaNeiSvar.IKKE_BESVART -> Søknad.PeriodeSpm.IkkeBesvart
-
-            JaNeiSvar.NEI -> Søknad.PeriodeSpm.Nei
-
-            JaNeiSvar.JA -> {
-                Søknad.PeriodeSpm.Ja(
-                    fraOgMed = this.fraOgMed?.let { LocalDate.parse(it) },
-                    tilOgMed = this.tilOgMed?.let { LocalDate.parse(it) },
-                )
-            }
-        }
-
-    fun FraOgMedDatoSpmDTO.tilDomene(): Søknad.FraOgMedDatoSpm {
-        return when (this.svar) {
-            JaNeiSvar.IKKE_BESVART -> Søknad.FraOgMedDatoSpm.IkkeBesvart
-
-            JaNeiSvar.NEI -> Søknad.FraOgMedDatoSpm.Nei
-
-            JaNeiSvar.JA -> {
-                Søknad.FraOgMedDatoSpm.Ja(
-                    fra = this.fraOgMed,
-                )
+                JaNeiSvar.JA -> {
+                    Søknad.FraOgMedDatoSpm.Ja(
+                        fra = this.fraOgMed,
+                    )
+                }
             }
         }
     }
 
-    fun SøknadsTiltakDTO.tilDomene(internTiltaksdeltakelsesId: TiltaksdeltakerId?): Søknadstiltak =
-        Søknadstiltak(
-            id = this.eksternDeltakelseId,
-            deltakelseFom = this.deltakelseFraOgMed,
-            deltakelseTom = this.deltakelseTilOgMed,
-            typeKode = this.typeKode.tilTiltakstype(),
-            typeNavn = this.typeNavn,
-            tiltaksdeltakerId = internTiltaksdeltakelsesId
-                ?: throw IllegalArgumentException("Mangler intern tiltaksdeltakerid for eksternid ${this.eksternDeltakelseId} for manuelt registrert søknad"),
-        )
-
-    fun BarnetilleggDTO.tilDomeneManuell(): BarnetilleggFraSøknad.Manuell {
-        checkNotNull(this.fornavn) { "Fornavn kan ikke være null for barnetillegg, manuelle barn " }
-        checkNotNull(this.etternavn) { "Etternavn kan ikke være null for barnetillegg, manuelle barn " }
-        checkNotNull(this.fødselsdato) { "Fødselsdato kan ikke være null for barnetillegg, manuelle barn " }
-
-        return BarnetilleggFraSøknad.Manuell(
-            oppholderSegIEØS = this.oppholderSegIEØS(),
-            oppholdssted = this.oppholdssted.tilDomene(),
-            fornavn = this.fornavn,
-            mellomnavn = this.mellomnavn,
-            etternavn = this.etternavn,
-            fødselsdato = this.fødselsdato,
-        )
-    }
-
-    fun BarnetilleggDTO.tilDomenePdl(): BarnetilleggFraSøknad.FraPdl {
-        checkNotNull(this.fødselsdato) { "Fødselsdato kan ikke være null for barnetillegg fra PDL" }
-        return BarnetilleggFraSøknad.FraPdl(
-            oppholderSegIEØS = this.oppholderSegIEØS(),
-            oppholdssted = this.oppholdssted.tilDomene(),
-            fornavn = this.fornavn,
-            mellomnavn = this.mellomnavn,
-            etternavn = this.etternavn,
-            fødselsdato = this.fødselsdato,
-            fnr = this.fnr?.let { Fnr.fromString(it) },
-        )
-    }
-
-    private fun BarnetilleggDTO.oppholderSegIEØS(): Søknad.JaNeiSpm =
-        this.oppholdssted.tilDomene()?.tilOppholderSegIEØS() ?: Søknad.JaNeiSpm.IkkeBesvart
-
-    fun JaNeiSpmDTO.tilDomene(): Søknad.JaNeiSpm =
-        when (this.svar) {
-            JaNeiSvar.IKKE_BESVART -> Søknad.JaNeiSpm.IkkeBesvart
-            JaNeiSvar.NEI -> Søknad.JaNeiSpm.Nei
-            JaNeiSvar.JA -> Søknad.JaNeiSpm.Ja
-        }
-}
-
-fun TiltakstypeSomGirRettDTO.tilTiltakstype(): TiltakResponsDTO.TiltakTypeDTO {
-    return when (this) {
-        TiltakstypeSomGirRettDTO.ARBEIDSFORBEREDENDE_TRENING -> TiltakResponsDTO.TiltakTypeDTO.ARBFORB
-        TiltakstypeSomGirRettDTO.ARBEIDSRETTET_REHABILITERING -> TiltakResponsDTO.TiltakTypeDTO.ARBRRHDAG
-        TiltakstypeSomGirRettDTO.ARBEIDSTRENING -> TiltakResponsDTO.TiltakTypeDTO.ARBTREN
-        TiltakstypeSomGirRettDTO.AVKLARING -> TiltakResponsDTO.TiltakTypeDTO.AVKLARAG
-        TiltakstypeSomGirRettDTO.DIGITAL_JOBBKLUBB -> TiltakResponsDTO.TiltakTypeDTO.DIGIOPPARB
-        TiltakstypeSomGirRettDTO.ENKELTPLASS_AMO -> TiltakResponsDTO.TiltakTypeDTO.ENKELAMO
-        TiltakstypeSomGirRettDTO.ENKELTPLASS_VGS_OG_HØYERE_YRKESFAG -> TiltakResponsDTO.TiltakTypeDTO.ENKFAGYRKE
-        TiltakstypeSomGirRettDTO.FORSØK_OPPLÆRING_LENGRE_VARIGHET -> TiltakResponsDTO.TiltakTypeDTO.FORSOPPLEV
-        TiltakstypeSomGirRettDTO.GRUPPE_AMO -> TiltakResponsDTO.TiltakTypeDTO.GRUPPEAMO
-        TiltakstypeSomGirRettDTO.GRUPPE_VGS_OG_HØYERE_YRKESFAG -> TiltakResponsDTO.TiltakTypeDTO.GRUFAGYRKE
-        TiltakstypeSomGirRettDTO.HØYERE_UTDANNING -> TiltakResponsDTO.TiltakTypeDTO.HOYEREUTD
-        TiltakstypeSomGirRettDTO.INDIVIDUELL_JOBBSTØTTE -> TiltakResponsDTO.TiltakTypeDTO.INDJOBSTOT
-        TiltakstypeSomGirRettDTO.INDIVIDUELL_KARRIERESTØTTE_UNG -> TiltakResponsDTO.TiltakTypeDTO.IPSUNG
-        TiltakstypeSomGirRettDTO.JOBBKLUBB -> TiltakResponsDTO.TiltakTypeDTO.JOBBK
-        TiltakstypeSomGirRettDTO.OPPFØLGING -> TiltakResponsDTO.TiltakTypeDTO.INDOPPFAG
-        TiltakstypeSomGirRettDTO.UTVIDET_OPPFØLGING_I_NAV -> TiltakResponsDTO.TiltakTypeDTO.UTVAOONAV
-        TiltakstypeSomGirRettDTO.UTVIDET_OPPFØLGING_I_OPPLÆRING -> TiltakResponsDTO.TiltakTypeDTO.UTVOPPFOPL
-        TiltakstypeSomGirRettDTO.ARBEIDSMARKEDSOPPLAERING -> TiltakResponsDTO.TiltakTypeDTO.ARBEIDSMARKEDSOPPLAERING
-        TiltakstypeSomGirRettDTO.FAG_OG_YRKESOPPLAERING -> TiltakResponsDTO.TiltakTypeDTO.FAG_OG_YRKESOPPLAERING
-        TiltakstypeSomGirRettDTO.HOYERE_YRKESFAGLIG_UTDANNING -> TiltakResponsDTO.TiltakTypeDTO.HOYERE_YRKESFAGLIG_UTDANNING
-        TiltakstypeSomGirRettDTO.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV -> TiltakResponsDTO.TiltakTypeDTO.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV
-        TiltakstypeSomGirRettDTO.STUDIESPESIALISERING -> TiltakResponsDTO.TiltakTypeDTO.STUDIESPESIALISERING
-    }
+    data class ManueltRegistrertSøknadSvarDTO(
+        val tiltak: SøknadsTiltakDTO?,
+        val barnetilleggPdl: List<BarnetilleggDTO> = emptyList(),
+        val barnetilleggManuelle: List<BarnetilleggDTO> = emptyList(),
+        val harSøktPåTiltak: JaNeiSpmDTO,
+        val harSøktOmBarnetillegg: JaNeiSpmDTO,
+        val kvp: PeriodeSpmDTO,
+        val intro: PeriodeSpmDTO,
+        val institusjon: PeriodeSpmDTO,
+        val etterlønn: JaNeiSpmDTO,
+        val gjenlevendepensjon: PeriodeSpmDTO,
+        val alderspensjon: FraOgMedDatoSpmDTO,
+        val sykepenger: PeriodeSpmDTO,
+        val supplerendeStønadAlder: PeriodeSpmDTO,
+        val supplerendeStønadFlyktning: PeriodeSpmDTO,
+        val jobbsjansen: PeriodeSpmDTO,
+        val trygdOgPensjon: PeriodeSpmDTO,
+    )
 }

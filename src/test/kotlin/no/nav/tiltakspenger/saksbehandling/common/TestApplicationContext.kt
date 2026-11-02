@@ -71,7 +71,6 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.SøknadApiKlient
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.http.SøknadApiFakeKlient
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingHendelseRepo
@@ -81,6 +80,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeTestKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilTiltakstypeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
@@ -527,7 +527,7 @@ sealed class TestApplicationContext(
             tiltakContext.tiltaksdeltakerRepo.lagre(
                 id = tiltaksdeltakelse.internDeltakelseId,
                 eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-                tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
+                tiltakskode = tiltaksdeltakelse.typeKode.tilTiltakstypeDTO().name,
                 // Alle kallsteder oppretter saken før personen legges til.
                 sakId = sakContext.sakRepo.hentForFnr(fnr)!!.id,
             )

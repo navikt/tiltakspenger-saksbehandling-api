@@ -22,7 +22,6 @@ import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
-import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakstype
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testdeltakelse
@@ -36,7 +35,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Yt
 import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import no.nav.tiltakspenger.saksbehandling.felles.uventetStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
@@ -47,6 +45,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerFakeRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilTiltakstypeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
@@ -118,7 +117,7 @@ class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    tiltakskode: String,
                     sakId: SakId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
@@ -128,7 +127,7 @@ class HentSaksopplysingerServiceTest {
                 override fun lagre(
                     id: TiltaksdeltakerId,
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    tiltakskode: String,
                     sakId: SakId,
                     sessionContext: SessionContext?,
                 ) {}
@@ -263,7 +262,7 @@ class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    tiltakskode: String,
                     sakId: SakId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
@@ -273,7 +272,7 @@ class HentSaksopplysingerServiceTest {
                 override fun lagre(
                     id: TiltaksdeltakerId,
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    tiltakskode: String,
                     sakId: SakId,
                     sessionContext: SessionContext?,
                 ) {}
@@ -408,7 +407,7 @@ class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    tiltakskode: String,
                     sakId: SakId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
@@ -418,7 +417,7 @@ class HentSaksopplysingerServiceTest {
                 override fun lagre(
                     id: TiltaksdeltakerId,
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    tiltakskode: String,
                     sakId: SakId,
                     sessionContext: SessionContext?,
                 ) {}
@@ -568,7 +567,7 @@ class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    tiltakskode: String,
                     sakId: SakId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
@@ -590,7 +589,7 @@ class HentSaksopplysingerServiceTest {
                 override fun lagre(
                     id: TiltaksdeltakerId,
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    tiltakskode: String,
                     sakId: SakId,
                     sessionContext: SessionContext?,
                 ) {}
@@ -746,7 +745,7 @@ class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    tiltakskode: String,
                     sakId: SakId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
@@ -768,7 +767,7 @@ class HentSaksopplysingerServiceTest {
                 override fun lagre(
                     id: TiltaksdeltakerId,
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    tiltakskode: String,
                     sakId: SakId,
                     sessionContext: SessionContext?,
                 ) {}
@@ -966,7 +965,7 @@ class HentSaksopplysingerServiceTest {
             lagre(
                 id = tiltak.internDeltakelseId,
                 eksternId = tiltak.eksternDeltakelseId,
-                tiltakstype = tiltak.typeKode.tilTiltakstype(),
+                tiltakskode = tiltak.typeKode.tilTiltakstypeDTO().name,
                 sakId = SakId.random(),
             )
         }

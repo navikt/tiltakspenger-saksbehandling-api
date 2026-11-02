@@ -79,7 +79,7 @@ class TiltaksdeltakerPostgresRepoTest {
             val sakId = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!.id
             val repo = tac.tiltakContext.tiltaksdeltakerRepo
             val id = TiltaksdeltakerId.random()
-            repo.lagre(id = id, eksternId = "deltaker-2", tiltakstype = TiltakResponsDTO.TiltakTypeDTO.GRUPPEAMO, sakId = sakId)
+            repo.lagre(id = id, eksternId = "deltaker-2", tiltakskode = TiltakResponsDTO.TiltakTypeDTO.GRUPPEAMO.name, sakId = sakId)
             val tidspunkt = nå(tac.clock).withNano(0)
 
             repo.registrerUbehandletEndring(id, sakId, tidspunkt)
@@ -102,7 +102,7 @@ class TiltaksdeltakerPostgresRepoTest {
             val repo = tac.tiltakContext.tiltaksdeltakerRepo
 
             val id = TiltaksdeltakerId.random()
-            repo.lagre(id = id, eksternId = "deltaker-1", tiltakstype = TiltakResponsDTO.TiltakTypeDTO.GRUPPEAMO, sakId = sakId)
+            repo.lagre(id = id, eksternId = "deltaker-1", tiltakskode = TiltakResponsDTO.TiltakTypeDTO.GRUPPEAMO.name, sakId = sakId)
             repo.registrerUbehandletEndring(id, sakId, nå(tac.clock).minusMinutes(20))
 
             // Les tilbake markøren slik den faktisk ble lagret (timestamptz har lavere oppløsning enn LocalDateTime).

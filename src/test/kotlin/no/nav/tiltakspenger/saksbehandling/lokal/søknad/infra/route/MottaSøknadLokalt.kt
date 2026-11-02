@@ -39,7 +39,7 @@ fun nySøknadForFnr(
         tiltaksdeltakerRepo.lagre(
             eksternId = søknad.tiltak.id,
             id = søknad.tiltak.tiltaksdeltakerId,
-            tiltakstype = søknad.tiltak.typeKode,
+            tiltakskode = søknad.tiltak.typeKode.name,
             sakId = sak.id,
         )
 
@@ -77,7 +77,7 @@ fun nySakMedNySøknad(
         tiltaksdeltakerRepo.lagre(
             eksternId = søknad.tiltak.id,
             id = søknad.tiltak.tiltaksdeltakerId,
-            tiltakstype = søknad.tiltak.typeKode,
+            tiltakskode = søknad.tiltak.typeKode.name,
             sakId = sak.id,
         )
 

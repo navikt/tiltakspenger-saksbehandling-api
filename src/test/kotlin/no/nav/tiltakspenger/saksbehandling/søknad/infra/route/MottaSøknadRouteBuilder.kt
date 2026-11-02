@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilTiltakstypeDTO
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -39,7 +40,7 @@ interface MottaSøknadRouteBuilder {
         tac.tiltakContext.tiltaksdeltakerRepo.lagre(
             id = tiltaksdeltakelse.internDeltakelseId,
             eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-            tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
+            tiltakskode = tiltaksdeltakelse.typeKode.tilTiltakstypeDTO().name,
             sakId = sak.id,
         )
         mottaSøknad(tac, sak.fnr, saksnummer, søknadId, tiltaksdeltakelse, barnetillegg)
@@ -59,7 +60,7 @@ interface MottaSøknadRouteBuilder {
         tac.tiltakContext.tiltaksdeltakerRepo.lagre(
             id = tiltaksdeltakelse.internDeltakelseId,
             eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-            tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
+            tiltakskode = tiltaksdeltakelse.typeKode.tilTiltakstypeDTO().name,
             sakId = sakId,
         )
         mottaSøknad(tac, fnr, saksnummer, søknadId, tiltaksdeltakelse, barnetillegg)

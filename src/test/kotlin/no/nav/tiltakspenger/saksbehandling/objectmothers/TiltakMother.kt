@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadsti
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.sak.SøknadstiltakIdGenerator
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus.Deltar
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
@@ -21,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseSo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde.Komet
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilTiltakstypeDTO
 import java.time.LocalDate
 import java.util.UUID
 
@@ -164,7 +164,7 @@ interface TiltakMother {
             id = eksternTiltaksdeltakelseId,
             deltakelseFom = søknadFraOgMed,
             deltakelseTom = søknadTilOgMed,
-            typeKode = typeKode.tilTiltakstype(),
+            typeKode = typeKode.tilTiltakstypeDTO(),
             typeNavn = typeNavn,
             tiltaksdeltakerId = tiltaksdeltakerId,
         )
@@ -236,7 +236,7 @@ fun TiltaksdeltakelseIntern.toSøknadstiltak(tiltaksdeltakerId: TiltaksdeltakerI
         id = this.eksternDeltakelseId,
         deltakelseFom = this.periode.fraOgMed!!,
         deltakelseTom = this.periode.tilOgMed!!,
-        typeKode = this.typeKode.tilTiltakstype(),
+        typeKode = this.typeKode.tilTiltakstypeDTO(),
         typeNavn = this.typeNavn,
         tiltaksdeltakerId = tiltaksdeltakerId,
     )

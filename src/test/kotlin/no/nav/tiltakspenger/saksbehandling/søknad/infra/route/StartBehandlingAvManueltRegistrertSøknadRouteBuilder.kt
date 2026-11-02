@@ -128,7 +128,7 @@ interface StartBehandlingAvManueltRegistrertSøknadRouteBuilder {
     """.trimIndent()
 
     fun periodeSpm(svar: String, fraOgMed: String? = null, tilOgMed: String? = null): String =
-        """{"svar": "$svar", "fraOgMed": ${fraOgMed?.let { "\"$it\"" }}, "tilOgMed": ${tilOgMed?.let { "\"$it\"" }}}"""
+        """{"svar": "$svar", "periode": {"fraOgMed": ${fraOgMed?.let { "\"$it\"" }}, "tilOgMed": ${tilOgMed?.let { "\"$it\"" }}}}"""
 
     fun fraOgMedDatoSpm(svar: String, fraOgMed: String? = null): String =
         """{"svar": "$svar", "fraOgMed": ${fraOgMed?.let { "\"$it\"" }}}"""
