@@ -204,7 +204,7 @@ private sealed interface Resultat {
     data class KanSlåSammen(val utbetalingsperiode: UtbetalingV2Dto) : Resultat
 }
 
-private fun TiltakstypeSomGirRett.mapStønadstype(): StønadTypeTiltakspenger =
+fun TiltakstypeSomGirRett.mapStønadstype(): StønadTypeTiltakspenger =
     when (this) {
         TiltakstypeSomGirRett.ARBEIDSFORBEREDENDE_TRENING -> StønadTypeTiltakspenger.ARBEIDSFORBEREDENDE_TRENING
         TiltakstypeSomGirRett.ARBEIDSRETTET_REHABILITERING -> StønadTypeTiltakspenger.ARBEIDSRETTET_REHABILITERING

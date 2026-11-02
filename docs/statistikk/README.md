@@ -1,6 +1,6 @@
 # Statistikk til datavarehuset (DVH)
 
-Saksbehandling-api skriver statistikk til fire tabeller som bare datavarehuset leser.
+Saksbehandling-api skriver statistikk til fire tabeller og et kodeverk som bare datavarehuset leser.
 Prodkoden vår leser dem aldri, så en feil her synes ikke hos oss, men gir feil tall hos Team Sak eller Team Spenn.
 Les denne fila før du endrer en statistikktabell, en DTO under `statistikk/` eller hendelsene som skrives.
 
@@ -12,6 +12,7 @@ Les denne fila før du endrer en statistikktabell, en DTO under `statistikk/` el
 | `statistikk_stonad` | Team Spenn | Én rad per rammevedtak | Bare nye rader |
 | `statistikk_utbetaling` | Team Spenn | Én rad per utbetaling | Bare nye rader |
 | `statistikk_meldekort` | Team Spenn | Én rad per iverksatt meldekortbehandling, både manuell og automatisk | Upsert på `meldekortbehandling_id` |
+| `statistikk_kodeverk_tiltakstype` | Team Spenn | Én rad per ekstern tiltakskode som gir rett og stønadstypen vi sender til helved for den, med periode for når mappingen gjaldt hos oss | Synkroniseres fra koden, se under |
 
 KDoc på DTO-ene beskriver feltene: `SaksstatistikkDTO`, `StatistikkStønadDTO`, `StatistikkUtbetalingDTO` og `StatistikkMeldekortDTO`.
 `SaksstatistikkDTO` lenker også til grensesnittbeskrivelsen Team Sak eier.
@@ -25,6 +26,16 @@ KDoc på DTO-ene beskriver feltene: `SaksstatistikkDTO`, `StatistikkStønadDTO`,
 Hvilke hendelser som gir rader i `statistikk_sak`, står i `StatistikkhendelseType`, og mapperne ligger i `statistikk/saksstatistikk/rammebehandling/`, `klagebehandling/` og `meldekortbehandling/`.
 Databasen setter `teknisktidspunkt` med `clock_timestamp()` ved insert, slik at rekkefølgen følger `id`.
 Radene oppdateres aldri, med to unntak: `SaksstatistikkPostgresRepo.oppdaterFnr` ved nytt fødselsnummer og `oppdaterAdressebeskyttelse` ved strengt fortrolig adresse.
+
+## Slik skrives kodeverket
+
+`statistikk_kodeverk_tiltakstype` bygges fra `eksterneTiltakskoderSomGirRett` i tiltakspenger-libs og `mapStønadstype()`, de samme kildene som klassifiseringen og utbetalingen bruker, så kodeverket kan ikke avvike fra det vi faktisk sender.
+
+- Jobben `saksbehandling-jobb-synkroniser-statistikk-kodeverk-tiltakstype` kjører én gang per pod på lederen, se `StatistikkService.synkroniserTiltakstypekodeverk`.
+  Én gang per pod hindrer at en gammel pod under utrullingen skriver tilbake den gamle mappingen.
+- En mapping som forsvinner eller får ny stønadstype, får `gyldig_til` og ny `sist_endret`, og en ny eller endret mapping får en ny rad med `gyldig_fra`.
+- Radene fra første synkronisering har `gyldig_fra = null`, fordi mappingen gjaldt før kodeverket fantes.
+- Klassekoden i UR er stønadstypen kombinert med barnetillegg, og den kombinasjonen gjør helved; vi kan bare stå inne for stønadstypen.
 
 ## Slik kommer dataene til DVH
 
@@ -49,6 +60,8 @@ Lenker til grensesnittbeskrivelsen og Team Saks dokumentasjon står i KDoc på `
 - Strengt fortrolig adresse maskerer de selv ut fra egne persondata; vår `-5` er en ekstra sikring.
 
 ## Slik leser Team Spenn de tre andre tabellene
+
+`statistikk_kodeverk_tiltakstype` er ikke tatt i bruk av Team Spenn ennå; den heter `public_statistikk_kodeverk_tiltakstype` i BigQuery.
 
 Koden ligger i [navikt/dvh_tiltakspenger](https://github.com/navikt/dvh_tiltakspenger) (internt repo).
 

@@ -5,6 +5,8 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.kodeverk.Tiltakstypekodeverkrad
+import no.nav.tiltakspenger.saksbehandling.statistikk.kodeverk.infra.repo.StatistikkKodeverkTiltakstypePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.infra.repo.StatistikkMeldekortPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.infra.repo.SaksstatistikkPostgresRepo
@@ -48,6 +50,12 @@ class StatistikkPostgresRepo(
     override fun oppdaterAdressebeskyttelse(sakId: SakId, transactionContext: TransactionContext?) {
         sessionFactory.withTransaction(transactionContext) { tx ->
             SaksstatistikkPostgresRepo.oppdaterAdressebeskyttelse(sakId, tx)
+        }
+    }
+
+    override fun synkroniserTiltakstypekodeverk(gjeldende: Set<Tiltakstypekodeverkrad>) {
+        sessionFactory.withTransaction { tx ->
+            StatistikkKodeverkTiltakstypePostgresRepo.synkroniser(gjeldende, clock, tx)
         }
     }
 }

@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.statistikk
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.saksbehandling.statistikk.kodeverk.Tiltakstypekodeverkrad
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
 import java.time.Clock
 
@@ -17,4 +18,6 @@ interface StatistikkRepo {
     )
 
     fun oppdaterAdressebeskyttelse(sakId: SakId, transactionContext: TransactionContext?)
+
+    fun synkroniserTiltakstypekodeverk(gjeldende: Set<Tiltakstypekodeverkrad>)
 }

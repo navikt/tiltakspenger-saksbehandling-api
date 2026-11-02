@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
+import no.nav.tiltakspenger.saksbehandling.statistikk.kodeverk.gjeldendeTiltakstypekodeverk
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
 import java.time.Clock
 
@@ -17,6 +18,9 @@ class StatistikkService(
     private val clock: Clock,
     private val statistikkRepo: StatistikkRepo,
 ) {
+    @Volatile
+    private var tiltakstypekodeverkErSynkronisert = false
+
     suspend fun generer(
         vararg hendelse: Statistikkhendelse,
     ): StatistikkDTO {
@@ -59,5 +63,16 @@ class StatistikkService(
         tx: TransactionContext? = null,
     ) {
         statistikkRepo.oppdaterFnr(gammeltFnr, nyttFnr, clock, tx)
+    }
+
+    /**
+     * Skriver `statistikk_kodeverk_tiltakstype` fra koden én gang per pod og returnerer om den gjorde det.
+     * Kodeverket endres bare ved deploy, og en gammel pod som fortsatt er leder under utrullingen, skal ikke skrive tilbake den gamle mappingen.
+     */
+    fun synkroniserTiltakstypekodeverk(): Boolean {
+        if (tiltakstypekodeverkErSynkronisert) return false
+        statistikkRepo.synkroniserTiltakstypekodeverk(gjeldendeTiltakstypekodeverk())
+        tiltakstypekodeverkErSynkronisert = true
+        return true
     }
 }

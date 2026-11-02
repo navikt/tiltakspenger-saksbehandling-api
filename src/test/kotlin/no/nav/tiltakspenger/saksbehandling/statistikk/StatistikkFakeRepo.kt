@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.statistikk
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.saksbehandling.statistikk.kodeverk.Tiltakstypekodeverkrad
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
 import java.time.Clock
 
@@ -25,5 +26,8 @@ class StatistikkFakeRepo : StatistikkRepo {
         sakId: SakId,
         transactionContext: TransactionContext?,
     ) {
+    }
+
+    override fun synkroniserTiltakstypekodeverk(gjeldende: Set<Tiltakstypekodeverkrad>) {
     }
 }

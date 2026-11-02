@@ -19,6 +19,14 @@ fun jobber(
     addAll(klageJobber(applicationContext))
     addAll(meldekortJobber(applicationContext, clock))
     addAll(tiltaksdeltakerJobber(applicationContext))
+    add(
+        Task(
+            navn = "saksbehandling-jobb-synkroniser-statistikk-kodeverk-tiltakstype",
+            utfør = { _ ->
+                if (applicationContext.statistikkContext.statistikkService.synkroniserTiltakstypekodeverk()) TaskResultat.Ferdig else TaskResultat.IngenArbeid
+            },
+        ),
+    )
 
     if (isNais) {
         addAll(naisJobber(applicationContext))
