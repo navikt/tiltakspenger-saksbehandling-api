@@ -3,7 +3,7 @@ name: Build and deploy
 # Trigges av push til main gjort av et menneske/agent (GitHub-knappen eller gh CLI).
 # Merger dependabot-auto-merge-workflowen en PR med GITHUB_TOKEN, trigges denne workflowen ikke
 # (GitHub starter ikke workflows fra pushes gjort med GITHUB_TOKEN).
-# Dependabot-merger bygges og deployes derfor først ved neste vanlige push til main.
+# Dependabot-merger bygges og deployes derfor ved neste vanlige push til main, eller senest ved neste planlagte kjøring (se schedule under).
 
 # Raske påfølgende pushes (f.eks. flere dependabot-merger) ga overlappende NAIS-rollouts,
 # der eldre deployer timet ut på readiness-proben og i verste fall vant over nyere (2026-07-16).
@@ -30,6 +30,12 @@ on:
       - 'docs/**'
       - 'LICENSE'
       - 'lint_and_build.sh'
+  # Planlagt bygg og deploy hverdager kl. 06 norsk tid, også uten kodeendringer: henter nyeste bygg av
+  # Chainguard-baseimaget (flytende tagg, se Dockerfile) og tar med Dependabot-merger som ikke trigget workflowen selv.
+  # Går gjennom samme test-gate og concurrency-gruppe som en vanlig push.
+  schedule:
+    - cron: '0 6 * * 1-5'
+      timezone: 'Europe/Oslo'
 
 # Minste privilegium: toppnivået nullstiller alle token-rettigheter, hver jobb deklarerer eksplisitt det den trenger.
 permissions: {}
