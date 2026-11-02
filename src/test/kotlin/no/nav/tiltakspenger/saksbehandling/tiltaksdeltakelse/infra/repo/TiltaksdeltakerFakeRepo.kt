@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
-import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
@@ -44,7 +43,6 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
             Tiltaksdeltaker(
                 id = it,
                 eksternId = eksternId,
-                tiltakstype = TiltakResponsDTO.TiltakTypeDTO.GRUPPEAMO,
                 utdatertEksternId = null,
                 sakId = sakIder.get().getValue(it),
                 sisteUbehandletEndringTidspunkt = ubehandledeEndringer.get()[it],
@@ -78,7 +76,6 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
                 Tiltaksdeltaker(
                     id = id,
                     eksternId = eksternId,
-                    tiltakstype = TiltakResponsDTO.TiltakTypeDTO.GRUPPEAMO,
                     utdatertEksternId = null,
                     sakId = sakIder.get().getValue(id),
                     sisteUbehandletEndringTidspunkt = tidspunkt,

@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse
 
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import java.time.LocalDateTime
 
 /**
@@ -17,7 +16,6 @@ import java.time.LocalDateTime
 data class Tiltaksdeltaker(
     val id: TiltaksdeltakerId,
     val eksternId: String,
-    val tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
     val utdatertEksternId: String?,
     val sakId: SakId,
     val sisteUbehandletEndringTidspunkt: LocalDateTime?,

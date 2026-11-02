@@ -97,7 +97,6 @@ class TiltaksdeltakerConsumerTest {
             val oppdatertTiltaksdeltaker = tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(nyEksternId.toString())
             oppdatertTiltaksdeltaker?.id shouldBe tiltaksdeltakelse.internDeltakelseId
             oppdatertTiltaksdeltaker?.eksternId shouldBe nyEksternId.toString()
-            oppdatertTiltaksdeltaker?.tiltakstype shouldBe tiltaksdeltakelse.typeKode.tilTiltakstypeDTO()
             oppdatertTiltaksdeltaker?.utdatertEksternId shouldBe id
 
             tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(id).shouldBeEmpty()

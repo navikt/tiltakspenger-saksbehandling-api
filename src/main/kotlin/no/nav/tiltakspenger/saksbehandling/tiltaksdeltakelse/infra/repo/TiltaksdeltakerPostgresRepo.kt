@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionContext.Companion.withSession
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
-import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
@@ -252,7 +251,6 @@ class TiltaksdeltakerPostgresRepo(
     private fun Row.tilTiltaksdeltaker() = Tiltaksdeltaker(
         id = TiltaksdeltakerId.fromString(string("id")),
         eksternId = string("ekstern_id"),
-        tiltakstype = TiltakResponsDTO.TiltakTypeDTO.valueOf(string("tiltakstype")),
         utdatertEksternId = stringOrNull("utdatert_ekstern_id"),
         sakId = SakId.fromString(string("sak_id")),
         sisteUbehandletEndringTidspunkt = localDateTimeOrNull("siste_ubehandlet_endring"),
