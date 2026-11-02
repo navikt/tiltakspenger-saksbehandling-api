@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.common.Loggfanger
 import no.nav.tiltakspenger.saksbehandling.common.Sikkerloggfanger
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.infra.setup.MdcKorrelasjon
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -215,6 +216,7 @@ class UtbetalingsoversiktAggregatTest {
                 limit = 10,
                 logger = loggfanger,
                 sikkerlogg = sikkerloggfanger,
+                korrelasjon = MdcKorrelasjon(),
             ).oppdaterUtbetalingsoversikter()
 
             tac.utbetalingsoversiktFakeKlient.sisteOppslagFor(første.fnr).shouldNotBeNull()

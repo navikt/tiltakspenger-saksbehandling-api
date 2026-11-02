@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonServi
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
+import no.nav.tiltakspenger.saksbehandling.infra.setup.MdcKorrelasjon
 import no.nav.tiltakspenger.saksbehandling.journalpost.HentJournalpostDokumentService
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.GenererKlagebrevKlient
@@ -197,6 +198,7 @@ open class KlagebehandlingContext(
             personService = personService,
             navIdentClient = navIdentClient,
             clock = clock,
+            korrelasjon = MdcKorrelasjon(),
         )
     }
 
@@ -206,6 +208,7 @@ open class KlagebehandlingContext(
             klagevedtakRepo = klagevedtakRepo,
             klagebehandlingRepo = klagebehandlingRepo,
             clock = clock,
+            korrelasjon = MdcKorrelasjon(),
         )
     }
 

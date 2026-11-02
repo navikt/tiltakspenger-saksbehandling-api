@@ -31,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.infra.setup.MdcKorrelasjon
 import no.nav.tiltakspenger.saksbehandling.jobber
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
@@ -540,6 +541,7 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
         tiltaksdeltakerHendelseRepo = tiltaksdeltakerHendelseRepo,
         sessionFactory = sessionFactory,
         clock = clock,
+        korrelasjon = MdcKorrelasjon(),
     )
 
     private class RegistrerendeKlient(

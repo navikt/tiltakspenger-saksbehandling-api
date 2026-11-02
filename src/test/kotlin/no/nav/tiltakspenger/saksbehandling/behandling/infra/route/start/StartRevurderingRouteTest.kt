@@ -34,7 +34,7 @@ class StartRevurderingRouteTest {
                 ).apply {
                     JSONObject(body).apply {
                         getString("kode") shouldBe "tilgang_nektet_krev_rolle"
-                        getString("melding") shouldContain "mangler rollen SAKSBEHANDLER"
+                        getString("melding") shouldContain "mangler rollen saksbehandler"
                     }
                 }
             }

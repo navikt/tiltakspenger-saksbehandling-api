@@ -30,10 +30,7 @@ class FellesErDomenepakkeKonsistTest {
      * Begrunnelsen står der og ikke her, slik at den som åpner fila ser den — en whitelist ingen leser, er ingen arbeidsliste.
      * Ingen av oppføringene er ment å være permanente; en som er det, skal si det eksplisitt her i stedet for å peke på en TODO.
      */
-    private val filerSomVenterPåOpprydding = setOf(
-        // Se TODO i fila: leser AD-rollene fra `infra.setup.Configuration`, avhengigheten må snus.
-        "Tilgangskontroll.kt",
-    )
+    private val filerSomVenterPåOpprydding = emptySet<String>()
 
     @Test
     fun `felles har ingen infra-underpakker`() {

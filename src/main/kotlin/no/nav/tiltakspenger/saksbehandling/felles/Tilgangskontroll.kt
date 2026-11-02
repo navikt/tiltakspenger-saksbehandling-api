@@ -1,33 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.felles
 
-import no.nav.tiltakspenger.libs.common.GenerellSystembruker
-import no.nav.tiltakspenger.libs.common.GenerellSystembrukerrolle
-import no.nav.tiltakspenger.libs.common.GenerellSystembrukerroller
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
-import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.Tilgangsnektårsak
-import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
-
-// TODO: Fila står i whitelisten til FellesErDomenepakkeKonsistTest fordi den leser AD-rollene sine fra `infra.setup.Configuration`.
-//  Unntaket er ikke målet: domenekode skal ikke hente konfigurasjon fra infrastrukturen.
-//  Fiks: snu avhengigheten og la infrastrukturen sende rollene inn i stedet for at domenet slår dem opp.
-
-/**
- * Brukes for å mappe verifisert saksbehandler-token til Saksbehandler
- */
-fun autoriserteBrukerroller() = Configuration.alleAdRoller
-
-/**
- * Brukes for å mappe verifisert systembruker-token til Systembruker
- */
-@Suppress("UNCHECKED_CAST")
-fun getSystemBrukerMapper() = ::systembrukerMapper as (String, String, Set<String>) -> GenerellSystembruker<
-    GenerellSystembrukerrolle,
-    GenerellSystembrukerroller<GenerellSystembrukerrolle>,
-    >
 
 /**
  * Kaster en [TilgangException] dersom saksbehandler ikke har rollen [Saksbehandlerrolle.SAKSBEHANDLER].
@@ -90,18 +67,27 @@ fun krevEnAvRollene(saksbehandler: Saksbehandler, krevEnAvRollene: List<Saksbeha
     }
 }
 
+/**
+ * Kaster en [TilgangException] dersom systembrukeren ikke har rollen [Systembrukerrolle.HENT_ELLER_OPPRETT_SAK].
+ */
 fun krevHentEllerOpprettSakRollen(systembruker: Systembruker) {
     if (!systembruker.roller.harHentEllerOpprettSak()) {
         throw TilgangException(Tilgangsnektårsak.MANGLER_ROLLE, "$systembruker mangler rollen HENT_ELLER_OPPRETT_SAK.")
     }
 }
 
+/**
+ * Kaster en [TilgangException] dersom systembrukeren ikke har rollen [Systembrukerrolle.LAGRE_SOKNAD].
+ */
 fun krevLagreSoknadRollen(systembruker: Systembruker) {
     if (!systembruker.roller.harLagreSoknad()) {
         throw TilgangException(Tilgangsnektårsak.MANGLER_ROLLE, "$systembruker mangler rollen LAGRE_SOKNAD.")
     }
 }
 
+/**
+ * Kaster en [TilgangException] dersom systembrukeren ikke har rollen [Systembrukerrolle.LAGRE_MELDEKORT].
+ */
 fun krevLagreMeldekortRollen(systembruker: Systembruker) {
     if (!systembruker.roller.harLagreMeldekort()) {
         throw TilgangException(Tilgangsnektårsak.MANGLER_ROLLE, "$systembruker mangler rollen LAGRE_MELDEKORT.")

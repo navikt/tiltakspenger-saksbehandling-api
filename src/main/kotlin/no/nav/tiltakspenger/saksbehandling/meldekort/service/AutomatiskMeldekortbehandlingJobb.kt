@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.felles.Korrelasjon
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
@@ -51,6 +52,7 @@ class AutomatiskMeldekortbehandlingJobb(
     private val sakService: SakService,
     private val oppgaveKlient: OppgaveKlient,
     private val statistikkService: StatistikkService,
+    private val korrelasjon: Korrelasjon,
 ) {
     private val logger = KotlinLogging.logger { }
 
@@ -69,30 +71,32 @@ class AutomatiskMeldekortbehandlingJobb(
         logger.debug { "Fant ${meldekortListe.size} meldekort som skal behandles automatisk" }
 
         meldekortListe.forEach { meldekort ->
-            Either.catch {
-                if (skalHoppeOverMeldekort(meldekort, clock)) {
-                    return@forEach
-                }
-
-                val id = meldekort.id
-                val sakId = meldekort.sakId
-
-                val sak = sakRepo.hentForSakId(sakId)
-
-                require(sak != null) {
-                    "Fant ikke sak for mottatt meldekort med id $id, sakId $sakId"
-                }
-
-                opprettMeldekortbehandling(meldekort, sak, clock)
-                    .onLeft { status ->
-                        håndterOpprettBehandlingFeil(status, meldekort, clock)
+            korrelasjon.medNyCorrelationId { correlationId ->
+                Either.catch {
+                    if (skalHoppeOverMeldekort(meldekort, clock)) {
+                        return@medNyCorrelationId
                     }
-                    .onRight { behandling ->
-                        logger.info { "Opprettet automatisk behandling ${behandling.id} for brukers meldekort $id på sak $sakId" }
+
+                    val id = meldekort.id
+                    val sakId = meldekort.sakId
+
+                    val sak = sakRepo.hentForSakId(sakId)
+
+                    require(sak != null) {
+                        "Fant ikke sak for mottatt meldekort med id $id, sakId $sakId"
                     }
-            }.onLeft {
-                logger.error(it) { "Ukjent feil ved automatisk behandling av meldekort fra bruker ${meldekort.id} - ${it.message}" }
-                håndterOpprettBehandlingFeil(MeldekortBehandletAutomatiskStatus.UKJENT_FEIL, meldekort, clock)
+
+                    opprettMeldekortbehandling(meldekort, sak, clock)
+                        .onLeft { status ->
+                            håndterOpprettBehandlingFeil(status, meldekort, clock, correlationId)
+                        }
+                        .onRight { behandling ->
+                            logger.info { "Opprettet automatisk behandling ${behandling.id} for brukers meldekort $id på sak $sakId" }
+                        }
+                }.onLeft {
+                    logger.error(it) { "Ukjent feil ved automatisk behandling av meldekort fra bruker ${meldekort.id} - ${it.message}" }
+                    håndterOpprettBehandlingFeil(MeldekortBehandletAutomatiskStatus.UKJENT_FEIL, meldekort, clock, correlationId)
+                }
             }
         }
     }
@@ -120,6 +124,7 @@ class AutomatiskMeldekortbehandlingJobb(
         status: MeldekortBehandletAutomatiskStatus,
         meldekort: BrukersMeldekort,
         clock: Clock,
+        correlationId: CorrelationId,
     ) {
         val logMsg =
             "Kunne ikke opprette automatisk behandling for brukers meldekort ${meldekort.id} på sak ${meldekort.sakId} - Status: $status"
@@ -133,7 +138,7 @@ class AutomatiskMeldekortbehandlingJobb(
 
             // Ved Left hopper vi over statusoppdateringen under, slik at meldekortet (og dermed gosysoppgaven) prøves på nytt neste kjøring.
             // Oppgaveopprettelsen har allerede logget.
-            meldekort.opprettOppgaveHvisAdressebeskyttetEllerSkjermetBruker()
+            meldekort.opprettOppgaveHvisAdressebeskyttetEllerSkjermetBruker(correlationId)
                 .getOrElse { return }
         }
 
@@ -248,9 +253,9 @@ class AutomatiskMeldekortbehandlingJobb(
      * Returnerer Left dersom gosysoppgaven ikke kunne opprettes.
      * Logger selv ved feil - kalleren skal ikke logge i tillegg.
      */
-    private suspend fun BrukersMeldekort.opprettOppgaveHvisAdressebeskyttetEllerSkjermetBruker(): Either<HttpKlientError, Unit> {
+    private suspend fun BrukersMeldekort.opprettOppgaveHvisAdressebeskyttetEllerSkjermetBruker(correlationId: CorrelationId): Either<HttpKlientError, Unit> {
         val pdlPerson = sakService
-            .hentEnkelPersonMedSkjermingForSakId(this.sakId, CorrelationId.generate())
+            .hentEnkelPersonMedSkjermingForSakId(this.sakId, correlationId)
             .getOrThrow()
 
         if (pdlPerson.harAdressebeskyttelseEllerSkjerming) {

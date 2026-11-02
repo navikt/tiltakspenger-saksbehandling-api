@@ -3,12 +3,12 @@ package no.nav.tiltakspenger.saksbehandling.journalnotat.service
 import arrow.core.Either
 import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
+import no.nav.tiltakspenger.saksbehandling.felles.Korrelasjon
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalføring.loggFeil
 import no.nav.tiltakspenger.saksbehandling.journalnotat.GenererJournalnotatKlient
@@ -34,6 +34,7 @@ class JournalførJournalnotatService(
     private val personService: PersonService,
     private val navIdentClient: NavIdentClient,
     private val clock: Clock,
+    private val korrelasjon: Korrelasjon,
 ) {
     private val log = KotlinLogging.logger {}
     private val errorEveryNLogger = ErrorEveryNLogger(log, 3)
@@ -81,32 +82,33 @@ class JournalførJournalnotatService(
         journalnotat: Journalnotat,
         markerJournalført: (JournalpostId) -> Unit,
     ) {
-        val correlationId = CorrelationId.generate()
-        val loggkontekst =
-            "sakId: ${journalnotat.sakId}, saksnummer: ${journalnotat.saksnummer}, vedtakId: ${journalnotat.vedtakId}"
+        korrelasjon.medNyCorrelationId { correlationId ->
+            val loggkontekst =
+                "sakId: ${journalnotat.sakId}, saksnummer: ${journalnotat.saksnummer}, vedtakId: ${journalnotat.vedtakId}"
 
-        log.info { "Genererer journalnotat. $loggkontekst" }
-        val pdfOgJson = genererJournalnotatKlient.genererJournalnotat(
-            journalnotat = journalnotat,
-            hentBrukersNavn = personService::hentNavn,
-            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
-        ).getOrElse {
-            it.feil.loggFeil(log, "generering av journalnotat", loggkontekst)
-            return
+            log.info { "Genererer journalnotat. $loggkontekst" }
+            val pdfOgJson = genererJournalnotatKlient.genererJournalnotat(
+                journalnotat = journalnotat,
+                hentBrukersNavn = personService::hentNavn,
+                hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
+            ).getOrElse {
+                it.feil.loggFeil(log, "generering av journalnotat", loggkontekst)
+                return@medNyCorrelationId
+            }
+
+            log.info { "Journalnotat generert, journalfører. $loggkontekst" }
+            val journalpostId = journalførJournalnotatKlient.journalførJournalnotat(
+                journalnotat = journalnotat,
+                pdfOgJson = pdfOgJson,
+                correlationId = correlationId,
+            ).getOrElse {
+                it.loggFeil(log, "journalføring av journalnotat", loggkontekst)
+                return@medNyCorrelationId
+            }.journalpostId
+
+            markerJournalført(journalpostId)
+            log.info { "Journalnotat journalført og markert som journalført. journalpostId: $journalpostId, $loggkontekst" }
+            errorEveryNLogger.reset()
         }
-
-        log.info { "Journalnotat generert, journalfører. $loggkontekst" }
-        val journalpostId = journalførJournalnotatKlient.journalførJournalnotat(
-            journalnotat = journalnotat,
-            pdfOgJson = pdfOgJson,
-            correlationId = correlationId,
-        ).getOrElse {
-            it.loggFeil(log, "journalføring av journalnotat", loggkontekst)
-            return
-        }.journalpostId
-
-        markerJournalført(journalpostId)
-        log.info { "Journalnotat journalført og markert som journalført. journalpostId: $journalpostId, $loggkontekst" }
-        errorEveryNLogger.reset()
     }
 }

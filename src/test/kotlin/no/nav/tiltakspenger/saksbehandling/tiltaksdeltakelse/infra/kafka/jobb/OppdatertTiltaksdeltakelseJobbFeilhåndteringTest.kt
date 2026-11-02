@@ -28,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.infra.setup.MdcKorrelasjon
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.httpKlientUventetStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
@@ -280,6 +281,7 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
         tiltaksdeltakerHendelseRepo = tiltaksdeltakerHendelseRepo,
         sessionFactory = sessionFactory,
         clock = clock,
+        korrelasjon = MdcKorrelasjon(),
     )
 
     private class StyrtKlient(

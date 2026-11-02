@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 import arrow.core.Either
 import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
@@ -12,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.sammenlignBeregninger
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
+import no.nav.tiltakspenger.saksbehandling.felles.Korrelasjon
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.varsleHvisUtbetalingHarFeilet
 import no.nav.tiltakspenger.saksbehandling.journalføring.loggFeil
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.GenererVedtaksbrevForMeldekortKlient
@@ -34,6 +34,7 @@ class JournalførMeldekortvedtakService(
     private val personService: PersonService,
     private val sakRepo: SakRepo,
     private val clock: Clock,
+    private val korrelasjon: Korrelasjon,
 ) {
     private val log = KotlinLogging.logger { }
     private val errorEveryNLogger = ErrorEveryNLogger(log, 3)
@@ -41,84 +42,85 @@ class JournalførMeldekortvedtakService(
     suspend fun journalfør() {
         Either.catch {
             meldekortvedtakRepo.hentDeSomSkalJournalføres().forEach { meldekortvedtak ->
-                val correlationId = CorrelationId.generate()
-                log.info {
-                    "Journalfører meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}"
-                }
+                korrelasjon.medNyCorrelationId { correlationId ->
+                    log.info {
+                        "Journalfører meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}"
+                    }
 
-                varsleHvisUtbetalingHarFeilet(log, meldekortvedtak.utbetaling.status) {
-                    "Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}, utbetalingId: ${meldekortvedtak.utbetaling.id}"
-                }
+                    varsleHvisUtbetalingHarFeilet(log, meldekortvedtak.utbetaling.status) {
+                        "Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}, utbetalingId: ${meldekortvedtak.utbetaling.id}"
+                    }
 
-                Either.catch {
-                    val sak = sakRepo.hentForSakId(meldekortvedtak.sakId)!!
-                    val sammenligning = { beregningEtter: MeldeperiodeBeregning ->
-                        val beregningFør = sak.meldeperiodeBeregninger.hentForrigeBeregning(
-                            beregningEtter.id,
-                            beregningEtter.kjedeId,
-                        ).getOrElse {
-                            when (it) {
-                                MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenTidligereBeregninger -> null
+                    Either.catch {
+                        val sak = sakRepo.hentForSakId(meldekortvedtak.sakId)!!
+                        val sammenligning = { beregningEtter: MeldeperiodeBeregning ->
+                            val beregningFør = sak.meldeperiodeBeregninger.hentForrigeBeregning(
+                                beregningEtter.id,
+                                beregningEtter.kjedeId,
+                            ).getOrElse {
+                                when (it) {
+                                    MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenTidligereBeregninger -> null
 
-                                MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenBeregningerForKjede,
-                                MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.BeregningFinnesIkke,
-                                -> {
-                                    // TODO abn: kanskje vi burde kaste exception her?
-                                    log.error { "Fant ikke beregningen ${beregningEtter.id} på kjede ${beregningEtter.kjedeId} - Dette er sannsynligvis en feil!" }
-                                    null
+                                    MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenBeregningerForKjede,
+                                    MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.BeregningFinnesIkke,
+                                    -> {
+                                        // TODO abn: kanskje vi burde kaste exception her?
+                                        log.error { "Fant ikke beregningen ${beregningEtter.id} på kjede ${beregningEtter.kjedeId} - Dette er sannsynligvis en feil!" }
+                                        null
+                                    }
                                 }
                             }
+                            sammenlignBeregninger(beregningFør, beregningEtter)
                         }
-                        sammenlignBeregninger(beregningFør, beregningEtter)
-                    }
-                    val tiltak = sak.hentNyesteTiltaksdeltakelserForRammevedtakIder(meldekortvedtak.rammevedtak)
+                        val tiltak = sak.hentNyesteTiltaksdeltakelserForRammevedtakIder(meldekortvedtak.rammevedtak)
 
-                    require(tiltak.isNotEmpty()) {
-                        "Forventet at et det skal finnes tiltaksdeltakelse for meldekortvedtaksperioden"
-                    }
-
-                    val hentSaksbehandlersNavn: suspend (String) -> String =
-                        if (meldekortvedtak.erAutomatiskBehandlet) {
-                            { "Automatisk behandlet" }
-                        } else {
-                            navIdentClient::hentNavnForNavIdentEllerKast
+                        require(tiltak.isNotEmpty()) {
+                            "Forventet at et det skal finnes tiltaksdeltakelse for meldekortvedtaksperioden"
                         }
 
-                    val pdfOgJson = genererVedtaksbrevForMeldekortKlient.genererMeldekortvedtakBrev(
-                        meldekortvedtak,
-                        tiltaksdeltakelser = tiltak,
-                        hentBrukersNavn = personService::hentNavn,
-                        hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                        vedtaksdato = LocalDate.now(clock),
-                        sammenligning = sammenligning,
-                    ).getOrElse {
-                        it.feil.loggFeil(
-                            log,
-                            "generering av vedtaksbrev for meldekortvedtak",
-                            "Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}",
-                        )
-                        return@forEach
-                    }
+                        val hentSaksbehandlersNavn: suspend (String) -> String =
+                            if (meldekortvedtak.erAutomatiskBehandlet) {
+                                { "Automatisk behandlet" }
+                            } else {
+                                navIdentClient::hentNavnForNavIdentEllerKast
+                            }
 
-                    log.info { "Pdf generert for meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}" }
-                    val journalpostId = journalførMeldekortKlient.journalførVedtaksbrevForMeldekortvedtak(
-                        meldekortvedtak = meldekortvedtak,
-                        pdfOgJson = pdfOgJson,
-                        correlationId = correlationId,
-                    ).getOrElse {
-                        it.loggFeil(
-                            log,
-                            "journalføring av meldekortvedtaksbrev",
-                            "Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}",
-                        )
-                        return@forEach
-                    }.journalpostId
-                    log.info { "Meldekortvedtak journalført. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}. JournalpostId: $journalpostId" }
-                    meldekortvedtakRepo.markerJournalført(meldekortvedtak.id, journalpostId, nå(clock))
-                    log.info { "Meldekortvedtak markert som journalført. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}. JournalpostId: $journalpostId" }
-                    errorEveryNLogger.reset()
-                }.onLeft {
-                    errorEveryNLogger.log(it) { "Ukjent feil skjedde under generering av brev og journalføring av meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}" }
+                        val pdfOgJson = genererVedtaksbrevForMeldekortKlient.genererMeldekortvedtakBrev(
+                            meldekortvedtak,
+                            tiltaksdeltakelser = tiltak,
+                            hentBrukersNavn = personService::hentNavn,
+                            hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                            vedtaksdato = LocalDate.now(clock),
+                            sammenligning = sammenligning,
+                        ).getOrElse {
+                            it.feil.loggFeil(
+                                log,
+                                "generering av vedtaksbrev for meldekortvedtak",
+                                "Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}",
+                            )
+                            return@medNyCorrelationId
+                        }
+
+                        log.info { "Pdf generert for meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}" }
+                        val journalpostId = journalførMeldekortKlient.journalførVedtaksbrevForMeldekortvedtak(
+                            meldekortvedtak = meldekortvedtak,
+                            pdfOgJson = pdfOgJson,
+                            correlationId = correlationId,
+                        ).getOrElse {
+                            it.loggFeil(
+                                log,
+                                "journalføring av meldekortvedtaksbrev",
+                                "Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}",
+                            )
+                            return@medNyCorrelationId
+                        }.journalpostId
+                        log.info { "Meldekortvedtak journalført. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}. JournalpostId: $journalpostId" }
+                        meldekortvedtakRepo.markerJournalført(meldekortvedtak.id, journalpostId, nå(clock))
+                        log.info { "Meldekortvedtak markert som journalført. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}. JournalpostId: $journalpostId" }
+                        errorEveryNLogger.reset()
+                    }.onLeft {
+                        errorEveryNLogger.log(it) { "Ukjent feil skjedde under generering av brev og journalføring av meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}" }
+                    }
                 }
             }
         }.onLeft {

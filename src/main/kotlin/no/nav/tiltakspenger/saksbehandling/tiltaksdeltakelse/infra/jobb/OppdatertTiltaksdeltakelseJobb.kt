@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehan
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskOmgjøringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskRevurderingJobb
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskStansService
+import no.nav.tiltakspenger.saksbehandling.felles.Korrelasjon
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgave
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgaveRepo
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
@@ -69,6 +70,7 @@ class OppdatertTiltaksdeltakelseJobb(
     private val tiltaksdeltakerHendelseRepo: TiltaksdeltakerHendelseRepo,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
+    private val korrelasjon: Korrelasjon,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -108,12 +110,14 @@ class OppdatertTiltaksdeltakelseJobb(
      * Kaster ikke; uventede feil gis som [TiltaksdeltakelseEndringKunneIkkeBehandles.UventetFeil].
      */
     suspend fun behandleDeltaker(deltaker: Tiltaksdeltaker): Either<TiltaksdeltakelseEndringKunneIkkeBehandles, TiltaksdeltakelseEndringBehandlet> =
-        Either.catch {
-            vurderEndring(deltaker).onRight { resultat ->
-                lagreSomBehandlet(deltaker, resultat)
-            }
-        }.mapLeft { TiltaksdeltakelseEndringKunneIkkeBehandles.UventetFeil(it) }
-            .flatten()
+        korrelasjon.medNyCorrelationId { correlationId ->
+            Either.catch {
+                vurderEndring(deltaker, correlationId).onRight { resultat ->
+                    lagreSomBehandlet(deltaker, resultat)
+                }
+            }.mapLeft { TiltaksdeltakelseEndringKunneIkkeBehandles.UventetFeil(it) }
+                .flatten()
+        }
 
     private fun lagreSomBehandlet(deltaker: Tiltaksdeltaker, resultat: TiltaksdeltakelseEndringBehandlet) {
         sessionFactory.withTransactionContext { tx ->
@@ -145,7 +149,10 @@ class OppdatertTiltaksdeltakelseJobb(
      * Vurderer endringen mot saken.
      * Gosys-oppgaver opprettes her, mens en revurdering bare bygges og lagres sammen med kvitteringen i [lagreSomBehandlet].
      */
-    private suspend fun vurderEndring(deltaker: Tiltaksdeltaker): Either<TiltaksdeltakelseEndringKunneIkkeBehandles, TiltaksdeltakelseEndringBehandlet> {
+    private suspend fun vurderEndring(
+        deltaker: Tiltaksdeltaker,
+        correlationId: CorrelationId,
+    ): Either<TiltaksdeltakelseEndringKunneIkkeBehandles, TiltaksdeltakelseEndringBehandlet> {
         val logIder =
             "sakId ${deltaker.sakId} / intern deltakerId ${deltaker.id} / ekstern deltakerId ${deltaker.eksternId}"
 
@@ -157,7 +164,7 @@ class OppdatertTiltaksdeltakelseJobb(
         val oppdatertDeltakelse = tiltaksdeltakelseKlient.hentTiltaksdeltakelse(
             fnr = sak.fnr,
             eksternDeltakerId = deltaker.eksternId,
-            correlationId = CorrelationId.generate(),
+            correlationId = correlationId,
         ).getOrElse { feil ->
             // Markøren står igjen, slik at endringen prøves på nytt ved neste kjøring.
             feil.loggFeil(log, "henting av nå-tilstand for tiltaksdeltakelse", logIder)
@@ -196,6 +203,7 @@ class OppdatertTiltaksdeltakelseJobb(
                 AutomatiskOpprettetRevurderingGrunn(endring = endring, tiltaksdeltakerId = deltaker.id),
                 oppdatertDeltakelse,
                 logIder,
+                correlationId,
             )?.let { return it.right() }
             log.info { "Kunne ikke opprette revurdering for endringen, oppretter oppgave ($logIder)" }
         } else {
@@ -242,8 +250,8 @@ class OppdatertTiltaksdeltakelseJobb(
         automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn,
         oppdatertTiltaksdeltakelse: Tiltaksdeltakelse.GirRett,
         logIder: String,
+        correlationId: CorrelationId,
     ): TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet? {
-        val correlationId = CorrelationId.generate()
         val forberedtRevurdering = when (revurderingSomSkalOpprettes) {
             AutomatiskRevurderingAvEndring.StansEllerOpphør -> delautomatiskStansService.opprettStansEllerOpphør(sak, automatiskOpprettetGrunn, correlationId)
                 ?: return null

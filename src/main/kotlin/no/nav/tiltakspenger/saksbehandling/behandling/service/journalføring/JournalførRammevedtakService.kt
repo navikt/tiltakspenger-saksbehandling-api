@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.journalføring
 import arrow.core.Either
 import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
@@ -20,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbe
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
+import no.nav.tiltakspenger.saksbehandling.felles.Korrelasjon
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.varsleHvisUtbetalingHarFeilet
 import no.nav.tiltakspenger.saksbehandling.journalføring.loggFeil
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
@@ -38,6 +38,7 @@ class JournalførRammevedtakService(
     private val personService: PersonService,
     private val navIdentClient: NavIdentClient,
     private val clock: Clock,
+    private val korrelasjon: Korrelasjon,
 ) {
     private val log = KotlinLogging.logger {}
     private val errorEveryNLogger = ErrorEveryNLogger(log, 3)
@@ -46,75 +47,76 @@ class JournalførRammevedtakService(
     suspend fun journalfør() {
         Either.catch {
             rammevedtakRepo.hentRammevedtakSomSkalJournalføres().forEach { vedtak ->
-                val correlationId = CorrelationId.generate()
-                log.info { "Journalfører vedtaksbrev for vedtak ${vedtak.id}, type: ${vedtak.rammebehandlingsresultat.tilRammebehandlingResultatTypeDTO()}" }
-                varsleHvisUtbetalingHarFeilet(log, vedtak.utbetaling?.status) {
-                    "Saksnummer: ${vedtak.saksnummer}, sakId: ${vedtak.sakId}, vedtakId: ${vedtak.id}, utbetalingId: ${vedtak.utbetaling?.id}"
-                }
-                Either.catch {
-                    val vedtaksdato = LocalDate.now(clock)
-                    val pdfOgJson = when (vedtak.rammebehandlingsresultat) {
-                        is Rammebehandlingsresultat.Innvilgelse -> genererVedtaksbrevForInnvilgelseKlient.genererInnvilgetVedtakBrev(
-                            vedtaksdato = vedtaksdato,
-                            vedtak = vedtak,
-                            tilleggstekst = vedtak.rammebehandling.fritekstTilVedtaksbrev,
-                            hentBrukersNavn = personService::hentNavn,
-                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
-                        )
-
-                        is Revurderingsresultat.Stans -> genererVedtaksbrevForStansKlient.genererStansBrev(
-                            vedtaksdato = vedtaksdato,
-                            vedtak = vedtak,
-                            harStansetBarnetillegg = vedtak.harOmgjortBarnetillegg(),
-                            hentBrukersNavn = personService::hentNavn,
-                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
-                        )
-
-                        is Søknadsbehandlingsresultat.Avslag -> genererVedtaksbrevForAvslagKlient.genererAvslagsVedtaksbrev(
-                            vedtak = vedtak,
-                            datoForUtsending = vedtaksdato,
-                            hentBrukersNavn = personService::hentNavn,
-                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
-                        )
-
-                        is Omgjøringsresultat.OmgjøringOpphør -> genererVedtaksbrevForOpphørKlient.genererOpphørBrev(
-                            vedtak = vedtak,
-                            vedtaksdato = vedtaksdato,
-                            harOpphørtBarnetillegg = vedtak.harOmgjortBarnetillegg(),
-                            hentBrukersNavn = personService::hentNavn,
-                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
-                        )
-
-                        is Rammebehandlingsresultat.IkkeValgt -> vedtak.rammebehandlingsresultat.vedtakError()
-                    }.getOrElse {
-                        it.feil.loggFeil(
-                            log,
-                            "generering av vedtaksbrev",
-                            "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
-                        )
-                        return@forEach
+                korrelasjon.medNyCorrelationId { correlationId ->
+                    log.info { "Journalfører vedtaksbrev for vedtak ${vedtak.id}, type: ${vedtak.rammebehandlingsresultat.tilRammebehandlingResultatTypeDTO()}" }
+                    varsleHvisUtbetalingHarFeilet(log, vedtak.utbetaling?.status) {
+                        "Saksnummer: ${vedtak.saksnummer}, sakId: ${vedtak.sakId}, vedtakId: ${vedtak.id}, utbetalingId: ${vedtak.utbetaling?.id}"
                     }
+                    Either.catch {
+                        val vedtaksdato = LocalDate.now(clock)
+                        val pdfOgJson = when (vedtak.rammebehandlingsresultat) {
+                            is Rammebehandlingsresultat.Innvilgelse -> genererVedtaksbrevForInnvilgelseKlient.genererInnvilgetVedtakBrev(
+                                vedtaksdato = vedtaksdato,
+                                vedtak = vedtak,
+                                tilleggstekst = vedtak.rammebehandling.fritekstTilVedtaksbrev,
+                                hentBrukersNavn = personService::hentNavn,
+                                hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
+                            )
 
-                    log.info { "Vedtaksbrev generert for vedtak ${vedtak.id}" }
-                    val journalpostId = journalførRammevedtaksbrevKlient.journalførVedtaksbrevForRammevedtak(
-                        vedtak = vedtak,
-                        pdfOgJson = pdfOgJson,
-                        correlationId = correlationId,
-                    ).getOrElse {
-                        it.loggFeil(
-                            log,
-                            "journalføring av vedtaksbrev",
-                            "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
-                        )
-                        return@forEach
-                    }.journalpostId
+                            is Revurderingsresultat.Stans -> genererVedtaksbrevForStansKlient.genererStansBrev(
+                                vedtaksdato = vedtaksdato,
+                                vedtak = vedtak,
+                                harStansetBarnetillegg = vedtak.harOmgjortBarnetillegg(),
+                                hentBrukersNavn = personService::hentNavn,
+                                hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
+                            )
 
-                    log.info { "Vedtaksbrev journalført for vedtak ${vedtak.id}" }
-                    rammevedtakRepo.markerJournalført(vedtak.id, vedtaksdato, pdfOgJson.json, journalpostId, nå(clock))
-                    log.info { "Vedtaksbrev markert som journalført for vedtak ${vedtak.id}" }
-                    errorEveryNLogger.reset()
-                }.onLeft {
-                    errorEveryNLogger.log(it) { "Feil ved journalføring av vedtaksbrev for vedtak ${vedtak.id}" }
+                            is Søknadsbehandlingsresultat.Avslag -> genererVedtaksbrevForAvslagKlient.genererAvslagsVedtaksbrev(
+                                vedtak = vedtak,
+                                datoForUtsending = vedtaksdato,
+                                hentBrukersNavn = personService::hentNavn,
+                                hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
+                            )
+
+                            is Omgjøringsresultat.OmgjøringOpphør -> genererVedtaksbrevForOpphørKlient.genererOpphørBrev(
+                                vedtak = vedtak,
+                                vedtaksdato = vedtaksdato,
+                                harOpphørtBarnetillegg = vedtak.harOmgjortBarnetillegg(),
+                                hentBrukersNavn = personService::hentNavn,
+                                hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
+                            )
+
+                            is Rammebehandlingsresultat.IkkeValgt -> vedtak.rammebehandlingsresultat.vedtakError()
+                        }.getOrElse {
+                            it.feil.loggFeil(
+                                log,
+                                "generering av vedtaksbrev",
+                                "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
+                            )
+                            return@medNyCorrelationId
+                        }
+
+                        log.info { "Vedtaksbrev generert for vedtak ${vedtak.id}" }
+                        val journalpostId = journalførRammevedtaksbrevKlient.journalførVedtaksbrevForRammevedtak(
+                            vedtak = vedtak,
+                            pdfOgJson = pdfOgJson,
+                            correlationId = correlationId,
+                        ).getOrElse {
+                            it.loggFeil(
+                                log,
+                                "journalføring av vedtaksbrev",
+                                "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
+                            )
+                            return@medNyCorrelationId
+                        }.journalpostId
+
+                        log.info { "Vedtaksbrev journalført for vedtak ${vedtak.id}" }
+                        rammevedtakRepo.markerJournalført(vedtak.id, vedtaksdato, pdfOgJson.json, journalpostId, nå(clock))
+                        log.info { "Vedtaksbrev markert som journalført for vedtak ${vedtak.id}" }
+                        errorEveryNLogger.reset()
+                    }.onLeft {
+                        errorEveryNLogger.log(it) { "Feil ved journalføring av vedtaksbrev for vedtak ${vedtak.id}" }
+                    }
                 }
             }
         }.onLeft {

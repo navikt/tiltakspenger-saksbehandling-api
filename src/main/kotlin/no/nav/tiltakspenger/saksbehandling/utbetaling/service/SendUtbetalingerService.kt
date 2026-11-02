@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
+import no.nav.tiltakspenger.saksbehandling.felles.Korrelasjon
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.tilStatistikk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeUtbetale
@@ -34,19 +35,21 @@ class SendUtbetalingerService(
     private val statistikkService: StatistikkService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
+    private val korrelasjon: Korrelasjon,
 ) {
     val logger = KotlinLogging.logger { }
 
     suspend fun sendUtbetalingerTilHelved() {
         Either.catch {
             utbetalingRepo.hentForUtsjekk().forEach { utbetaling ->
-                val correlationId = CorrelationId.generate()
-                // correlationId sendes som Nav-Call-Id til helved, så den kan brukes til å korrelere med loggene deres.
-                val kontekst = "${utbetaling.enkelLoggKontekst}, correlationId: ${correlationId.value}"
-                Either.catch {
-                    sendUtbetaling(utbetaling, correlationId, kontekst)
-                }.onLeft {
-                    logger.error(it) { "Ukjent feil ved iverksetting av utbetaling mot helved. $kontekst" }
+                korrelasjon.medNyCorrelationId { correlationId ->
+                    // correlationId sendes som Nav-Call-Id til helved, så den kan brukes til å korrelere med loggene deres.
+                    val kontekst = "${utbetaling.enkelLoggKontekst}, correlationId: ${correlationId.value}"
+                    Either.catch {
+                        sendUtbetaling(utbetaling, correlationId, kontekst)
+                    }.onLeft {
+                        logger.error(it) { "Ukjent feil ved iverksetting av utbetaling mot helved. $kontekst" }
+                    }
                 }
             }
         }.onLeft {

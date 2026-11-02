@@ -207,7 +207,7 @@ class AngreRammebehandlingRouteTest {
                     403,
                     """
                     {
-                      "melding": "Saksbehandler B12345 mangler rollen SAKSBEHANDLER. Saksbehandlers roller: Saksbehandlerroller(value=[BESLUTTER])",
+                      "melding": "Du mangler rollen saksbehandler, som kreves for denne handlingen.",
                       "kode": "tilgang_nektet_krev_rolle"
                     }
                     """.trimIndent(),

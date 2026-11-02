@@ -8,9 +8,9 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.texas.systembruker
+import no.nav.tiltakspenger.saksbehandling.auth.infra.getSystemBrukerMapper
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
-import no.nav.tiltakspenger.saksbehandling.felles.getSystemBrukerMapper
 import no.nav.tiltakspenger.saksbehandling.felles.krevHentEllerOpprettSakRollen
 import no.nav.tiltakspenger.saksbehandling.person.infra.route.FnrDTO
 

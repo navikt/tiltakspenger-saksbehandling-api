@@ -12,8 +12,8 @@ import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.texas.systembruker
+import no.nav.tiltakspenger.saksbehandling.auth.infra.getSystemBrukerMapper
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
-import no.nav.tiltakspenger.saksbehandling.felles.getSystemBrukerMapper
 import no.nav.tiltakspenger.saksbehandling.felles.krevLagreMeldekortRollen
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.BrukersMeldekortDag

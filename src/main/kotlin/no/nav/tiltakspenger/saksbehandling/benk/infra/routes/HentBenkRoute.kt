@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
+import no.nav.tiltakspenger.saksbehandling.auth.infra.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageFiltrering
@@ -49,7 +50,6 @@ import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkTilbakekrev
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.tilDomene
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.benk.service.BenkService
-import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.kanSeBenken

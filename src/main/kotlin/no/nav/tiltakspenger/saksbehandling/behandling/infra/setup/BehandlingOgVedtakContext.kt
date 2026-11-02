@@ -41,6 +41,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.journalføring.Jou
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
+import no.nav.tiltakspenger.saksbehandling.infra.setup.MdcKorrelasjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
@@ -220,6 +221,7 @@ open class BehandlingOgVedtakContext(
             personService = personService,
             navIdentClient = navIdentClient,
             clock = clock,
+            korrelasjon = MdcKorrelasjon(),
         )
     }
 
@@ -228,6 +230,7 @@ open class BehandlingOgVedtakContext(
             dokumentdistribusjonsklient = dokumentdistribusjonsklient,
             rammevedtakRepo = rammevedtakRepo,
             clock = clock,
+            korrelasjon = MdcKorrelasjon(),
         )
     }
 

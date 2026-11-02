@@ -24,15 +24,21 @@ import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.TexasAuthenticationProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
+import java.util.UUID
 
 const val CALL_ID_MDC_KEY = "call-id"
+private const val NAV_CALL_ID_HEADER = "Nav-Call-Id"
 
 fun Application.ktorSetup(
     applicationContext: ApplicationContext,
     readiness: Readiness,
     devRoutes: Route.(applicationContext: ApplicationContext) -> Unit = {},
 ) {
-    install(CallId)
+    // Gjenbruker Nav-Call-Id fra kalleren, slik at én forespørsel har samme call-id i loggene og i kallene videre.
+    install(CallId) {
+        retrieveFromHeader(NAV_CALL_ID_HEADER)
+        generate { UUID.randomUUID().toString() }
+    }
     install(CallLogging) {
         callIdMdc(CALL_ID_MDC_KEY)
         disableDefaultColors()

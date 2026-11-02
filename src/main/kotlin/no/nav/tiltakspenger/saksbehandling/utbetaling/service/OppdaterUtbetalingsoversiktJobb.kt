@@ -3,13 +3,13 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KLogger
 import io.micrometer.core.instrument.MeterRegistry
-import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.backoff.shouldRetry
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
+import no.nav.tiltakspenger.saksbehandling.felles.Korrelasjon
 import no.nav.tiltakspenger.saksbehandling.felles.loggFeil
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Avgrensningsårsak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.KunneIkkeHenteUtbetalingsoversikt
@@ -43,6 +43,7 @@ class OppdaterUtbetalingsoversiktJobb(
     private val limit: Int,
     private val logger: KLogger,
     private val sikkerlogg: Sikkerlogg,
+    private val korrelasjon: Korrelasjon,
 ) {
     /**
      * Oppdaterer sakene som er klare, og gjør ingenting når økonomisystemet er stengt.
@@ -119,46 +120,47 @@ class OppdaterUtbetalingsoversiktJobb(
         val grunnlag = Utbetalingsoversiktgrunnlag.forSak(sak)
         val oppslag = Oppslag.forGrunnlag(grunnlag, iDag = LocalDate.now(clock))
         val tidligereFeilPåRad = utbetalingsoversiktRepo.hentStatusForSak(sakId).antallFeilPåRad
-        val correlationId = CorrelationId.generate()
-        val kontekst = "sakId=${sak.id}, saksnummer=${sak.saksnummer}, correlationId=${correlationId.value}"
+        return korrelasjon.medNyCorrelationId { correlationId ->
+            val kontekst = "sakId=${sak.id}, saksnummer=${sak.saksnummer}, correlationId=${correlationId.value}"
 
-        return utbetalingsoversiktklient.hent(grunnlag, oppslag.periode, oppslag.periodetype, correlationId)
-            .onRight { svar ->
-                val hentet = svar.metadata.hentet()
-                val oversikt = Utbetalingsoversikt.Vellykket(
-                    id = UtbetalingsoversiktId.random(),
-                    sakId = sak.id,
-                    hentet = hentet,
-                    oppslag = oppslag,
-                    plan = Oppslagsplan.etterVellykketOppslag(
+            return@medNyCorrelationId utbetalingsoversiktklient.hent(grunnlag, oppslag.periode, oppslag.periodetype, correlationId)
+                .onRight { svar ->
+                    val hentet = svar.metadata.hentet()
+                    val oversikt = Utbetalingsoversikt.Vellykket(
+                        id = UtbetalingsoversiktId.random(),
+                        sakId = sak.id,
                         hentet = hentet,
-                        harNyligSendtUtbetaling = sak.utbetalinger.harOkUtbetalingSendtEtter(hentet.minusDays(30)),
-                    ),
-                    utbetalinger = svar.utbetalinger,
-                )
-                registrerMetrikker(resultat = "vellykket", metadata = svar.metadata)
-                registrerFjernedeYtelser(svar.avgrensning.fjernedeYtelserPerÅrsak)
-                utbetalingsoversiktRepo.lagre(oversikt, svar.tilUtbetalingsoversiktMetadata(correlationId))
-                logger.info {
-                    "Hentet utbetalingsoversikt. $kontekst, antallUtbetalinger=${oversikt.utbetalinger.size}, antallMottatt=${svar.avgrensning.antallUtbetalingerMottatt}, " +
-                        "antallYtelserMottatt=${svar.avgrensning.antallYtelserMottatt}, fjernedeYtelserPerÅrsak=${svar.avgrensning.fjernedeYtelserPerÅrsak}, nesteOppslag=${oversikt.plan.nesteOppslag}."
+                        oppslag = oppslag,
+                        plan = Oppslagsplan.etterVellykketOppslag(
+                            hentet = hentet,
+                            harNyligSendtUtbetaling = sak.utbetalinger.harOkUtbetalingSendtEtter(hentet.minusDays(30)),
+                        ),
+                        utbetalinger = svar.utbetalinger,
+                    )
+                    registrerMetrikker(resultat = "vellykket", metadata = svar.metadata)
+                    registrerFjernedeYtelser(svar.avgrensning.fjernedeYtelserPerÅrsak)
+                    utbetalingsoversiktRepo.lagre(oversikt, svar.tilUtbetalingsoversiktMetadata(correlationId))
+                    logger.info {
+                        "Hentet utbetalingsoversikt. $kontekst, antallUtbetalinger=${oversikt.utbetalinger.size}, antallMottatt=${svar.avgrensning.antallUtbetalingerMottatt}, " +
+                            "antallYtelserMottatt=${svar.avgrensning.antallYtelserMottatt}, fjernedeYtelserPerÅrsak=${svar.avgrensning.fjernedeYtelserPerÅrsak}, nesteOppslag=${oversikt.plan.nesteOppslag}."
+                    }
                 }
-            }
-            .onLeft { feil ->
-                val hentet = feil.metadata.hentet()
-                val oversikt = Utbetalingsoversikt.Feilet(
-                    id = UtbetalingsoversiktId.random(),
-                    sakId = sak.id,
-                    hentet = hentet,
-                    oppslag = oppslag,
-                    plan = Oppslagsplan.etterFeiletOppslag(hentet = hentet, tidligereFeilPåRad = tidligereFeilPåRad, clock = clock),
-                    feiltype = feil.feiltype,
-                )
-                registrerMetrikker(resultat = feil.feiltype.tilMetrikkverdi(), metadata = feil.metadata)
-                utbetalingsoversiktRepo.lagre(oversikt, feil.metadata.tilUtbetalingsoversiktMetadata(correlationId))
-                feil.loggFeil(logger, sikkerlogg, "$kontekst, nesteOppslag=${oversikt.plan.nesteOppslag}")
-            }
-            .map { }
+                .onLeft { feil ->
+                    val hentet = feil.metadata.hentet()
+                    val oversikt = Utbetalingsoversikt.Feilet(
+                        id = UtbetalingsoversiktId.random(),
+                        sakId = sak.id,
+                        hentet = hentet,
+                        oppslag = oppslag,
+                        plan = Oppslagsplan.etterFeiletOppslag(hentet = hentet, tidligereFeilPåRad = tidligereFeilPåRad, clock = clock),
+                        feiltype = feil.feiltype,
+                    )
+                    registrerMetrikker(resultat = feil.feiltype.tilMetrikkverdi(), metadata = feil.metadata)
+                    utbetalingsoversiktRepo.lagre(oversikt, feil.metadata.tilUtbetalingsoversiktMetadata(correlationId))
+                    feil.loggFeil(logger, sikkerlogg, "$kontekst, nesteOppslag=${oversikt.plan.nesteOppslag}")
+                }
+                .map { }
+        }
     }
 
     private fun HttpKlientMetadata.hentet() = tidsstempler.responsMottatt ?: nå(clock)

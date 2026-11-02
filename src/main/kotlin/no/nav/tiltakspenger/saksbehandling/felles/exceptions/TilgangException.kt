@@ -13,14 +13,16 @@ import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 class TilgangException(
     private val tilgangsnektårsak: Tilgangsnektårsak,
     message: String,
+    private val brukermelding: String? = null,
 ) : RuntimeException(message) {
     constructor(
         tilgangsnektårsak: Tilgangsnektårsak,
         saksbehandler: Saksbehandler,
         krevRolle: Saksbehandlerrolle,
     ) : this(
-        tilgangsnektårsak,
-        "Saksbehandler ${saksbehandler.navIdent} mangler rollen $krevRolle. Saksbehandlers roller: ${saksbehandler.roller}",
+        tilgangsnektårsak = tilgangsnektårsak,
+        message = "Saksbehandler ${saksbehandler.navIdent} mangler rollen $krevRolle. Har rollene: ${saksbehandler.roller.tilLoggtekst()}.",
+        brukermelding = "Du mangler rollen ${krevRolle.tilVisningsnavn()}, som kreves for denne handlingen.",
     )
 
     constructor(
@@ -40,8 +42,9 @@ class TilgangException(
         saksbehandler: Saksbehandler,
         krevEnAvRollene: List<Saksbehandlerrolle>,
     ) : this(
-        tilgangsnektårsak,
-        "Saksbehandler ${saksbehandler.navIdent} mangler en av rollene $krevEnAvRollene. Saksbehandlers roller: ${saksbehandler.roller}",
+        tilgangsnektårsak = tilgangsnektårsak,
+        message = "Saksbehandler ${saksbehandler.navIdent} mangler en av rollene $krevEnAvRollene. Har rollene: ${saksbehandler.roller.tilLoggtekst()}.",
+        brukermelding = "Du mangler en av rollene ${krevEnAvRollene.tilVisningsliste()}, som kreves for denne handlingen.",
     )
 
     // Denne er helt sikkert på feil sted :)
@@ -82,7 +85,7 @@ class TilgangException(
         )
 
         Tilgangsnektårsak.KREV_ROLLEN -> ErrorJson(
-            this.message ?: "Du har ikke tilgang til denne handlingen fordi du krever nødvendig rolle.",
+            brukermelding ?: "Du mangler en rolle som kreves for denne handlingen.",
             "tilgang_nektet_krev_rolle",
         )
 
@@ -92,6 +95,16 @@ class TilgangException(
         )
     }
 }
+
+private fun Saksbehandlerrolle.tilVisningsnavn(): String = name.lowercase().replace("_", " ")
+
+/** Gir «a, b eller c», slik at lista leses likt uansett hvor mange roller den har. */
+private fun List<Saksbehandlerrolle>.tilVisningsliste(): String {
+    val navn = map { it.tilVisningsnavn() }
+    return if (navn.size <= 1) navn.joinToString() else "${navn.dropLast(1).joinToString()} eller ${navn.last()}"
+}
+
+private fun Saksbehandlerroller.tilLoggtekst(): String = toList().joinToString(prefix = "[", postfix = "]")
 
 enum class Tilgangsnektårsak {
     KODE_6,

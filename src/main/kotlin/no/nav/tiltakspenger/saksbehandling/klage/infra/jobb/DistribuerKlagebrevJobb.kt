@@ -3,10 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.jobb
 import arrow.core.Either
 import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
+import no.nav.tiltakspenger.saksbehandling.felles.Korrelasjon
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
@@ -22,6 +22,7 @@ class DistribuerKlagebrevJobb(
     private val klagevedtakRepo: KlagevedtakRepo,
     private val klagebehandlingRepo: KlagebehandlingRepo,
     private val clock: Clock,
+    private val korrelasjon: Korrelasjon,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -46,23 +47,24 @@ class DistribuerKlagebrevJobb(
     }
 
     private suspend fun distribuerAvvisningsbrev(vedtakSomSkalDistribueres: VedtakSomSkalDistribueres) {
-        val correlationId = CorrelationId.generate()
-        log.info { "Prøver å distribuere journalpost for avvist klagevedtaksbrev. $vedtakSomSkalDistribueres" }
-        Either.catch {
-            val distribusjonId =
-                dokumentdistribusjonsklient.distribuerDokument(
-                    vedtakSomSkalDistribueres.journalpostId,
-                    correlationId,
-                )
-                    .getOrElse {
-                        log.error { "Kunne ikke distribuere avvist klagevedtaksbrev. $vedtakSomSkalDistribueres" }
-                        return
-                    }
-            log.info { "Avvist klagevedtaksbrev distribuert. $vedtakSomSkalDistribueres" }
-            klagevedtakRepo.markerDistribuert(vedtakSomSkalDistribueres.id, distribusjonId, nå(clock))
-            log.info { "Avvist klagevedtaksbrev markert som distribuert. distribusjonId: $distribusjonId, $vedtakSomSkalDistribueres" }
-        }.onLeft {
-            log.error(it) { "Feil ved distribuering av avvist klagevedtaksbrev. $vedtakSomSkalDistribueres" }
+        korrelasjon.medNyCorrelationId { correlationId ->
+            log.info { "Prøver å distribuere journalpost for avvist klagevedtaksbrev. $vedtakSomSkalDistribueres" }
+            Either.catch {
+                val distribusjonId =
+                    dokumentdistribusjonsklient.distribuerDokument(
+                        vedtakSomSkalDistribueres.journalpostId,
+                        correlationId,
+                    )
+                        .getOrElse {
+                            log.error { "Kunne ikke distribuere avvist klagevedtaksbrev. $vedtakSomSkalDistribueres" }
+                            return@medNyCorrelationId
+                        }
+                log.info { "Avvist klagevedtaksbrev distribuert. $vedtakSomSkalDistribueres" }
+                klagevedtakRepo.markerDistribuert(vedtakSomSkalDistribueres.id, distribusjonId, nå(clock))
+                log.info { "Avvist klagevedtaksbrev markert som distribuert. distribusjonId: $distribusjonId, $vedtakSomSkalDistribueres" }
+            }.onLeft {
+                log.error(it) { "Feil ved distribuering av avvist klagevedtaksbrev. $vedtakSomSkalDistribueres" }
+            }
         }
     }
 
@@ -94,28 +96,29 @@ class DistribuerKlagebrevJobb(
     }
 
     private suspend fun distribuerInnstillingsbrev(behandlingSomSkalDistribueres: Klagebehandling) {
-        val correlationId = CorrelationId.generate()
-        val journalpostId: JournalpostId =
-            (behandlingSomSkalDistribueres.resultat as Klagebehandlingsresultat.Opprettholdt).journalpostIdInnstillingsbrev!!
-        val kontekstTilLog =
-            "sakId: ${behandlingSomSkalDistribueres.sakId}, saksnummer: ${behandlingSomSkalDistribueres.saksnummer}, klagebehandlingId: ${behandlingSomSkalDistribueres.id}, journalpostId: $journalpostId"
-        log.info { "Prøver å distribuere innstillingsbrev. $kontekstTilLog" }
-        Either.catch {
-            val distribusjonId =
-                dokumentdistribusjonsklient.distribuerDokument(journalpostId, correlationId).getOrElse {
-                    log.error { "Kunne ikke distribuere innstillingsbrev. Underliggende feil: $it. $kontekstTilLog" }
-                    return
-                }
-            log.info { "Innstillingsbrev distribuert. distribusjonId: $distribusjonId, $kontekstTilLog" }
-            klagebehandlingRepo.lagreKlagebehandling(
-                klagebehandling = behandlingSomSkalDistribueres.oppdaterInnstillingsbrevDistribusjon(
-                    distribusjonId = distribusjonId,
-                    tidspunkt = nå(clock),
-                ),
-            )
-            log.info { "Innstillingsbrev markert som distribuert. distribusjonId: $distribusjonId, $kontekstTilLog" }
-        }.onLeft {
-            log.error(it) { "Feil ved distribuering av innstillingsbrev. $kontekstTilLog" }
+        korrelasjon.medNyCorrelationId { correlationId ->
+            val journalpostId: JournalpostId =
+                (behandlingSomSkalDistribueres.resultat as Klagebehandlingsresultat.Opprettholdt).journalpostIdInnstillingsbrev!!
+            val kontekstTilLog =
+                "sakId: ${behandlingSomSkalDistribueres.sakId}, saksnummer: ${behandlingSomSkalDistribueres.saksnummer}, klagebehandlingId: ${behandlingSomSkalDistribueres.id}, journalpostId: $journalpostId"
+            log.info { "Prøver å distribuere innstillingsbrev. $kontekstTilLog" }
+            Either.catch {
+                val distribusjonId =
+                    dokumentdistribusjonsklient.distribuerDokument(journalpostId, correlationId).getOrElse {
+                        log.error { "Kunne ikke distribuere innstillingsbrev. Underliggende feil: $it. $kontekstTilLog" }
+                        return@medNyCorrelationId
+                    }
+                log.info { "Innstillingsbrev distribuert. distribusjonId: $distribusjonId, $kontekstTilLog" }
+                klagebehandlingRepo.lagreKlagebehandling(
+                    klagebehandling = behandlingSomSkalDistribueres.oppdaterInnstillingsbrevDistribusjon(
+                        distribusjonId = distribusjonId,
+                        tidspunkt = nå(clock),
+                    ),
+                )
+                log.info { "Innstillingsbrev markert som distribuert. distribusjonId: $distribusjonId, $kontekstTilLog" }
+            }.onLeft {
+                log.error(it) { "Feil ved distribuering av innstillingsbrev. $kontekstTilLog" }
+            }
         }
     }
 
@@ -130,29 +133,30 @@ class DistribuerKlagebrevJobb(
     }
 
     private suspend fun distribuerForvaltningsmelding(klagebehandling: Klagebehandling) {
-        val correlationId = CorrelationId.generate()
-        val forvaltningsmelding = klagebehandling.forvaltningsmelding!!
-        val journalpostId: JournalpostId = forvaltningsmelding.journalpostId!!
-        val kontekstTilLog =
-            "sakId: ${klagebehandling.sakId}, saksnummer: ${klagebehandling.saksnummer}, klagebehandlingId: ${klagebehandling.id}, journalpostId: $journalpostId"
-        log.info { "Prøver å distribuere forvaltningsmelding for klage. $kontekstTilLog" }
-        Either.catch {
-            val distribusjonId =
-                dokumentdistribusjonsklient.distribuerDokument(journalpostId, correlationId).getOrElse {
-                    log.error { "Kunne ikke distribuere forvaltningsmelding for klage. Underliggende feil: $it. $kontekstTilLog" }
-                    return
-                }
-            log.info { "Forvaltningsmelding for klage distribuert. distribusjonId: $distribusjonId, $kontekstTilLog" }
-            klagebehandlingRepo.markerForvaltningsmeldingDistribuert(
-                klagebehandlingId = klagebehandling.id,
-                forvaltningsmelding = forvaltningsmelding.oppdaterDistribusjon(
-                    distribusjonId = distribusjonId,
-                    tidspunkt = nå(clock),
-                ),
-            )
-            log.info { "Forvaltningsmelding for klage markert som distribuert. distribusjonId: $distribusjonId, $kontekstTilLog" }
-        }.onLeft {
-            log.error(it) { "Feil ved distribuering av forvaltningsmelding for klage. $kontekstTilLog" }
+        korrelasjon.medNyCorrelationId { correlationId ->
+            val forvaltningsmelding = klagebehandling.forvaltningsmelding!!
+            val journalpostId: JournalpostId = forvaltningsmelding.journalpostId!!
+            val kontekstTilLog =
+                "sakId: ${klagebehandling.sakId}, saksnummer: ${klagebehandling.saksnummer}, klagebehandlingId: ${klagebehandling.id}, journalpostId: $journalpostId"
+            log.info { "Prøver å distribuere forvaltningsmelding for klage. $kontekstTilLog" }
+            Either.catch {
+                val distribusjonId =
+                    dokumentdistribusjonsklient.distribuerDokument(journalpostId, correlationId).getOrElse {
+                        log.error { "Kunne ikke distribuere forvaltningsmelding for klage. Underliggende feil: $it. $kontekstTilLog" }
+                        return@medNyCorrelationId
+                    }
+                log.info { "Forvaltningsmelding for klage distribuert. distribusjonId: $distribusjonId, $kontekstTilLog" }
+                klagebehandlingRepo.markerForvaltningsmeldingDistribuert(
+                    klagebehandlingId = klagebehandling.id,
+                    forvaltningsmelding = forvaltningsmelding.oppdaterDistribusjon(
+                        distribusjonId = distribusjonId,
+                        tidspunkt = nå(clock),
+                    ),
+                )
+                log.info { "Forvaltningsmelding for klage markert som distribuert. distribusjonId: $distribusjonId, $kontekstTilLog" }
+            }.onLeft {
+                log.error(it) { "Feil ved distribuering av forvaltningsmelding for klage. $kontekstTilLog" }
+            }
         }
     }
 }

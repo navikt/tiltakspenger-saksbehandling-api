@@ -6,9 +6,9 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasIntrospectionResponse
+import no.nav.tiltakspenger.saksbehandling.auth.infra.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerrolle
-import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import java.time.Clock
 import java.time.Instant
 

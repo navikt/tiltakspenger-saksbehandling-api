@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
+import no.nav.tiltakspenger.saksbehandling.infra.setup.MdcKorrelasjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.GenererVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.JournalførMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
@@ -100,6 +101,7 @@ open class UtbetalingContext(
             statistikkService = statistikkService,
             sessionFactory = sessionFactory,
             clock = clock,
+            korrelasjon = MdcKorrelasjon(),
         )
     }
     val journalførMeldekortvedtakService by lazy {
@@ -111,6 +113,7 @@ open class UtbetalingContext(
             personService = personService,
             sakRepo = sakRepo,
             clock = clock,
+            korrelasjon = MdcKorrelasjon(),
         )
     }
 
@@ -133,6 +136,7 @@ open class UtbetalingContext(
             limit = if (erDev) 2 else 10,
             logger = KotlinLogging.logger(OppdaterUtbetalingsoversiktJobb::class.java.name),
             sikkerlogg = Sikkerlogg,
+            korrelasjon = MdcKorrelasjon(),
         )
     }
 }

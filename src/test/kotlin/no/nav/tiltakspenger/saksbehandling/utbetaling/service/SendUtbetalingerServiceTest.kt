@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.persistering.test.common.TestSessionFactory
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
+import no.nav.tiltakspenger.saksbehandling.infra.setup.MdcKorrelasjon
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelse
@@ -39,6 +40,7 @@ class SendUtbetalingerServiceTest {
         statistikkService = statistikkService,
         sessionFactory = TestSessionFactory(),
         clock = fixedClock,
+        korrelasjon = MdcKorrelasjon(),
     )
 
     init {

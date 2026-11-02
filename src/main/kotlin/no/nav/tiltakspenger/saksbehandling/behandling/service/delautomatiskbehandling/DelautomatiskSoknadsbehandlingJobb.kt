@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbeha
 
 import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.nå
@@ -11,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService
+import no.nav.tiltakspenger.saksbehandling.felles.Korrelasjon
 import java.time.Clock
 
 class DelautomatiskSoknadsbehandlingJobb(
@@ -20,6 +20,7 @@ class DelautomatiskSoknadsbehandlingJobb(
     private val delautomatiskBehandlingService: DelautomatiskBehandlingService,
     private val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
     private val clock: Clock,
+    private val korrelasjon: Korrelasjon,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -30,20 +31,21 @@ class DelautomatiskSoknadsbehandlingJobb(
     }
 
     suspend fun opprettSøknadsbehandlingForSøknad(søknadId: SøknadId) {
-        val correlationId = CorrelationId.generate()
-        try {
-            val søknad = søknadRepo.hentUbehandletSøknad(søknadId)
-            if (søknad == null) {
-                log.info { "Søknad med id $søknadId er ikke lenger ubehandlet, oppretter ikke automatisk behandling" }
-                return
+        korrelasjon.medNyCorrelationId { correlationId ->
+            try {
+                val søknad = søknadRepo.hentUbehandletSøknad(søknadId)
+                if (søknad == null) {
+                    log.info { "Søknad med id $søknadId er ikke lenger ubehandlet, oppretter ikke automatisk behandling" }
+                    return@medNyCorrelationId
+                }
+                log.info { "Oppretter automatisk behandling for søknad med id $søknadId, correlationId $correlationId" }
+                // Servicen logger selv ved Left, så vi hopper bare videre til neste søknad.
+                val behandling = startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(søknad, correlationId)
+                    .getOrElse { return@medNyCorrelationId }
+                log.info { "Opprettet behandling med id ${behandling.id} for søknad med id $søknadId, correlationId $correlationId" }
+            } catch (e: Exception) {
+                log.error(e) { "Noe gikk galt ved oppretting av automatisk behandling for søknad med id $søknadId, correlationId $correlationId" }
             }
-            log.info { "Oppretter automatisk behandling for søknad med id $søknadId, correlationId $correlationId" }
-            // Servicen logger selv ved Left, så vi hopper bare videre til neste søknad.
-            val behandling = startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(søknad, correlationId)
-                .getOrElse { return }
-            log.info { "Opprettet behandling med id ${behandling.id} for søknad med id $søknadId, correlationId $correlationId" }
-        } catch (e: Exception) {
-            log.error(e) { "Noe gikk galt ved oppretting av automatisk behandling for søknad med id $søknadId, correlationId $correlationId" }
         }
     }
 
@@ -54,32 +56,33 @@ class DelautomatiskSoknadsbehandlingJobb(
     }
 
     suspend fun automatiskBehandleSøknadsbehandling(behandlingId: RammebehandlingId) {
-        val correlationId = CorrelationId.generate()
-        try {
-            val behandling = rammebehandlingRepo.hent(behandlingId)
-            if (behandling !is Søknadsbehandling || !behandling.erUnderAutomatiskBehandling) {
-                log.info { "Behandling med id $behandlingId er ikke lenger under automatisk behandling, hopper over" }
-                return
-            }
-            val venterTil = behandling.venterTil
-            if (venterTil != null && venterTil >= nå(clock)) {
-                log.info { "Behandling med id $behandlingId venter til $venterTil, hopper over" }
-                return
-            }
-            log.info { "Starter behandling med id ${behandling.id} for søknad med id ${behandling.søknad.id}, correlationId $correlationId" }
-            if (behandling.ventestatus.erSattPåVent) {
-                log.info { "Oppdaterer saksopplysninger for behandling med id ${behandling.id}, correlationId $correlationId" }
-                val (_, oppdatertBehandling) = oppdaterSaksopplysningerService.oppdaterSaksopplysninger(behandling.sakId, behandling.id, AUTOMATISK_SAKSBEHANDLER, correlationId).getOrElse {
-                    log.error { "Kunne ikke oppdatere saksopplysninger for behandling med id ${behandling.id}" }
-                    throw IllegalStateException("Kunne ikke oppdatere saksopplysninger")
+        korrelasjon.medNyCorrelationId { correlationId ->
+            try {
+                val behandling = rammebehandlingRepo.hent(behandlingId)
+                if (behandling !is Søknadsbehandling || !behandling.erUnderAutomatiskBehandling) {
+                    log.info { "Behandling med id $behandlingId er ikke lenger under automatisk behandling, hopper over" }
+                    return@medNyCorrelationId
                 }
-                delautomatiskBehandlingService.behandleAutomatisk(oppdatertBehandling as Søknadsbehandling, correlationId)
-            } else {
-                delautomatiskBehandlingService.behandleAutomatisk(behandling, correlationId)
+                val venterTil = behandling.venterTil
+                if (venterTil != null && venterTil >= nå(clock)) {
+                    log.info { "Behandling med id $behandlingId venter til $venterTil, hopper over" }
+                    return@medNyCorrelationId
+                }
+                log.info { "Starter behandling med id ${behandling.id} for søknad med id ${behandling.søknad.id}, correlationId $correlationId" }
+                if (behandling.ventestatus.erSattPåVent) {
+                    log.info { "Oppdaterer saksopplysninger for behandling med id ${behandling.id}, correlationId $correlationId" }
+                    val (_, oppdatertBehandling) = oppdaterSaksopplysningerService.oppdaterSaksopplysninger(behandling.sakId, behandling.id, AUTOMATISK_SAKSBEHANDLER, correlationId).getOrElse {
+                        log.error { "Kunne ikke oppdatere saksopplysninger for behandling med id ${behandling.id}" }
+                        throw IllegalStateException("Kunne ikke oppdatere saksopplysninger")
+                    }
+                    delautomatiskBehandlingService.behandleAutomatisk(oppdatertBehandling as Søknadsbehandling, correlationId)
+                } else {
+                    delautomatiskBehandlingService.behandleAutomatisk(behandling, correlationId)
+                }
+                log.info { "Ferdig med å behandle søknad med id ${behandling.søknad.id} og behandlingsid ${behandling.id}, correlationId $correlationId" }
+            } catch (e: Exception) {
+                log.error(e) { "Noe gikk galt ved automatisk behandling av behandling med id $behandlingId, correlationId $correlationId" }
             }
-            log.info { "Ferdig med å behandle søknad med id ${behandling.søknad.id} og behandlingsid ${behandling.id}, correlationId $correlationId" }
-        } catch (e: Exception) {
-            log.error(e) { "Noe gikk galt ved automatisk behandling av behandling med id $behandlingId, correlationId $correlationId" }
         }
     }
 }

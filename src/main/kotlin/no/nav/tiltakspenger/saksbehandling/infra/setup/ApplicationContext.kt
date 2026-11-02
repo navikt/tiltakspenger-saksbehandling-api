@@ -238,6 +238,7 @@ open class ApplicationContext(
             tiltaksdeltakerHendelseRepo = tiltaksdeltakerHendelseRepo,
             sessionFactory = sessionFactory,
             clock = clock,
+            korrelasjon = MdcKorrelasjon(),
         )
     }
 
@@ -372,6 +373,7 @@ open class ApplicationContext(
             delautomatiskBehandlingService = behandlingContext.delautomatiskBehandlingService,
             oppdaterSaksopplysningerService = behandlingContext.oppdaterSaksopplysningerService,
             clock = clock,
+            korrelasjon = MdcKorrelasjon(),
         )
     }
 
@@ -381,6 +383,7 @@ open class ApplicationContext(
             delautomatiskStansService = behandlingContext.delautomatiskStansService,
             delautomatiskForlengelseService = behandlingContext.delautomatiskForlengelseService,
             delautomatiskOmgjøringService = behandlingContext.delautomatiskOmgjøringService,
+            korrelasjon = MdcKorrelasjon(),
         )
     }
 
@@ -548,6 +551,7 @@ open class ApplicationContext(
             meldekortvedtakRepo = utbetalingContext.meldekortvedtakRepo,
             datadelingClient = datadelingKlient,
             clock = clock,
+            korrelasjon = MdcKorrelasjon(),
         )
     }
 
@@ -580,6 +584,7 @@ open class ApplicationContext(
             personService = personContext.personService,
             navIdentClient = personContext.navIdentClient,
             clock = clock,
+            korrelasjon = MdcKorrelasjon(),
         )
     }
 
