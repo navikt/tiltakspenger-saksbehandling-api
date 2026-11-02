@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse
 import no.nav.tiltakspenger.libs.periode.LukketEllerÅpenPeriode
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.ÅpenPeriode
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.felles.krevLukketNårBeggeDatoeneErKjent
 import no.nav.tiltakspenger.saksbehandling.felles.lukketPeriode
 
@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.lukketPeriode
  * Dette er tiltaksdeltakelseIDen og vil kun være forskjellig avhengig om den kommer fra Arena (TA1234567), Komet (UUID) eller team Tiltak (UUID).
  * Kalles ekstern_id i databasen.
  * @param typeNavn Navn på tiltakstypen, f.eks. "Arbeidsforberedende trening"
- * @param typeKode null dersom tiltakstypen fratar rett til tiltakspenger (i første omgang lønnstilskudd).
+ * @param tiltakstype null dersom tiltakstypen fratar rett til tiltakspenger (i første omgang lønnstilskudd).
  * Slike deltakelser vises til saksbehandler, men kan ikke velges.
  * @param tiltakskodeFraKilden tiltakskoden slik kilden oppga den, f.eks. Arenas `ARBFORB` eller Komets `ARBEIDSFORBEREDENDE_TRENING`.
  * @param periode en [Periode] når både start- og sluttdato er kjent, ellers en [ÅpenPeriode].
@@ -26,7 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.lukketPeriode
 data class TiltaksdeltakelseMedArrangørnavn(
     val eksternDeltakelseId: String,
     val typeNavn: String,
-    val typeKode: TiltakstypeSomGirRettDTO?,
+    val tiltakstype: TiltakstypeSomGirRett?,
     val tiltakskodeFraKilden: String,
     val periode: LukketEllerÅpenPeriode,
     val visningsnavn: String,
@@ -36,7 +36,7 @@ data class TiltaksdeltakelseMedArrangørnavn(
         periode.krevLukketNårBeggeDatoeneErKjent()
     }
 
-    val fratarRett: Boolean get() = typeKode == null
+    val fratarRett: Boolean get() = tiltakstype == null
 
     /**
      * null dersom start- eller sluttdato mangler.

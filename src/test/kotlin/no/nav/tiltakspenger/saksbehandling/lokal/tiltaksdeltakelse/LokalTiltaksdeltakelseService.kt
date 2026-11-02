@@ -9,8 +9,8 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import no.nav.tiltakspenger.saksbehandling.lokal.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeLokalKlient
@@ -95,7 +95,7 @@ class LokalTiltaksdeltakelseService(
     ): Either<KunneIkkeLagreLokalTiltaksdeltakelse, LagretLokalTiltaksdeltakelse> {
         val fnr = sakRepo.hentFnrForSakId(sakId) ?: return KunneIkkeLagreLokalTiltaksdeltakelse.FantIkkeSak.left()
         val tiltakskode = command.tiltakskode ?: return KunneIkkeLagreLokalTiltaksdeltakelse.ManglerTiltakstype.left()
-        val tiltakstypeSomGirRett = TiltakstypeSomGirRettDTO.entries.find { it.name == tiltakskode }
+        val tiltakstypeSomGirRett = TiltakstypeSomGirRett.entries.find { it.name == tiltakskode }
         if (tiltakstypeSomGirRett == null && tiltakskode !in koderSomFratarRett) {
             return KunneIkkeLagreLokalTiltaksdeltakelse.UkjentTiltakstype(tiltakskode).left()
         }
@@ -112,7 +112,7 @@ class LokalTiltaksdeltakelseService(
                     eksternDeltakelseId = eksternId,
                     gjennomføringId = null,
                     typeNavn = command.typeNavn ?: tiltakstypeSomGirRett.tilTiltakstypeDTO().navn,
-                    typeKode = tiltakstypeSomGirRett,
+                    tiltakstype = tiltakstypeSomGirRett,
                     rettPåTiltakspenger = true,
                     periode = lukketEllerÅpenPeriode(command.fraOgMed, command.tilOgMed),
                     deltakelseStatus = command.status ?: TiltakDeltakerstatus.Deltar,
@@ -146,7 +146,7 @@ class LokalTiltaksdeltakelseService(
                     ny.deltakelse.copy(
                         internDeltakelseId = tiltaksdeltakerRepo.hentEllerLagre(
                             eksternId = eksternId,
-                            tiltakskode = ny.deltakelse.typeKode.tilTiltakstypeDTO().name,
+                            tiltakskode = ny.deltakelse.tiltakstype.tilTiltakstypeDTO().name,
                             sakId = sakId,
                             sessionContext = tx,
                         ),
@@ -233,7 +233,7 @@ class LokalTiltaksdeltakelseService(
  * Uten en eksisterende deltakelse på [eksternDeltakelseId] opprettes en ny på [sakId], og da er [tiltakskode] påkrevd.
  * [tiltakskode] og [kilde] kan ikke endres på en eksisterende deltakelse.
  *
- * @param tiltakskode navnet på en [TiltakstypeSomGirRettDTO] eller kildens kode for en tiltakstype som fratar rett, f.eks. `MIDLONTIL`.
+ * @param tiltakskode navnet på en [TiltakstypeSomGirRett] eller kildens kode for en tiltakstype som fratar rett, f.eks. `MIDLONTIL`.
  */
 data class OpprettEllerOppdaterLokalTiltaksdeltakelseCommand(
     val eksternDeltakelseId: String?,

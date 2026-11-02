@@ -52,7 +52,7 @@ class TiltaksdeltakerConsumerTest {
             tac.tiltakContext.tiltaksdeltakerRepo.lagre(
                 id = tiltaksdeltakelse.internDeltakelseId,
                 eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-                tiltakskode = tiltaksdeltakelse.typeKode.tilTiltakstypeDTO().name,
+                tiltakskode = tiltaksdeltakelse.tiltakstype.tilTiltakstypeDTO().name,
                 sakId = sakId,
             )
 
@@ -167,7 +167,7 @@ class TiltaksdeltakerConsumerTest {
             tac.tiltakContext.tiltaksdeltakerRepo.lagre(
                 id = tiltaksdeltakelse.internDeltakelseId,
                 eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-                tiltakskode = tiltaksdeltakelse.typeKode.tilTiltakstypeDTO().name,
+                tiltakskode = tiltaksdeltakelse.tiltakstype.tilTiltakstypeDTO().name,
                 sakId = sakId,
             )
 
@@ -241,7 +241,7 @@ class TiltaksdeltakerConsumerTest {
             tac.tiltakContext.tiltaksdeltakerRepo.lagre(
                 id = tiltaksdeltakelse.internDeltakelseId,
                 eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-                tiltakskode = tiltaksdeltakelse.typeKode.tilTiltakstypeDTO().name,
+                tiltakskode = tiltaksdeltakelse.tiltakstype.tilTiltakstypeDTO().name,
                 sakId = sakId,
             )
 

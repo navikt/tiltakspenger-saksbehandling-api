@@ -6,7 +6,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningId
@@ -39,7 +39,7 @@ import java.time.LocalDateTime
  */
 class BeregningDbJsonTest {
 
-    private val tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO
+    private val tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO
     private val meldekortId = MeldekortId.random()
     private val kjedeId = MeldeperiodeKjedeId("2025-01-06/2025-01-19")
 

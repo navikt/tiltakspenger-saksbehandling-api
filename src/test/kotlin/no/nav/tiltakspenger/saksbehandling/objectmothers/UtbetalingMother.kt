@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
@@ -88,7 +88,7 @@ interface UtbetalingMother : MotherOfAllMothers {
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(
             periode = Periode(startDato, startDato.plusDays(13)),
         ),
-        tiltakstype: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+        tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         maksDagerMedTiltakspengerForPeriode: Int = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
         barnetilleggsPerioder: Periodisering<AntallBarn>? = null,
         beregningDager: NonEmptyList<MeldeperiodeBeregningDag> = maksAntallDeltattTiltaksdagerIMeldekortperiode(

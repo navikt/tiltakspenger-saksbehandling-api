@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
@@ -165,7 +165,7 @@ class LocalApplicationContext(
         // Hadde det vært Arena som var master ville det vært eksempelvis TA6509186.
         eksternTiltaksdeltakelseId = "fa287e7-ddbb-44a2-9bfa-4da4661f8b6d",
         eksternTiltaksgjennomføringsId = "5667273f-784e-4521-89c3-75b0be8ee250",
-        typeKode = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+        tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
         typeNavn = "Arbeidsmarkedsoppfølging gruppe",
         fom = ObjectMother.vedtaksperiode().fraOgMed,
         tom = ObjectMother.vedtaksperiode().tilOgMed,
@@ -431,7 +431,7 @@ class LocalApplicationContext(
             tiltakContext.tiltaksdeltakerRepo.lagre(
                 id = it.tiltak.tiltaksdeltakerId,
                 eksternId = søknadstiltak.id,
-                tiltakskode = tiltaksdeltakelse.typeKode.tilTiltakstypeDTO().name,
+                tiltakskode = tiltaksdeltakelse.tiltakstype.tilTiltakstypeDTO().name,
                 sakId = sak.id,
             )
             søknadContext.søknadRepo.lagre(it)

@@ -46,7 +46,7 @@ class TiltaksdeltakelseFakeTestKlient : TiltaksdeltakelseKlient {
         val fratarRettMedArrangørnavn = (fratarRett.get()[fnr] ?: emptyList()).map {
             ObjectMother.tiltaksdeltakelseMedArrangørnavn(
                 eksternTiltaksdeltakelseId = it.id.verdi,
-                typeKode = null,
+                tiltakstype = null,
                 typeNavn = it.tiltakstypenavn,
                 fom = it.fraOgMed,
                 tom = it.tilOgMed,

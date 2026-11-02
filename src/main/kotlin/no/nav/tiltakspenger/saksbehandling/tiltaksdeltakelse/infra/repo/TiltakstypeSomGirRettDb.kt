@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 
 /**
- * @see [TiltakstypeSomGirRettDTO]
+ * @see [TiltakstypeSomGirRett]
  */
 enum class TiltakstypeSomGirRettDb {
     ARBEIDSFORBEREDENDE_TRENING,
@@ -30,9 +30,9 @@ enum class TiltakstypeSomGirRettDb {
     UTVIDET_OPPFØLGING_I_OPPLÆRING,
     ;
 
-    fun toDomain(): TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.valueOf(this.name)
+    fun toDomain(): TiltakstypeSomGirRett = TiltakstypeSomGirRett.valueOf(this.name)
 }
 
-fun TiltakstypeSomGirRettDTO.toDb(): String = this.name
+fun TiltakstypeSomGirRett.toDb(): String = this.name
 
-fun String.toTiltakstypeSomGirRett(): TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDb.valueOf(this).toDomain()
+fun String.toTiltakstypeSomGirRett(): TiltakstypeSomGirRett = TiltakstypeSomGirRettDb.valueOf(this).toDomain()

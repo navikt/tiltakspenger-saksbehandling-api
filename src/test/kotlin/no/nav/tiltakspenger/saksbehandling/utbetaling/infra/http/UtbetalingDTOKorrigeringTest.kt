@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
@@ -68,7 +68,7 @@ class UtbetalingDTOKorrigeringTest {
             dager = ObjectMother.maksAntallDeltattTiltaksdagerIMeldekortperiode(
                 startDato = førstePeriode.fraOgMed,
                 meldekortId = førsteMeldekortId,
-                tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
             ),
         )
 
@@ -81,27 +81,27 @@ class UtbetalingDTOKorrigeringTest {
             dager = ObjectMother.tiltaksdager(
                 startDato = førstePeriode.fraOgMed,
                 meldekortId = korrigertMeldekortId,
-                tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                 antallDager = 4,
             ).plus(
                 ObjectMother.ikkeTiltaksdager(
                     startDato = førstePeriode.fraOgMed.plusDays(4),
                     meldekortId = korrigertMeldekortId,
-                    tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 3,
                 ),
             ).plus(
                 ObjectMother.tiltaksdager(
                     startDato = førstePeriode.fraOgMed.plusDays(7),
                     meldekortId = korrigertMeldekortId,
-                    tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 4,
                 ),
             ).plus(
                 ObjectMother.ikkeTiltaksdager(
                     startDato = førstePeriode.fraOgMed.plusDays(11),
                     meldekortId = korrigertMeldekortId,
-                    tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 3,
                 ),
             ).toNonEmptyListOrNull()!!,
@@ -167,32 +167,32 @@ class UtbetalingDTOKorrigeringTest {
         val andrePeriodeDager = ObjectMother.maksAntallDeltattTiltaksdagerIMeldekortperiode(
             startDato = andrePeriode.fraOgMed,
             meldekortId = andreMeldekortId,
-            tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+            tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
         )
         val korrigerteDager = ObjectMother.tiltaksdager(
             startDato = førstePeriode.fraOgMed,
             meldekortId = korrigertMeldekortId,
-            tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+            tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
             antallDager = 4,
         ).plus(
             ObjectMother.ikkeTiltaksdager(
                 startDato = førstePeriode.fraOgMed.plusDays(4),
                 meldekortId = korrigertMeldekortId,
-                tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                 antallDager = 3,
             ),
         ).plus(
             ObjectMother.tiltaksdager(
                 startDato = førstePeriode.fraOgMed.plusDays(7),
                 meldekortId = korrigertMeldekortId,
-                tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                 antallDager = 4,
             ),
         ).plus(
             ObjectMother.ikkeTiltaksdager(
                 startDato = førstePeriode.fraOgMed.plusDays(11),
                 meldekortId = korrigertMeldekortId,
-                tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                 antallDager = 3,
             ),
         ).toNonEmptyListOrNull()!!
@@ -205,7 +205,7 @@ class UtbetalingDTOKorrigeringTest {
             dager = ObjectMother.maksAntallDeltattTiltaksdagerIMeldekortperiode(
                 startDato = førstePeriode.fraOgMed,
                 meldekortId = førsteMeldekortId,
-                tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
             ),
         )
 
@@ -316,7 +316,7 @@ class UtbetalingDTOKorrigeringTest {
             dager = ObjectMother.maksAntallDeltattTiltaksdagerIMeldekortperiode(
                 startDato = førstePeriode.fraOgMed,
                 meldekortId = førsteMeldekortId,
-                tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
             ),
         )
 
@@ -329,27 +329,27 @@ class UtbetalingDTOKorrigeringTest {
             dager = ObjectMother.tiltaksdager(
                 startDato = førstePeriode.fraOgMed,
                 meldekortId = korrigertMeldekortId,
-                tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                 antallDager = 5,
             ).plus(
                 ObjectMother.ikkeTiltaksdager(
                     startDato = førstePeriode.fraOgMed.plusDays(5),
                     meldekortId = korrigertMeldekortId,
-                    tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 2,
                 ),
             ).plus(
                 ObjectMother.tiltaksdagerMedLønn(
                     startDato = førstePeriode.fraOgMed.plusDays(7),
                     meldekortId = korrigertMeldekortId,
-                    tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 5,
                 ),
             ).plus(
                 ObjectMother.ikkeTiltaksdager(
                     startDato = førstePeriode.fraOgMed.plusDays(12),
                     meldekortId = korrigertMeldekortId,
-                    tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 2,
                 ),
             ).toNonEmptyListOrNull()!!,
@@ -406,7 +406,7 @@ class UtbetalingDTOKorrigeringTest {
             dager = ObjectMother.maksAntallDeltattTiltaksdagerIMeldekortperiode(
                 startDato = førstePeriode.fraOgMed,
                 meldekortId = førsteMeldekortId,
-                tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
             ),
         )
 
@@ -419,27 +419,27 @@ class UtbetalingDTOKorrigeringTest {
             dager = ObjectMother.tiltaksdagerMedLønn(
                 startDato = førstePeriode.fraOgMed,
                 meldekortId = korrigertMeldekortId,
-                tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                 antallDager = 5,
             ).plus(
                 ObjectMother.ikkeTiltaksdager(
                     startDato = førstePeriode.fraOgMed.plusDays(5),
                     meldekortId = korrigertMeldekortId,
-                    tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 2,
                 ),
             ).plus(
                 ObjectMother.tiltaksdagerMedLønn(
                     startDato = førstePeriode.fraOgMed.plusDays(7),
                     meldekortId = korrigertMeldekortId,
-                    tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 5,
                 ),
             ).plus(
                 ObjectMother.ikkeTiltaksdager(
                     startDato = førstePeriode.fraOgMed.plusDays(12),
                     meldekortId = korrigertMeldekortId,
-                    tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 2,
                 ),
             ).toNonEmptyListOrNull()!!,

@@ -9,7 +9,6 @@ import java.time.LocalDate
 
 data class TiltaksdeltakelseMedArrangørnavnDTO(
     val eksternDeltakelseId: String,
-    val typeKode: String?,
     val tiltakskodeFraKilden: String,
     val fratarRett: Boolean,
     val typeNavn: String,
@@ -26,7 +25,6 @@ fun TiltaksdeltakelseMedArrangørnavn.toDTO(): TiltaksdeltakelseMedArrangørnavn
     return TiltaksdeltakelseMedArrangørnavnDTO(
         eksternDeltakelseId = this.eksternDeltakelseId,
         typeNavn = this.typeNavn,
-        typeKode = this.typeKode?.name,
         tiltakskodeFraKilden = this.tiltakskodeFraKilden,
         fratarRett = this.fratarRett,
         deltakelseFraOgMed = this.periode.fraOgMed,

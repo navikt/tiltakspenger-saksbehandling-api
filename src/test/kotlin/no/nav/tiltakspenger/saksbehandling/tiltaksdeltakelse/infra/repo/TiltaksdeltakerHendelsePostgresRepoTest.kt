@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.ktor.server.testing.ApplicationTestBuilder
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testStatusOpprettet
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -105,7 +105,7 @@ class TiltaksdeltakerHendelsePostgresRepoTest {
                 tiltaksdeltakerHendelse = hendelse,
                 nåtilstand = ObjectMother.tiltaksdeltakelseTac(
                     eksternTiltaksdeltakelseId = "ekstern-id",
-                    typeKode = TiltakstypeSomGirRettDTO.ARBEIDSMARKEDSOPPLAERING,
+                    tiltakstype = TiltakstypeSomGirRett.ARBEIDSMARKEDSOPPLAERING,
                     typeNavn = "Arbeidsmarkedsopplæring",
                     eksternTiltaksgjennomføringsId = "gjennomføring-id",
                     fom = LocalDate.of(2026, 1, 1),

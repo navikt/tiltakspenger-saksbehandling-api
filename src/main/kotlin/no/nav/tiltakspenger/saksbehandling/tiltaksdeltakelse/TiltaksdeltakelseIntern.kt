@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.periode.LukketEllerÅpenPeriode
 import no.nav.tiltakspenger.libs.periode.Overlapp
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.ÅpenPeriode
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.felles.krevLukketNårBeggeDatoeneErKjent
 import no.nav.tiltakspenger.saksbehandling.felles.lukketPeriode
 import no.nav.tiltakspenger.saksbehandling.felles.overlapperMed
@@ -28,7 +28,7 @@ data class TiltaksdeltakelseIntern(
     val eksternDeltakelseId: String,
     val gjennomføringId: String?,
     val typeNavn: String,
-    val typeKode: TiltakstypeSomGirRettDTO,
+    val tiltakstype: TiltakstypeSomGirRett,
     val rettPåTiltakspenger: Boolean,
     val periode: LukketEllerÅpenPeriode,
     val deltakelseStatus: TiltakDeltakerstatus,

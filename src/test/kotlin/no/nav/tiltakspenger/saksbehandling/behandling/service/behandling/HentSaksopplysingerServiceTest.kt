@@ -965,7 +965,7 @@ class HentSaksopplysingerServiceTest {
             lagre(
                 id = tiltak.internDeltakelseId,
                 eksternId = tiltak.eksternDeltakelseId,
-                tiltakskode = tiltak.typeKode.tilTiltakstypeDTO().name,
+                tiltakskode = tiltak.tiltakstype.tilTiltakstypeDTO().name,
                 sakId = SakId.random(),
             )
         }

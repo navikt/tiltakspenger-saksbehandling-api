@@ -527,7 +527,7 @@ sealed class TestApplicationContext(
             tiltakContext.tiltaksdeltakerRepo.lagre(
                 id = tiltaksdeltakelse.internDeltakelseId,
                 eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-                tiltakskode = tiltaksdeltakelse.typeKode.tilTiltakstypeDTO().name,
+                tiltakskode = tiltaksdeltakelse.tiltakstype.tilTiltakstypeDTO().name,
                 // Alle kallsteder oppretter saken før personen legges til.
                 sakId = sakContext.sakRepo.hentForFnr(fnr)!!.id,
             )

@@ -178,7 +178,6 @@ fun String.shouldBeRevurderingDTO(
             "oppslagstidspunkt": "2025-01-01T01:02:52.456789",
             "tiltaksdeltagelse": [
               {
-                "typeKode": "GRUPPE_AMO",
                 "gjennomforingsprosent": null,
                 "eksternDeltagelseId": "$eksternDeltagelseId",
                 "gjennomføringId": "$eksternTiltaksgjennomføringsId",
@@ -301,7 +300,6 @@ fun String.shouldBeSøknadsbehandlingDTO(
             "oppslagstidspunkt": "2025-01-01T01:02:52.456789",
             "tiltaksdeltagelse": [
               {
-                "typeKode": "GRUPPE_AMO",
                 "gjennomforingsprosent": null,
                 "eksternDeltagelseId": "$eksternDeltagelseId",
                 "gjennomføringId": "$eksternTiltaksgjennomføringsId",

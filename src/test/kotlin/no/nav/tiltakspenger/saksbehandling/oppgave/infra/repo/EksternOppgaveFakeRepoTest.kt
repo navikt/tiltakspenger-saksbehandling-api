@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.oppgave.infra.repo
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgave
 import no.nav.tiltakspenger.saksbehandling.oppgave.LagretEksternOppgave
@@ -68,7 +68,7 @@ class EksternOppgaveFakeRepoTest {
             kilde = Kilde.Tiltakshistorikk(opprettet),
             verdi = ObjectMother.tiltaksdeltakelseTac(
                 eksternTiltaksdeltakelseId = UUID.randomUUID().toString(),
-                typeKode = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+                tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                 typeNavn = "Gruppe AMO",
                 fom = LocalDate.of(2026, 3, 17),
                 tom = LocalDate.of(2026, 6, 30),

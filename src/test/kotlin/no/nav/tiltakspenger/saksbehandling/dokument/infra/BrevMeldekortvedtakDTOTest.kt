@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
@@ -86,12 +86,12 @@ class BrevMeldekortvedtakDTOTest {
                     status = SammenligningAvBeregninger.ForrigeOgGjeldende(
                         forrige = MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket.create(
                             dato = 1.desember(2025),
-                            tiltakstype = TiltakstypeSomGirRettDTO.ARBEIDSFORBEREDENDE_TRENING,
+                            tiltakstype = TiltakstypeSomGirRett.ARBEIDSFORBEREDENDE_TRENING,
                             antallBarn = AntallBarn(5),
                         ),
                         gjeldende = MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav.create(
                             dato = 1.desember(2025),
-                            tiltakstype = TiltakstypeSomGirRettDTO.ARBEIDSTRENING,
+                            tiltakstype = TiltakstypeSomGirRett.ARBEIDSTRENING,
                             antallBarn = AntallBarn(3),
                         ),
                     ),

@@ -40,7 +40,7 @@ interface MottaSøknadRouteBuilder {
         tac.tiltakContext.tiltaksdeltakerRepo.lagre(
             id = tiltaksdeltakelse.internDeltakelseId,
             eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-            tiltakskode = tiltaksdeltakelse.typeKode.tilTiltakstypeDTO().name,
+            tiltakskode = tiltaksdeltakelse.tiltakstype.tilTiltakstypeDTO().name,
             sakId = sak.id,
         )
         mottaSøknad(tac, sak.fnr, saksnummer, søknadId, tiltaksdeltakelse, barnetillegg)
@@ -60,7 +60,7 @@ interface MottaSøknadRouteBuilder {
         tac.tiltakContext.tiltaksdeltakerRepo.lagre(
             id = tiltaksdeltakelse.internDeltakelseId,
             eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-            tiltakskode = tiltaksdeltakelse.typeKode.tilTiltakstypeDTO().name,
+            tiltakskode = tiltaksdeltakelse.tiltakstype.tilTiltakstypeDTO().name,
             sakId = sakId,
         )
         mottaSøknad(tac, fnr, saksnummer, søknadId, tiltaksdeltakelse, barnetillegg)
@@ -92,7 +92,7 @@ interface MottaSøknadRouteBuilder {
                 søknadId = søknadId.toString(),
                 clock = tac.clock,
                 tiltaksdeltakelse = tiltaksdeltakelse.toSøknadstiltak(),
-                tiltakstypekode = tiltaksdeltakelse.typeKode.tilTiltakstypeDTO().name,
+                tiltakstypekode = tiltaksdeltakelse.tiltakstype.tilTiltakstypeDTO().name,
                 barnetillegg = barnetillegg,
             ),
         ).apply {

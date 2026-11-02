@@ -2,12 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Arenastatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kildestatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kometstatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kometårsak
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
@@ -31,7 +31,7 @@ class TiltaksdeltakelseNåtilstandDbJsonTest {
         status: TiltakDeltakerstatus = TiltakDeltakerstatus.Deltar,
     ): TiltaksdeltakelseIntern = ObjectMother.tiltaksdeltakelseTac(
         eksternTiltaksdeltakelseId = "ekstern-id",
-        typeKode = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+        tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
         typeNavn = "Gruppe AMO",
         eksternTiltaksgjennomføringsId = "gjennomføring-id",
         fom = LocalDate.of(2026, 1, 1),

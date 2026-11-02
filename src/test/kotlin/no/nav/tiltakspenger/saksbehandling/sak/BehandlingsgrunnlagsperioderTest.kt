@@ -241,7 +241,7 @@ class BehandlingsgrunnlagsperioderTest {
               "eksternDeltakelseId": "$eksternDeltakelseId",
               "deltakelseFraOgMed": "${periode.fraOgMed}",
               "deltakelseTilOgMed": "${periode.tilOgMed}",
-              "tiltakskodeFraKilden": "${typeKode.tilTiltakstypeDTO().name}",
+              "tiltakskodeFraKilden": "${tiltakstype.tilTiltakstypeDTO().name}",
               "typeNavn": "$typeNavn"
             }
         """.trimIndent()

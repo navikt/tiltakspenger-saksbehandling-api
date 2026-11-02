@@ -8,9 +8,9 @@ import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakstype
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -47,7 +47,7 @@ class OppdaterRammebehandlingSaksopplysningerTest {
                     eksternDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.value.first().eksternDeltakelseId,
                     gjennomføringId = null,
                     typeNavn = "Testnavn",
-                    typeKode = TiltakstypeSomGirRettDTO.JOBBKLUBB,
+                    tiltakstype = TiltakstypeSomGirRett.JOBBKLUBB,
                     rettPåTiltakspenger = true,
                     periode = lukketEllerÅpenPeriode(behandling.saksopplysningsperiode!!.fraOgMed, behandling.saksopplysningsperiode!!.tilOgMed),
                     deltakelseStatus = TiltakDeltakerstatus.Deltar,

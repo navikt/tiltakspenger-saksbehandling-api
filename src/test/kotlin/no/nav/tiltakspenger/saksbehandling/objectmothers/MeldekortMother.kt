@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
@@ -111,7 +111,7 @@ interface MeldekortMother : MotherOfAllMothers {
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
         saksbehandler: String? = "saksbehandler",
         beslutter: String? = null,
-        tiltakstype: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+        tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         status: MeldekortbehandlingStatus = MeldekortbehandlingStatus.UNDER_BEHANDLING,
         navkontor: Navkontor = ObjectMother.navkontor(),
         opprettet: LocalDateTime = nå(clock),
@@ -267,7 +267,7 @@ interface MeldekortMother : MotherOfAllMothers {
         dager: UtfyltMeldeperiode = genererMeldekortdagerFraMeldeperiode(meldeperiode),
         saksbehandler: String = "saksbehandler",
         beslutter: String? = "beslutter",
-        tiltakstype: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+        tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         status: MeldekortbehandlingStatus = MeldekortbehandlingStatus.GODKJENT,
         iverksattTidspunkt: LocalDateTime? = nå(clock),
         navkontor: Navkontor = ObjectMother.navkontor(),
@@ -327,7 +327,7 @@ interface MeldekortMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         opprettet: LocalDateTime = nå(clock),
         barnetilleggsPerioder: Periodisering<AntallBarn>? = null,
-        tiltakstype: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+        tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         navkontor: Navkontor = ObjectMother.navkontor(),
         meldeperiode: Meldeperiode = meldeperiode(
             periode = Periode(6.januar(2025), 19.januar(2025)),
@@ -376,7 +376,7 @@ interface MeldekortMother : MotherOfAllMothers {
         clock: Clock = this@MeldekortMother.clock,
         opprettet: LocalDateTime = nå(clock),
         navkontor: Navkontor = ObjectMother.navkontor(),
-        tiltakstype: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+        tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         brukersMeldekort: BrukersMeldekort = brukersMeldekort(
             sakId = id,
             meldeperiode = meldeperiodeKjeder.hentMeldeperiode(periode)!!,
@@ -409,7 +409,7 @@ interface MeldekortMother : MotherOfAllMothers {
 
     fun BrukersMeldekort.tilMeldekortBeregning(
         meldekortbehandlingId: MeldekortId = MeldekortId.random(),
-        tiltakstype: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+        tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         barnetilleggsPerioder: Periodisering<AntallBarn>? = null,
         reduksjon: ReduksjonAvYtelsePåGrunnAvFravær = ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon,
         clock: Clock = fixedClock,
@@ -486,7 +486,7 @@ interface MeldekortMother : MotherOfAllMothers {
             Periode(startDato, startDato.plusDays(13)),
         ),
         meldekortId: MeldekortId = MeldekortId.random(),
-        tiltakstype: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+        tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         maksDagerMedTiltakspengerForPeriode: Int = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
         barnetilleggsPerioder: Periodisering<AntallBarn>? = null,
         beregningDager: NonEmptyList<MeldeperiodeBeregningDag> = maksAntallDeltattTiltaksdagerIMeldekortperiode(
@@ -515,7 +515,7 @@ interface MeldekortMother : MotherOfAllMothers {
     fun maksAntallDeltattTiltaksdagerIMeldekortperiode(
         startDato: LocalDate,
         meldekortId: MeldekortId,
-        tiltakstype: TiltakstypeSomGirRettDTO,
+        tiltakstype: TiltakstypeSomGirRett,
         barnetilleggsPerioder: Periodisering<AntallBarn>? = null,
     ): NonEmptyList<MeldeperiodeBeregningDag> {
         return (
@@ -539,7 +539,7 @@ interface MeldekortMother : MotherOfAllMothers {
     fun tiltaksdager(
         startDato: LocalDate,
         meldekortId: MeldekortId,
-        tiltakstype: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+        tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         antallDager: Int = 5,
         barnetilleggsPerioder: Periodisering<AntallBarn>? = null,
     ): NonEmptyList<DeltattUtenLønnITiltaket> {
@@ -559,7 +559,7 @@ interface MeldekortMother : MotherOfAllMothers {
     fun tiltaksdagerMedLønn(
         startDato: LocalDate,
         meldekortId: MeldekortId,
-        tiltakstype: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+        tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         antallDager: Int = 5,
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
     ): NonEmptyList<DeltattMedLønnITiltaket> {
@@ -580,7 +580,7 @@ interface MeldekortMother : MotherOfAllMothers {
         startDato: LocalDate,
         meldekortId: MeldekortId,
         antallDager: Int = 2,
-        tiltakstype: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+        tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
     ): NonEmptyList<IkkeDeltatt> {
         require(antallDager in 1..5) {

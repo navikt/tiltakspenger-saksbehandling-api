@@ -9,7 +9,6 @@ data class TiltaksdeltakelseDTO(
     val eksternDeltagelseId: String,
     val gjennomføringId: String?,
     val typeNavn: String,
-    val typeKode: String,
     @Deprecated("Bruk periode. Beholdes for kompatibilitet.")
     val deltagelseFraOgMed: LocalDate?,
     @Deprecated("Bruk periode. Beholdes for kompatibilitet.")
@@ -29,7 +28,6 @@ fun TiltaksdeltakelseIntern.toDTO(): TiltaksdeltakelseDTO {
         eksternDeltagelseId = this.eksternDeltakelseId,
         gjennomføringId = this.gjennomføringId,
         typeNavn = this.typeNavn,
-        typeKode = this.typeKode.name,
         deltagelseFraOgMed = this.periode.fraOgMed,
         deltagelseTilOgMed = this.periode.tilOgMed,
         periode = this.periode.toÅpenPeriodeDTO(),

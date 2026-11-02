@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http
 
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Arenastatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kildestatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kometstatus
@@ -8,7 +7,6 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TeamTiltakstatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelser
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakshistorikk
-import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
@@ -93,7 +91,7 @@ fun Tiltaksdeltakelse.GirRett.tilTiltaksdeltakelseIntern(
         eksternDeltakelseId = id.verdi,
         gjennomføringId = gjennomføringId?.verdi,
         typeNavn = tiltakstypenavn,
-        typeKode = tiltakstype.tilDTO(),
+        tiltakstype = tiltakstype,
         rettPåTiltakspenger = true,
         periode = periode,
         deltakelseStatus = tiltakDeltakerstatus(clock),
@@ -118,7 +116,7 @@ fun Tiltaksdeltakelse.FratarRett.tilTiltaksdeltakelseSomFratarRett(clock: Clock)
 
 /**
  * Samme utvalg som [tilRelevanteTiltaksdeltakelser], men med visningsnavn i stedet for full saksopplysning.
- * Deltakelser som fratar rett er med, men har ingen [TiltaksdeltakelseMedArrangørnavn.typeKode], siden de ikke kan velges.
+ * Deltakelser som fratar rett er med, men har ingen [TiltaksdeltakelseMedArrangørnavn.tiltakstype], siden de ikke kan velges.
  * Visningsnavnet ([Tiltaksdeltakelse.tittel]) inneholder arrangøren, og er derfor stedsinformasjon — ved adressebeskyttelse vises kun tiltakstypenavnet.
  * Faller tilbake på tiltakstypenavnet også når kilden ikke ga noen tittel.
  */
@@ -131,7 +129,7 @@ fun Tiltakshistorikk.tilTiltaksdeltakelserMedArrangørnavn(
         TiltaksdeltakelseMedArrangørnavn(
             eksternDeltakelseId = deltakelse.id.verdi,
             typeNavn = deltakelse.tiltakstypenavn,
-            typeKode = (deltakelse as? Tiltaksdeltakelse.GirRett)?.tiltakstype?.tilDTO(),
+            tiltakstype = (deltakelse as? Tiltaksdeltakelse.GirRett)?.tiltakstype,
             tiltakskodeFraKilden = deltakelse.tiltakskodeFraKilden,
             periode = lukketEllerÅpenPeriode(deltakelse.fraOgMed, deltakelse.tilOgMed),
             visningsnavn = if (harAdressebeskyttelse) {
@@ -262,8 +260,6 @@ private fun TeamTiltakstatus.Type.tilTiltakDeltakerstatus(): TiltakDeltakerstatu
         TeamTiltakstatus.Type.AVBRUTT -> Avbrutt
         TeamTiltakstatus.Type.ANNULLERT -> IkkeAktuell
     }
-
-fun TiltakstypeSomGirRett.tilDTO(): TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.valueOf(name)
 
 fun no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakskilde.tilLokalKilde(): Tiltakskilde =
     when (this) {

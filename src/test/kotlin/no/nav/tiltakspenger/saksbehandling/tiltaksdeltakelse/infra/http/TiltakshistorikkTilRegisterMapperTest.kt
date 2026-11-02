@@ -7,7 +7,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Arenastatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Deltakelsesomfang
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.GjennomføringId
@@ -18,6 +17,7 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelser
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakshistorikk
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakstype
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.UkjenteDeltakelsesformer
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testSlutt
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testStart
@@ -150,7 +150,7 @@ class TiltakshistorikkTilRegisterMapperTest {
             eksternDeltakelseId = "TA123",
             gjennomføringId = "gjennomføring-1",
             typeNavn = "Oppfølging",
-            typeKode = TiltakstypeSomGirRettDTO.OPPFØLGING,
+            tiltakstype = TiltakstypeSomGirRett.OPPFØLGING,
             rettPåTiltakspenger = true,
             periode = lukketEllerÅpenPeriode(deltakelse.fraOgMed, deltakelse.tilOgMed),
             deltakelseStatus = TiltakDeltakerstatus.Deltar,
@@ -333,8 +333,8 @@ class TiltakshistorikkTilRegisterMapperTest {
 
         val resultat = historikk(girRett, fratarRett).tilTiltaksdeltakelserMedArrangørnavn(harAdressebeskyttelse = false, clock = fixedClock)
 
-        resultat.map { Triple(it.eksternDeltakelseId, it.typeKode, it.fratarRett) } shouldBe listOf(
-            Triple("TA1", TiltakstypeSomGirRettDTO.OPPFØLGING, false),
+        resultat.map { Triple(it.eksternDeltakelseId, it.tiltakstype, it.fratarRett) } shouldBe listOf(
+            Triple("TA1", TiltakstypeSomGirRett.OPPFØLGING, false),
             Triple("TA2", null, true),
         )
         resultat[1].status shouldBe TiltakDeltakerstatus.Deltar

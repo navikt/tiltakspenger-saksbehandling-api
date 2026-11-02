@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.oppgave.infra.repo
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag
 import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag.EndretTiltaksdeltakelse.Kilde
@@ -21,7 +21,7 @@ class OppgavegrunnlagDbJsonTest {
     fun `endret tiltaksdeltakelse lagrer kilde og verdien slik den er`() {
         val verdi = ObjectMother.tiltaksdeltakelseTac(
             eksternTiltaksdeltakelseId = "ekstern-123",
-            typeKode = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+            tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
             typeNavn = "Gruppe AMO",
             eksternTiltaksgjennomføringsId = "gjennomføring-456",
             fom = LocalDate.of(2026, 1, 2),

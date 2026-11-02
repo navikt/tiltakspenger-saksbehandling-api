@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.oktober
 import no.nav.tiltakspenger.libs.periode.Overlapp
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -155,7 +155,7 @@ class TiltaksdeltakelseTest {
             eksternDeltakelseId = UUID.randomUUID().toString(),
             gjennomføringId = UUID.randomUUID().toString(),
             typeNavn = "Avklaring",
-            typeKode = TiltakstypeSomGirRettDTO.AVKLARING,
+            tiltakstype = TiltakstypeSomGirRett.AVKLARING,
             rettPåTiltakspenger = true,
             periode = lukketEllerÅpenPeriode(fom, tom),
             deltakelseStatus = TiltakDeltakerstatus.Deltar,

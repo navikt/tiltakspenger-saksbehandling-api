@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 sealed interface LokalTiltaksdeltakelse {
     val eksternDeltakelseId: String
 
-    /** Koden som velges i dev-endepunktet: navnet på [no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO] eller kildens kode for en tiltakstype som fratar rett. */
+    /** Koden som velges i dev-endepunktet: navnet på [no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett] eller kildens kode for en tiltakstype som fratar rett. */
     val tiltakskode: String
     val kilde: Tiltakskilde
 
@@ -28,7 +28,7 @@ sealed interface LokalTiltaksdeltakelse {
 
     data class GirRett(val deltakelse: TiltaksdeltakelseIntern) : LokalTiltaksdeltakelse {
         override val eksternDeltakelseId: String get() = deltakelse.eksternDeltakelseId
-        override val tiltakskode: String get() = deltakelse.typeKode.name
+        override val tiltakskode: String get() = deltakelse.tiltakstype.name
         override val kilde: Tiltakskilde get() = deltakelse.kilde
 
         override fun tilLibsDeltakelse(): Tiltaksdeltakelse.GirRett = deltakelse.tilLibsDeltakelse()
@@ -36,7 +36,7 @@ sealed interface LokalTiltaksdeltakelse {
         override fun tilTiltaksdeltakelseMedArrangørnavn() = TiltaksdeltakelseMedArrangørnavn(
             eksternDeltakelseId = deltakelse.eksternDeltakelseId,
             typeNavn = deltakelse.typeNavn,
-            typeKode = deltakelse.typeKode,
+            tiltakstype = deltakelse.tiltakstype,
             tiltakskodeFraKilden = tiltakskode,
             periode = deltakelse.periode,
             visningsnavn = deltakelse.typeNavn,
@@ -67,7 +67,7 @@ sealed interface LokalTiltaksdeltakelse {
         override fun tilTiltaksdeltakelseMedArrangørnavn() = TiltaksdeltakelseMedArrangørnavn(
             eksternDeltakelseId = deltakelse.eksternDeltakelseId,
             typeNavn = deltakelse.typeNavn,
-            typeKode = null,
+            tiltakstype = null,
             tiltakskodeFraKilden = tiltakskode,
             periode = deltakelse.periode,
             visningsnavn = deltakelse.typeNavn,

@@ -55,7 +55,6 @@ class HentTiltakdeltakelserRouteTest {
             hentTiltaksdeltakelser(tac, sak.id, "?fraOgMed=2023-03-01&tilOgMed=2023-04-30").apply {
                 shouldContainJsonKeyValue("$.length()", 2)
                 shouldContainJsonKeyValue("$[1].eksternDeltakelseId", "TA9")
-                shouldContainJsonKeyValue("$[1].typeKode", null as String?)
                 shouldContainJsonKeyValue("$[1].fratarRett", true)
             }
         }

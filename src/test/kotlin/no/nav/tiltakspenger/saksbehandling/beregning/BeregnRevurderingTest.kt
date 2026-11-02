@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.satser.Satser
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.utenBarnetillegg
@@ -60,7 +60,7 @@ class BeregnRevurderingTest {
         antallBarnFraSøknad: Int = 0,
         periodeForSøknadsbehandling: Periode = vedtaksperiodeSøknadsbehandling,
         periodeForRevurdering: Periode = vedtaksperiodeRevurdering,
-        tiltakskodeForRevurdering: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
+        tiltakskodeForRevurdering: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
     ): Pair<Sak, Revurdering> {
         val (sak) = nySakMedVedtak(
             clock = clock,
@@ -87,7 +87,7 @@ class BeregnRevurderingTest {
                     tom = it.tilOgMed,
                     tiltaksdeltakelse = listOf(
                         tiltaksdeltakelse(
-                            typeKode = tiltakskodeForRevurdering,
+                            tiltakstype = tiltakskodeForRevurdering,
                             fom = it.fraOgMed,
                             tom = it.tilOgMed,
                         ),

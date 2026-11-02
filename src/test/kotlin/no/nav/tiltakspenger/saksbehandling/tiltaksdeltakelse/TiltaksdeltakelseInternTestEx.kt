@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kildestatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kometstatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TeamTiltakstatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
-import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testStatusOpprettet
 import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import java.time.LocalDate
@@ -25,7 +24,6 @@ import java.time.LocalDate
 fun TiltaksdeltakelseIntern.tilLibsDeltakelse(): Tiltaksdeltakelse.GirRett {
     val id = EksternDeltakelseId(eksternDeltakelseId)
     val kildestatus = tilKildestatus()
-    val tiltakstype = TiltakstypeSomGirRett.valueOf(typeKode.name)
     val arrangør = Arrangør(hovedenhet = null, underenhet = null)
     val omfang = Deltakelsesomfang(
         deltakelsesprosent = deltakelseProsent,
@@ -39,7 +37,7 @@ fun TiltaksdeltakelseIntern.tilLibsDeltakelse(): Tiltaksdeltakelse.GirRett {
             kildestatus = kildestatus,
             tiltakstype = tiltakstype,
             tiltakstypenavn = typeNavn,
-            tiltakskodeFraKilden = typeKode.name,
+            tiltakskodeFraKilden = tiltakstype.name,
             tittel = null,
             arrangør = arrangør,
             omfang = omfang,
@@ -52,7 +50,7 @@ fun TiltaksdeltakelseIntern.tilLibsDeltakelse(): Tiltaksdeltakelse.GirRett {
             kildestatus = kildestatus,
             tiltakstype = tiltakstype,
             tiltakstypenavn = typeNavn,
-            tiltakskodeFraKilden = typeKode.name,
+            tiltakskodeFraKilden = tiltakstype.name,
             tittel = null,
             arrangør = arrangør,
             omfang = omfang,
