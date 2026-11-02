@@ -1,6 +1,7 @@
-# Distroless har ingen semver-tagger — versjonen ligger i repo-navnet (java25-debian13) — så taggen er `latest`.
-# Digesten er det som faktisk kjører; taggen er det Dependabot følger, og gir PR når `latest` flyttes.
-FROM gcr.io/distroless/java25-debian13:latest@sha256:9edcd1e8d3ee33c296ec4a2318500c5b0824f953e27007c36dfbb50b7205d7da
+# Chainguard-image fra Navs speil: https://sikkerhet.nav.no/docs/verktoy/chainguard-dockerimages/
+# Bevisst uten digest: Chainguard backporter ikke fikser til eldre patch-versjoner, og Dependabot når ikke speilet.
+# Major-taggen gir nyeste bygg av Java 25 ved hvert image-bygg.
+FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jre:openjdk-25
 
 ENV TZ='Europe/Oslo'
 ENV LC_ALL='nb_NO.UTF-8'
@@ -8,7 +9,7 @@ ENV LANG='nb_NO.UTF-8'
 
 WORKDIR /app
 
-# --chmod=0755: jars må være lesbare for USER nobody i distroless.
+# --chmod=0755: jars må være lesbare for USER nobody.
 # Uten dette arver de filrettigheter fra (stale) GHA Gradle-cache, som kan
 # være 0600 (kun eier) → nobody får ikke lest → crashloop. Ikke fjern.
 COPY --chmod=0755 build/install/tiltakspenger-saksbehandling-api/lib/*.jar /app/lib/
