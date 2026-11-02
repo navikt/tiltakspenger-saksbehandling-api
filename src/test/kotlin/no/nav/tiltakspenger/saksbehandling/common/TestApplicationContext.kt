@@ -80,7 +80,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeTestKlient
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilTiltakstypeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
@@ -527,7 +526,7 @@ sealed class TestApplicationContext(
             tiltakContext.tiltaksdeltakerRepo.lagre(
                 id = tiltaksdeltakelse.internDeltakelseId,
                 eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-                tiltakskode = tiltaksdeltakelse.tiltakstype.tilTiltakstypeDTO().name,
+                tiltakskode = tiltaksdeltakelse.tiltakstype.name,
                 // Alle kallsteder oppretter saken før personen legges til.
                 sakId = sakContext.sakRepo.hentForFnr(fnr)!!.id,
             )

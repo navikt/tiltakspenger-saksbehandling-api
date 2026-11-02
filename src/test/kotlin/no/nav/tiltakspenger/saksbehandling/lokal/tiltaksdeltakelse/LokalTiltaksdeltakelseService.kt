@@ -22,7 +22,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilTiltakstypeDTO
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -111,7 +110,7 @@ class LokalTiltaksdeltakelseService(
                 TiltaksdeltakelseIntern(
                     eksternDeltakelseId = eksternId,
                     gjennomføringId = null,
-                    typeNavn = command.typeNavn ?: tiltakstypeSomGirRett.tilTiltakstypeDTO().navn,
+                    typeNavn = command.typeNavn ?: tiltakstypeSomGirRett.name,
                     tiltakstype = tiltakstypeSomGirRett,
                     rettPåTiltakspenger = true,
                     periode = lukketEllerÅpenPeriode(command.fraOgMed, command.tilOgMed),
@@ -146,7 +145,7 @@ class LokalTiltaksdeltakelseService(
                     ny.deltakelse.copy(
                         internDeltakelseId = tiltaksdeltakerRepo.hentEllerLagre(
                             eksternId = eksternId,
-                            tiltakskode = ny.deltakelse.tiltakstype.tilTiltakstypeDTO().name,
+                            tiltakskode = ny.deltakelse.tiltakstype.name,
                             sakId = sakId,
                             sessionContext = tx,
                         ),

@@ -32,7 +32,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSø
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startBehandlingAvManueltRegistrertSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilTiltakstypeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import org.junit.jupiter.api.Test
 
@@ -241,7 +240,7 @@ class BehandlingsgrunnlagsperioderTest {
               "eksternDeltakelseId": "$eksternDeltakelseId",
               "deltakelseFraOgMed": "${periode.fraOgMed}",
               "deltakelseTilOgMed": "${periode.tilOgMed}",
-              "tiltakskodeFraKilden": "${tiltakstype.tilTiltakstypeDTO().name}",
+              "tiltakskodeFraKilden": "${tiltakstype.name}",
               "typeNavn": "$typeNavn"
             }
         """.trimIndent()

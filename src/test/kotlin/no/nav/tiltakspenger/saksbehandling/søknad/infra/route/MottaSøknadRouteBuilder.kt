@@ -19,7 +19,6 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilTiltakstypeDTO
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -40,7 +39,7 @@ interface MottaSøknadRouteBuilder {
         tac.tiltakContext.tiltaksdeltakerRepo.lagre(
             id = tiltaksdeltakelse.internDeltakelseId,
             eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-            tiltakskode = tiltaksdeltakelse.tiltakstype.tilTiltakstypeDTO().name,
+            tiltakskode = tiltaksdeltakelse.tiltakstype.name,
             sakId = sak.id,
         )
         mottaSøknad(tac, sak.fnr, saksnummer, søknadId, tiltaksdeltakelse, barnetillegg)
@@ -60,7 +59,7 @@ interface MottaSøknadRouteBuilder {
         tac.tiltakContext.tiltaksdeltakerRepo.lagre(
             id = tiltaksdeltakelse.internDeltakelseId,
             eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-            tiltakskode = tiltaksdeltakelse.tiltakstype.tilTiltakstypeDTO().name,
+            tiltakskode = tiltaksdeltakelse.tiltakstype.name,
             sakId = sakId,
         )
         mottaSøknad(tac, fnr, saksnummer, søknadId, tiltaksdeltakelse, barnetillegg)
@@ -92,7 +91,7 @@ interface MottaSøknadRouteBuilder {
                 søknadId = søknadId.toString(),
                 clock = tac.clock,
                 tiltaksdeltakelse = tiltaksdeltakelse.toSøknadstiltak(),
-                tiltakstypekode = tiltaksdeltakelse.tiltakstype.tilTiltakstypeDTO().name,
+                tiltakstypekode = tiltaksdeltakelse.tiltakstype.name,
                 barnetillegg = barnetillegg,
             ),
         ).apply {

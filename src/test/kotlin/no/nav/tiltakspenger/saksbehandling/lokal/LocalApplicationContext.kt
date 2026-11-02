@@ -77,7 +77,6 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingFakeProducer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilTiltakstypeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt.UtbetalingsoversiktFakeKlient
@@ -431,7 +430,7 @@ class LocalApplicationContext(
             tiltakContext.tiltaksdeltakerRepo.lagre(
                 id = it.tiltak.tiltaksdeltakerId,
                 eksternId = søknadstiltak.id,
-                tiltakskode = tiltaksdeltakelse.tiltakstype.tilTiltakstypeDTO().name,
+                tiltakskode = tiltaksdeltakelse.tiltakstype.name,
                 sakId = sak.id,
             )
             søknadContext.søknadRepo.lagre(it)

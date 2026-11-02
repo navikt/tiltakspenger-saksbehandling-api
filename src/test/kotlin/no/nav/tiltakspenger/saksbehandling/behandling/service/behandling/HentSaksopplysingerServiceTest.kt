@@ -45,7 +45,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerFakeRepo
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilTiltakstypeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
@@ -965,7 +964,7 @@ class HentSaksopplysingerServiceTest {
             lagre(
                 id = tiltak.internDeltakelseId,
                 eksternId = tiltak.eksternDeltakelseId,
-                tiltakskode = tiltak.tiltakstype.tilTiltakstypeDTO().name,
+                tiltakskode = tiltak.tiltakstype.name,
                 sakId = SakId.random(),
             )
         }

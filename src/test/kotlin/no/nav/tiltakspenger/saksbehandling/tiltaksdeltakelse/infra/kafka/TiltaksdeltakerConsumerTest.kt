@@ -19,7 +19,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.K
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.TeamTiltakHendelseDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.LagretTiltaksdeltakerEndring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltaksdeltakerEndringerForEksternId
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilTiltakstypeDTO
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -52,7 +51,7 @@ class TiltaksdeltakerConsumerTest {
             tac.tiltakContext.tiltaksdeltakerRepo.lagre(
                 id = tiltaksdeltakelse.internDeltakelseId,
                 eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-                tiltakskode = tiltaksdeltakelse.tiltakstype.tilTiltakstypeDTO().name,
+                tiltakskode = tiltaksdeltakelse.tiltakstype.name,
                 sakId = sakId,
             )
 
@@ -167,7 +166,7 @@ class TiltaksdeltakerConsumerTest {
             tac.tiltakContext.tiltaksdeltakerRepo.lagre(
                 id = tiltaksdeltakelse.internDeltakelseId,
                 eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-                tiltakskode = tiltaksdeltakelse.tiltakstype.tilTiltakstypeDTO().name,
+                tiltakskode = tiltaksdeltakelse.tiltakstype.name,
                 sakId = sakId,
             )
 
@@ -241,7 +240,7 @@ class TiltaksdeltakerConsumerTest {
             tac.tiltakContext.tiltaksdeltakerRepo.lagre(
                 id = tiltaksdeltakelse.internDeltakelseId,
                 eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-                tiltakskode = tiltaksdeltakelse.tiltakstype.tilTiltakstypeDTO().name,
+                tiltakskode = tiltaksdeltakelse.tiltakstype.name,
                 sakId = sakId,
             )
 
