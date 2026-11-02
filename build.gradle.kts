@@ -39,6 +39,11 @@ buildscript {
             // konfigurasjon, så `implementation(platform(...))` i dependencies-blokka når den ikke.
             add("classpath", "com.fasterxml.jackson.core:jackson-core:2.22.4")
             add("classpath", "com.fasterxml.jackson.core:jackson-databind:2.22.4")
+            // Avro-pluginen drar inn snappy-java 1.1.10.5 med bufferoverflyt og tjenestenekt (CVE-2026-93451, CVE-2026-108106, CVE-2026-116590); fikset i 1.1.10.9.
+            add("classpath", "org.xerial.snappy:snappy-java:1.1.10.12")
+            // Kover drar inn freemarker 2.3.32 med path traversal (CVE-2026-84939); fikset i 2.3.35.
+            // Låsen fjernes når Kover drar freemarker 2.3.35 eller nyere.
+            add("classpath", "org.freemarker:freemarker:2.3.35")
         }
     }
 }
@@ -82,6 +87,9 @@ dependencies {
         implementation("org.apache.httpcomponents.client5:httpclient5:5.6.4") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), kommer transitivt fra kafka-schema-registry-client
         implementation("org.apache.httpcomponents.core5:httpcore5:5.4.3") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), kommer transitivt fra kafka-schema-registry-client
         implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4.3") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), kommer transitivt fra kafka-schema-registry-client
+        // `kafka-avro-serializer` og `kafka-schema-registry-client` drar inn Guava 32.0.1, som allokerer ubegrenset minne ved Java-deserialisering (CVE-2026-102554); fikset i 33.7.2.
+        // Samme versjon som plattform-BOM-en i tiltakspenger-libs styrer for flåten.
+        implementation("com.google.guava:guava:33.7.2-jre")
     }
 
     implementation("no.nav.tiltakspenger.libs:soknad-dtos:$felleslibVersion")
