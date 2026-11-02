@@ -3,7 +3,7 @@ import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val kotlinxCoroutinesVersion = "1.11.0"
-val kotestVersion = "6.2.4"
+val kotestVersion = "6.2.6"
 val felleslibVersion = "0.0.20261102103142"
 val mockkVersion = "1.14.11"
 val ktorVersion = "3.6.0"
