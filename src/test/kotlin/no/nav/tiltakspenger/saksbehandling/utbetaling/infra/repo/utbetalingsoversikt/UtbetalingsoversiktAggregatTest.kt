@@ -64,11 +64,35 @@ class UtbetalingsoversiktAggregatTest {
             val sak = sakMedOkUtbetaling(tac)
             spolTilÅpent(tac, 6.mai(2025))
 
-            fun kø(oppfølgesFra: LocalDateTime) = UtbetalingsoversiktPostgresRepo(tac.sessionFactory as PostgresSessionFactory, oppfølgesFra)
+            fun kø(oppfølgesFra: LocalDateTime) = UtbetalingsoversiktPostgresRepo(tac.sessionFactory as PostgresSessionFactory, oppfølgesFra, maksAntallOppslag = null)
                 .hentSakerKlareForOppslag(nå = nå(tac.clock), limit = 10)
 
             kø(oppfølgesFra = 1.mai(2025).atStartOfDay()) shouldBe listOf(sak.id)
             kø(oppfølgesFra = 6.mai(2025).atStartOfDay()) shouldBe emptyList()
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `køen er tom når tabellen har nådd maks antall oppslag, også for feilede oppslag`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val sak = sakMedOkUtbetaling(tac)
+            spolTilÅpent(tac, 6.mai(2025))
+
+            fun kø(maksAntallOppslag: Int?, limit: Int = 10) = UtbetalingsoversiktPostgresRepo(tac.sessionFactory as PostgresSessionFactory, oppfølgesFra = null, maksAntallOppslag = maksAntallOppslag)
+                .hentSakerKlareForOppslag(nå = nå(tac.clock), limit = limit)
+
+            kø(maksAntallOppslag = 1) shouldBe listOf(sak.id)
+            kø(maksAntallOppslag = 0) shouldBe emptyList()
+
+            tac.utbetalingsoversiktFakeKlient.leggTilFeil(sak.fnr, tjenestefeil())
+            jobb(tac).oppdaterForSak(sak.id)
+            tac.clock.spol1timeFrem()
+
+            kø(maksAntallOppslag = 1) shouldBe emptyList()
+            kø(maksAntallOppslag = 2) shouldBe listOf(sak.id)
+            kø(maksAntallOppslag = 2, limit = 0) shouldBe emptyList()
+            kø(maksAntallOppslag = null) shouldBe listOf(sak.id)
         }
     }
 

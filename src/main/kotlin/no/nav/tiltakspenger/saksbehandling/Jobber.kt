@@ -13,7 +13,7 @@ fun jobber(
     clock: Clock,
 ): List<Task> = buildList {
     addAll(søknadsbehandlingJobber(applicationContext))
-    addAll(utbetalingJobber(isNais, applicationContext))
+    addAll(utbetalingJobber(applicationContext))
     addAll(rammevedtaksbrevJobber(applicationContext))
     addAll(journalnotatJobber(applicationContext))
     addAll(klageJobber(applicationContext))
@@ -53,7 +53,6 @@ private fun søknadsbehandlingJobber(
 )
 
 private fun utbetalingJobber(
-    isNais: Boolean,
     applicationContext: ApplicationContext,
 ): List<Task> = listOf(
     Task(
@@ -77,7 +76,7 @@ private fun utbetalingJobber(
             TaskResultat.Ferdig
         },
     ),
-) + listOfNotNull(
+    // Prod har prøvedrift med et tak på antall oppslag; se maksAntallOppslag i UtbetalingContext.
     Task(
         navn = "saksbehandling-jobb-oppdater-utbetalingsoversikt",
         intervall = Miljøverdi.lik(5.minutes),
@@ -85,11 +84,8 @@ private fun utbetalingJobber(
             applicationContext.utbetalingContext.oppdaterUtbetalingsoversiktJobb.oppdaterUtbetalingsoversikter()
             TaskResultat.Ferdig
         },
-    ).takeIf { oppdateringAvUtbetalingsoversiktErPåslått(isNais = isNais, erDev = applicationContext.erDev) },
+    ),
 )
-
-/** Jobben går lokalt og i dev; prod slås på i egen commit når svarene og kostnaden i dev er vurdert. */
-fun oppdateringAvUtbetalingsoversiktErPåslått(isNais: Boolean, erDev: Boolean): Boolean = !isNais || erDev
 
 private fun rammevedtaksbrevJobber(
     applicationContext: ApplicationContext,
