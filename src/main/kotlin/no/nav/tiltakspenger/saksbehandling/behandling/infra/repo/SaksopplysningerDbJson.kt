@@ -44,7 +44,10 @@ fun String.toSaksopplysninger(): Saksopplysninger {
         tiltaksdeltakelserSomFratarRett = dbJson.tiltaksdeltakelserSomFratarRett?.map { it.toDomain() } ?: emptyList(),
         ytelser = dbJson.ytelser.toDomain(),
         tiltakspengevedtakFraArena = dbJson.tiltakspengevedtakFraArena.toDomain(),
-        dagpenger = dbJson.dagpenger?.toDomain() ?: Dagpengeperioder.BehandletFørFeature,
+        dagpenger = when (val dagpenger = dbJson.dagpenger) {
+            null -> Dagpengeperioder.BehandletFørFeature
+            else -> dagpenger.toDomain()
+        },
         oppslagstidspunkt = dbJson.oppslagstidspunkt,
     )
 }

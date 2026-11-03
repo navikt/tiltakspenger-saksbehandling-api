@@ -9,6 +9,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
+import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
@@ -24,7 +25,7 @@ import java.time.Instant
 class DpDatadelingHttpClientTest {
     private val baseUrl = "http://dp-datadeling.test"
     private val correlationId = CorrelationId.generate()
-    private val fnr = Fnr.fromString("12345678901")
+    private val fnr = Fnr.random()
     private val periode = 1.januar(2025) til 31.mars(2025)
 
     private val authTokenProvider = object : AuthTokenProvider {
@@ -40,7 +41,7 @@ class DpDatadelingHttpClientTest {
 
     private fun svar(vararg perioder: String) = """
         {
-          "personIdent": "12345678901",
+          "personIdent": "${fnr.verdi}",
           "perioder": [${perioder.joinToString(",")}]
         }
     """.trimIndent()
@@ -105,7 +106,7 @@ class DpDatadelingHttpClientTest {
         kall.request.headers().allValues("Nav-Call-Id") shouldBe listOf(correlationId.value)
         kall.bodyTekst shouldEqualJson """
             {
-              "personIdent": "12345678901",
+              "personIdent": "${fnr.verdi}",
               "fraOgMedDato": "2025-01-01",
               "tilOgMedDato": "2025-03-31"
             }
@@ -155,6 +156,6 @@ class DpDatadelingHttpClientTest {
 
     @Test
     fun `fødselsnummeret maskeres i toString`() {
-        DagpengeperioderResponse(personIdent = "12345678901", perioder = emptyList()).toString() shouldNotContain "12345678901"
+        DagpengeperioderResponse(personIdent = fnr.verdi, perioder = emptyList()).toString() shouldNotContain fnr.verdi
     }
 }
