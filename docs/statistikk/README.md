@@ -61,7 +61,7 @@ Lenker til grensesnittbeskrivelsen og Team Saks dokumentasjon står i KDoc på `
 
 ## Slik leser Team Spenn de tre andre tabellene
 
-`statistikk_kodeverk_tiltakstype` er ikke tatt i bruk av Team Spenn ennå; den heter `public_statistikk_kodeverk_tiltakstype` i BigQuery.
+`statistikk_kodeverk_tiltakstype` heter `public_statistikk_kodeverk_tiltakstype` i BigQuery; Team Spenn har lesetilgang, men leser den ikke i `datalast_fra_bq.py` ennå.
 
 Koden ligger i [navikt/dvh_tiltakspenger](https://github.com/navikt/dvh_tiltakspenger) (internt repo).
 
@@ -69,13 +69,45 @@ Koden ligger i [navikt/dvh_tiltakspenger](https://github.com/navikt/dvh_tiltaksp
 - dbt-modellene under `dbt/models` bygger historikk og fakta videre fra disse radene.
 - En ny kolonne kommer ikke med før Team Spenn legger den inn i kolonnelista; en kolonne vi fjerner, må først tas ut av lista.
 
+## Tilganger og dataprodukter i BigQuery
+
+Ingenting av dette ligger som kode; det er satt opp i GCP-konsollen, med `bq` eller fra datamarkedsplassen (lest 2026-11-03).
+Alt ligger i tpts-prosjektet, og tabellene i `datastream_saksbehandling` har prefikset `public_`.
+
+| Objekt i prod | Hvem leser | Hvorfor |
+| --- | --- | --- |
+| `datastream_saksbehandling.public_statistikk_stonad`, `_utbetaling`, `_meldekort` og `_kodeverk_tiltakstype` | Team Spenns tjenestekonto `tiltakspenger-bq` og enkeltpersoner i Team Spenn | Nattlig innlesing til DVH |
+| `datastream_saksbehandling.public_statistikk_sak` og viewet `statistikk_sak_dvh` | Team Saks tjenestekonto `tiltakspenger-ptsak-reader-pts` og én person i Team Sak | Timesjobben `pt-sak-tiltakspenger` |
+| `markedsplassen_pseudo.datastream_saksbehandling_public_statistikk_sak` og `_meldekort` | Datamarkedsplassen | Dataprodukter med fødselsnummer og `bruker_id` pseudonymisert med nytt salt per spørring, så de kan ikke kobles mellom spørringer |
+| `views.meldekort_til_infoskjerm` og `views.utbetalinger_til_infoskjerm` | Grafana | Infoskjerm uten personopplysninger |
+
+Datamarkedsplassen har i tillegg direkte lesetilgang til `public_statistikk_meldekort` og `public_statistikk_utbetaling`.
+Teamet har ett dataprodukt der, «Tiltakspenger», med datasettene Meldekort for tiltakspenger, Tiltakspengesaker, begge også pseudonymisert, Tiltakspengevedtak og Utbetalingsvedtak for tiltakspenger.
+Hvem som har fått tilgang gjennom dataproduktet, ser du bare på [datamarkedsplassen](https://data.ansatt.nav.no) under teamet.
+
+I dev har Team Spenn og Team Sak lesetilgang til hele `datastream_saksbehandling`.
+
+Slik er tilgangen bygd opp i prod:
+
+- Lesetilgang gis per tabell med `roles/bigquery.dataViewer`, ikke på datasettet, så en konsument ser bare tabellene den har fått.
+- Datasettet gir konsumenten bare `roles/bigquery.metadataViewer`, slik at tabellene vises.
+- Et view i et annet datasett må stå som autorisert view på `datastream_saksbehandling`, ellers får leseren ingen data.
+
+Slik endrer du:
+
+- Gi tilgang: `bq add-iam-policy-binding --member=serviceAccount:<konto> --role=roles/bigquery.dataViewer tpts-prod-b5ff:datastream_saksbehandling.<tabell>`.
+  En ny konsument trenger også `metadataViewer` på datasettet.
+- Gi heller tilgang til en tjenestekonto enn til personer, og send personopplysninger til andre enn Team Sak og Team Spenn gjennom et pseudonymisert dataprodukt på datamarkedsplassen.
+- Fjern tilgang når noen slutter eller bytter team, både på hver tabell (`bq remove-iam-policy-binding`) og i datasettets tilgangsliste (`bq show --format=json`, fjern oppføringen, `bq update --source`), i dev og prod.
+- Les tilgangene tilbake med `bq get-iam-policy` på tabellen og `bq show` på datasettet etterpå.
+
 ## Før du endrer noe
 
 - Ny hendelse eller ny verdi i `statistikk_sak`: avklar med Team Sak i `#tiltakspenger-dvh` og legg verdien inn i enumen og KDoc.
 - Ny eller endret kolonne: avklar med teamet som leser tabellen, og oppdater KDoc på DTO-en.
 - Fjernet kolonne: spør konsumenten, og fjern den først når de har sluttet å lese den.
   Datastream fjerner ikke kolonnen i BigQuery, den blir bare tom, så konsumenten får ingen feil og mister dataene uten å merke det.
-- Ny tabell: legg den inn i Datastream-strømmen i begge miljøer, og avklar tilgang med konsumenten.
+- Ny tabell: legg den inn i Datastream-strømmen i begge miljøer, og gi konsumenten tilgang som beskrevet over.
 - Historiske rader: skriv en ren SQL-migrering som bare leser databasen, med vern mot dobbeltrader og en tørrkjøring i prod først; `V264__statistikk_sak_historiske_meldekortbehandlinger.sql` er mønsteret.
 - Retter du eksisterende rader samtidig som du endrer koden som skriver dem, kan den gamle poden skrive rader med gammel kode etter at migreringen har kjørt, fordi den er leder til den nye har tatt over; slik fikk fire rader i `statistikk_utbetaling` meldekortvedtakets id etter V265, og oppdateringen måtte kjøres på nytt.
   Kontroller radene fra utrullingen etterpå, eller lever kodeendringen før rettingen.
