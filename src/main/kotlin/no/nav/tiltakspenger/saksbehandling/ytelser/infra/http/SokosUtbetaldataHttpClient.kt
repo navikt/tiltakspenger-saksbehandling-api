@@ -53,9 +53,6 @@ class SokosUtbetaldataHttpClient(
         transport = transport,
     )
 
-    // utbetaldata sender beskrivelsen, ikke kodeverdien
-    private val relevanteYtelsestyper = Ytelsetype.entries.toTypedArray().map { it.tekstverdi }
-
     private val utbetalingsinformasjonUri = URI.create("$baseUrl/utbetaldata/api/v2/hent-utbetalingsinformasjon/intern")
 
     override suspend fun hentYtelserFraUtbetaldata(
@@ -88,11 +85,12 @@ class SokosUtbetaldataHttpClient(
     private fun List<UtbetalingDto>.tilYtelser(): List<Ytelse> {
         val utbetalinger = this.flatMap { it.ytelseListe }
         meterRegistry.tellUkjenteYtelsestyper(utbetalinger.map { it.ytelsestype })
-        val relevanteYtelser = utbetalinger.filter { it.ytelsestype == null || it.ytelsestype in relevanteYtelsestyper } // 1. Bug til Taulant -> forkaster alt vi ikke har tatt stilling til
-            .groupBy { it.ytelsestype }
+        // utbetaldata sender beskrivelsen, ikke kodeverdien
+        val relevanteYtelser = utbetalinger.filter { it.ytelsestype == null || Ytelsetype.entries.any { type -> type.harTekst(it.ytelsestype) } } // 1. Bug til Taulant -> forkaster alt vi ikke har tatt stilling til
+            .groupBy { utbetaling -> Ytelsetype.entries.find { it.harTekst(utbetaling.ytelsestype) } ?: Ytelsetype.UKJENT }
         return relevanteYtelser.map { ytelse ->
             Ytelse(
-                ytelsetype = Ytelsetype.entries.find { ytelse.key == it.tekstverdi } ?: Ytelsetype.UKJENT, // 1. Bug til Taulant -> forkaster alt vi ikke har tatt stilling til
+                ytelsetype = ytelse.key,
                 perioder = ytelse.value.map {
                     Periode(
                         fraOgMed = it.ytelsesperiode.fom,

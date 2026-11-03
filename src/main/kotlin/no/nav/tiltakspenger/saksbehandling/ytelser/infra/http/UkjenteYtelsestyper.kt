@@ -16,4 +16,4 @@ fun MeterRegistry.tellUkjenteYtelsestyper(ytelsestyper: List<String?>) {
 
 /** Sann når teksten verken er en type vi henter eller en vi har valgt å utelate. */
 fun String.erUkjentYtelsestype(): Boolean =
-    Ytelsetype.entries.none { it != Ytelsetype.UKJENT && it.tekstverdi == this } && this !in utelatteYtelsestyper
+    Ytelsetype.entries.none { it != Ytelsetype.UKJENT && it.harTekst(this) } && this !in utelatteYtelsestyper

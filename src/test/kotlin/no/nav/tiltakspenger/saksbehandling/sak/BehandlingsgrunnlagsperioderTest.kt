@@ -104,9 +104,9 @@ class BehandlingsgrunnlagsperioderTest {
         }
     }
 
-    /** Papirsøknaden uten tiltak gir ingen periode, men avslaget får den manuelt satte søknadsperioden som vedtaksperiode. */
+    /** Avslaget får den manuelt satte søknadsperioden som vedtaksperiode, men en søknad uten tiltak gir ikke behandlingsgrunnlag. */
     @Test
-    fun `avslag på papirsøknad uten tiltak gir vedtaksperioden`() {
+    fun `avslag på papirsøknad uten tiltak gir ingen perioder`() {
         withTestApplicationContextAndPostgres { tac ->
             val fnr = ObjectMother.gyldigFnr()
             val saksnummer = hentEllerOpprettSakForSystembruker(tac, fnr)
@@ -126,7 +126,7 @@ class BehandlingsgrunnlagsperioderTest {
             val (_, avslag) = iverksettForBehandlingId(tac, sak.id, behandling.id)!!
 
             avslag.periode shouldBe mars
-            tac.behandlingsgrunnlagsperioder(sak.id) shouldBe Behandlingsgrunnlagsperioder(nonEmptyListOf(mars))
+            tac.behandlingsgrunnlagsperioder(sak.id) shouldBe null
         }
     }
 

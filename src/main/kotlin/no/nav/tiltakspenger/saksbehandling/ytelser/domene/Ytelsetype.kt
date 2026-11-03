@@ -7,7 +7,7 @@ package no.nav.tiltakspenger.saksbehandling.ytelser.domene
  * Typene vi kjenner, men ikke henter, står i [no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.utelatteYtelsestyper].
  * TODO: Flytt tekstverdien til klientlaget, dette skal ikke være i domenet.
  */
-enum class Ytelsetype(val tekstverdi: String) {
+enum class Ytelsetype(val tekstverdi: String, private val tidligereTekstverdi: String? = null) {
     /** Folketrygdloven kapittel 11: https://lovdata.no/lov/1997-02-28-19/kap11, og Navs beskrivelse: https://www.nav.no/aap */
     AAP("Arbeidsavklaringspenger"),
 
@@ -72,7 +72,7 @@ enum class Ytelsetype(val tekstverdi: String) {
     REFUSJONSKRAV("Refusjonskrav"),
 
     /** Pensjon fra Statens pensjonskasse: https://lovdata.no/lov/1949-07-28-26 */
-    SPK("Statens pensjonkasse"),
+    SPK("Statens pensjonskasse", tidligereTekstverdi = "Statens pensjonkasse"),
 
     /** Lov om supplerende stønad til personer med kort botid i Norge: https://lovdata.no/lov/2005-04-29-21, og Navs beskrivelse: https://www.nav.no/supplerende-stonad-over-67 og https://www.nav.no/supplerende-stonad-flyktninger */
     SUPPLERENDE_STONAD("Supplerende_stønad"),
@@ -103,4 +103,8 @@ enum class Ytelsetype(val tekstverdi: String) {
 
     /** Ytelse uten ytelsestype i svaret fra sokos-utbetaldata. */
     UKJENT("Ukjent"),
+    ;
+
+    /** Sokos-utbetaldata har byttet stavemåte for noen typer, og den gamle ligger fortsatt lagret i saksopplysningene. */
+    fun harTekst(tekst: String?): Boolean = tekst != null && (tekst == tekstverdi || tekst == tidligereTekstverdi)
 }

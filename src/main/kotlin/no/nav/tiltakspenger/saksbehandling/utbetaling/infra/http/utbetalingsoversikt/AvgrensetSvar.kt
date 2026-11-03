@@ -64,7 +64,7 @@ private fun UtbetalingsoversiktDto.YtelseDto.avgrensningsårsak(grunnlag: Utbeta
 
 /** Tjenesten sender beskrivelsen av ytelsen, ikke en kode. */
 private fun String.tilMottattYtelsestype(): MottattYtelsestype {
-    val ytelsetype = Ytelsetype.entries.find { it != Ytelsetype.UKJENT && it.tekstverdi == this }
+    val ytelsetype = Ytelsetype.entries.find { it != Ytelsetype.UKJENT && it.harTekst(this) }
     return when {
         ytelsetype != null -> MottattYtelsestype.Relevant(ytelsetype)
         erUkjentYtelsestype() -> MottattYtelsestype.Ukjent(this)

@@ -84,4 +84,10 @@ class YtelserDbJsonTest {
         )
         lagret("Barnepensjon").toDomain() shouldBe Ytelser.IngenTreff(oppslagsperiode = oppslagsperiode, oppslagstidspunkt = oppslagstidspunkt)
     }
+
+    @Test
+    fun `gammel stavemåte av Statens pensjonskasse leses som SPK`() {
+        YtelserDbJson.YtelseDbJson(ytelsetype = "Statens pensjonkasse", perioder = listOf(oppslagsperiode.toDbJson()))
+            .toDomain() shouldBe Ytelse(ytelsetype = Ytelsetype.SPK, perioder = listOf(oppslagsperiode))
+    }
 }
