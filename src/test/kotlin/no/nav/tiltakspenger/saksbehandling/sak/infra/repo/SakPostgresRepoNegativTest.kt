@@ -8,6 +8,7 @@ import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
+import no.nav.tiltakspenger.saksbehandling.sak.delteSaksnummerGenerator
 import org.junit.jupiter.api.Test
 import org.postgresql.util.PSQLException
 
@@ -53,7 +54,7 @@ class SakPostgresRepoNegativTest {
                             """.trimIndent(),
                             mapOf(
                                 "id" to SakId.random().toString(),
-                                "saksnummer" to "202101011999",
+                                "saksnummer" to delteSaksnummerGenerator.generer().verdi,
                                 "kildeId" to sak.id.toString(),
                             ),
                         ).asUpdate,
