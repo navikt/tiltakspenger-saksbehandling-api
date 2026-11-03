@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Dagpengeperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
@@ -30,6 +31,11 @@ interface SaksopplysningerMother {
             oppslagsperiode,
             oppslagstidspunkt,
         ),
+        dagpenger: Dagpengeperioder = Dagpengeperioder.fromList(
+            emptyList(),
+            oppslagsperiode,
+            oppslagstidspunkt,
+        ),
     ): Saksopplysninger {
         return Saksopplysninger(
             fødselsdato = fødselsdato,
@@ -37,6 +43,7 @@ interface SaksopplysningerMother {
             tiltaksdeltakelserSomFratarRett = tiltaksdeltakelserSomFratarRett,
             ytelser = ytelser,
             tiltakspengevedtakFraArena = tiltakspengevedtakFraArena,
+            dagpenger = dagpenger,
             oppslagstidspunkt = oppslagstidspunkt,
         )
     }

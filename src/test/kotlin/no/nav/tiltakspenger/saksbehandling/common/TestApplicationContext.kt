@@ -28,6 +28,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRepo
 import no.nav.tiltakspenger.saksbehandling.benk.infra.setup.BenkContext
+import no.nav.tiltakspenger.saksbehandling.dagpenger.domene.Dagpengeperiode
+import no.nav.tiltakspenger.saksbehandling.dagpenger.infra.http.DagpengerFakeKlient
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
@@ -152,6 +154,7 @@ sealed class TestApplicationContext(
     protected open val personFakeKlient by lazy { PersonFakeKlient(clock) }
     protected open val sokosUtbetaldataFakeClient by lazy { SokosUtbetaldataFakeClient() }
     protected open val tiltakspengerArenaFakeClient by lazy { TiltakspengerArenaFakeClient() }
+    protected open val dagpengerFakeKlient by lazy { DagpengerFakeKlient() }
     protected open val genererFakeVedtaksbrevForMeldekortKlient by lazy { GenererFakeVedtaksbrevForMeldekortKlient() }
     protected open val genererFakeVedtaksbrevKlient by lazy { GenererFakeVedtaksbrevKlient() }
     protected open val journalførFakeMeldekortKlient by lazy { JournalførFakeMeldekortKlient(journalpostIdGenerator) }
@@ -180,6 +183,7 @@ sealed class TestApplicationContext(
     override val safJournalpostClient by lazy { safJournalpostFakeClient }
     override val sokosUtbetaldataClient by lazy { sokosUtbetaldataFakeClient }
     override val tiltakspengerArenaClient by lazy { tiltakspengerArenaFakeClient }
+    override val dagpengerKlient by lazy { dagpengerFakeKlient }
 
     open val jwtGenerator: JwtGenerator by lazy { JwtGenerator(clock = clock) }
     override val oppfølgingskontorKlient by lazy { OppfølgingskontorFakeKlient() }
@@ -390,6 +394,7 @@ sealed class TestApplicationContext(
             simulerService = utbetalingContext.simulerService,
             oppgaveKlient = oppgaveKlient,
             tiltakspengerArenaClient = tiltakspengerArenaFakeClient,
+            dagpengerKlient = dagpengerFakeKlient,
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
             erProd = erProd,
         ) {
@@ -563,6 +568,11 @@ sealed class TestApplicationContext(
     /** Registrerer vedtakene [TiltakspengerArenaFakeClient] skal svare med for [fnr]. */
     fun leggTilTiltakspengevedtakFraArena(fnr: Fnr, vedtak: List<ArenaTPVedtak>) {
         tiltakspengerArenaFakeClient.leggTilVedtak(fnr = fnr, vedtak = vedtak)
+    }
+
+    /** Registrerer dagpengeperiodene [DagpengerFakeKlient] skal svare med for [fnr]. */
+    fun leggTilDagpengeperioder(fnr: Fnr, perioder: List<Dagpengeperiode>) {
+        dagpengerFakeKlient.leggTilDagpengeperioder(fnr = fnr, perioder = perioder)
     }
 
     /** Registrerer ytelsene [SokosUtbetaldataFakeClient] skal svare med for [fnr]. */

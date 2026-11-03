@@ -16,12 +16,14 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.overlapper
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Dagpengeperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.medPaddingForAndreYtelser
+import no.nav.tiltakspenger.saksbehandling.dagpenger.infra.http.DagpengerKlient
 import no.nav.tiltakspenger.saksbehandling.felles.min
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -39,6 +41,7 @@ class HentSaksopplysingerService(
     private val tiltaksdeltakelseKlient: TiltaksdeltakelseKlient,
     private val sokosUtbetaldataClient: SokosUtbetaldataClient,
     private val tiltakspengerArenaClient: TiltakspengerArenaClient,
+    private val dagpengerKlient: DagpengerKlient,
     private val clock: Clock,
     private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
 ) {
@@ -57,7 +60,7 @@ class HentSaksopplysingerService(
      * Husk og sett [inkluderOverlappendeTiltaksdeltakelserDetErSøktOm] til true dersom vi skal hente saksopplysninger for tiltaksdeltakelser som overlapper denne.
      * @param inkluderOverlappendeTiltaksdeltakelserDetErSøktOm Typisk bare brukt ved søknadsbehandling når det er søkt om mer enn 1 tiltaksdeltakelse.
      *
-     * Kaster når tiltakshistorikken, Utbetaldata eller Arena ikke svarer, slik at automatiske behandlinger prøves på nytt og saksbehandler får en feil i stedet for ufullstendige saksopplysninger.
+     * Kaster når tiltakshistorikken, Utbetaldata, Arena eller dp-datadeling ikke svarer, slik at automatiske behandlinger prøves på nytt og saksbehandler får en feil i stedet for ufullstendige saksopplysninger.
      * TODO: Returner Either i stedet for å kaste.
      *  Det krever at typealiasen HentSaksopplysninger og kallerne, både servicene og domenefunksjonene den sendes inn i, får en egen feilvariant med statuskode i rutene.
      */
@@ -129,6 +132,18 @@ class HentSaksopplysingerService(
                     )
                 }
                 ?: TiltakspengevedtakFraArena.IkkeBehandlingsgrunnlag,
+            dagpenger = saksopplysningsperiode
+                ?.let {
+                    hentDagpenger(
+                        saksopplysningsperiode = it,
+                        fnr = fnr,
+                        correlationId = correlationId,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        behandlingId = behandlingId,
+                    )
+                }
+                ?: Dagpengeperioder.IkkeBehandlingsgrunnlag,
             oppslagstidspunkt = oppslagstidspunkt,
         )
     }
@@ -283,6 +298,38 @@ class HentSaksopplysingerService(
         return TiltakspengevedtakFraArena.fromList(
             arenaTpVedtak = arenaTpVedtak,
             oppslagsperiode = arenaPeriode,
+            oppslagstidspunkt = nå(clock),
+        )
+    }
+
+    /** Henter for samme periode som tiltakspengevedtakene fra Arena, siden vi har det samme juridiske grunnlaget for oppslaget. */
+    private suspend fun hentDagpenger(
+        saksopplysningsperiode: Periode,
+        fnr: Fnr,
+        correlationId: CorrelationId,
+        sakId: SakId? = null,
+        saksnummer: Saksnummer? = null,
+        behandlingId: RammebehandlingId? = null,
+    ): Dagpengeperioder {
+        val oppslagsperiode = saksopplysningsperiode.medPaddingForAndreYtelser()
+        val dagpengeperioder = dagpengerKlient.hentDagpengeperioder(
+            fnr,
+            oppslagsperiode,
+            correlationId,
+        ).getOrElse { error ->
+            // Et tomt svar ville blitt lagret som IngenTreff, og da kunne en automatisk behandling gått videre uten at dagpenger var sjekket.
+            val loggkontekst = lagLoggcontext(
+                correlationId = correlationId,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                behandlingId = behandlingId,
+            )
+            error.loggFeil(logger, "henting av dagpenger fra dp-datadeling", loggkontekst)
+            throw IllegalStateException("Kunne ikke hente dagpenger fra dp-datadeling. $loggkontekst")
+        }
+        return Dagpengeperioder.fromList(
+            dagpengeperioder = dagpengeperioder,
+            oppslagsperiode = oppslagsperiode,
             oppslagstidspunkt = nå(clock),
         )
     }

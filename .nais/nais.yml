@@ -95,6 +95,8 @@ spec:
           namespace: nais-system
         - application: populasjonstilgangskontroll
           namespace: tilgangsmaskin
+        - application: dp-datadeling
+          namespace: teamdagpenger
       external:
         - host: {{ urlPdl }}
         - host: {{ urlSkjerming }}

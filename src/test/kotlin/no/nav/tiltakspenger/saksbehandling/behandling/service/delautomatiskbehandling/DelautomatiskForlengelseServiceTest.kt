@@ -31,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbe
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.dagpenger.domene.Dagpengeperiode
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortDagStatusDTO
@@ -410,33 +411,67 @@ class DelautomatiskForlengelseServiceTest {
         }
     }
 
-    /**
-     * Forlengelsen innvilges fra og med 6. mai, så andre ytelser og vedtak i Arena sjekkes fra og med 5. april.
-     */
     @Test
-    fun `bruker har andre ytelser og tiltakspengevedtak i Arena inntil 31 dager før forlengelsen - overlates til saksbehandler`() {
+    fun `bruker har løpende dagpenger som startet før forlengelsen - overlates til saksbehandler`() {
         withTestApplicationContextAndPostgres { tac ->
             forlengOgBehandleAutomatisk(
                 tac,
-                etterInnvilgelse = { sak -> sak.leggTilAndreYtelserOgArenavedtak(tac, tilOgMed = 5.april(2025)) },
+                etterInnvilgelse = { sak ->
+                    tac.leggTilDagpengeperioder(
+                        fnr = sak.fnr,
+                        perioder = listOf(
+                            Dagpengeperiode(
+                                fraOgMed = 1.april(2025),
+                                tilOgMed = null,
+                                ytelsetype = Dagpengeperiode.Ytelsetype.PERMITTERING,
+                                kilde = Dagpengeperiode.Kilde.DP_SAK,
+                            ),
+                        ),
+                    )
+                },
+            ).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.FORLENGELSE_DAGPENGER)
+        }
+    }
+
+    /**
+     * Forlengelsen innvilges fra og med 6. mai, så andre ytelser, vedtak i Arena og dagpenger sjekkes fra og med 5. april.
+     */
+    @Test
+    fun `bruker har andre ytelser, tiltakspengevedtak i Arena og dagpenger inntil 31 dager før forlengelsen - overlates til saksbehandler`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(
+                tac,
+                etterInnvilgelse = { sak -> sak.leggTilAndreYtelserArenavedtakOgDagpenger(tac, tilOgMed = 5.april(2025)) },
             ).skalVæreOverlattTilSaksbehandler(
                 ManueltBehandlesGrunn.FORLENGELSE_ANDRE_YTELSER,
                 ManueltBehandlesGrunn.FORLENGELSE_VEDTAK_I_ARENA,
+                ManueltBehandlesGrunn.FORLENGELSE_DAGPENGER,
             )
         }
     }
 
     @Test
-    fun `bruker har andre ytelser og tiltakspengevedtak i Arena mer enn 31 dager før forlengelsen - sendes til beslutning`() {
+    fun `bruker har andre ytelser, tiltakspengevedtak i Arena og dagpenger mer enn 31 dager før forlengelsen - sendes til beslutning`() {
         withTestApplicationContextAndPostgres { tac ->
             forlengOgBehandleAutomatisk(
                 tac,
-                etterInnvilgelse = { sak -> sak.leggTilAndreYtelserOgArenavedtak(tac, tilOgMed = 4.april(2025)) },
+                etterInnvilgelse = { sak -> sak.leggTilAndreYtelserArenavedtakOgDagpenger(tac, tilOgMed = 4.april(2025)) },
             ).skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10)
         }
     }
 
-    private fun Sak.leggTilAndreYtelserOgArenavedtak(tac: TestApplicationContextMedPostgres, tilOgMed: LocalDate) {
+    private fun Sak.leggTilAndreYtelserArenavedtakOgDagpenger(tac: TestApplicationContextMedPostgres, tilOgMed: LocalDate) {
+        tac.leggTilDagpengeperioder(
+            fnr = fnr,
+            perioder = listOf(
+                Dagpengeperiode(
+                    fraOgMed = 1.mars(2025),
+                    tilOgMed = tilOgMed,
+                    ytelsetype = Dagpengeperiode.Ytelsetype.ORDINÆRE_DAGPENGER,
+                    kilde = Dagpengeperiode.Kilde.ARENA,
+                ),
+            ),
+        )
         tac.leggTilYtelserFraUtbetaldata(
             fnr = fnr,
             ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(1.mars(2025) til tilOgMed))),

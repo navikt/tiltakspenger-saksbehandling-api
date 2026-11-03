@@ -30,6 +30,7 @@ data class Saksopplysninger(
     val tiltaksdeltakelserSomFratarRett: List<TiltaksdeltakelseSomFratarRett>,
     val ytelser: Ytelser,
     val tiltakspengevedtakFraArena: TiltakspengevedtakFraArena,
+    val dagpenger: Dagpengeperioder,
     val oppslagstidspunkt: LocalDateTime,
 ) {
     val periode: Periode? = tiltaksdeltakelser.totalPeriode
@@ -71,12 +72,19 @@ data class Saksopplysninger(
     fun harTiltakspengevedtakFraArenaSomOverlapper(periode: Periode): Boolean {
         return tiltakspengevedtakFraArena.any { it.overlapperMed(periode) != Overlapp.Nei }
     }
+
+    /**
+     * Siden denne kun brukes av den del-automatiske behandlingen ønsker vi å behandle løpende dagpengeperioder som om de kan overlappe.
+     */
+    fun harDagpengerSomOverlapper(periode: Periode): Boolean {
+        return dagpenger.any { it.overlapperMed(periode) != Overlapp.Nei }
+    }
 }
 
 private const val ANTALL_DAGER_PADDING_FOR_ANDRE_YTELSER = 31L
 
 /**
- * Perioden utvidet med 31 dager tilbake i tid, for andre ytelser og tiltakspengevedtak fra Arena.
+ * Perioden utvidet med 31 dager tilbake i tid, for andre ytelser, tiltakspengevedtak fra Arena og dagpenger.
  * Brukes både når de hentes inn, og når den del-automatiske behandlingen sjekker om de overlapper perioden den innvilger.
  */
 fun Periode.medPaddingForAndreYtelser(): Periode = Periode(fraOgMed.minusDays(ANTALL_DAGER_PADDING_FOR_ANDRE_YTELSER), tilOgMed)

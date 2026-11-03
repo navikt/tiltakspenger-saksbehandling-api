@@ -160,6 +160,10 @@ fun Sak.utledAutomatiskForlengelse(
         grunner.add(ManueltBehandlesGrunn.FORLENGELSE_VEDTAK_I_ARENA)
     }
 
+    if (innvilgelsesperiode != null && saksopplysninger.harDagpengerSomOverlapper(innvilgelsesperiode.medPaddingForAndreYtelser())) {
+        grunner.add(ManueltBehandlesGrunn.FORLENGELSE_DAGPENGER)
+    }
+
     val antallBarnIVedtaket = sisteInnvilgedeDag?.let { rammevedtaksliste.barnetilleggsperioder.hentVerdiForDag(it) } ?: AntallBarn.ZERO
     val antallBarn = innvilgelsesperiode?.let {
         utledAntallBarn(

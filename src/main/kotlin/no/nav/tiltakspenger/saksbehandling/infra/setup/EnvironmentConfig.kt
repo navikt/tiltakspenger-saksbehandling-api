@@ -72,6 +72,9 @@ sealed interface EnvironmentConfig {
     val tiltakspengerArenaScope: String
     val tiltakspengerArenaUrl: String
 
+    val dpDatadelingScope: String
+    val dpDatadelingUrl: String
+
     val safScope: String
     val safUrl: String
 
@@ -169,6 +172,9 @@ data object LocalConfig : EnvironmentConfig {
     override val tiltakspengerArenaUrl = WIREMOCK_URL
     override val tiltakspengerArenaScope = "localhost"
 
+    override val dpDatadelingUrl = WIREMOCK_URL
+    override val dpDatadelingScope = "localhost"
+
     override val safUrl = WIREMOCK_URL
     override val safScope = "localhost"
 
@@ -255,6 +261,9 @@ data object DevConfig : EnvironmentConfig {
     override val tiltakspengerArenaUrl = "https://tiltakspenger-arena.dev-fss-pub.nais.io"
     override val tiltakspengerArenaScope = "dev-fss:tpts:tiltakspenger-arena"
 
+    override val dpDatadelingUrl = "http://dp-datadeling.teamdagpenger"
+    override val dpDatadelingScope = "api://dev-gcp.teamdagpenger.dp-datadeling/.default"
+
     override val safUrl = "https://saf-q2.dev-fss-pub.nais.io"
     override val safScope = "api://dev-fss.teamdokumenthandtering.saf/.default"
 
@@ -340,6 +349,9 @@ data object ProdConfig : EnvironmentConfig {
 
     override val tiltakspengerArenaUrl = "https://tiltakspenger-arena.prod-fss-pub.nais.io"
     override val tiltakspengerArenaScope = "prod-fss:tpts:tiltakspenger-arena"
+
+    override val dpDatadelingUrl = "http://dp-datadeling.teamdagpenger"
+    override val dpDatadelingScope = "api://prod-gcp.teamdagpenger.dp-datadeling/.default"
 
     override val safUrl = "https://saf.prod-fss-pub.nais.io"
     override val safScope = "api://prod-fss.teamdokumenthandtering.saf/.default"

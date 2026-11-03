@@ -40,6 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.distribuering.Dist
 import no.nav.tiltakspenger.saksbehandling.behandling.service.journalføring.JournalførRammevedtakService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.dagpenger.infra.http.DagpengerKlient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.infra.setup.MdcKorrelasjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
@@ -75,6 +76,7 @@ open class BehandlingOgVedtakContext(
     simulerService: SimulerService,
     oppgaveKlient: OppgaveKlient,
     tiltakspengerArenaClient: TiltakspengerArenaClient,
+    dagpengerKlient: DagpengerKlient,
     tiltaksdeltakerRepo: TiltaksdeltakerRepo,
     /** Sperrer forlengelse i prod inntil videre. */
     erProd: Boolean,
@@ -166,6 +168,7 @@ open class BehandlingOgVedtakContext(
             sokosUtbetaldataClient = sokosUtbetaldataClient,
             clock = clock,
             tiltakspengerArenaClient = tiltakspengerArenaClient,
+            dagpengerKlient = dagpengerKlient,
             tiltaksdeltakerRepo = tiltaksdeltakerRepo,
         )
     }

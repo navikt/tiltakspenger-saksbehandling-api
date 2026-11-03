@@ -198,6 +198,7 @@ fun String.shouldBeRevurderingDTO(
             "fødselsdato": ${ikkeSladdetTekst("2001-01-01")},
             "ytelser": [],
             "tiltakspengevedtakFraArena": [],
+            "dagpenger": [],
             "periode": {
               "fraOgMed": "$periodeFraOgMed",
               "tilOgMed": "$periodeTilOgMed"
@@ -318,6 +319,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
             "fødselsdato": ${ikkeSladdetTekst("2001-01-01")},
             "ytelser": [],
             "tiltakspengevedtakFraArena": [],
+            "dagpenger": [],
             "periode": {
                 "fraOgMed": "$periodeFraOgMed",
                 "tilOgMed": "$periodeTilOgMed"

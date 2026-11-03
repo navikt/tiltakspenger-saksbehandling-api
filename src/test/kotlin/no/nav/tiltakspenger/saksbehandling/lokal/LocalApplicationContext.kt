@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.common.LOKAL_KAFKA_BROKER
 import no.nav.tiltakspenger.saksbehandling.common.LOKAL_SCHEMA_REGISTRY
+import no.nav.tiltakspenger.saksbehandling.dagpenger.infra.http.DagpengerFakeKlient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonIdGenerator
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevForMeldekortKlient
@@ -264,6 +265,10 @@ class LocalApplicationContext(
         TiltakspengerArenaFakeClient()
     }
 
+    override val dagpengerKlient by lazy {
+        DagpengerFakeKlient()
+    }
+
     val environmentProfile by lazy { EnvironmentProfile.LOCAL }
 
     override val sakContext by lazy {
@@ -352,6 +357,7 @@ class LocalApplicationContext(
             simulerService = utbetalingContext.simulerService,
             oppgaveKlient = oppgaveKlient,
             tiltakspengerArenaClient = tiltakspengerArenaClient,
+            dagpengerKlient = dagpengerKlient,
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
             erProd = erProd,
         ) {}

@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.iverksett.iverksett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdater
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Dagpengeperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
@@ -106,6 +107,11 @@ interface SakMother : MotherOfAllMothers {
             tiltaksdeltakelserSomFratarRett = emptyList(),
             ytelser = Ytelser.fromList(emptyList(), registrerteTiltak.totalPeriode!!, iDag.atStartOfDay()),
             tiltakspengevedtakFraArena = TiltakspengevedtakFraArena.fromList(
+                emptyList(),
+                registrerteTiltak.totalPeriode!!,
+                iDag.atStartOfDay(),
+            ),
+            dagpenger = Dagpengeperioder.fromList(
                 emptyList(),
                 registrerteTiltak.totalPeriode!!,
                 iDag.atStartOfDay(),
@@ -222,6 +228,11 @@ interface SakMother : MotherOfAllMothers {
             tiltaksdeltakelserSomFratarRett = emptyList(),
             ytelser = Ytelser.fromList(emptyList(), registrerteTiltak.totalPeriode!!, iDag.atStartOfDay()),
             tiltakspengevedtakFraArena = TiltakspengevedtakFraArena.fromList(
+                emptyList(),
+                registrerteTiltak.totalPeriode!!,
+                iDag.atStartOfDay(),
+            ),
+            dagpenger = Dagpengeperioder.fromList(
                 emptyList(),
                 registrerteTiltak.totalPeriode!!,
                 iDag.atStartOfDay(),

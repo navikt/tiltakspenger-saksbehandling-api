@@ -356,6 +356,7 @@ val httpklientKlasserMedDekningskrav =
     listOf(
         "no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaHttpClient",
         "no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinHttpClient",
+        "no.nav.tiltakspenger.saksbehandling.dagpenger.infra.http.DpDatadelingHttpClient",
         "no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient",
         "no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokdistHttpClient",
         "no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenrsHttpClient",

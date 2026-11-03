@@ -19,6 +19,7 @@ data class SaksopplysningerDTO(
     val periode: PeriodeDTO?,
     val ytelser: List<YtelseDTO>,
     val tiltakspengevedtakFraArena: List<ArenaTPVedtakDTO>,
+    val dagpenger: List<DagpengeperiodeDTO>,
     val oppslagstidspunkt: LocalDateTime,
 )
 
@@ -30,6 +31,7 @@ fun Saksopplysninger.toSaksopplysningerDTO(): SaksopplysningerDTO {
         periode = this.periode?.toDTO(),
         ytelser = this.ytelser.map { it.toDTO() },
         tiltakspengevedtakFraArena = this.tiltakspengevedtakFraArena.map { it.toDto() },
+        dagpenger = this.dagpenger.map { it.toDto() },
         oppslagstidspunkt = this.oppslagstidspunkt,
     )
 }

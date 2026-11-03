@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehan
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.dagpenger.domene.Dagpengeperiode
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -537,10 +538,10 @@ class DelautomatiskBehandlingServiceTest {
     }
 
     /**
-     * Søknadsperioden starter 1. januar 2023, så andre ytelser og vedtak i Arena sjekkes fra og med 1. desember 2022.
+     * Søknadsperioden starter 1. januar 2023, så andre ytelser, vedtak i Arena og dagpenger sjekkes fra og med 1. desember 2022.
      */
     @Test
-    fun `behandleAutomatisk - har andre ytelser og vedtak i Arena inntil 31 dager før søknadsperioden - manuell behandling`() {
+    fun `behandleAutomatisk - har andre ytelser, vedtak i Arena og dagpenger inntil 31 dager før søknadsperioden - manuell behandling`() {
         withTestApplicationContext { tac ->
             val fnr = Fnr.random()
             tac.leggTilYtelserFraUtbetaldata(
@@ -551,6 +552,10 @@ class DelautomatiskBehandlingServiceTest {
                 fnr = fnr,
                 vedtak = listOf(arenavedtak(fraOgMed = 1.november(2022), tilOgMed = 1.desember(2022))),
             )
+            tac.leggTilDagpengeperioder(
+                fnr = fnr,
+                perioder = listOf(dagpengeperiode(fraOgMed = 1.november(2022), tilOgMed = 1.desember(2022))),
+            )
             val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac, fnr = fnr)
 
             tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
@@ -560,12 +565,31 @@ class DelautomatiskBehandlingServiceTest {
             oppdatertBehandling.manueltBehandlesGrunner shouldBe listOf(
                 ManueltBehandlesGrunn.SAKSOPPLYSNING_ANDRE_YTELSER,
                 ManueltBehandlesGrunn.SAKSOPPLYSNING_VEDTAK_I_ARENA,
+                ManueltBehandlesGrunn.SAKSOPPLYSNING_DAGPENGER,
             )
         }
     }
 
     @Test
-    fun `behandleAutomatisk - har andre ytelser og vedtak i Arena mer enn 31 dager før søknadsperioden - sendes til beslutning`() {
+    fun `behandleAutomatisk - har løpende dagpenger som startet før søknadsperioden - manuell behandling`() {
+        withTestApplicationContext { tac ->
+            val fnr = Fnr.random()
+            tac.leggTilDagpengeperioder(
+                fnr = fnr,
+                perioder = listOf(dagpengeperiode(fraOgMed = 1.november(2022), tilOgMed = null)),
+            )
+            val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac, fnr = fnr)
+
+            tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
+
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id) as Søknadsbehandling
+            oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+            oppdatertBehandling.manueltBehandlesGrunner shouldBe listOf(ManueltBehandlesGrunn.SAKSOPPLYSNING_DAGPENGER)
+        }
+    }
+
+    @Test
+    fun `behandleAutomatisk - har andre ytelser, vedtak i Arena og dagpenger mer enn 31 dager før søknadsperioden - sendes til beslutning`() {
         withTestApplicationContext { tac ->
             val fnr = Fnr.random()
             tac.leggTilYtelserFraUtbetaldata(
@@ -576,6 +600,10 @@ class DelautomatiskBehandlingServiceTest {
                 fnr = fnr,
                 vedtak = listOf(arenavedtak(fraOgMed = 1.november(2022), tilOgMed = 30.november(2022))),
             )
+            tac.leggTilDagpengeperioder(
+                fnr = fnr,
+                perioder = listOf(dagpengeperiode(fraOgMed = 1.november(2022), tilOgMed = 30.november(2022))),
+            )
             val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac, fnr = fnr)
 
             tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
@@ -583,6 +611,7 @@ class DelautomatiskBehandlingServiceTest {
             val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id) as Søknadsbehandling
             oppdatertBehandling.saksopplysninger.ytelser.shouldNotBeEmpty()
             oppdatertBehandling.saksopplysninger.tiltakspengevedtakFraArena.shouldNotBeEmpty()
+            oppdatertBehandling.saksopplysninger.dagpenger.shouldNotBeEmpty()
             oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
             oppdatertBehandling.manueltBehandlesGrunner shouldBe emptyList()
         }
@@ -593,5 +622,12 @@ class DelautomatiskBehandlingServiceTest {
         tilOgMed = tilOgMed,
         rettighet = ArenaTPVedtak.Rettighet.TILTAKSPENGER,
         vedtakId = 1,
+    )
+
+    private fun dagpengeperiode(fraOgMed: LocalDate, tilOgMed: LocalDate?) = Dagpengeperiode(
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
+        ytelsetype = Dagpengeperiode.Ytelsetype.ORDINÆRE_DAGPENGER,
+        kilde = Dagpengeperiode.Kilde.ARENA,
     )
 }

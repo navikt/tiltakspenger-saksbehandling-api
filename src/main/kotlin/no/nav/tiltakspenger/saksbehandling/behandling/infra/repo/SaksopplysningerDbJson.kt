@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Dagpengeperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakelseDb
@@ -18,6 +19,8 @@ private data class SaksopplysningerDbJson(
     val tiltaksdeltakelserSomFratarRett: List<TiltaksdeltakelseSomFratarRettDbJson>? = null,
     val ytelser: YtelserDbJson,
     val tiltakspengevedtakFraArena: TiltakspengevedtakFraArenaDbJson,
+    // Mangler i saksopplysninger lagret før dagpenger ble tatt med.
+    val dagpenger: DagpengeperioderDbJson? = null,
     val oppslagstidspunkt: LocalDateTime,
 )
 
@@ -28,6 +31,7 @@ fun Saksopplysninger.toDbJson(): String {
         tiltaksdeltakelserSomFratarRett = tiltaksdeltakelserSomFratarRett.map { it.toDbJson() },
         ytelser = ytelser.toDbJson(),
         tiltakspengevedtakFraArena = tiltakspengevedtakFraArena.toDbJson(),
+        dagpenger = dagpenger.toDbJson(),
         oppslagstidspunkt = oppslagstidspunkt,
     ).let { serialize(it) }
 }
@@ -40,6 +44,7 @@ fun String.toSaksopplysninger(): Saksopplysninger {
         tiltaksdeltakelserSomFratarRett = dbJson.tiltaksdeltakelserSomFratarRett?.map { it.toDomain() } ?: emptyList(),
         ytelser = dbJson.ytelser.toDomain(),
         tiltakspengevedtakFraArena = dbJson.tiltakspengevedtakFraArena.toDomain(),
+        dagpenger = dbJson.dagpenger?.toDomain() ?: Dagpengeperioder.BehandletFørFeature,
         oppslagstidspunkt = dbJson.oppslagstidspunkt,
     )
 }

@@ -2,12 +2,14 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -27,11 +29,15 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.K
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testdeltakelse
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Dagpengeperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelseDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
+import no.nav.tiltakspenger.saksbehandling.dagpenger.domene.Dagpengeperiode
+import no.nav.tiltakspenger.saksbehandling.dagpenger.infra.http.DagpengerFakeKlient
+import no.nav.tiltakspenger.saksbehandling.dagpenger.infra.http.DagpengerKlient
 import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import no.nav.tiltakspenger.saksbehandling.felles.uventetStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -175,6 +181,7 @@ class HentSaksopplysingerServiceTest {
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
                 tiltakspengerArenaClient = tiltakspengerArenaClient,
+                dagpengerKlient = DagpengerFakeKlient(),
                 tiltaksdeltakerRepo = tiltaksdeltakerRepo,
             )
 
@@ -195,6 +202,10 @@ class HentSaksopplysingerServiceTest {
                 oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
             )
             result.tiltakspengevedtakFraArena shouldBeEqual TiltakspengevedtakFraArena.IngenTreff(
+                oppslagsperiode = 2.desember(2022) til 30.januar(2023),
+                oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
+            )
+            result.dagpenger shouldBeEqual Dagpengeperioder.IngenTreff(
                 oppslagsperiode = 2.desember(2022) til 30.januar(2023),
                 oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
             )
@@ -320,6 +331,7 @@ class HentSaksopplysingerServiceTest {
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
                 tiltakspengerArenaClient = tiltakspengerArenaClient,
+                dagpengerKlient = DagpengerFakeKlient(),
                 tiltaksdeltakerRepo = tiltaksdeltakerRepo,
             )
             val result = service.hentSaksopplysningerFraRegistre(
@@ -335,6 +347,7 @@ class HentSaksopplysingerServiceTest {
             result.periode.shouldBeNull()
             result.ytelser shouldBeEqual Ytelser.IkkeBehandlingsgrunnlag
             result.tiltakspengevedtakFraArena shouldBeEqual TiltakspengevedtakFraArena.IkkeBehandlingsgrunnlag
+            result.dagpenger shouldBeEqual Dagpengeperioder.IkkeBehandlingsgrunnlag
         }
     }
 
@@ -465,6 +478,7 @@ class HentSaksopplysingerServiceTest {
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
                 tiltakspengerArenaClient = tiltakspengerArenaClient,
+                dagpengerKlient = DagpengerFakeKlient(),
                 tiltaksdeltakerRepo = tiltaksdeltakerRepo,
             )
             val result = service.hentSaksopplysningerFraRegistre(
@@ -649,6 +663,7 @@ class HentSaksopplysingerServiceTest {
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
                 tiltakspengerArenaClient = tiltakspengerArenaClient,
+                dagpengerKlient = DagpengerFakeKlient(),
                 tiltaksdeltakerRepo = tiltaksdeltakerRepo,
             )
             val result = service.hentSaksopplysningerFraRegistre(
@@ -827,6 +842,7 @@ class HentSaksopplysingerServiceTest {
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
                 tiltakspengerArenaClient = tiltakspengerArenaClient,
+                dagpengerKlient = DagpengerFakeKlient(),
                 tiltaksdeltakerRepo = tiltaksdeltakerRepo,
             )
             val result = service.hentSaksopplysningerFraRegistre(
@@ -947,6 +963,75 @@ class HentSaksopplysingerServiceTest {
         }
     }
 
+    @Test
+    fun `dagpenger hentes for saksopplysningsperioden utvidet 31 dager bakover`() {
+        runBlocking {
+            val periode: Periode = 2.januar(2023) til 30.januar(2023)
+            val tiltak = ObjectMother.tiltakOgSøknadstiltak(søknadFraOgMed = periode.fraOgMed, søknadTilOgMed = periode.tilOgMed)
+            val dagpengeperiode = Dagpengeperiode(
+                fraOgMed = 1.desember(2022),
+                tilOgMed = null,
+                ytelsetype = Dagpengeperiode.Ytelsetype.ORDINÆRE_DAGPENGER,
+                kilde = Dagpengeperiode.Kilde.DP_SAK,
+            )
+            val forespurtePerioder = mutableListOf<Periode>()
+            val dagpengerKlient = object : DagpengerKlient {
+                override suspend fun hentDagpengeperioder(
+                    fnr: Fnr,
+                    periode: Periode,
+                    correlationId: CorrelationId,
+                ): Either<HttpKlientError, List<Dagpengeperiode>> {
+                    forespurtePerioder.add(periode)
+                    return listOf(dagpengeperiode).right()
+                }
+            }
+            val service = serviceMedTiltakshistorikk(tiltak.first, dagpengerKlient = dagpengerKlient)
+
+            val result = service.hentSaksopplysningerFraRegistre(
+                fnr = Fnr.random(),
+                correlationId = CorrelationId.generate(),
+                tiltaksdeltakelserDetErSøktTiltakspengerFor = TiltaksdeltakelserDetErSøktTiltakspengerFor(tiltak.second, periode.fraOgMed.atStartOfDay()),
+                aktuelleTiltaksdeltakelserForBehandlingen = listOf(tiltak.first.internDeltakelseId),
+                sakId = SakId.random(),
+                inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = false,
+            )
+
+            forespurtePerioder shouldBe listOf(2.desember(2022) til 30.januar(2023))
+            result.dagpenger shouldBeEqual Dagpengeperioder.Treff(
+                value = nonEmptyListOf(dagpengeperiode),
+                oppslagsperiode = 2.desember(2022) til 30.januar(2023),
+                oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
+            )
+        }
+    }
+
+    @Test
+    fun `kaster når dagpenger ikke kan hentes`() {
+        runBlocking {
+            val periode: Periode = 2.januar(2023) til 30.januar(2023)
+            val tiltak = ObjectMother.tiltakOgSøknadstiltak(søknadFraOgMed = periode.fraOgMed, søknadTilOgMed = periode.tilOgMed)
+            val dagpengerKlient = object : DagpengerKlient {
+                override suspend fun hentDagpengeperioder(
+                    fnr: Fnr,
+                    periode: Periode,
+                    correlationId: CorrelationId,
+                ): Either<HttpKlientError, List<Dagpengeperiode>> = uventetStatus().left()
+            }
+            val service = serviceMedTiltakshistorikk(tiltak.first, dagpengerKlient = dagpengerKlient)
+
+            shouldThrow<IllegalStateException> {
+                service.hentSaksopplysningerFraRegistre(
+                    fnr = Fnr.random(),
+                    correlationId = CorrelationId.generate(),
+                    tiltaksdeltakelserDetErSøktTiltakspengerFor = TiltaksdeltakelserDetErSøktTiltakspengerFor(tiltak.second, periode.fraOgMed.atStartOfDay()),
+                    aktuelleTiltaksdeltakelserForBehandlingen = listOf(tiltak.first.internDeltakelseId),
+                    sakId = SakId.random(),
+                    inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = false,
+                )
+            }.message shouldStartWith "Kunne ikke hente dagpenger fra dp-datadeling."
+        }
+    }
+
     private fun lønnstilskudd(id: String, fraOgMed: LocalDate?, tilOgMed: LocalDate?) = testdeltakelse(
         id = id,
         tiltakstype = Tiltakstype.SomFratarRett(tiltakskodeFraKilden = "MIDLONTIL"),
@@ -959,6 +1044,7 @@ class HentSaksopplysingerServiceTest {
         vararg andreDeltakelser: LibsTiltaksdeltakelse,
         ytelser: Either<HttpKlientError, List<Ytelse>> = emptyList<Ytelse>().right(),
         arenavedtak: Either<HttpKlientError, List<ArenaTPVedtak>> = emptyList<ArenaTPVedtak>().right(),
+        dagpengerKlient: DagpengerKlient = DagpengerFakeKlient(),
     ): HentSaksopplysingerService {
         val tiltaksdeltakerRepo = TiltaksdeltakerFakeRepo().apply {
             lagre(
@@ -1003,6 +1089,7 @@ class HentSaksopplysingerServiceTest {
                     correlationId: CorrelationId,
                 ) = arenavedtak
             },
+            dagpengerKlient = dagpengerKlient,
             clock = Clock.fixed(1.februar(2023).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC),
             tiltaksdeltakerRepo = tiltaksdeltakerRepo,
         )

@@ -24,6 +24,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.GjenåpneSøkn
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskRevurderingJobb
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskSoknadsbehandlingJobb
 import no.nav.tiltakspenger.saksbehandling.benk.infra.setup.BenkContext
+import no.nav.tiltakspenger.saksbehandling.dagpenger.infra.http.DagpengerKlient
+import no.nav.tiltakspenger.saksbehandling.dagpenger.infra.http.DpDatadelingHttpClient
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
 import no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient
@@ -197,6 +199,17 @@ open class ApplicationContext(
             authTokenProvider = TexasSystemTokenProvider(
                 texasClient = texasClient,
                 audienceTarget = Configuration.tiltakspengerArenaScope,
+            ),
+            clock = clock,
+        )
+    }
+
+    open val dagpengerKlient: DagpengerKlient by lazy {
+        DpDatadelingHttpClient(
+            baseUrl = Configuration.dpDatadelingUrl,
+            authTokenProvider = TexasSystemTokenProvider(
+                texasClient = texasClient,
+                audienceTarget = Configuration.dpDatadelingScope,
             ),
             clock = clock,
         )
@@ -477,6 +490,7 @@ open class ApplicationContext(
             simulerService = utbetalingContext.simulerService,
             oppgaveKlient = oppgaveKlient,
             tiltakspengerArenaClient = tiltakspengerArenaClient,
+            dagpengerKlient = dagpengerKlient,
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
             erProd = erProd,
         )
