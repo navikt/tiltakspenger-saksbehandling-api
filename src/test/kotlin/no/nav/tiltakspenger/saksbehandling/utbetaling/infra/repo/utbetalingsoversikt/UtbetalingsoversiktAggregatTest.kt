@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.jobber.TaskResultat
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.Loggfanger
@@ -183,7 +184,7 @@ class UtbetalingsoversiktAggregatTest {
             tac.utbetalingsoversiktFakeKlient.leggTilFeil(tjenestenErNede.fnr, tjenestefeil())
             spolTilÅpent(tac, 6.mai(2025))
 
-            jobb(tac).oppdaterUtbetalingsoversikter()
+            jobbMedLimit(tac, limit = 10).oppdaterUtbetalingsoversikter() shouldBe TaskResultat.Feilet
 
             feiltype(tac, avvist) shouldBe Oppslagsfeiltype.SAK_AVVIST
             feiltype(tac, tjenestenErNede) shouldBe Oppslagsfeiltype.TJENESTEFEIL
@@ -204,7 +205,7 @@ class UtbetalingsoversiktAggregatTest {
             }
             spolTilÅpent(tac, 6.mai(2025))
 
-            jobb(tac).oppdaterUtbetalingsoversikter()
+            jobbMedLimit(tac, limit = 10).oppdaterUtbetalingsoversikter() shouldBe TaskResultat.Feilet
 
             feiltype(tac, saker[0]) shouldBe Oppslagsfeiltype.SAK_AVVIST
             feiltype(tac, saker[1]) shouldBe Oppslagsfeiltype.SAK_AVVIST
@@ -307,12 +308,13 @@ class UtbetalingsoversiktAggregatTest {
             val sak = sakMedOkUtbetaling(tac)
             tac.clock.spolTil(6.mai(2025))
 
-            jobb(tac).oppdaterUtbetalingsoversikter()
+            jobb(tac).oppdaterUtbetalingsoversikter() shouldBe TaskResultat.IngenArbeid
             status(tac, sak) shouldBe Utbetalingsoversiktstatus.IkkeHentet
 
             spolTilÅpent(tac, 7.mai(2025))
-            jobb(tac).oppdaterUtbetalingsoversikter()
+            jobb(tac).oppdaterUtbetalingsoversikter() shouldBe TaskResultat.MerArbeid
             status(tac, sak).shouldBeInstanceOf<Utbetalingsoversiktstatus.SisteOppslagVellykket>()
+            jobb(tac).oppdaterUtbetalingsoversikter() shouldBe TaskResultat.IngenArbeid
         }
     }
 
@@ -355,6 +357,18 @@ class UtbetalingsoversiktAggregatTest {
     }
 
     private fun jobb(tac: TestApplicationContext) = tac.utbetalingContext.oppdaterUtbetalingsoversiktJobb
+
+    private fun jobbMedLimit(tac: TestApplicationContext, limit: Int) = OppdaterUtbetalingsoversiktJobb(
+        sakRepo = tac.sakContext.sakRepo,
+        utbetalingsoversiktRepo = tac.utbetalingContext.utbetalingsoversiktRepo,
+        utbetalingsoversiktklient = tac.utbetalingsoversiktFakeKlient,
+        clock = tac.clock,
+        meterRegistry = SimpleMeterRegistry(),
+        limit = limit,
+        logger = Loggfanger(OppdaterUtbetalingsoversiktJobb::class.java.name),
+        sikkerlogg = Sikkerloggfanger(),
+        korrelasjon = MdcKorrelasjon(),
+    )
 
     private fun kø(tac: TestApplicationContext, limit: Int = 10): List<SakId> =
         tac.utbetalingContext.utbetalingsoversiktRepo.hentSakerKlareForOppslag(nå = nå(tac.clock), limit = limit)

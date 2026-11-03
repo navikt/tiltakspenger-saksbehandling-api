@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.backoff.shouldRetry
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
+import no.nav.tiltakspenger.libs.jobber.TaskResultat
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.Korrelasjon
@@ -54,12 +55,15 @@ class OppdaterUtbetalingsoversiktJobb(
      * Svarer tjenesten på et oppslag, også med et tomt svar eller en feil som bare gjelder saken, er pausen over.
      * Jobben logger når pausen starter og slutter, og måler antall pauser på rad i `tpts_saksbehandlingapi_utbetalingsoversikt_systempauser_paa_rad`.
      * Bare jobben på lederpoden setter verdien, så andre poder viser 0.
+     * Svarer [TaskResultat.MerArbeid] når alle [limit] oppslag lyktes, slik at jobben kan drenere køen med pause mellom kjøringene.
      */
-    suspend fun oppdaterUtbetalingsoversikter() {
-        if (!erInnenforØkonomisystemetsÅpningstider(clock)) return
-        if (systempause?.let { nå(clock) < it.nesteForsøk } == true) return
+    suspend fun oppdaterUtbetalingsoversikter(): TaskResultat {
+        if (!erInnenforØkonomisystemetsÅpningstider(clock)) return TaskResultat.IngenArbeid
+        if (systempause?.let { nå(clock) < it.nesteForsøk } == true) return TaskResultat.IngenArbeid
+        val saker = utbetalingsoversiktRepo.hentSakerKlareForOppslag(nå = nå(clock), limit = limit)
+        if (saker.isEmpty()) return TaskResultat.IngenArbeid
         var antallFeil = 0
-        for (sakId in utbetalingsoversiktRepo.hentSakerKlareForOppslag(nå = nå(clock), limit = limit)) {
+        for (sakId in saker) {
             val skalStoppe = Either.catch { oppdaterForSak(sakId) }.fold(
                 ifLeft = {
                     logger.error(it) { "Uventet feil ved oppdatering av utbetalingsoversikt, stopper kjøringen. sakId=$sakId." }
@@ -80,8 +84,9 @@ class OppdaterUtbetalingsoversiktJobb(
                     )
                 },
             )
-            if (skalStoppe) return
+            if (skalStoppe) return TaskResultat.Feilet
         }
+        return if (antallFeil == 0 && saker.size == limit) TaskResultat.MerArbeid else TaskResultat.Ferdig
     }
 
     // pausen ligger i minnet på lederpoden, så en omstart eller et nytt ledervalg nullstiller den og gir ett prøveoppslag for tidlig; flytt den til databasen hvis det blir et problem.

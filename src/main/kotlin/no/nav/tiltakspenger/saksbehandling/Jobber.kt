@@ -1,10 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling
 
+import arrow.core.nonEmptyListOf
+import no.nav.tiltakspenger.libs.jobber.Kjøremodus
+import no.nav.tiltakspenger.libs.jobber.TaskGruppe
 import no.nav.tiltakspenger.libs.jobber.TaskResultat
 import no.nav.tiltakspenger.libs.ktor.common.oppstart.Miljøverdi
 import no.nav.tiltakspenger.libs.ktor.common.oppstart.Task
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import java.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 
 fun jobber(
@@ -76,14 +80,23 @@ private fun utbetalingJobber(
             TaskResultat.Ferdig
         },
     ),
-    // Prod har prøvedrift med et tak på antall oppslag; se maksAntallOppslag i UtbetalingContext.
-    Task(
+)
+
+/**
+ * Egen parallell gruppe, slik at pausen mellom oppslagene ikke holder igjen de serielle jobbene.
+ * Gruppen tømmer køen med ett oppslag om gangen og venter 500 ms etter hvert, så sokos-utbetaldata får tid til andre konsumenter.
+ * Prod har prøvedrift med et tak på antall oppslag; se maksAntallOppslag i UtbetalingContext.
+ */
+fun taskGrupper(
+    applicationContext: ApplicationContext,
+): List<TaskGruppe> = listOf(
+    TaskGruppe(
         navn = "saksbehandling-jobb-oppdater-utbetalingsoversikt",
-        intervall = Miljøverdi.lik(5.minutes),
-        utfør = { _ ->
-            applicationContext.utbetalingContext.oppdaterUtbetalingsoversiktJobb.oppdaterUtbetalingsoversikter()
-            TaskResultat.Ferdig
-        },
+        intervall = 1.minutes,
+        tasks = nonEmptyListOf({ _ -> applicationContext.utbetalingContext.oppdaterUtbetalingsoversiktJobb.oppdaterUtbetalingsoversikter() }),
+        kjøremodus = Kjøremodus.PARALLELT,
+        kjørKontinuerligTilTom = true,
+        pauseMellomDrenering = 500.milliseconds,
     ),
 )
 

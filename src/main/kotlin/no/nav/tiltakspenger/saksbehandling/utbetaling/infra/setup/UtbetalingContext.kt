@@ -84,8 +84,8 @@ open class UtbetalingContext(
             sessionFactory as PostgresSessionFactory,
             // De to testsakene i dev ble opprettet 25.09.2026; prod følger opp alle saker under prøvedriften, og starttidspunktet avtales før jobben slås på for alle.
             oppfølgesFra = if (erDev) LocalDateTime.of(2026, 9, 25, 0, 0) else null,
-            // ponytail: prøvedriften i prod stopper etter 100 oppslag; fjernes når jobben slås på for alle.
-            maksAntallOppslag = if (erDev) null else 100,
+            // ponytail: prøvedriften i prod stopper etter 10 000 oppslag; fjernes når jobben slås på for alle.
+            maksAntallOppslag = if (erDev) null else 10_000,
         )
     }
     open val simulerService: SimulerService by lazy {
@@ -134,8 +134,8 @@ open class UtbetalingContext(
             utbetalingsoversiktklient = utbetalingsoversiktklient,
             clock = clock,
             meterRegistry = meterRegistry,
-            // Lavt i dev til vi har målt hva et oppslag koster; justeres før jobben slås på i prod.
-            limit = if (erDev) 2 else 10,
+            // Ett oppslag per kjøring, slik at pausen mellom kjøringene i Jobber.kt kommer etter hvert kall.
+            limit = 1,
             logger = KotlinLogging.logger(OppdaterUtbetalingsoversiktJobb::class.java.name),
             sikkerlogg = Sikkerlogg,
             korrelasjon = MdcKorrelasjon(),
