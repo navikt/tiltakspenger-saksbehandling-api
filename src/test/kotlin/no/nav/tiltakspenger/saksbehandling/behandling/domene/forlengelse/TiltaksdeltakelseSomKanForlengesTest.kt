@@ -29,7 +29,7 @@ class TiltaksdeltakelseSomKanForlengesTest {
             tom = 30.juni(2025),
             tiltaksdeltakelse = listOf(
                 tidligInnvilget,
-                forkortet.copy(deltakelseTilOgMed = 31.mars(2025)),
+                forkortet.copy(periode = 1.januar(2025) til 31.mars(2025)),
                 sistInnvilget,
             ),
         )

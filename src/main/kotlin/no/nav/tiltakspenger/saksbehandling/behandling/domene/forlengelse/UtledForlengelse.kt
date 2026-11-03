@@ -69,7 +69,7 @@ fun Sak.utledForlengelse(
         .find { it.tiltaksdeltakelse.internDeltakelseId == tiltaksdeltakerId }
         ?: return KanIkkeForlenge.TiltaksdeltakelsenKanIkkeForlenges(tiltaksdeltakerId).left()
 
-    val deltakelsesperiode = valgtTiltaksdeltakelse.tiltaksdeltakelse.periode
+    val deltakelsesperiode = valgtTiltaksdeltakelse.tiltaksdeltakelse.lukketPeriode
     if (deltakelsesperiode == null || !deltakelsesperiode.inneholderHele(forlengelsesperiode)) {
         return KanIkkeForlenge.TiltaksdeltakelsenDekkerIkkeForlengelsen(forlengelsesperiode).left()
     }

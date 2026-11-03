@@ -176,7 +176,7 @@ class PdfgenrsHttpClientTest {
                 val barn = JSONObject(it.json).getJSONObject("barnSomFyller16")
                 barn.getInt("antall") shouldBe 1
                 barn.getInt("antallBarnIVedtaket") shouldBe 2
-                barn.getString("sisteDagMedBarnetillegg") shouldBe "31. mars 2023"
+                barn.getString("sisteDagMedBarnetillegg") shouldBe "2023-03-31"
             }
         }
     }

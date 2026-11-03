@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
-import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.satser.Satser
@@ -26,7 +25,7 @@ private data class BrevForlengelseDTO(
     override val saksnummer: String,
     override val saksbehandlerNavn: String,
     override val beslutterNavn: String?,
-    override val datoForUtsending: String,
+    override val datoForUtsending: LocalDate,
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
     override val harBarnetillegg: Boolean,
@@ -42,7 +41,7 @@ private data class BrevForlengelseDTO(
 private data class BarnSomFyller16DTO(
     val antall: Int,
     val antallBarnIVedtaket: Int,
-    val sisteDagMedBarnetillegg: String,
+    val sisteDagMedBarnetillegg: LocalDate,
 )
 
 suspend fun Rammevedtak.tilForlengelseBrev(
@@ -99,14 +98,14 @@ suspend fun genererForlengelseBrev(
         tilleggstekst = tilleggstekst?.verdi,
         forhandsvisning = forhåndsvisning,
         harBarnetillegg = barnetillegg != null && barnetillegg.any { it.verdi.value > 0 },
-        datoForUtsending = vedtaksdato.format(norskDatoFormatter),
+        datoForUtsending = vedtaksdato,
         innvilgelsesperioder = tilBrevInnvilgelsesperioder(innvilgelsesperioder),
         barnetillegg = tilBrevBarnetillegg(barnetillegg),
         barnSomFyller16 = barnSomFyller16?.let {
             BarnSomFyller16DTO(
                 antall = it.antall,
                 antallBarnIVedtaket = it.antallBarnIVedtaket,
-                sisteDagMedBarnetillegg = it.sisteDagMedBarnetillegg.format(norskDatoFormatter),
+                sisteDagMedBarnetillegg = it.sisteDagMedBarnetillegg,
             )
         },
     ).let { serialize(it) }

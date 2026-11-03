@@ -45,7 +45,7 @@ fun Innvilgelsesperioder.tiltaksdeltakelserSomKanForlenges(
         .distinctBy { it.verdi.valgtTiltaksdeltakelse.internDeltakelseId }
         .mapNotNull { innvilgelsesperiode ->
             saksopplysninger.getTiltaksdeltakelse(innvilgelsesperiode.verdi.valgtTiltaksdeltakelse.internDeltakelseId)
-                ?.takeIf { it.periode?.inneholder(forlengesFraOgMed) == true }
+                ?.takeIf { it.lukketPeriode?.inneholder(forlengesFraOgMed) == true }
                 ?.let { TiltaksdeltakelseSomKanForlenges(it, innvilgelsesperiode.verdi.antallDagerPerMeldeperiode) }
         }
 }
