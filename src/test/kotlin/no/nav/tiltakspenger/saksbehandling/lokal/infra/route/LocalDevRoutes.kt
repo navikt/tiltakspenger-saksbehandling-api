@@ -18,6 +18,6 @@ fun Route.localDevRoutes(applicationContext: ApplicationContext) {
     oppdaterTiltaksdeltakelseDevRoute(lokalTiltaksdeltakelseService = applicationContext.lokalTiltaksdeltakelseService)
     settDagpengeperioderDevRoute(
         sakRepo = applicationContext.sakContext.sakRepo,
-        dagpengerFakeKlient = applicationContext.dagpengerKlient,
+        dagpengerKlient = applicationContext.dagpengerKlient,
     )
 }

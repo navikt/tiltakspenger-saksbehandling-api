@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDto
 import no.nav.tiltakspenger.saksbehandling.dagpenger.domene.Dagpengeperiode
-import no.nav.tiltakspenger.saksbehandling.dagpenger.infra.http.DagpengerFakeKlient
+import no.nav.tiltakspenger.saksbehandling.lokal.dagpenger.infra.http.DagpengerFakeLokalKlient
 import no.nav.tiltakspenger.saksbehandling.lokal.infra.route.DEV_ROUTE
 import java.time.LocalDate
 
@@ -40,11 +40,12 @@ private data class DagpengeperiodeBody(
  * Setter dagpengeperiodene dp-datadeling svarer med lokalt for personen på saken, og erstatter de som var satt fra før.
  * En tom liste fjerner dem.
  * `tilOgMed` kan utelates for en løpende periode, `ytelsetype` er som standard `ORDINÆRE_DAGPENGER` og `kilde` `ARENA`.
- * Periodene blir først synlige i en behandling når saksopplysningene hentes på nytt.
+ * Periodene lagres i `lokal.dagpengeperioder` og overlever omstart.
+ * De blir først synlige i en behandling når saksopplysningene hentes på nytt.
  */
 fun Route.settDagpengeperioderDevRoute(
     sakRepo: SakRepo,
-    dagpengerFakeKlient: DagpengerFakeKlient,
+    dagpengerKlient: DagpengerFakeLokalKlient,
 ) {
     post(PATH) {
         call.withBody<SettDagpengeperioderBody> { body ->
@@ -60,7 +61,7 @@ fun Route.settDagpengeperioderDevRoute(
                 )
             }
             val perioder = body.perioder.map { it.toDomain() }
-            dagpengerFakeKlient.leggTilDagpengeperioder(fnr = fnr, perioder = perioder)
+            dagpengerKlient.settDagpengeperioder(fnr = fnr, perioder = perioder)
             call.respondJson(value = perioder.map { it.toDto() })
         }
     }

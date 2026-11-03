@@ -68,21 +68,7 @@ data class DagpengeperioderDbJson(
 
 fun Dagpengeperioder.toDbJson(): DagpengeperioderDbJson {
     return DagpengeperioderDbJson(
-        perioder = this.value.map {
-            DagpengeperioderDbJson.DagpengeperiodeDbJson(
-                fraOgMed = it.fraOgMed,
-                tilOgMed = it.tilOgMed,
-                ytelsetype = when (it.ytelsetype) {
-                    Dagpengeperiode.Ytelsetype.ORDINÆRE_DAGPENGER -> "ORDINÆRE_DAGPENGER"
-                    Dagpengeperiode.Ytelsetype.PERMITTERING -> "PERMITTERING"
-                    Dagpengeperiode.Ytelsetype.PERMITTERING_FISKEINDUSTRI -> "PERMITTERING_FISKEINDUSTRI"
-                },
-                kilde = when (it.kilde) {
-                    Dagpengeperiode.Kilde.ARENA -> "ARENA"
-                    Dagpengeperiode.Kilde.DP_SAK -> "DP_SAK"
-                },
-            )
-        },
+        perioder = this.value.map { it.toDbJson() },
         type = when (this) {
             is Dagpengeperioder.BehandletFørFeature -> DagpengeperioderDbJson.Type.BehandletFørFeature
             is Dagpengeperioder.IkkeBehandlingsgrunnlag -> DagpengeperioderDbJson.Type.IkkeBehandlingsgrunnlag
@@ -91,5 +77,21 @@ fun Dagpengeperioder.toDbJson(): DagpengeperioderDbJson {
         },
         oppslagstidspunkt = this.oppslagstidspunkt,
         oppslagsperiode = this.oppslagsperiode?.toDbJson(),
+    )
+}
+
+fun Dagpengeperiode.toDbJson(): DagpengeperioderDbJson.DagpengeperiodeDbJson {
+    return DagpengeperioderDbJson.DagpengeperiodeDbJson(
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
+        ytelsetype = when (ytelsetype) {
+            Dagpengeperiode.Ytelsetype.ORDINÆRE_DAGPENGER -> "ORDINÆRE_DAGPENGER"
+            Dagpengeperiode.Ytelsetype.PERMITTERING -> "PERMITTERING"
+            Dagpengeperiode.Ytelsetype.PERMITTERING_FISKEINDUSTRI -> "PERMITTERING_FISKEINDUSTRI"
+        },
+        kilde = when (kilde) {
+            Dagpengeperiode.Kilde.ARENA -> "ARENA"
+            Dagpengeperiode.Kilde.DP_SAK -> "DP_SAK"
+        },
     )
 }

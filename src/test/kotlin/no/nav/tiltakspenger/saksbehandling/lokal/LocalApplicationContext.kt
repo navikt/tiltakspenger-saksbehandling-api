@@ -23,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.common.LOKAL_KAFKA_BROKER
 import no.nav.tiltakspenger.saksbehandling.common.LOKAL_SCHEMA_REGISTRY
-import no.nav.tiltakspenger.saksbehandling.dagpenger.infra.http.DagpengerFakeKlient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonIdGenerator
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevForMeldekortKlient
@@ -47,6 +46,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KabalClient
 import no.nav.tiltakspenger.saksbehandling.klage.infra.http.KabalClientFake
 import no.nav.tiltakspenger.saksbehandling.klage.infra.setup.KlagebehandlingContext
 import no.nav.tiltakspenger.saksbehandling.lokal.auth.tilgangskontroll.infra.TilgangsmaskinFakeLokalClient
+import no.nav.tiltakspenger.saksbehandling.lokal.dagpenger.infra.http.DagpengerFakeLokalKlient
 import no.nav.tiltakspenger.saksbehandling.lokal.infra.repo.lokalFlywayMigrate
 import no.nav.tiltakspenger.saksbehandling.lokal.journalføring.DokumentInfoIdGeneratorRandom
 import no.nav.tiltakspenger.saksbehandling.lokal.journalføring.JournalpostIdGeneratorRandom
@@ -265,8 +265,8 @@ class LocalApplicationContext(
         TiltakspengerArenaFakeClient()
     }
 
-    override val dagpengerKlient: DagpengerFakeKlient by lazy {
-        DagpengerFakeKlient()
+    override val dagpengerKlient: DagpengerFakeLokalKlient by lazy {
+        DagpengerFakeLokalKlient(sessionFactory as PostgresSessionFactory, clock)
     }
 
     val environmentProfile by lazy { EnvironmentProfile.LOCAL }
