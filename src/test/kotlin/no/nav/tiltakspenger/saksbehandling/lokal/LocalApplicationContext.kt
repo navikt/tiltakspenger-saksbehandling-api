@@ -265,7 +265,7 @@ class LocalApplicationContext(
         TiltakspengerArenaFakeClient()
     }
 
-    override val dagpengerKlient by lazy {
+    override val dagpengerKlient: DagpengerFakeKlient by lazy {
         DagpengerFakeKlient()
     }
 
