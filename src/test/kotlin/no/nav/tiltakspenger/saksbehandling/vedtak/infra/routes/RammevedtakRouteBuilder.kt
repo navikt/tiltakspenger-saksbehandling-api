@@ -97,6 +97,15 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
               "type": "OPPHØR"
             }"""
     },
+    // Vedtaket kan forlenges når det er innvilget helt frem til slutten av vedtaksperioden.
+    forlengelseskommando: String? = gjeldendeInnvilgetPerioder.lastOrNull()
+        ?.takeIf { it.tilOgMed == opprinneligVedtaksperiode.tilOgMed }
+        ?.let {
+            """"FORLENG": {
+              "forlengesFraOgMed": "${it.tilOgMed.plusDays(1)}",
+              "type": "FORLENG"
+            }"""
+        },
 ) {
     shouldBeEqualToRammevedtakDTO(
         erGjeldende = erGjeldende,
@@ -118,6 +127,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
         omgjøringskommando = omgjøringskommando,
         stanskommando = stanskommando,
         opphørskommando = opphørskommando,
+        forlengelseskommando = forlengelseskommando,
     )
 }
 
@@ -178,6 +188,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTO(
     omgjøringskommando: String? = null,
     stanskommando: String? = null,
     opphørskommando: String? = null,
+    forlengelseskommando: String? = null,
     klagebehandlingId: KlagebehandlingId? = null,
     skalSendeVedtaksbrev: Boolean = true,
 ) {
@@ -231,7 +242,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTO(
               "innvilgelsesperioder": $innvilgelsesperioder,
               "omgjortGrad": ${omgjortGrad?.let { "\"$omgjortGrad\"" }},
               "gyldigeKommandoer": {
-                ${listOfNotNull(omgjøringskommando, opphørskommando, stanskommando).joinToString(",\n")}
+                ${listOfNotNull(omgjøringskommando, opphørskommando, stanskommando, forlengelseskommando).joinToString(",\n")}
               },
               "skalSendeVedtaksbrev": $skalSendeVedtaksbrev
         }

@@ -475,6 +475,11 @@ class IverksettRevurderingTest {
                       "type": "OPPHØR"
                     }
                 """.trimIndent(),
+                forlengelseskommando = """"FORLENG": {
+                      "forlengesFraOgMed": "2023-04-01",
+                      "type": "FORLENG"
+                    }
+                """.trimIndent(),
             )
         }
     }

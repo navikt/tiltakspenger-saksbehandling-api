@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.tiltaksdeltakelsenSomForlenges
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.HjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperioderDTO
@@ -18,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemm
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDate
 
 /**
@@ -39,6 +41,12 @@ interface ForhåndsvisRammevedtaksbrevTestbuilder {
         resultat: RammebehandlingResultatTypeDTO,
         avslagsgrunner: List<ValgtHjemmelForAvslagDTO>? = null,
         innvilgelsesperioder: InnvilgelsesperioderDTO? = null,
+        tilOgMed: LocalDate? = null,
+        internDeltakelseId: TiltaksdeltakerId? = if (resultat == RammebehandlingResultatTypeDTO.FORLENGELSE) {
+            tac.sakContext.sakRepo.hentForSakId(sakId)!!.tiltaksdeltakelsenSomForlenges(behandlingId)
+        } else {
+            null
+        },
     ): Triple<Sak, Rammebehandling, String> {
         if (resultat in listOf(
                 RammebehandlingResultatTypeDTO.INNVILGELSE,
@@ -66,6 +74,8 @@ interface ForhåndsvisRammevedtaksbrevTestbuilder {
             ) { """{"antallBarn":${it.antallBarn},"periode":{"fraOgMed":"${it.periode.fraOgMed}","tilOgMed":"${it.periode.tilOgMed}"}}""" }
         },
                 "resultat": "$resultat",
+                "tilOgMed": ${tilOgMed?.let { "\"$it\"" }},
+                "internDeltakelseId": ${internDeltakelseId?.let { "\"$it\"" }},
                 "avslagsgrunner": ${avslagsgrunner?.joinToString(prefix = "[", postfix = "]") { """"$it"""" }},
                 "innvilgelsesperioder": ${
             innvilgelsesperioder?.let {

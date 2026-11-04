@@ -80,12 +80,12 @@ suspend fun genererRevurderingInnvilgetBrev(
         forhandsvisning = forhåndsvisning,
         harBarnetillegg = barnetillegg != null && barnetillegg.any { it.verdi.value > 0 },
         datoForUtsending = vedtaksdato,
-        innvilgelsesperioder = tilInnvilgelsesperioder(innvilgelsesperioder),
-        barnetillegg = tilBarnetillegg(barnetillegg),
+        innvilgelsesperioder = tilBrevInnvilgelsesperioder(innvilgelsesperioder),
+        barnetillegg = tilBrevBarnetillegg(barnetillegg),
     ).let { serialize(it) }
 }
 
-private fun tilInnvilgelsesperioder(
+fun tilBrevInnvilgelsesperioder(
     innvilgelsesperioder: Innvilgelsesperioder,
 ): BrevInnvilgelsesperioderDTO {
     val sammenhengendeInnvilgelsesperioder = innvilgelsesperioder.perioder.leggSammen(false)
@@ -98,7 +98,7 @@ private fun tilInnvilgelsesperioder(
     )
 }
 
-private fun tilBarnetillegg(
+fun tilBrevBarnetillegg(
     barnetillegg: Periodisering<AntallBarn>?,
 ): List<BrevBarnetilleggDTO> {
     val perioderMedBarnetillegg = barnetillegg?.perioderMedVerdi

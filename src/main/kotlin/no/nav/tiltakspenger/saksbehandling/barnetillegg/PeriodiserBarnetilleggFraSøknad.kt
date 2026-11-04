@@ -42,6 +42,13 @@ fun List<BarnetilleggFraSøknad>.periodiserAntallBarn(periode: Periode): Sammenh
         .slåSammenTilstøtendePerioder()
 }
 
+/**
+ * Om minst ett av barna i søknaden får rett på barnetillegg i løpet av [periode], altså blir født i den.
+ * Som i [periodiserAntallBarn] regnes kun barn som oppholder seg i Norge eller et annet EØS-land, med.
+ */
+fun List<BarnetilleggFraSøknad>.harBarnSomFårRettI(periode: Periode): Boolean =
+    this.any { it.oppholderSegIEØS.erJa() && periode.inneholder(it.periodeMedRettPåBarnetillegg().fraOgMed) }
+
 /** Fra og med fødselsdatoen til og med dagen før barnet fyller 16 år. */
 private fun BarnetilleggFraSøknad.periodeMedRettPåBarnetillegg(): Periode =
     fødselsdato til sisteDagMedRett()

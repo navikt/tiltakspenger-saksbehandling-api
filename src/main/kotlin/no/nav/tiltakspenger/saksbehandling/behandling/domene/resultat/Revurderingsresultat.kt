@@ -7,9 +7,13 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.BarnSomFyller16
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ForlengerRammevedtak
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.barnSomFyller16
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KunneIkkeOppdatereSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 sealed interface Revurderingsresultat : Rammebehandlingsresultat {
 
@@ -94,6 +98,87 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
                 barnetillegg = null,
                 innvilgelsesperioder = null,
                 omgjørRammevedtak = OmgjørRammevedtak.empty,
+            )
+        }
+    }
+
+    /**
+     * Forlenger et gjeldende, innvilget rammevedtak fra dagen etter at det slutter.
+     * Saksbehandler velger bare ny til og med-dato, og kan eventuelt endre barnetillegget.
+     * Tiltaksdeltakelsen og antall dager per meldeperiode videreføres fra siste dag i vedtaket som forlenges.
+     *
+     * Vedtaksperioden og innvilgelsesperioden vil være 1-1, og starter alltid på [ForlengerRammevedtak.forlengesFraOgMed].
+     * Forlengelsen kan ikke overlappe andre vedtak, så den omgjør aldri andre vedtak.
+     * Når man oppretter forlengelsen, har man ikke tatt stilling til til og med-datoen ennå, og [innvilgelsesperioder] og [barnetillegg] er null.
+     *
+     * @param harEndretBarnetillegg Om saksbehandler har valgt barnetillegget selv.
+     * Er det false, er barnetillegget utledet fra vedtaket som forlenges, og utledes på nytt ved neste oppdatering.
+     * @param kanIkkeUtledeBarnetillegg Om barnetillegget ikke kunne utledes fra vedtaket som forlenges ved siste oppdatering.
+     * Da er antall barn i vedtaket videreført uendret, og saksbehandler må vurdere barnetillegget selv, så [harEndretBarnetillegg] er alltid true.
+     */
+    data class Forlengelse(
+        val forlenger: ForlengerRammevedtak,
+        override val innvilgelsesperioder: Innvilgelsesperioder?,
+        override val barnetillegg: Barnetillegg?,
+        val harEndretBarnetillegg: Boolean,
+        val kanIkkeUtledeBarnetillegg: Boolean,
+    ) : Rammebehandlingsresultat.Innvilgelse,
+        Revurderingsresultat {
+        override val vedtaksperiode = innvilgelsesperioder?.totalPeriode
+        override val valgteTiltaksdeltakelser = innvilgelsesperioder?.valgteTiltaksdeltagelser
+        override val antallDagerPerMeldeperiode = innvilgelsesperioder?.antallDagerPerMeldeperiode
+        override val omgjørRammevedtak = OmgjørRammevedtak.empty
+
+        init {
+            if (innvilgelsesperioder != null) {
+                require(innvilgelsesperioder.fraOgMed == forlenger.forlengesFraOgMed) {
+                    "Forlengelsen må starte ${forlenger.forlengesFraOgMed}, men starter ${innvilgelsesperioder.fraOgMed}"
+                }
+            }
+            if (harEndretBarnetillegg) {
+                require(barnetillegg != null) { "Forlengelsen har valgt barnetillegg, men mangler barnetillegg" }
+            }
+            if (kanIkkeUtledeBarnetillegg) {
+                require(harEndretBarnetillegg) { "Barnetillegget kan ikke utledes, så saksbehandler må ha valgt det" }
+            }
+        }
+
+        /**
+         * Barn som fyller 16 år i forlengelsen av [forlengetVedtak], til bruk i vedtaksbrevet.
+         * Er null når saksbehandler har endret barnetillegget, eller forlengelsen ikke har fått en periode ennå.
+         */
+        fun barnSomFyller16(forlengetVedtak: Rammevedtak): BarnSomFyller16? = when {
+            harEndretBarnetillegg || barnetillegg == null -> null
+            else -> forlenger.barnSomFyller16(forlengetVedtak, barnetillegg.periodisering)
+        }
+
+        fun nullstill() = Forlengelse(
+            forlenger = forlenger,
+            innvilgelsesperioder = null,
+            barnetillegg = null,
+            harEndretBarnetillegg = false,
+            kanIkkeUtledeBarnetillegg = false,
+        )
+
+        override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Forlengelse> {
+            return if (valgteTiltaksdeltakelser == null || skalNullstilleResultatVedNyeSaksopplysninger(
+                    valgteTiltaksdeltakelser.verdier,
+                    oppdaterteSaksopplysninger,
+                )
+            ) {
+                nullstill()
+            } else {
+                this
+            }.right()
+        }
+
+        companion object {
+            fun opprett(forlenger: ForlengerRammevedtak) = Forlengelse(
+                forlenger = forlenger,
+                innvilgelsesperioder = null,
+                barnetillegg = null,
+                harEndretBarnetillegg = false,
+                kanIkkeUtledeBarnetillegg = false,
             )
         }
     }

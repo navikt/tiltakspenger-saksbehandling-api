@@ -58,6 +58,7 @@ private fun Tidslinjeresultat.tilDTO(): TidslinjeResultat {
     return when (this) {
         Tidslinjeresultat.SØKNADSBEHANDLING_INNVILGELSE -> TidslinjeResultat.SØKNADSBEHANDLING_INNVILGELSE
         Tidslinjeresultat.REVURDERING_INNVILGELSE -> TidslinjeResultat.REVURDERING_INNVILGELSE
+        Tidslinjeresultat.FORLENGELSE -> TidslinjeResultat.FORLENGELSE
         Tidslinjeresultat.OMGJØRING_INNVILGELSE -> TidslinjeResultat.OMGJØRING_INNVILGELSE
         Tidslinjeresultat.OMGJØRING_OPPHØR -> TidslinjeResultat.OMGJØRING_OPPHØR
         Tidslinjeresultat.STANS -> TidslinjeResultat.STANS

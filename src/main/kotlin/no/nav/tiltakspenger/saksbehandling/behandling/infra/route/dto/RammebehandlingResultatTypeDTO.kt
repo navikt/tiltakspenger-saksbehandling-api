@@ -16,6 +16,7 @@ enum class RammebehandlingResultatTypeDTO {
     OMGJØRING,
     OMGJØRING_OPPHØR,
     OMGJØRING_IKKE_VALGT,
+    FORLENGELSE,
 }
 
 fun Søknadsbehandlingsresultat?.tilSøknadsbehandlingResultatTypeDTO(): RammebehandlingResultatTypeDTO = when (this) {
@@ -27,6 +28,7 @@ fun Søknadsbehandlingsresultat?.tilSøknadsbehandlingResultatTypeDTO(): Rammebe
 fun Revurderingsresultat.tilRevurderingResultatTypeDTO(): RammebehandlingResultatTypeDTO = when (this) {
     is Revurderingsresultat.Stans -> RammebehandlingResultatTypeDTO.STANS
     is Revurderingsresultat.Innvilgelse -> RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
+    is Revurderingsresultat.Forlengelse -> RammebehandlingResultatTypeDTO.FORLENGELSE
     is Omgjøringsresultat.OmgjøringInnvilgelse -> RammebehandlingResultatTypeDTO.OMGJØRING
     is Omgjøringsresultat.OmgjøringOpphør -> RammebehandlingResultatTypeDTO.OMGJØRING_OPPHØR
     is Omgjøringsresultat.OmgjøringIkkeValgt -> RammebehandlingResultatTypeDTO.OMGJØRING_IKKE_VALGT
@@ -38,6 +40,7 @@ fun Rammebehandlingsresultat?.tilRammebehandlingResultatTypeDTO(): Rammebehandli
     -> this.tilSøknadsbehandlingResultatTypeDTO()
 
     is Revurderingsresultat.Innvilgelse,
+    is Revurderingsresultat.Forlengelse,
     is Omgjøringsresultat.OmgjøringInnvilgelse,
     is Revurderingsresultat.Stans,
     is Omgjøringsresultat.OmgjøringIkkeValgt,

@@ -14,8 +14,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.Revurderin
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RevurderingResultatDTO.OmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RevurderingResultatDTO.Stans
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.OmgjøringsgradDTO
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.OmgjøringsgradDTO.Companion.tilDTO
+import java.time.LocalDate
 
 sealed interface RammebehandlingResultatDTO {
     val resultat: RammebehandlingResultatTypeDTO
@@ -50,6 +52,28 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
     ) : RevurderingResultatDTO,
         RammebehandlingInnvilgelseResultatDTO {
         override val resultat = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
+    }
+
+    /**
+     * @param forlengerRammevedtakId Vedtaket som forlenges.
+     * @param forlengesFraOgMed Dagen etter siste innvilgede dag i vedtaket som forlenges.
+     * Til og med-datoen saksbehandler har valgt, er slutten på vedtaksperioden.
+     * @param harEndretBarnetillegg Om saksbehandler har valgt barnetillegget selv, i stedet for at det er utledet fra vedtaket som forlenges.
+     * @param kanIkkeUtledeBarnetillegg Om barnetillegget ikke kunne utledes fra vedtaket som forlenges, slik at saksbehandler må vurdere det selv.
+     * @param tiltaksdeltakelserSomKanForlenges Intern-id til tiltaksdeltakelsene saksbehandler kan forlenge vedtaket for.
+     * Deltakelsen fra slutten av vedtaket kommer først.
+     */
+    data class Forlengelse(
+        val forlengerRammevedtakId: String,
+        val forlengesFraOgMed: LocalDate,
+        val harEndretBarnetillegg: Boolean,
+        val kanIkkeUtledeBarnetillegg: Boolean,
+        val tiltaksdeltakelserSomKanForlenges: List<String>,
+        override val innvilgelsesperioder: InnvilgelsesperioderDTO?,
+        override val barnetillegg: BarnetilleggDTO?,
+    ) : RevurderingResultatDTO,
+        RammebehandlingInnvilgelseResultatDTO {
+        override val resultat = RammebehandlingResultatTypeDTO.FORLENGELSE
     }
 
     data class Stans(
@@ -125,9 +149,24 @@ fun Søknadsbehandlingsresultat?.tilSøknadsbehandlingResultatDTO(): Søknadsbeh
     }
 }
 
-fun Revurderingsresultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
+/**
+ * @param tiltaksdeltakelserSomKanForlenges Brukes bare for [Revurderingsresultat.Forlengelse].
+ */
+fun Revurderingsresultat.tilRevurderingResultatDTO(
+    tiltaksdeltakelserSomKanForlenges: List<TiltaksdeltakerId>,
+): RevurderingResultatDTO {
     return when (this) {
         is Revurderingsresultat.Innvilgelse -> Innvilgelse(
+            innvilgelsesperioder = innvilgelsesperioder?.tilDTO(),
+            barnetillegg = barnetillegg?.toBarnetilleggDTO(),
+        )
+
+        is Revurderingsresultat.Forlengelse -> RevurderingResultatDTO.Forlengelse(
+            forlengerRammevedtakId = forlenger.rammevedtakId.toString(),
+            forlengesFraOgMed = forlenger.forlengesFraOgMed,
+            harEndretBarnetillegg = harEndretBarnetillegg,
+            kanIkkeUtledeBarnetillegg = kanIkkeUtledeBarnetillegg,
+            tiltaksdeltakelserSomKanForlenges = tiltaksdeltakelserSomKanForlenges.map { it.toString() },
             innvilgelsesperioder = innvilgelsesperioder?.tilDTO(),
             barnetillegg = barnetillegg?.toBarnetilleggDTO(),
         )

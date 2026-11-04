@@ -151,6 +151,11 @@ private fun OpprettRammevedtakFeil.tilErrorJson(): Pair<HttpStatusCode, ErrorJso
 
     is OpprettRammevedtakFeil.OmgjøringsgrunnlagetErEndret -> omgjøringsgrunnlagetErEndretForBeslutter
 
+    is OpprettRammevedtakFeil.ForlengelsesgrunnlagetErEndret -> HttpStatusCode.Conflict to ErrorJson(
+        melding = "Vedtaket kan ikke lenger forlenges, fordi et annet vedtak er iverksatt etter at forlengelsen ble sendt til godkjenning. Forlengelsen må sendes tilbake og avsluttes.",
+        kode = "forlengelsesgrunnlaget_er_endret",
+    )
+
     is OpprettRammevedtakFeil.UgyldigOmgjøring -> HttpStatusCode.Conflict to ErrorJson(
         melding = "Behandlingen har ugyldige omgjøringer. Saken kan ha blitt endret av et nytt vedtak etter at behandlingen ble sendt til godkjenning, og må sendes tilbake for å vurderes på nytt.",
         kode = "ugyldig_omgjøring",

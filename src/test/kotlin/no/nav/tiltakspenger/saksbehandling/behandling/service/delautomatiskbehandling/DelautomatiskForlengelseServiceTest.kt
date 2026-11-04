@@ -768,6 +768,36 @@ class DelautomatiskForlengelseServiceTest {
     }
 
     @Test
+    fun `søknaden har et barn som blir født samme dag som et annet fyller 16 år i forlengelsen - overlates til saksbehandler`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(
+                tac,
+                barnFraSøknad = listOf(
+                    barnetilleggMedIdent(fødselsdato = 1.januar(2015)),
+                    barnetilleggMedIdent(fødselsdato = 1.juni(2009)),
+                    barnetilleggMedIdent(fødselsdato = 1.juni(2025)),
+                ),
+                antallBarnIVedtaket = AntallBarn(2),
+            ).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG)
+        }
+    }
+
+    @Test
+    fun `søknaden har et barn som blir født etter at et annet har fylt 16 år i forlengelsen - overlates til saksbehandler`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(
+                tac,
+                barnFraSøknad = listOf(
+                    barnetilleggMedIdent(fødselsdato = 1.januar(2015)),
+                    barnetilleggMedIdent(fødselsdato = 1.juni(2009)),
+                    barnetilleggMedIdent(fødselsdato = 2.juni(2025)),
+                ),
+                antallBarnIVedtaket = AntallBarn(2),
+            ).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG)
+        }
+    }
+
+    @Test
     fun `vedtaket er stanset før forlengelsen behandles - overlates til saksbehandler`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))

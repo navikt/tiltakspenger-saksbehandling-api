@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeStarteRevurd
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -29,6 +30,7 @@ class StartRevurderingService(
     private val clock: Clock,
     private val statistikkService: StatistikkService,
     private val sessionFactory: SessionFactory,
+    private val forlengelseErPåslått: Boolean,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -56,6 +58,17 @@ class StartRevurderingService(
         kommando: StartRevurderingKommando,
         sak: Sak,
     ): Either<KanIkkeStarteRevurdering, ForberedtRevurdering> {
+        when (kommando.revurderingType) {
+            StartRevurderingType.FORLENGELSE -> if (!forlengelseErPåslått) {
+                return KanIkkeStarteRevurdering.ForlengelseErIkkePåslått.left()
+            }
+
+            StartRevurderingType.STANS,
+            StartRevurderingType.INNVILGELSE,
+            StartRevurderingType.OMGJØRING,
+            -> Unit
+        }
+
         val (oppdatertSak, revurdering) = sak.startRevurdering(
             kommando = kommando,
             clock = clock,

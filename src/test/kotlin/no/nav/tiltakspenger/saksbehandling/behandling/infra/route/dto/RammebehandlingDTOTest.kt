@@ -318,6 +318,7 @@ class RammebehandlingDTOTest {
                 rammevedtakId = vedtakId,
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
                 tidslinjeFørOgEtter = null,
+                tiltaksdeltakelserSomKanForlenges = emptyList(),
             ),
         )
 
@@ -379,6 +380,7 @@ class RammebehandlingDTOTest {
                 rammevedtakId = vedtakId,
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
                 tidslinjeFørOgEtter = null,
+                tiltaksdeltakelserSomKanForlenges = emptyList(),
             ),
         )
 
@@ -488,6 +490,7 @@ class RammebehandlingDTOTest {
                 rammevedtakId = omgjøringVedtakId,
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
                 tidslinjeFørOgEtter = null,
+                tiltaksdeltakelserSomKanForlenges = emptyList(),
             ),
         )
 

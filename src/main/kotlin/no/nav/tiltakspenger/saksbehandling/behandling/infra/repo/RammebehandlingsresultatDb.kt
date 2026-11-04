@@ -19,6 +19,7 @@ private enum class RevurderingsresultatDb {
     OMGJØRING,
     OMGJØRING_OPPHØR,
     OMGJØRING_IKKE_VALGT,
+    FORLENGELSE,
 }
 
 fun String.tilSøknadsbehandlingResultatType(): SøknadsbehandlingsresultatType =
@@ -33,11 +34,13 @@ fun String.tilRevurderingResultatType(): RevurderingsresultatType = when (Revurd
     RevurderingsresultatDb.OMGJØRING -> RevurderingsresultatType.OMGJØRING_INNVILGELSE
     RevurderingsresultatDb.OMGJØRING_OPPHØR -> RevurderingsresultatType.OMGJØRING_OPPHØR
     RevurderingsresultatDb.OMGJØRING_IKKE_VALGT -> RevurderingsresultatType.OMGJØRING_IKKE_VALGT
+    RevurderingsresultatDb.FORLENGELSE -> RevurderingsresultatType.FORLENGELSE
 }
 
 fun Rammebehandlingsresultat.toDb(): String = when (this) {
     is Revurderingsresultat.Stans -> RevurderingsresultatDb.STANS
     is Revurderingsresultat.Innvilgelse -> RevurderingsresultatDb.REVURDERING_INNVILGELSE
+    is Revurderingsresultat.Forlengelse -> RevurderingsresultatDb.FORLENGELSE
     is OmgjøringInnvilgelse -> RevurderingsresultatDb.OMGJØRING
     is Søknadsbehandlingsresultat.Avslag -> SøknadsbehandlingsresultatDb.AVSLAG
     is Søknadsbehandlingsresultat.Innvilgelse -> SøknadsbehandlingsresultatDb.INNVILGELSE

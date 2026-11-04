@@ -17,6 +17,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.tiltaksdeltakelsenSomForlenges
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.OppdaterBarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilBarnetilleggPerioderDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
@@ -26,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.common.medQuotes
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import org.intellij.lang.annotations.Language
 import java.time.LocalDate
 
@@ -278,6 +282,46 @@ interface OppdaterRammebehandlingBuilder {
             {
               "resultat": "OMGJØRING_IKKE_VALGT",
               "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()}
+            }
+        """.trimIndent()
+
+        return oppdaterBehandling(
+            tac = tac,
+            sakId = sakId,
+            behandlingId = behandlingId,
+            body = body,
+            forventet = forventet,
+            saksbehandler = saksbehandler,
+        )
+    }
+
+    /**
+     * @param tiltaksdeltakerId Null betyr tiltaksdeltakelsen på siste innvilgede dag i vedtaket som forlenges.
+     * @param barnetillegg Null betyr at barnetillegget utledes fra vedtaket som forlenges.
+     */
+    suspend fun ApplicationTestBuilder.oppdaterForlengelse(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        behandlingId: RammebehandlingId,
+        tilOgMed: LocalDate,
+        tiltaksdeltakerId: TiltaksdeltakerId? = null,
+        barnetillegg: Barnetillegg? = null,
+        begrunnelseVilkårsvurdering: String? = null,
+        fritekstTilVedtaksbrev: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+    ): Triple<Sak, Rammebehandling, String> {
+        @Language("JSON")
+        val body = """
+            {
+              "resultat": "FORLENGELSE",
+              "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
+              "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
+              "tilOgMed": "$tilOgMed",
+              "internDeltakelseId": "${tiltaksdeltakerId ?: tac.sakContext.sakRepo.hentForSakId(sakId)!!.tiltaksdeltakelsenSomForlenges(behandlingId)}",
+              "barnetillegg": ${barnetillegg?.let { serialize(OppdaterBarnetilleggDTO(perioder = it.periodisering.tilBarnetilleggPerioderDTO(), begrunnelse = it.begrunnelse?.verdi)) }},
+              "skalSendeVedtaksbrev": true,
+              "skalJournalføreNotat": ${serialize(SkalJournalføreNotat.INGEN.tilDTO())}
             }
         """.trimIndent()
 

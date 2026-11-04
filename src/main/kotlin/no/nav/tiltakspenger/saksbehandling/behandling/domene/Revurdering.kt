@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ForlengerRammevedtak
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat.Innvilgelse
@@ -333,6 +334,29 @@ data class Revurdering(
                 resultat = Innvilgelse.empty,
                 klagebehandling = klagebehandling,
                 automatiskOpprettetGrunn = automatiskOpprettetGrunn,
+            )
+        }
+
+        fun opprettForlengelse(
+            sakId: SakId,
+            saksnummer: Saksnummer,
+            fnr: Fnr,
+            saksbehandler: Saksbehandler,
+            saksopplysninger: Saksopplysninger,
+            opprettet: LocalDateTime,
+            forlenger: ForlengerRammevedtak,
+            revurderingId: RammebehandlingId,
+        ): Revurdering {
+            return opprett(
+                revurderingId = revurderingId,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                saksbehandler = saksbehandler,
+                saksopplysninger = saksopplysninger,
+                opprettet = opprettet,
+                resultat = Revurderingsresultat.Forlengelse.opprett(forlenger),
+                klagebehandling = null,
             )
         }
 

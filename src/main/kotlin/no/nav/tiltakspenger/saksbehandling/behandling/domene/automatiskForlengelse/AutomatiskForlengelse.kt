@@ -11,12 +11,12 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.periodiserAntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.BarnSomFyller16
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.lagBegrunnelseBarnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.utledAntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.medPaddingForAndreYtelser
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
@@ -196,51 +196,6 @@ fun Sak.utledAutomatiskForlengelse(
 }
 
 /**
- * Utleder antall barn med barnetillegg i [innvilgelsesperiode].
- *
- * Hadde det gjeldende vedtaket ikke barnetillegg på [sisteInnvilgedeDag] ([antallBarnIVedtaket] er 0), får heller ikke forlengelsen barnetillegg.
- * Nye barn krever en ny søknad, så det er ikke noe å vurdere.
- *
- * Ellers periodiseres barnetillegget ut fra barna i søknaden som ligger til grunn for innvilgelsen av [tiltaksdeltakerId], se [periodiserAntallBarn].
- * Slik faller barnetillegget bort for barn som fyller 16 år i forlengelsen, på samme måte som når saksbehandler forhåndsutfyller fra søknaden.
- * Søknaden må gi like mange barn som det gjeldende vedtaket på [sisteInnvilgedeDag], slik at vi vet at det er de samme barna som er innvilget.
- * Har saksbehandler for eksempel innvilget barnetillegg for et barn utenfor EØS, eller lagt til et barn, overlates forlengelsen til saksbehandler.
- * Det samme gjelder om søknaden gir flere barn i forlengelsen enn i vedtaket, siden et nytt barn må vurderes av saksbehandler.
- */
-private fun Sak.utledAntallBarn(
-    tiltaksdeltakerId: TiltaksdeltakerId,
-    sisteInnvilgedeDag: LocalDate,
-    antallBarnIVedtaket: AntallBarn,
-    innvilgelsesperiode: Periode,
-): Either<ManueltBehandlesGrunn, SammenhengendePeriodisering<AntallBarn>> {
-    if (antallBarnIVedtaket == AntallBarn.ZERO) {
-        return SammenhengendePeriodisering(AntallBarn.ZERO, innvilgelsesperiode).right()
-    }
-
-    val barnFraSøknaden = rammevedtaksliste
-        .filter { it.rammebehandling is Søknadsbehandling && it.rammebehandlingsresultat is Søknadsbehandlingsresultat.Innvilgelse }
-        .filter { vedtak -> vedtak.valgteTiltaksdeltakelser!!.verdier.any { it.internDeltakelseId == tiltaksdeltakerId } }
-        .maxByOrNull { it.opprettet }
-        ?.let { (it.rammebehandling as Søknadsbehandling).søknad.barnetillegg }
-        ?: return ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG.left()
-
-    val antallBarnFraSøknadenISisteInnvilgedeDag = barnFraSøknaden
-        .periodiserAntallBarn(sisteInnvilgedeDag til sisteInnvilgedeDag)
-        .verdier
-        .single()
-    if (antallBarnFraSøknadenISisteInnvilgedeDag != antallBarnIVedtaket) {
-        return ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG.left()
-    }
-
-    val antallBarn = barnFraSøknaden.periodiserAntallBarn(innvilgelsesperiode)
-    if (antallBarn.verdier.any { it.value > antallBarnIVedtaket.value }) {
-        return ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG.left()
-    }
-
-    return antallBarn.right()
-}
-
-/**
  * Begrunnelsen for vilkårsvurderingen.
  * Barnetillegget begrunnes i eget felt, se [lagBegrunnelseBarnetillegg], bortsett fra når det faller helt bort.
  */
@@ -262,36 +217,13 @@ private fun lagBegrunnelse(
 }
 
 /**
- * Begrunnelsen for barnetillegget.
- * Er null når forlengelsen ikke har barnetillegg, enten fordi det gjeldende vedtaket ikke hadde det, eller fordi det faller helt bort.
- */
-private fun lagBegrunnelseBarnetillegg(
-    antallBarnIVedtaket: AntallBarn,
-    antallBarn: SammenhengendePeriodisering<AntallBarn>,
-): Begrunnelse? = when {
-    antallBarn.inneholderKun(AntallBarn.ZERO) -> null
-
-    antallBarn.inneholderKun(antallBarnIVedtaket) -> Begrunnelse.create(
-        "Barnetillegg for ${antallBarnIVedtaket.value} barn videreføres fra det gjeldende vedtaket.",
-    )
-
-    else -> Begrunnelse.create(
-        "Barnetillegget for ${antallBarnIVedtaket.value} barn i det gjeldende vedtaket reduseres når barn fyller 16 år:" +
-            antallBarn.perioderMedVerdi.joinToString("") { (antall, periode) ->
-                "\n${antall.value} barn fra og med ${periode.fraOgMed.format(norskDatoFormatter)} " +
-                    "til og med ${periode.tilOgMed.format(norskDatoFormatter)}."
-            },
-    )
-}
-
-/**
  * Teksten til bruker i vedtaksbrevet.
  * Nevner barnetillegg når forlengelsen har barnetillegg.
  *
- * Fyller barn 16 år i forlengelsen, forklares det at barnetillegget stopper for dem.
+ * Fyller barn 16 år i forlengelsen, forklares det at barnetillegget stopper for dem, se [BarnSomFyller16].
  * Hadde vedtaket barnetillegg for bare ett barn, oppgis i stedet siste dag med barnetillegg.
  * Det er siste innvilgede dag i det gjeldende vedtaket dersom barnet fyller 16 år dagen etter.
- * Barn kan bare falle bort i forlengelsen, se [utledAntallBarn], så antall barn som fyller 16 år er differansen mellom vedtaket og slutten av forlengelsen.
+ * Forlengelsesbrevet i pdfgenrs har de samme tekstene.
  */
 private fun lagFritekstTilVedtaksbrev(
     sisteInnvilgedeDag: LocalDate,
@@ -299,31 +231,31 @@ private fun lagFritekstTilVedtaksbrev(
     antallBarn: SammenhengendePeriodisering<AntallBarn>,
 ): FritekstTilVedtaksbrev {
     val harBarnetillegg = !antallBarn.inneholderKun(AntallBarn.ZERO)
-    val antallBarnSomFyller16 = antallBarnIVedtaket.value - antallBarn.perioderMedVerdi.last().verdi.value
     val forlengelse = "Tiltaket ditt er forlenget. " +
         "Vi forlenger derfor vedtaket ditt om tiltakspenger${if (harBarnetillegg) " og barnetillegg" else ""}."
-    val barnFyller16 = when {
-        antallBarnSomFyller16 == 0 -> null
+    val barnFyller16 = BarnSomFyller16.utled(
+        sisteInnvilgedeDag = sisteInnvilgedeDag,
+        antallBarnIVedtaket = antallBarnIVedtaket,
+        antallBarn = antallBarn,
+    )?.let { barn ->
+        when {
+            barn.antallBarnIVedtaket == 1 ->
+                "Du er innvilget barnetillegg til og med ${barn.sisteDagMedBarnetillegg.format(norskDatoFormatter)} " +
+                    "fordi du ikke har rett til barnetillegg for barn over 16 år. " +
+                    "Vi viser til forskriften om tiltakspenger § 3."
 
-        antallBarnIVedtaket.value == 1 -> {
-            val sisteDagMedBarnetillegg = antallBarn.perioderMedVerdi.lastOrNull { it.verdi != AntallBarn.ZERO }?.periode?.tilOgMed
-                ?: sisteInnvilgedeDag
-            "Du er innvilget barnetillegg til og med ${sisteDagMedBarnetillegg.format(norskDatoFormatter)} " +
-                "fordi du ikke har rett til barnetillegg for barn over 16 år. " +
-                "Vi viser til forskriften om tiltakspenger § 3."
+            barn.antall == 1 ->
+                "Barnetillegg gis for hvert barn under 16 år. " +
+                    "Ett av dine barn fyller 16 år i tiltaksperioden. " +
+                    "Barnetillegget for dette barnet vil derfor stoppe fra den dagen barnet ditt fyller 16 år. " +
+                    "Vi viser til forskriften om tiltakspenger § 3."
+
+            else ->
+                "Barnetillegg gis for hvert barn under 16 år. " +
+                    "${barn.antall.tilTallord()} av dine barn fyller 16 år i tiltaksperioden. " +
+                    "Barnetillegget for disse barna vil derfor stoppe fra den dagen hvert av barna fyller 16 år. " +
+                    "Vi viser til forskriften om tiltakspenger § 3."
         }
-
-        antallBarnSomFyller16 == 1 ->
-            "Barnetillegg gis for hvert barn under 16 år. " +
-                "Ett av dine barn fyller 16 år i tiltaksperioden. " +
-                "Barnetillegget for dette barnet vil derfor stoppe fra den dagen barnet ditt fyller 16 år. " +
-                "Vi viser til forskriften om tiltakspenger § 3."
-
-        else ->
-            "Barnetillegg gis for hvert barn under 16 år. " +
-                "${antallBarnSomFyller16.tilTallord()} av dine barn fyller 16 år i tiltaksperioden. " +
-                "Barnetillegget for disse barna vil derfor stoppe fra den dagen hvert av barna fyller 16 år. " +
-                "Vi viser til forskriften om tiltakspenger § 3."
     }
     return FritekstTilVedtaksbrev.create(listOfNotNull(forlengelse, barnFyller16).joinToString("\n\n"))!!
 }
