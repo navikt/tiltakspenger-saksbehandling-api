@@ -3,16 +3,11 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route
 import no.nav.tiltakspenger.saksbehandling.infra.route.toÅpenPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.ÅpenPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
-import java.time.LocalDate
 
 data class TiltaksdeltakelseDTO(
     val eksternDeltagelseId: String,
     val gjennomføringId: String?,
     val typeNavn: String,
-    @Deprecated("Bruk periode. Beholdes for kompatibilitet.")
-    val deltagelseFraOgMed: LocalDate?,
-    @Deprecated("Bruk periode. Beholdes for kompatibilitet.")
-    val deltagelseTilOgMed: LocalDate?,
     val periode: ÅpenPeriodeDTO,
     val deltakelseStatus: TiltakDeltakerstatusDto,
     val deltakelseProsent: Float?,
@@ -28,8 +23,6 @@ fun TiltaksdeltakelseIntern.toDTO(): TiltaksdeltakelseDTO {
         eksternDeltagelseId = this.eksternDeltakelseId,
         gjennomføringId = this.gjennomføringId,
         typeNavn = this.typeNavn,
-        deltagelseFraOgMed = this.periode.fraOgMed,
-        deltagelseTilOgMed = this.periode.tilOgMed,
         periode = this.periode.toÅpenPeriodeDTO(),
         deltakelseStatus = this.deltakelseStatus.toDto(),
         deltakelseProsent = this.deltakelseProsent,

@@ -32,7 +32,7 @@ class HentTiltakdeltakelserRouteTest {
 
             hentTiltaksdeltakelser(tac, sak.id, "?fraOgMed=2023-03-01&tilOgMed=2023-04-30")
                 .apply {
-                    shouldContainJsonKeyValue("$[0].deltakelseFraOgMed", "2023-01-01")
+                    shouldContainJsonKeyValue("$[0].periode.fraOgMed", "2023-01-01")
                     shouldContainJsonKeyValue("$[0].fratarRett", false)
                 }
         }

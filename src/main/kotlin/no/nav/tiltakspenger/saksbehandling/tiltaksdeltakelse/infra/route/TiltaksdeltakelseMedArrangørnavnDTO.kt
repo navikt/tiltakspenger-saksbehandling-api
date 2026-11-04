@@ -5,17 +5,12 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 import no.nav.tiltakspenger.saksbehandling.infra.route.toÅpenPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.ÅpenPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
-import java.time.LocalDate
 
 data class TiltaksdeltakelseMedArrangørnavnDTO(
     val eksternDeltakelseId: String,
     val tiltakskodeFraKilden: String,
     val fratarRett: Boolean,
     val typeNavn: String,
-    @Deprecated("Bruk periode. Beholdes for kompatibilitet.")
-    val deltakelseFraOgMed: LocalDate?,
-    @Deprecated("Bruk periode. Beholdes for kompatibilitet.")
-    val deltakelseTilOgMed: LocalDate?,
     val periode: ÅpenPeriodeDTO,
     val visningsnavn: SladdbarVerdi<String>,
     val status: TiltakDeltakerstatusDto,
@@ -27,8 +22,6 @@ fun TiltaksdeltakelseMedArrangørnavn.toDTO(): TiltaksdeltakelseMedArrangørnavn
         typeNavn = this.typeNavn,
         tiltakskodeFraKilden = this.tiltakskodeFraKilden,
         fratarRett = this.fratarRett,
-        deltakelseFraOgMed = this.periode.fraOgMed,
-        deltakelseTilOgMed = this.periode.tilOgMed,
         periode = this.periode.toÅpenPeriodeDTO(),
         visningsnavn = this.visningsnavn.ikkeSladdet(),
         status = this.status.toDto(),
