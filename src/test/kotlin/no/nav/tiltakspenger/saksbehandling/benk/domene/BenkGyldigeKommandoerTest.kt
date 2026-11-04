@@ -260,7 +260,7 @@ class BenkGyldigeKommandoerTest {
         }
 
         @Test
-        fun `revurdering klar til beslutning hos den automatiske saksbehandleren kan ikke hentes tilbake`() {
+        fun `automatisk behandlet revurdering klar til beslutning kan hentes tilbake av en saksbehandler`() {
             val rad = BenkRevurdering(
                 felles = felles(saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID),
                 id = RammebehandlingId.random(),
@@ -269,7 +269,7 @@ class BenkGyldigeKommandoerTest {
                 prioritering = null,
             )
 
-            rad.finnGyldigeKommandoer(saksbehandler) shouldBe emptyList()
+            rad.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(HentTilbake)
         }
 
         @Test

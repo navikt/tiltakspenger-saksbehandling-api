@@ -335,6 +335,21 @@ class RammebehandlingGyldigeKommandoerExTest {
     }
 
     @Test
+    fun `automatisk behandlet revurdering klar til beslutning - saksbehandler kan hente tilbake`() {
+        val vedtaksperiode = ObjectMother.revurderingVedtaksperiode()
+        val revurdering = ObjectMother.nyRevurderingStansKlarTilBeslutning(
+            saksbehandler = AUTOMATISK_SAKSBEHANDLER,
+            stansFraOgMed = vedtaksperiode.fraOgMed,
+            førsteDagSomGirRett = vedtaksperiode.fraOgMed,
+            sisteDagSomGirRett = vedtaksperiode.tilOgMed,
+        )
+
+        revurdering.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(
+            SaksbehandlerBehandlingKommando.HentTilbake,
+        )
+    }
+
+    @Test
     fun `automatisk behandling klar til beslutning - beslutter kan tildele seg, men ikke hente tilbake`() {
         val behandling = automatiskBehandlingKlarTilBeslutning()
 

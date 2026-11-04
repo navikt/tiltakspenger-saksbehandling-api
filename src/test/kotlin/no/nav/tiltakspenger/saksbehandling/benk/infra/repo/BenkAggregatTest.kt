@@ -75,6 +75,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.mottaMe
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskBehandlingKlarTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskStansKlarTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
@@ -703,6 +704,22 @@ class BenkAggregatTest {
             repo.hentRevurderinger(
                 revurderingerCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT_SAKSBEHANDLER),
             ).totalAntall shouldBe 0
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `revurderingsfanen tilbyr hent tilbake på en automatisk behandlet revurdering klar til beslutning`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val saksbehandler = ObjectMother.saksbehandler()
+            val (_, revurdering) = opprettAutomatiskStansKlarTilBeslutning(tac)
+
+            val rad = tac.benkContext.benkRepo.hentRevurderinger(revurderingerCommand()).behandlinger.single()
+
+            rad.status shouldBe BenkBehandlingsstatus.KLAR_TIL_BESLUTNING
+            rad.felles.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
+            rad.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(SaksbehandlerBehandlingKommando.HentTilbake)
+            rad.finnGyldigeKommandoer(saksbehandler) shouldBe revurdering.finnGyldigeKommandoer(saksbehandler)
         }
     }
 

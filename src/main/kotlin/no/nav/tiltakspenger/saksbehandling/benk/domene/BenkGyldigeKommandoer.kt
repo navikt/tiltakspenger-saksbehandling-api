@@ -43,12 +43,12 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
 
 fun BenkSøknadsbehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
     if (!saksbehandler.erSaksbehandlerEllerBeslutter) return emptyList()
-    return finnGyldigeRammebehandlingKommandoer(felles, status, saksbehandler, erSøknadsbehandling = true)
+    return finnGyldigeRammebehandlingKommandoer(felles, status, saksbehandler)
 }
 
 fun BenkRevurdering.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
     if (!saksbehandler.erSaksbehandlerEllerBeslutter) return emptyList()
-    return finnGyldigeRammebehandlingKommandoer(felles, status, saksbehandler, erSøknadsbehandling = false)
+    return finnGyldigeRammebehandlingKommandoer(felles, status, saksbehandler)
 }
 
 fun BenkMeldekort.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
@@ -97,7 +97,6 @@ private fun finnGyldigeRammebehandlingKommandoer(
     felles: BenkBehandlingsfelles,
     status: BenkBehandlingsstatus,
     saksbehandler: Saksbehandler,
-    erSøknadsbehandling: Boolean,
 ): List<SaksbehandlerBehandlingKommando> {
     val navIdent = saksbehandler.navIdent
     val erSaksbehandler = saksbehandler.erSaksbehandler
@@ -132,7 +131,7 @@ private fun finnGyldigeRammebehandlingKommandoer(
         if (status == UNDER_BESLUTNING && erBeslutter && felles.beslutter == navIdent) {
             add(LeggTilbakeBeslutter)
         }
-        if (status == KLAR_TIL_BESLUTNING && erSøknadsbehandling && erSaksbehandler && felles.saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID && !erSattPåVent) {
+        if (status == KLAR_TIL_BESLUTNING && erSaksbehandler && felles.saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID && !erSattPåVent) {
             add(HentTilbake)
         }
         if (!erSattPåVent && when (status) {
@@ -156,7 +155,6 @@ private fun finnGyldigeRammebehandlingKommandoer(
         if (erSattPåVent && when (status) {
                 KLAR_TIL_BEHANDLING, BenkBehandlingsstatus.UNDER_BEHANDLING, UNDER_AUTOMATISK_BEHANDLING -> erSaksbehandler
                 KLAR_TIL_BESLUTNING, UNDER_BESLUTNING -> erBeslutter
-                else -> false
             }
         ) {
             add(Gjenoppta)
@@ -165,7 +163,6 @@ private fun finnGyldigeRammebehandlingKommandoer(
                 UNDER_AUTOMATISK_BEHANDLING, KLAR_TIL_BEHANDLING, BenkBehandlingsstatus.UNDER_BEHANDLING -> true
                 KLAR_TIL_BESLUTNING -> felles.saksbehandler == navIdent
                 UNDER_BESLUTNING -> felles.beslutter == navIdent
-                else -> false
             }
         ) {
             add(Avbryt)

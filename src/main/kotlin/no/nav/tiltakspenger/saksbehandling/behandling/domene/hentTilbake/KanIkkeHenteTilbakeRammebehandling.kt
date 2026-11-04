@@ -14,10 +14,6 @@ sealed interface KanIkkeHenteTilbakeRammebehandling : Loggbar {
         override val loggkontekst = Loggkontekst(melding = "Utøvende saksbehandler mangler saksbehandlerrollen")
     }
 
-    data object MåVæreSøknadsbehandling : KanIkkeHenteTilbakeRammebehandling {
-        override val loggkontekst = Loggkontekst(melding = "Kun søknadsbehandlinger kan hentes tilbake, men rammebehandlingen er en revurdering")
-    }
-
     data object ErIkkeAutomatiskBehandlet : KanIkkeHenteTilbakeRammebehandling {
         override val loggkontekst = Loggkontekst(melding = "Rammebehandlingen må være tildelt den automatiske saksbehandleren for å kunne hentes tilbake")
     }

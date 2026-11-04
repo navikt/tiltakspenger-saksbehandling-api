@@ -26,9 +26,10 @@ import java.time.Clock
  * Underkjenner rammebehandlingen og sender den tilbake til saksbehandler.
  * Forutsetningene håndheves av [kanUnderkjenne], og feilene derfra returneres som venstre-verdi.
  *
- * Hvis saken er delautomatisk innstilt til innvilgelse og den som underkjenner har saksbehandlerrollen, tildeles hen saken som saksbehandler, og beslutteren fjernes.
+ * Hvis saken er [Rammebehandling.automatiskSaksbehandlet] og den som underkjenner har saksbehandlerrollen, tildeles hen saken som saksbehandler, og beslutteren fjernes.
  * Mangler hen saksbehandlerrollen, blir saken klar til behandling uten saksbehandler.
- * Resultatet nullstilles, slik at saksbehandler tar stilling på nytt.
+ * For en søknadsbehandling nullstilles resultatet, slik at saksbehandler tar stilling på nytt.
+ * En revurdering har alltid et resultat, så der beholdes det.
  * Siden saken ikke lenger er tildelt den automatiske saksbehandleren, regnes den heller ikke lenger som automatisk saksbehandlet.
  */
 fun Rammebehandling.underkjenn(
@@ -40,30 +41,35 @@ fun Rammebehandling.underkjenn(
 
     val attesteringer = attesteringer.leggTil(attestering)
 
+    // En automatisk saksbehandling har ingen menneskelig saksbehandler å sende saken tilbake til, så den som underkjenner tildeles saken.
+    // Det krever saksbehandlerrollen, ellers blir saken klar til behandling uten saksbehandler.
+    val tildelUnderkjenner = automatiskSaksbehandlet && utøvendeBeslutter.erSaksbehandler
+    val nyStatus = if (automatiskSaksbehandlet && !tildelUnderkjenner) KLAR_TIL_BEHANDLING else UNDER_BEHANDLING
+    val nySaksbehandler = when {
+        tildelUnderkjenner -> utøvendeBeslutter.navIdent
+        automatiskSaksbehandlet -> null
+        else -> saksbehandler
+    }
+    // Den som underkjente blir saksbehandler, og kan ikke samtidig være beslutter.
+    val nyBeslutter = if (tildelUnderkjenner) null else beslutter
+    val sistEndret = nå(clock)
+
     val oppdatertRammebehandling = when (this) {
-        is Søknadsbehandling -> {
-            // En delautomatisk innstilling har ingen menneskelig saksbehandler å sende saken tilbake til, så den som underkjenner tildeles saken.
-            // Det krever saksbehandlerrollen, ellers blir saken klar til behandling uten saksbehandler.
-            val tildelUnderkjenner = automatiskSaksbehandlet && utøvendeBeslutter.erSaksbehandler
-            this.copy(
-                status = if (automatiskSaksbehandlet && !tildelUnderkjenner) KLAR_TIL_BEHANDLING else UNDER_BEHANDLING,
-                attesteringer = attesteringer,
-                saksbehandler = when {
-                    tildelUnderkjenner -> utøvendeBeslutter.navIdent
-                    automatiskSaksbehandlet -> null
-                    else -> saksbehandler
-                },
-                // Den som underkjente blir saksbehandler, og kan ikke samtidig være beslutter.
-                beslutter = if (tildelUnderkjenner) null else beslutter,
-                sistEndret = nå(clock),
-                resultat = if (automatiskSaksbehandlet) null else resultat,
-            )
-        }
+        is Søknadsbehandling -> this.copy(
+            status = nyStatus,
+            attesteringer = attesteringer,
+            saksbehandler = nySaksbehandler,
+            beslutter = nyBeslutter,
+            sistEndret = sistEndret,
+            resultat = if (automatiskSaksbehandlet) null else resultat,
+        )
 
         is Revurdering -> this.copy(
-            status = UNDER_BEHANDLING,
+            status = nyStatus,
             attesteringer = attesteringer,
-            sistEndret = nå(clock),
+            saksbehandler = nySaksbehandler,
+            beslutter = nyBeslutter,
+            sistEndret = sistEndret,
         )
     }
 

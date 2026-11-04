@@ -95,6 +95,14 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     val erUnderkjent: Boolean get() = attesteringer.erUnderkjent()
     val saksopplysningsperiode: Periode? get() = saksopplysninger.periode
 
+    /**
+     * Om behandlingen er saksbehandlet av den automatiske saksbehandleren.
+     * Utledes fra at behandlingen er tildelt [AUTOMATISK_SAKSBEHANDLER_ID] og ikke lenger er [UNDER_AUTOMATISK_BEHANDLING].
+     * Den automatiske saksbehandleren forlater den statusen idet den sender behandlingen til beslutning, så før det er behandlingen ikke saksbehandlet ennå.
+     * Sendes behandlingen til manuell behandling, eller tar en saksbehandler den over, byttes saksbehandleren ut, og behandlingen regnes ikke lenger som automatisk saksbehandlet.
+     */
+    val automatiskSaksbehandlet: Boolean get() = saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID && status != UNDER_AUTOMATISK_BEHANDLING
+
     val omgjørRammevedtak: OmgjørRammevedtak
 
     val utbetaling: BehandlingUtbetaling?

@@ -6,7 +6,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -14,9 +14,11 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskBehandlingKlarTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskStansKlarTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.underkjenn
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.underkjennAutomatiskSaksbehandletBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.underkjennForBehandlingId
 import org.junit.jupiter.api.Test
 
 class UnderkjennRammebehandlingTest {
@@ -71,7 +73,7 @@ class UnderkjennRammebehandlingTest {
                 oppdatertBehandling.saksbehandler shouldBe underkjenner.navIdent
                 oppdatertBehandling.beslutter shouldBe null
                 oppdatertBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
-                (oppdatertBehandling as Søknadsbehandling).automatiskSaksbehandlet shouldBe false
+                oppdatertBehandling.automatiskSaksbehandlet shouldBe false
                 // Resultatet den automatiske saksbehandlingen kom fram til nullstilles, slik at saksbehandler tar stilling på nytt.
                 oppdatertBehandling.resultat shouldBe null
             }
@@ -89,8 +91,46 @@ class UnderkjennRammebehandlingTest {
                 oppdatertBehandling.attesteringer.single().beslutter shouldBe underkjenner.navIdent
                 oppdatertBehandling.saksbehandler shouldBe null
                 oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
-                (oppdatertBehandling as Søknadsbehandling).automatiskSaksbehandlet shouldBe false
+                oppdatertBehandling.automatiskSaksbehandlet shouldBe false
                 oppdatertBehandling.resultat shouldBe null
+            }
+        }
+    }
+
+    @Test
+    fun `send tilbake - automatisk saksbehandlet revurdering - tildeles underkjenner med saksbehandlerrolle, og resultatet beholdes`() {
+        runTest {
+            withTestApplicationContextAndPostgres { tac ->
+                val underkjenner = ObjectMother.saksbehandlerOgBeslutter()
+                val (sak, revurdering) = opprettAutomatiskStansKlarTilBeslutning(tac)
+                taRammebehandlinger(tac, behandlinger = listOf(sak.id to revurdering.id), saksbehandler = underkjenner)
+                underkjennForBehandlingId(tac, sak.id, revurdering.id, beslutter = underkjenner)
+
+                val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id)
+                oppdatertBehandling.saksbehandler shouldBe underkjenner.navIdent
+                oppdatertBehandling.beslutter shouldBe null
+                oppdatertBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+                oppdatertBehandling.automatiskSaksbehandlet shouldBe false
+                oppdatertBehandling.shouldBeInstanceOf<Revurdering>().resultat shouldBe revurdering.resultat
+            }
+        }
+    }
+
+    @Test
+    fun `send tilbake - automatisk saksbehandlet revurdering - beslutter uten saksbehandlerrolle tildeles ikke, og saken blir klar til behandling`() {
+        runTest {
+            withTestApplicationContextAndPostgres { tac ->
+                val underkjenner = ObjectMother.beslutter()
+                val (sak, revurdering) = opprettAutomatiskStansKlarTilBeslutning(tac)
+                taRammebehandlinger(tac, behandlinger = listOf(sak.id to revurdering.id), saksbehandler = underkjenner)
+                underkjennForBehandlingId(tac, sak.id, revurdering.id, beslutter = underkjenner)
+
+                val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id)
+                oppdatertBehandling.saksbehandler shouldBe null
+                oppdatertBehandling.beslutter shouldBe underkjenner.navIdent
+                oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+                oppdatertBehandling.automatiskSaksbehandlet shouldBe false
+                oppdatertBehandling.shouldBeInstanceOf<Revurdering>().resultat shouldBe revurdering.resultat
             }
         }
     }
@@ -124,7 +164,7 @@ class UnderkjennRammebehandlingTest {
 
                 val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
                 oppdatertBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
-                (oppdatertBehandling as Søknadsbehandling).automatiskSaksbehandlet shouldBe false
+                oppdatertBehandling.automatiskSaksbehandlet shouldBe false
                 oppdatertBehandling.resultat.shouldBeInstanceOf<Søknadsbehandlingsresultat.Innvilgelse>()
             }
         }

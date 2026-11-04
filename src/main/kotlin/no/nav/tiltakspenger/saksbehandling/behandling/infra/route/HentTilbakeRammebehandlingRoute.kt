@@ -84,11 +84,6 @@ fun KanIkkeHenteTilbakeRammebehandling.tilStatusOgErrorJson(): Pair<HttpStatusCo
         kode = "må_være_saksbehandler",
     )
 
-    KanIkkeHenteTilbakeRammebehandling.MåVæreSøknadsbehandling -> HttpStatusCode.BadRequest to ErrorJson(
-        melding = "Kun søknadsbehandlinger kan hentes tilbake.",
-        kode = "behandlingen_må_være_søknadsbehandling",
-    )
-
     KanIkkeHenteTilbakeRammebehandling.ErIkkeAutomatiskBehandlet -> HttpStatusCode.BadRequest to ErrorJson(
         melding = "Behandlingen er ikke automatisk behandlet og kan ikke hentes tilbake.",
         kode = "behandlingen_må_være_automatisk_behandlet",

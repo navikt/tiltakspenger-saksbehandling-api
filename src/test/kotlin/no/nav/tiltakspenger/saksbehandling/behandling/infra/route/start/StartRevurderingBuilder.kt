@@ -1,22 +1,31 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start
 
 import arrow.core.Tuple5
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
+import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
@@ -24,12 +33,47 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tilStartRe
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeTestKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.json.JSONObject
 
 interface StartRevurderingBuilder {
+
+    /**
+     * Iverksetter en innvilgelse og lar jobben for endringer i tiltaksdeltakelse opprette en stans når deltakelsen avbrytes.
+     * Den automatiske saksbehandleren fyller deretter ut stansen og sender den til beslutning.
+     * Krever postgres, fordi jobben for endringer i tiltaksdeltakelse ikke har fakes.
+     */
+    suspend fun ApplicationTestBuilder.opprettAutomatiskStansKlarTilBeslutning(
+        tac: TestApplicationContextMedPostgres,
+    ): Pair<Sak, Revurdering> {
+        val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
+        val (sak) = iverksettSøknadsbehandling(
+            tac = tac,
+            tiltaksdeltakelse = deltakelse,
+            innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
+        )
+        tac.oppdaterTiltaksdeltakelse(
+            sak.fnr,
+            deltakelse.medPeriode(tilOgMed = 20.april(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
+        )
+        tac.tiltakContext.tiltaksdeltakerRepo.registrerUbehandletEndring(
+            id = deltakelse.internDeltakelseId,
+            sakId = sak.id,
+            tidspunkt = nå(tac.clock).minusMinutes(20),
+        )
+        tac.oppdatertTiltaksdeltakelseJobb.håndterUbehandledeEndringer()
+        val revurderingId = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last().id
+        tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurderingId)
+        val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+        val revurdering = oppdatertSak.hentRammebehandling(revurderingId).shouldBeInstanceOf<Revurdering>()
+        revurdering.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+        revurdering.automatiskSaksbehandlet shouldBe true
+        return oppdatertSak to revurdering
+    }
 
     /** Oppretter ny sak, søknad, innvilget søknadsbehandling og revurdering. */
     suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans(

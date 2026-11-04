@@ -16,17 +16,17 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
-import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import java.time.Clock
 
 /**
- * Saksbehandleren tar over en automatisk behandlet søknadsbehandling som er klar til beslutning: [KLAR_TIL_BESLUTNING] -> [UNDER_BEHANDLING].
+ * Saksbehandleren tar over en automatisk saksbehandlet rammebehandling som er klar til beslutning: [KLAR_TIL_BESLUTNING] -> [UNDER_BEHANDLING].
  * Ta og overta kan ikke brukes, fordi de krever beslutterrollen når behandlingen er klar til beslutning.
  * Underkjenn kan heller ikke brukes, fordi det er en beslutterhandling.
- * Som ved underkjenning av en automatisk behandling nullstilles resultatet, slik at saksbehandleren tar stilling på nytt.
+ * For en søknadsbehandling nullstilles resultatet, slik at saksbehandleren tar stilling på nytt.
+ * En revurdering har alltid et resultat, så der beholdes det, og saksbehandleren tar stilling ved å endre det.
  * Siden saken ikke lenger er tildelt den automatiske saksbehandleren, regnes den heller ikke lenger som automatisk saksbehandlet.
  * Krever at [utøvendeSaksbehandler] har rollen saksbehandler, og kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
  * Forutsetningene håndheves av [kanHenteTilbake], og feilene derfra returneres som venstre-verdi.
@@ -50,7 +50,12 @@ fun Rammebehandling.hentTilbakeRammebehandling(
                     resultat = null,
                 )
 
-                is Revurdering -> throw IllegalStateException("Skal ha blitt fanget opp av kanHenteTilbake. Kan ikke hente tilbake rammebehandling med type $behandlingstype")
+                is Revurdering -> this.copy(
+                    status = UNDER_BEHANDLING,
+                    saksbehandler = utøvendeSaksbehandler.navIdent,
+                    sistEndret = nå,
+                    sendtTilBeslutning = null,
+                )
             }
             val statistikkhendelser = Statistikkhendelser(
                 oppdatertRammebehandling.genererSaksstatistikk(StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER),
@@ -70,7 +75,7 @@ fun Rammebehandling.hentTilbakeRammebehandling(
 
 /**
  * Avgjør om [utøvendeSaksbehandler] kan hente tilbake behandlingen.
- * Kun søknadsbehandlinger som er [KLAR_TIL_BESLUTNING] og tildelt [AUTOMATISK_SAKSBEHANDLER_ID] kan hentes tilbake, og bare av en med saksbehandlerrollen.
+ * Kun rammebehandlinger som er [KLAR_TIL_BESLUTNING] og [Rammebehandling.automatiskSaksbehandlet] kan hentes tilbake, og bare av en med saksbehandlerrollen.
  * Behandlingen kan ikke hentes tilbake mens den er satt på vent, fordi det betyr at en beslutter allerede har tatt den.
  * Kalles også fra DTO-mappingen for å avgjøre om kommandoen skal tilbys, og må derfor ikke kaste.
  */
@@ -81,9 +86,7 @@ fun Rammebehandling.kanHenteTilbake(
         KLAR_TIL_BESLUTNING -> {
             if (!utøvendeSaksbehandler.erSaksbehandler) {
                 KanIkkeHenteTilbakeRammebehandling.MåVæreSaksbehandler.left()
-            } else if (this !is Søknadsbehandling) {
-                KanIkkeHenteTilbakeRammebehandling.MåVæreSøknadsbehandling.left()
-            } else if (this.saksbehandler != AUTOMATISK_SAKSBEHANDLER_ID) {
+            } else if (!automatiskSaksbehandlet) {
                 KanIkkeHenteTilbakeRammebehandling.ErIkkeAutomatiskBehandlet.left()
             } else if (ventestatus.erSattPåVent) {
                 KanIkkeHenteTilbakeRammebehandling.BehandlingenErSattPåVent.left()

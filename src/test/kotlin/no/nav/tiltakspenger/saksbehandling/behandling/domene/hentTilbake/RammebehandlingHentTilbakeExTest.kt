@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.leggTilbake.leggTilbakeRammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
@@ -34,6 +35,16 @@ class RammebehandlingHentTilbakeExTest {
             saksbehandler = AUTOMATISK_SAKSBEHANDLER,
             sendtTilBeslutning = nå(clock),
         )
+
+    private fun revurderingKlarTilBeslutning(saksbehandler: Saksbehandler): Revurdering {
+        val vedtaksperiode = ObjectMother.revurderingVedtaksperiode()
+        return ObjectMother.nyRevurderingStansKlarTilBeslutning(
+            saksbehandler = saksbehandler,
+            stansFraOgMed = vedtaksperiode.fraOgMed,
+            førsteDagSomGirRett = vedtaksperiode.fraOgMed,
+            sisteDagSomGirRett = vedtaksperiode.tilOgMed,
+        )
+    }
 
     private fun Rammebehandling.settPåVentAv(saksbehandler: Saksbehandler): Rammebehandling =
         settPåVent(
@@ -72,17 +83,19 @@ class RammebehandlingHentTilbakeExTest {
     }
 
     @Test
-    fun `kanHenteTilbake gir MåVæreSøknadsbehandling for revurdering klar til beslutning`() {
-        val vedtaksperiode = ObjectMother.revurderingVedtaksperiode()
-        val revurdering = ObjectMother.nyRevurderingStansKlarTilBeslutning(
-            saksbehandler = saksbehandler,
-            stansFraOgMed = vedtaksperiode.fraOgMed,
-            førsteDagSomGirRett = vedtaksperiode.fraOgMed,
-            sisteDagSomGirRett = vedtaksperiode.tilOgMed,
-        )
+    fun `kanHenteTilbake gir right for automatisk behandlet revurdering klar til beslutning`() {
+        val revurdering = revurderingKlarTilBeslutning(AUTOMATISK_SAKSBEHANDLER)
 
         revurdering.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
-        revurdering.kanHenteTilbake(saksbehandler) shouldBe KanIkkeHenteTilbakeRammebehandling.MåVæreSøknadsbehandling.left()
+        revurdering.automatiskSaksbehandlet shouldBe true
+        revurdering.kanHenteTilbake(saksbehandler) shouldBe Unit.right()
+    }
+
+    @Test
+    fun `kanHenteTilbake gir ErIkkeAutomatiskBehandlet for manuelt behandlet revurdering`() {
+        val revurdering = revurderingKlarTilBeslutning(saksbehandler)
+
+        revurdering.kanHenteTilbake(saksbehandler) shouldBe KanIkkeHenteTilbakeRammebehandling.ErIkkeAutomatiskBehandlet.left()
     }
 
     @Test
@@ -140,6 +153,22 @@ class RammebehandlingHentTilbakeExTest {
             sendtTilBeslutning = null,
             resultat = null,
         )
+        statistikkhendelser.hendelser.single().shouldBeInstanceOf<GenererSaksstatistikk>()
+    }
+
+    @Test
+    fun `hentTilbakeRammebehandling flytter revurderingen til saksbehandleren og beholder resultatet`() {
+        val revurdering = revurderingKlarTilBeslutning(AUTOMATISK_SAKSBEHANDLER)
+
+        val (oppdatert, statistikkhendelser) = revurdering.hentTilbakeRammebehandling(saksbehandler, fixedClock).getOrFail()
+
+        oppdatert.shouldBeInstanceOf<Revurdering>() shouldBe revurdering.copy(
+            status = Rammebehandlingsstatus.UNDER_BEHANDLING,
+            saksbehandler = saksbehandler.navIdent,
+            sistEndret = nå(fixedClock),
+            sendtTilBeslutning = null,
+        )
+        oppdatert.automatiskSaksbehandlet shouldBe false
         statistikkhendelser.hendelser.single().shouldBeInstanceOf<GenererSaksstatistikk>()
     }
 

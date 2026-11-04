@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -24,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskBehandlingKlarTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskStansKlarTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
@@ -82,6 +84,41 @@ class HentTilbakeRammebehandlingRouteTest {
                 it.behandlingStatus shouldBe StatistikkBehandlingStatus.UNDER_BEHANDLING
                 it.saksbehandler shouldBe "Z12345"
                 it.ansvarligBeslutter shouldBe null
+            }
+        }
+    }
+
+    @Test
+    fun `saksbehandler kan hente tilbake en automatisk behandlet revurdering klar til beslutning`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val saksbehandler = ObjectMother.saksbehandler()
+            val (sak, revurdering) = opprettAutomatiskStansKlarTilBeslutning(tac)
+
+            hentTilbakeRammebehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                saksbehandler = saksbehandler,
+            )!!.also { (oppdatertSak, hentetBehandling, sakJson) ->
+                hentetBehandling.shouldBeInstanceOf<Revurdering>() shouldBe revurdering.copy(
+                    status = Rammebehandlingsstatus.UNDER_BEHANDLING,
+                    saksbehandler = saksbehandler.navIdent,
+                    sistEndret = hentetBehandling.sistEndret,
+                    sendtTilBeslutning = null,
+                )
+                hentetBehandling.automatiskSaksbehandlet shouldBe false
+                oppdatertSak.hentRammebehandling(revurdering.id) shouldBe hentetBehandling
+
+                sakJson.rammebehandlingJson(revurdering.id).also { behandlingJson ->
+                    behandlingJson.get("status").asString() shouldBe "UNDER_BEHANDLING"
+                    behandlingJson.get("saksbehandler").asString() shouldBe saksbehandler.navIdent
+                }
+            }
+
+            tac.sessionFactory.hentSaksstatistikk(sak.id).last().also {
+                it.hendelse shouldBe "oppdatert_saksbehandler_beslutter"
+                it.behandlingStatus shouldBe StatistikkBehandlingStatus.UNDER_BEHANDLING
+                it.saksbehandler shouldBe saksbehandler.navIdent
             }
         }
     }
@@ -218,7 +255,7 @@ class HentTilbakeRammebehandlingRouteTest {
     }
 
     @Test
-    fun `kan ikke hente tilbake en revurdering klar til beslutning`() {
+    fun `kan ikke hente tilbake en manuelt behandlet revurdering klar til beslutning`() {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(
                 tac,
@@ -245,8 +282,8 @@ class HentTilbakeRammebehandlingRouteTest {
                     400,
                     """
                     {
-                      "melding": "Kun søknadsbehandlinger kan hentes tilbake.",
-                      "kode": "behandlingen_må_være_søknadsbehandling"
+                      "melding": "Behandlingen er ikke automatisk behandlet og kan ikke hentes tilbake.",
+                      "kode": "behandlingen_må_være_automatisk_behandlet"
                     }
                     """.trimIndent(),
                     "application/json; charset=UTF-8",

@@ -86,13 +86,6 @@ data class Søknadsbehandling(
     val kravtidspunkt: LocalDateTime = søknad.mottatt
 
     /**
-     * Utledes fra at behandlingen er tildelt den automatiske saksbehandleren og har et resultat.
-     * Den automatiske saksbehandleren setter resultatet idet den sender behandlingen til beslutning, så før det er behandlingen ikke saksbehandlet ennå.
-     * Når en saksbehandler tar over, byttes saksbehandleren ut, og behandlingen regnes ikke lenger som automatisk saksbehandlet.
-     */
-    val automatiskSaksbehandlet: Boolean = saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID && resultat != null
-
-    /**
      * To kriterier må være oppfylt for at en søknadsbehandling skal kunne innvilges:
      * 1. Det må være søkt på en identifiserbar tiltaksdeltakelse som gir rett til tiltakspenger.
      * 2. Tiltaksdeltakelsen det er søkt på må matches med tiltaksdeltakelseregisteret, ha en tiltaksstype og status som gir rett til tiltakspenger og ha en definert periode.
