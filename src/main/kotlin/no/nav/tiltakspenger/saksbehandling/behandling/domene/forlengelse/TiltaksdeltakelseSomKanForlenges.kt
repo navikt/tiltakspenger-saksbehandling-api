@@ -33,7 +33,8 @@ fun Sak.tiltaksdeltakelserSomKanForlenges(
 }
 
 /**
- * Tiltaksdeltakelsene i innvilgelsesperiodene til vedtaket som forlenges, der deltakelsen i [saksopplysninger] fortsatt varer [forlengesFraOgMed].
+ * Tiltaksdeltakelsene i innvilgelsesperiodene til vedtaket som forlenges, der deltakelsen i [saksopplysninger] fortsatt kan innvilges og varer [forlengesFraOgMed].
+ * En deltakelse som for eksempel er feilregistrert eller ikke lenger aktuell, kan ikke forlenges selv om datoene dekker forlengelsen.
  * Sortert etter når deltakelsen sist var innvilget i vedtaket, slik at deltakelsen fra slutten av vedtaket kommer først.
  */
 fun Innvilgelsesperioder.tiltaksdeltakelserSomKanForlenges(
@@ -45,7 +46,7 @@ fun Innvilgelsesperioder.tiltaksdeltakelserSomKanForlenges(
         .distinctBy { it.verdi.valgtTiltaksdeltakelse.internDeltakelseId }
         .mapNotNull { innvilgelsesperiode ->
             saksopplysninger.getTiltaksdeltakelse(innvilgelsesperiode.verdi.valgtTiltaksdeltakelse.internDeltakelseId)
-                ?.takeIf { it.lukketPeriode?.inneholder(forlengesFraOgMed) == true }
+                ?.takeIf { it.kanInnvilges && it.lukketPeriode?.inneholder(forlengesFraOgMed) == true }
                 ?.let { TiltaksdeltakelseSomKanForlenges(it, innvilgelsesperiode.verdi.antallDagerPerMeldeperiode) }
         }
 }

@@ -61,7 +61,7 @@ sealed interface OpprettRammevedtakFeil {
     }
 
     /**
-     * Et annet vedtak er iverksatt etter at forlengelsen ble opprettet, slik at vedtaket ikke lenger kan forlenges fra samme dag.
+     * Et annet vedtak er iverksatt etter at forlengelsen ble opprettet, slik at vedtaket ikke lenger kan forlenges fra samme dag, eller vedtaket overlapper forlengelsen.
      * Dette er en forventet tilstand og ikke en systemfeil.
      */
     data class ForlengelsesgrunnlagetErEndret(
@@ -93,7 +93,7 @@ fun Sak.opprettRammevedtak(
     }
 
     val resultat = rammebehandling.resultat
-    if (resultat is Revurderingsresultat.Forlengelse && !rammevedtaksliste.kanFortsattForlenges(resultat.forlenger)) {
+    if (resultat is Revurderingsresultat.Forlengelse && !rammevedtaksliste.kanFortsattForlenges(resultat)) {
         return OpprettRammevedtakFeil.ForlengelsesgrunnlagetErEndret(resultat.forlenger).left()
     }
 

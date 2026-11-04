@@ -78,8 +78,8 @@ class SendRammebehandlingTilBeslutningService(
             }
 
             val resultat = behandling.resultat
-            if (resultat is Revurderingsresultat.Forlengelse && !sak.rammevedtaksliste.kanFortsattForlenges(resultat.forlenger)) {
-                logger.warn { "Kan ikke sende forlengelsen til beslutning, vedtaket kan ikke lenger forlenges fra ${resultat.forlenger.forlengesFraOgMed} - ${behandling.loggkontekst(kommando.correlationId)}" }
+            if (resultat is Revurderingsresultat.Forlengelse && !sak.rammevedtaksliste.kanFortsattForlenges(resultat)) {
+                logger.warn { "Kan ikke sende forlengelsen til beslutning, vedtaket kan ikke lenger forlenges fra ${resultat.forlenger.forlengesFraOgMed}, eller et annet vedtak overlapper ${resultat.vedtaksperiode} - ${behandling.loggkontekst(kommando.correlationId)}" }
                 return KanIkkeSendeRammebehandlingTilBeslutter.ForlengelsesgrunnlagetErEndret.left()
             }
         }

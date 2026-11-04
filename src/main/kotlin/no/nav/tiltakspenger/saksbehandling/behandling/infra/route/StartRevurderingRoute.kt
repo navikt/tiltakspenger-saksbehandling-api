@@ -6,6 +6,7 @@ import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
+import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.ktor.common.withSakId
@@ -17,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.infra.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeStarteRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.StartRevurderingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.StartRevurderingTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
@@ -38,6 +40,13 @@ fun Route.startRevurderingRoute(
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->
             call.withBody<StartRevurderingDTO> { body ->
+                if (body.revurderingType == StartRevurderingTypeDTO.FORLENGELSE && body.rammevedtakIdSomForlenges == null) {
+                    call.respond400BadRequest(
+                        melding = "rammevedtakIdSomForlenges må være satt for å starte en forlengelse.",
+                        kode = "mangler_rammevedtak_som_forlenges",
+                    )
+                    return@withBody
+                }
                 val correlationId = call.correlationId()
                 krevSaksbehandlerRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)

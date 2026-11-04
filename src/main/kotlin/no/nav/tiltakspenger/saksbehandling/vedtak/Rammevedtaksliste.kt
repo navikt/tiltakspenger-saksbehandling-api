@@ -208,6 +208,16 @@ data class Rammevedtaksliste(
         return gyldigForlengelseskommando(hentRammevedtakForId(forlenger.rammevedtakId))?.forlengesFraOgMed == forlenger.forlengesFraOgMed
     }
 
+    /**
+     * Sann når [forlengelse] fortsatt kan sendes til beslutning eller iverksettes.
+     * I tillegg til [kanFortsattForlenges] kan et annet vedtak ha blitt iverksatt for en senere del av forlengelsen etter at den ble lagret.
+     * Forlengelsen omgjør ingen vedtak, så den kan ikke overlappe andre vedtak.
+     */
+    fun kanFortsattForlenges(forlengelse: Revurderingsresultat.Forlengelse): Boolean {
+        return kanFortsattForlenges(forlengelse.forlenger) &&
+            forlengelse.vedtaksperiode?.let { tidslinje.overlapper(it) } != true
+    }
+
     /** Kommandoene på [vedtak] som avhenger av de andre vedtakene på saken, i tillegg til [Rammevedtak.gyldigeKommandoer]. */
     fun gyldigeKommandoer(vedtak: Rammevedtak): Rammevedtakskommandoer {
         return Rammevedtakskommandoer(vedtak.gyldigeKommandoer + setOfNotNull(gyldigForlengelseskommando(vedtak)))

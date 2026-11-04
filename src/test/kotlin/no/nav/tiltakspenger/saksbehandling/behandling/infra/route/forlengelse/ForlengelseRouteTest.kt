@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.BarnSomFyller16
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ForlengerRammevedtak
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilBarnetilleggPerioderDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -39,6 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterForlengelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startForlengelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
@@ -395,6 +397,48 @@ class ForlengelseRouteTest {
                 .skalHaFeilkode("forlengelsesgrunnlaget_er_endret")
             oppdaterForlengelse(tac, sak.id, tredjeForlengelse.id, tilOgMed = 31.mai(2025), forventet = feil(409))
                 .third.skalHaFeilkode("vedtaket_kan_ikke_lenger_forlenges")
+        }
+    }
+
+    @Test
+    fun `forlengelse kan ikke startes uten vedtaket som forlenges`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak) = iverksettVedtakSomKanForlenges(tac)
+
+            startRevurderingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                type = RevurderingsresultatType.FORLENGELSE,
+                rammevedtakIdSomForlenges = null,
+                forventet = feil(400),
+            ).shouldBeNull()
+        }
+    }
+
+    @Test
+    fun `forlengelse som overlapper et vedtak iverksatt etter at den ble lagret, kan ikke sendes til beslutning eller iverksettes`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, vedtak) = iverksettVedtakSomKanForlenges(tac)
+            val tilBeslutning = startOgOppdaterForlengelse(tac, sak, vedtak)
+            val underBehandling = startOgOppdaterForlengelse(tac, sak, vedtak)
+            sendTilBeslutningOgTa(tac, sak.id, tilBeslutning)
+
+            // Første dag i forlengelsen er fortsatt ledig, men mai dekkes nå av et annet vedtak.
+            iverksettRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                innvilgelsesperioder = innvilgelsesperioder(1.mai(2025) til 31.mai(2025), vedtak.valgteTiltaksdeltakelser!!.verdier.single()),
+            )
+
+            sendRevurderingTilBeslutningForBehandlingId(tac, sak.id, underBehandling.id, forventet = feil(409))
+                .skalHaFeilkode("forlengelsesgrunnlaget_er_endret")
+            iverksettForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = tilBeslutning.id,
+                forventet = feil(409),
+                medJsonBody = { it.skalHaFeilkode("forlengelsesgrunnlaget_er_endret") },
+            ).shouldBeNull()
         }
     }
 }
