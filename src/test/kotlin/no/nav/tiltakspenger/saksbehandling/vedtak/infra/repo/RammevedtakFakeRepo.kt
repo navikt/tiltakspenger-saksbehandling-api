@@ -108,9 +108,10 @@ class RammevedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : RammevedtakR
                 if (behandling.søknad.søknadstype != Søknadstype.DIGITAL) return@mapNotNull null
                 Søknadsutfall(
                     søknadId = behandling.søknad.id,
-                    resultat = when (behandling.resultat!!) {
+                    resultat = when (val resultat = behandling.resultat) {
                         is Søknadsbehandlingsresultat.Innvilgelse -> Søknadsutfallresultat.INNVILGELSE
                         is Søknadsbehandlingsresultat.Avslag -> Søknadsutfallresultat.AVSLAG
+                        is Søknadsbehandlingsresultat.IkkeValgt -> resultat.vedtakError()
                     },
                     tidspunkt = vedtak.opprettet,
                     vedtakId = vedtak.id,

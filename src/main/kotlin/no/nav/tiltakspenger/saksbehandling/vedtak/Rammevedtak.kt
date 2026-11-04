@@ -84,7 +84,7 @@ data class Rammevedtak(
 
     override val beregning: Beregning? = rammebehandling.utbetaling?.beregning
 
-    val rammebehandlingsresultat: Rammebehandlingsresultat = rammebehandling.resultat!!
+    val rammebehandlingsresultat: Rammebehandlingsresultat = rammebehandling.resultat
 
     val klagebehandling: Klagebehandling? = rammebehandling.klagebehandling
     val klagebehandlingsresultat: Klagebehandlingsresultat? = klagebehandling?.resultat
@@ -99,7 +99,7 @@ data class Rammevedtak(
         if (periode.trekkFra(omgjortAvRammevedtak.perioder).isEmpty()) Omgjøringsgrad.HELT else Omgjøringsgrad.DELVIS
     }
 
-    val omgjørRammevedtak: OmgjørRammevedtak by lazy { rammebehandling.resultat!!.omgjørRammevedtak }
+    val omgjørRammevedtak: OmgjørRammevedtak by lazy { rammebehandling.resultat.omgjørRammevedtak }
 
     /** Er dette en omgjøringsbehandling? */
     val erOmgjøringsbehandling: Boolean by lazy {

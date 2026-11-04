@@ -59,6 +59,8 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
                 sakId = sakId,
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
+
+            SøknadsbehandlingsresultatType.IKKE_VALGT -> throw IllegalArgumentException("Støtter ikke resultat $resultat")
         }
 
         val sakId = sak.id

@@ -134,7 +134,7 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
     }
 }
 
-fun Søknadsbehandlingsresultat?.tilSøknadsbehandlingResultatDTO(): SøknadsbehandlingResultatDTO {
+fun Søknadsbehandlingsresultat.tilSøknadsbehandlingResultatDTO(): SøknadsbehandlingResultatDTO {
     return when (this) {
         is Søknadsbehandlingsresultat.Avslag -> SøknadsbehandlingResultatDTO.Avslag(
             avslagsgrunner = avslagsgrunner.toValgtHjemmelForAvslagDTO(),
@@ -145,7 +145,7 @@ fun Søknadsbehandlingsresultat?.tilSøknadsbehandlingResultatDTO(): Søknadsbeh
             barnetillegg = barnetillegg.toBarnetilleggDTO(),
         )
 
-        null -> SøknadsbehandlingResultatDTO.IkkeValgt
+        is Søknadsbehandlingsresultat.IkkeValgt -> SøknadsbehandlingResultatDTO.IkkeValgt
     }
 }
 

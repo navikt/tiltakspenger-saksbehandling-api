@@ -134,7 +134,7 @@ class IverksettOmgjøringOverFlereVedtakTest {
                 behandlingId = omgjøring.id,
                 vedtaksperiode = 1.februar(2025) til 31.mars(2025),
             )
-            oppdatertOmgjøring.resultat!!.omgjørRammevedtak.rammevedtakIDer shouldBe listOf(februarvedtak.id, marsvedtak.id)
+            oppdatertOmgjøring.resultat.omgjørRammevedtak.rammevedtakIDer shouldBe listOf(februarvedtak.id, marsvedtak.id)
         }
     }
 
@@ -165,7 +165,7 @@ class IverksettOmgjøringOverFlereVedtakTest {
                 behandlingId = omgjøring.id,
                 vedtaksperiode = 1.januar(2025) til 28.februar(2025),
             )
-            oppdatertOmgjøring.resultat!!.omgjørRammevedtak.rammevedtakIDer shouldBe listOf(januarvedtak.id, februarvedtak.id)
+            oppdatertOmgjøring.resultat.omgjørRammevedtak.rammevedtakIDer shouldBe listOf(januarvedtak.id, februarvedtak.id)
         }
     }
 

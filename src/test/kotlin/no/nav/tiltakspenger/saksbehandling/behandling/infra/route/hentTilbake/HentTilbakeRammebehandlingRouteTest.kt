@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.infra.route.rammebehandlingJson
@@ -61,14 +62,14 @@ class HentTilbakeRammebehandlingRouteTest {
                 hentetBehandling.saksbehandler shouldBe "Z12345"
                 hentetBehandling.sendtTilBeslutning shouldBe null
                 hentetBehandling.shouldBeInstanceOf<Søknadsbehandling>().automatiskSaksbehandlet shouldBe false
-                hentetBehandling.resultat shouldBe null
+                hentetBehandling.resultat shouldBe Søknadsbehandlingsresultat.IkkeValgt
 
                 oppdatertSak.hentRammebehandling(opprettetBehandling.id).shouldNotBeNull().also { hentetBehandlingRepo ->
                     hentetBehandlingRepo.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                     hentetBehandlingRepo.saksbehandler shouldBe "Z12345"
                     hentetBehandlingRepo.sendtTilBeslutning shouldBe null
                     hentetBehandlingRepo.shouldBeInstanceOf<Søknadsbehandling>().automatiskSaksbehandlet shouldBe false
-                    hentetBehandlingRepo.resultat shouldBe null
+                    hentetBehandlingRepo.resultat shouldBe Søknadsbehandlingsresultat.IkkeValgt
                 }
 
                 sakJson.rammebehandlingJson(opprettetBehandling.id).also { behandlingJson ->

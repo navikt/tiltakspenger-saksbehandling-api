@@ -36,7 +36,7 @@ class DelautomatiskRevurderingJobb(
                     is Revurderingsresultat.Stans -> delautomatiskStansService.forsøkAutomatiskStans(revurdering.sakId, revurdering.id, correlationId)
                     is Revurderingsresultat.Innvilgelse -> delautomatiskForlengelseService.forsøkAutomatiskForlengelse(revurdering.sakId, revurdering.id, correlationId)
                     is Omgjøringsresultat -> delautomatiskOmgjøringService.forsøkAutomatiskOmgjøring(revurdering.sakId, revurdering.id, correlationId)
-                    else -> log.error { "Revurdering med id $revurderingId og resultat ${revurdering.resultat?.let { it::class.simpleName }} støttes ikke av automatisk behandling, correlationId $correlationId" }
+                    else -> log.error { "Revurdering med id $revurderingId og resultat ${revurdering.resultat::class.simpleName} støttes ikke av automatisk behandling, correlationId $correlationId" }
                 }
             } catch (e: Exception) {
                 log.error(e) { "Noe gikk galt ved automatisk behandling av revurdering med id $revurderingId, correlationId $correlationId" }

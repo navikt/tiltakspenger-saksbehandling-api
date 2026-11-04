@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter
 
-import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
@@ -8,6 +7,7 @@ import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
@@ -106,7 +106,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
             )
 
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
-                it.resultat.shouldBeNull()
+                it.resultat shouldBe Søknadsbehandlingsresultat.IkkeValgt
             }
 
             sendSøknadsbehandlingTilBeslutningForBehandlingId(

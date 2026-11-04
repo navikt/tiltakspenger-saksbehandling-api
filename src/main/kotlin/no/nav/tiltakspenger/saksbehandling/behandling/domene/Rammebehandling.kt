@@ -65,7 +65,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     val avbrutt: Avbrutt?
     val ventestatus: Ventestatus
     val venterTil: LocalDateTime?
-    val resultat: Rammebehandlingsresultat?
+    val resultat: Rammebehandlingsresultat
     val vedtaksperiode: Periode?
     val innvilgelsesperioder: Innvilgelsesperioder?
     val begrunnelseVilkårsvurdering: Begrunnelse?
@@ -202,7 +202,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 }
                 require(iverksattTidspunkt == null)
                 require(vedtaksperiode != null) { "Vedtaksperiode må være satt for statusen KLAR_TIL_BESLUTNING" }
-                require(this.resultat != null) { "Behandlingsresultat må være satt for statusen KLAR_TIL_BESLUTNING" }
+                require(this.resultat !is Rammebehandlingsresultat.IkkeValgt) { "Behandlingsresultat må være valgt for statusen KLAR_TIL_BESLUTNING" }
                 require(erFerdigutfylt())
                 if (klagebehandling != null) {
                     require(klagebehandling!!.erUnderBehandling || klagebehandling!!.omgjørEtterKA || klagebehandling!!.erFerdigstilt || klagebehandling!!.erKlarTilBehandling) {
@@ -217,7 +217,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 requireNotNull(beslutter) { "Behandlingen må tilknyttet en beslutter når status er UNDER_BESLUTNING" }
                 require(iverksattTidspunkt == null)
                 require(vedtaksperiode != null) { "Vedtaksperiode må være satt for statusen UNDER_BESLUTNING" }
-                require(this.resultat != null) { "Behandlingsresultat må være satt for statusen UNDER_BESLUTNING" }
+                require(this.resultat !is Rammebehandlingsresultat.IkkeValgt) { "Behandlingsresultat må være valgt for statusen UNDER_BESLUTNING" }
                 require(erFerdigutfylt())
                 if (klagebehandling != null) {
                     require(klagebehandling!!.erUnderBehandling || klagebehandling!!.omgjørEtterKA || klagebehandling!!.erFerdigstilt) {
@@ -233,7 +233,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 requireNotNull(iverksattTidspunkt)
                 requireNotNull(sendtTilBeslutning)
                 require(vedtaksperiode != null) { "Vedtaksperiode må være satt for statusen VEDTATT" }
-                require(this.resultat != null) { "Behandlingsresultat må være satt for statusen VEDTATT" }
+                require(this.resultat !is Rammebehandlingsresultat.IkkeValgt) { "Behandlingsresultat må være valgt for statusen VEDTATT" }
                 require(erFerdigutfylt())
                 if (klagebehandling != null) {
                     require(klagebehandling!!.erVedtatt || klagebehandling!!.erFerdigstilt) {

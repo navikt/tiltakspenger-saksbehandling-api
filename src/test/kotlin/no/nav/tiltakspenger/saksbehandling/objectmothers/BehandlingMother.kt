@@ -244,6 +244,8 @@ interface BehandlingMother : MotherOfAllMothers {
                     begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                     avslagsgrunner = avslagsgrunner!!,
                 )
+
+                SøknadsbehandlingsresultatType.IKKE_VALGT -> throw IllegalArgumentException("Støtter ikke resultat $resultat")
             },
             clock = clock,
             utbetaling = null,
@@ -696,6 +698,8 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                 avslagsgrunner = avslagsgrunner!!,
             )
+
+            SøknadsbehandlingsresultatType.IKKE_VALGT -> throw IllegalArgumentException("Støtter ikke resultat $resultat")
         },
     ).getOrFail()
 

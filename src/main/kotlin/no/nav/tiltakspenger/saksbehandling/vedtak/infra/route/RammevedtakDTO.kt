@@ -157,6 +157,7 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
                     tidslinjeResultat = when (this.rammebehandlingsresultat) {
                         is Omgjøringsresultat -> throw IllegalStateException("Omgjøring skal bli håndtert spesielt")
                         is Søknadsbehandlingsresultat.Avslag -> throw IllegalStateException("Avslag kan ikke forekomme i tidslinje")
+                        is Søknadsbehandlingsresultat.IkkeValgt -> throw IllegalStateException("Ikke valgt kan ikke forekomme i tidslinje")
                         is Revurderingsresultat.Innvilgelse -> TidslinjeResultat.REVURDERING_INNVILGELSE
                         is Revurderingsresultat.Forlengelse -> TidslinjeResultat.FORLENGELSE
                         is Søknadsbehandlingsresultat.Innvilgelse -> TidslinjeResultat.SØKNADSBEHANDLING_INNVILGELSE
@@ -167,6 +168,7 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
 
         is Søknadsbehandlingsresultat.Avslag,
         is Omgjøringsresultat.OmgjøringIkkeValgt,
+        is Søknadsbehandlingsresultat.IkkeValgt,
         -> throw IllegalStateException("${this.rammebehandlingsresultat} kan ikke forekomme i tidslinje")
     }
 }

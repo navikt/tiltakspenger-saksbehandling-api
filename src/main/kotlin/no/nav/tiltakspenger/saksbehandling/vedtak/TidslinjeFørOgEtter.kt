@@ -88,7 +88,7 @@ enum class Tidslinjeresultat {
  */
 fun Rammevedtaksliste.tidslinjeFørOgEtter(rammebehandling: Rammebehandling): TidslinjeFørOgEtter? {
     if (rammebehandling.erAvbrutt) return null
-    val resultat = rammebehandling.resultat ?: return null
+    val resultat = rammebehandling.resultat
     val vedtaksperiode = rammebehandling.vedtaksperiode ?: return null
 
     val egetVedtak = finnRammevedtakForBehandling(rammebehandling.id)
@@ -115,7 +115,9 @@ fun Rammevedtaksliste.tidslinjeFørOgEtter(rammebehandling: Rammebehandling): Ti
         is Omgjøringsresultat.OmgjøringOpphør,
         -> rammebehandling.tilTidslinjeverdier(egetVedtak?.id).krymp(vedtaksperiode)
 
-        is Omgjøringsresultat.OmgjøringIkkeValgt -> return null
+        is Omgjøringsresultat.OmgjøringIkkeValgt,
+        is Søknadsbehandlingsresultat.IkkeValgt,
+        -> return null
     }
 
     return TidslinjeFørOgEtter(
@@ -176,7 +178,7 @@ private fun Rammebehandling.tilTidslinjeverdier(rammevedtakId: VedtakId?): Perio
 
         is Søknadsbehandlingsresultat.Avslag,
         is Omgjøringsresultat.OmgjøringIkkeValgt,
-        null,
+        is Søknadsbehandlingsresultat.IkkeValgt,
         -> Periodisering.empty()
     }
 }

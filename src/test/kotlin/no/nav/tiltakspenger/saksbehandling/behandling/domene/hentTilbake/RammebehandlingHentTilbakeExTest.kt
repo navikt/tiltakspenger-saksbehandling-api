@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.leggTilbake.leggTilbakeRammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
@@ -151,7 +152,7 @@ class RammebehandlingHentTilbakeExTest {
             saksbehandler = saksbehandler.navIdent,
             sistEndret = nå(fixedClock),
             sendtTilBeslutning = null,
-            resultat = null,
+            resultat = Søknadsbehandlingsresultat.IkkeValgt,
         )
         statistikkhendelser.hendelser.single().shouldBeInstanceOf<GenererSaksstatistikk>()
     }

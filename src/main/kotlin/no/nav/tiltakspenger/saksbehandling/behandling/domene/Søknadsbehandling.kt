@@ -58,7 +58,7 @@ data class Søknadsbehandling(
     override val avbrutt: Avbrutt?,
     override val ventestatus: Ventestatus,
     override val venterTil: LocalDateTime?,
-    override val resultat: Søknadsbehandlingsresultat?,
+    override val resultat: Søknadsbehandlingsresultat,
     override val begrunnelseVilkårsvurdering: Begrunnelse?,
     val søknad: Søknad,
     val manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,
@@ -71,17 +71,17 @@ data class Søknadsbehandling(
     override val beslutterEndringer: RammebehandlingBeslutterEndringer,
 ) : Rammebehandling {
 
-    override val vedtaksperiode = resultat?.vedtaksperiode
-    override val omgjørRammevedtak: OmgjørRammevedtak = resultat?.omgjørRammevedtak ?: OmgjørRammevedtak.empty
+    override val vedtaksperiode = resultat.vedtaksperiode
+    override val omgjørRammevedtak: OmgjørRammevedtak = resultat.omgjørRammevedtak
 
     /** Vil være null ved avslag og ved innvilgelse frem til saksbehandler har valgt innvilgelsesperioden */
     override val innvilgelsesperioder = (resultat as? Innvilgelse)?.innvilgelsesperioder
 
-    override val antallDagerPerMeldeperiode by lazy { resultat?.antallDagerPerMeldeperiode }
+    override val antallDagerPerMeldeperiode by lazy { resultat.antallDagerPerMeldeperiode }
 
-    override val valgteTiltaksdeltakelser by lazy { resultat?.valgteTiltaksdeltakelser }
+    override val valgteTiltaksdeltakelser by lazy { resultat.valgteTiltaksdeltakelser }
 
-    override val barnetillegg = resultat?.barnetillegg
+    override val barnetillegg = resultat.barnetillegg
 
     val kravtidspunkt: LocalDateTime = søknad.mottatt
 
@@ -104,7 +104,7 @@ data class Søknadsbehandling(
             KLAR_TIL_BESLUTNING,
             UNDER_BESLUTNING,
             VEDTATT,
-            -> require(resultat!!.erFerdigutfylt(saksopplysninger)) {
+            -> require(resultat.erFerdigutfylt(saksopplysninger)) {
                 "Behandlingsresultatet må være ferdigutfylt når status er $status"
             }
 
@@ -132,7 +132,7 @@ data class Søknadsbehandling(
     }
 
     override fun erFerdigutfylt(): Boolean {
-        return resultat?.erFerdigutfylt(saksopplysninger) ?: false
+        return resultat.erFerdigutfylt(saksopplysninger)
     }
 
     override fun oppdaterUtbetaling(oppdatertUtbetaling: BehandlingUtbetaling?, clock: Clock): Rammebehandling {
@@ -230,7 +230,7 @@ data class Søknadsbehandling(
                 avbrutt = null,
                 ventestatus = Ventestatus(),
                 venterTil = null,
-                resultat = null,
+                resultat = Søknadsbehandlingsresultat.IkkeValgt,
                 begrunnelseVilkårsvurdering = null,
                 manueltBehandlesGrunner = emptyList(),
                 utbetaling = null,
@@ -290,7 +290,7 @@ data class Søknadsbehandling(
                 avbrutt = null,
                 ventestatus = Ventestatus(),
                 venterTil = null,
-                resultat = null,
+                resultat = Søknadsbehandlingsresultat.IkkeValgt,
                 begrunnelseVilkårsvurdering = null,
                 manueltBehandlesGrunner = emptyList(),
                 utbetaling = null,

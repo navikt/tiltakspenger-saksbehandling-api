@@ -29,7 +29,7 @@ fun Rammebehandling.oppdaterSaksopplysninger(
         when (this) {
             is Søknadsbehandling -> this.copy(
                 saksopplysninger = nyeSaksopplysninger,
-                resultat = this.resultat?.oppdaterSaksopplysninger(nyeSaksopplysninger)?.getOrElse {
+                resultat = this.resultat.oppdaterSaksopplysninger(nyeSaksopplysninger).getOrElse {
                     return it.left()
                 },
                 sistEndret = nå(clock),

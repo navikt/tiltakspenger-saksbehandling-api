@@ -106,6 +106,7 @@ enum class VedtakStatistikkResultat {
             is Omgjøringsresultat.OmgjøringOpphør -> Opphør
 
             is Omgjøringsresultat.OmgjøringIkkeValgt,
+            is Søknadsbehandlingsresultat.IkkeValgt,
             is Søknadsbehandlingsresultat.Avslag,
             -> throw IllegalStateException("Skal ikke opprette vedtaksstatistikk for $this")
         }

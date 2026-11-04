@@ -43,6 +43,7 @@ class BehandlingsresultatDbTest {
         )
         søknadsbehandlingInnvilgelse.toDb() shouldBe "INNVILGELSE"
         søknadsbehandlingAvslag.toDb() shouldBe "AVSLAG"
+        Søknadsbehandlingsresultat.IkkeValgt.toDb() shouldBe "IKKE_VALGT"
         revurderingStans.toDb() shouldBe "STANS"
         Revurderingsresultat.Forlengelse.opprett(
             ForlengerRammevedtak(rammevedtakId = VedtakId.random(), forlengesFraOgMed = 11.januar(2025)),
@@ -53,6 +54,7 @@ class BehandlingsresultatDbTest {
     fun `mapper til domene type`() {
         "INNVILGELSE".tilSøknadsbehandlingResultatType() shouldBe SøknadsbehandlingsresultatType.INNVILGELSE
         "AVSLAG".tilSøknadsbehandlingResultatType() shouldBe SøknadsbehandlingsresultatType.AVSLAG
+        "IKKE_VALGT".tilSøknadsbehandlingResultatType() shouldBe SøknadsbehandlingsresultatType.IKKE_VALGT
         "STANS".tilRevurderingResultatType() shouldBe RevurderingsresultatType.STANS
         "FORLENGELSE".tilRevurderingResultatType() shouldBe RevurderingsresultatType.FORLENGELSE
     }

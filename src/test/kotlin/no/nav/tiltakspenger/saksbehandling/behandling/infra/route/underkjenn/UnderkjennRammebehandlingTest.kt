@@ -75,7 +75,7 @@ class UnderkjennRammebehandlingTest {
                 oppdatertBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 oppdatertBehandling.automatiskSaksbehandlet shouldBe false
                 // Resultatet den automatiske saksbehandlingen kom fram til nullstilles, slik at saksbehandler tar stilling på nytt.
-                oppdatertBehandling.resultat shouldBe null
+                oppdatertBehandling.resultat shouldBe Søknadsbehandlingsresultat.IkkeValgt
             }
         }
     }
@@ -92,7 +92,7 @@ class UnderkjennRammebehandlingTest {
                 oppdatertBehandling.saksbehandler shouldBe null
                 oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
                 oppdatertBehandling.automatiskSaksbehandlet shouldBe false
-                oppdatertBehandling.resultat shouldBe null
+                oppdatertBehandling.resultat shouldBe Søknadsbehandlingsresultat.IkkeValgt
             }
         }
     }

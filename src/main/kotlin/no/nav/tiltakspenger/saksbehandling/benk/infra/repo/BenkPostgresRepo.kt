@@ -396,7 +396,7 @@ class BenkPostgresRepo(
                 b.status::text              as status,
                 sø.soknadstype::text        as søknadstype,
                 sø.mottatt                as kravtidspunkt,
-                coalesce(b.resultat, 'IKKE_VALGT') as resultat,
+                b.resultat                  as resultat,
                 b.prioritering_begrunnelse  as prioritering_begrunnelse,
                 b.id                        as id
             from behandling b

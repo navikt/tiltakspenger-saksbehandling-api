@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbe
 private enum class SøknadsbehandlingsresultatDb {
     INNVILGELSE,
     AVSLAG,
+    IKKE_VALGT,
 }
 
 private enum class RevurderingsresultatDb {
@@ -26,6 +27,7 @@ fun String.tilSøknadsbehandlingResultatType(): SøknadsbehandlingsresultatType 
     when (SøknadsbehandlingsresultatDb.valueOf(this)) {
         SøknadsbehandlingsresultatDb.INNVILGELSE -> SøknadsbehandlingsresultatType.INNVILGELSE
         SøknadsbehandlingsresultatDb.AVSLAG -> SøknadsbehandlingsresultatType.AVSLAG
+        SøknadsbehandlingsresultatDb.IKKE_VALGT -> SøknadsbehandlingsresultatType.IKKE_VALGT
     }
 
 fun String.tilRevurderingResultatType(): RevurderingsresultatType = when (RevurderingsresultatDb.valueOf(this)) {
@@ -44,6 +46,7 @@ fun Rammebehandlingsresultat.toDb(): String = when (this) {
     is OmgjøringInnvilgelse -> RevurderingsresultatDb.OMGJØRING
     is Søknadsbehandlingsresultat.Avslag -> SøknadsbehandlingsresultatDb.AVSLAG
     is Søknadsbehandlingsresultat.Innvilgelse -> SøknadsbehandlingsresultatDb.INNVILGELSE
+    is Søknadsbehandlingsresultat.IkkeValgt -> SøknadsbehandlingsresultatDb.IKKE_VALGT
     is Omgjøringsresultat.OmgjøringIkkeValgt -> RevurderingsresultatDb.OMGJØRING_IKKE_VALGT
     is Omgjøringsresultat.OmgjøringOpphør -> RevurderingsresultatDb.OMGJØRING_OPPHØR
 }.toString()

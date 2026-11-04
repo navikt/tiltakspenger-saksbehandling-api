@@ -6,6 +6,7 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat.Avslag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat.Innvilgelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
@@ -40,7 +41,7 @@ fun Søknadsbehandling.oppdater(
             )
         }
 
-        is OppdaterSøknadsbehandlingKommando.IkkeValgtResultat -> null
+        is OppdaterSøknadsbehandlingKommando.IkkeValgtResultat -> Søknadsbehandlingsresultat.IkkeValgt
     }
 
     return this.copy(
@@ -53,7 +54,7 @@ fun Søknadsbehandling.oppdater(
         skalJournalføreNotat = kommando.skalJournalføreNotat,
         prioritering = kommando.prioritering,
     ).also {
-        require(it.resultat?.erFerdigutfylt(saksopplysninger) != false) {
+        require(it.resultat is Søknadsbehandlingsresultat.IkkeValgt || it.resultat.erFerdigutfylt(saksopplysninger)) {
             "Behandlingsresultatet må være ferdigutfylt etter vi oppdaterer søknadsbehandlingen"
         }
     }.right()

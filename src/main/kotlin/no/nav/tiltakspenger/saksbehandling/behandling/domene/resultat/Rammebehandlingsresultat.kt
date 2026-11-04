@@ -39,7 +39,7 @@ sealed interface Rammebehandlingsresultat {
      */
     fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean
 
-    fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Rammebehandlingsresultat?>
+    fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Rammebehandlingsresultat>
 
     /** Denne benyttes både i søknadsbehandlinger og revurderinger */
     sealed interface Innvilgelse : Rammebehandlingsresultat {
@@ -80,7 +80,6 @@ sealed interface Rammebehandlingsresultat {
         }
     }
 
-    // TODO: bruk denne for ikke valgt søknadsbehandling også, istedenfor null
     sealed interface IkkeValgt : Rammebehandlingsresultat {
         fun vedtakError(): Nothing
     }
@@ -89,6 +88,7 @@ sealed interface Rammebehandlingsresultat {
 enum class SøknadsbehandlingsresultatType {
     INNVILGELSE,
     AVSLAG,
+    IKKE_VALGT,
 }
 
 enum class RevurderingsresultatType {

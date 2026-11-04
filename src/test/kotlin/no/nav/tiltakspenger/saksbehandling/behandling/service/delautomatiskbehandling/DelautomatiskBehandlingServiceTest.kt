@@ -73,7 +73,7 @@ class DelautomatiskBehandlingServiceTest {
                 AntallDagerForMeldeperiode(10),
                 soknad.tiltaksdeltakelseperiodeDetErSøktOm(),
             )
-            oppdatertBehandling.resultat!!.instanceOf(Rammebehandlingsresultat.Innvilgelse::class) shouldBe true
+            oppdatertBehandling.resultat.instanceOf(Rammebehandlingsresultat.Innvilgelse::class) shouldBe true
             oppdatertBehandling.vedtaksperiode shouldBe expectedVedtaksperiode
             oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg(expectedVedtaksperiode)
             oppdatertBehandling.valgteTiltaksdeltakelser shouldBe listOf(
@@ -398,7 +398,7 @@ class DelautomatiskBehandlingServiceTest {
                 AntallDagerForMeldeperiode(10),
                 soknad.tiltaksdeltakelseperiodeDetErSøktOm(),
             )
-            oppdatertBehandling.resultat!!.instanceOf(Rammebehandlingsresultat.Innvilgelse::class) shouldBe true
+            oppdatertBehandling.resultat.instanceOf(Rammebehandlingsresultat.Innvilgelse::class) shouldBe true
             oppdatertBehandling.vedtaksperiode shouldBe tiltaksdeltakelsesperiode
             oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg(tiltaksdeltakelsesperiode)
             oppdatertBehandling.valgteTiltaksdeltakelser shouldBe listOf(

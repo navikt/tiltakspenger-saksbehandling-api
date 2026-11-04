@@ -56,7 +56,7 @@ class OppdaterRevurderingOpphørRouteTest {
             )
 
             oppdatertOmgjøring.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringOpphør>()
-            oppdatertOmgjøring.resultat!!.vedtaksperiode shouldBe innvilgelsesperiode
+            oppdatertOmgjøring.resultat.vedtaksperiode shouldBe innvilgelsesperiode
             oppdatertOmgjøring.skalSendeVedtaksbrev shouldBe true
             oppdatertOmgjøring.prioritering shouldBe Prioritering.create("Opphør haster")
         }
@@ -87,7 +87,7 @@ class OppdaterRevurderingOpphørRouteTest {
             )
 
             oppdatertOmgjøring.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringOpphør>()
-            oppdatertOmgjøring.resultat!!.vedtaksperiode shouldBe innvilgelsesperiode
+            oppdatertOmgjøring.resultat.vedtaksperiode shouldBe innvilgelsesperiode
             oppdatertOmgjøring.skalSendeVedtaksbrev shouldBe false
         }
     }
@@ -117,9 +117,9 @@ class OppdaterRevurderingOpphørRouteTest {
             )
 
             oppdatertOmgjøring.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringOpphør>()
-            oppdatertOmgjøring.resultat!!.vedtaksperiode shouldBe opphørsperiode
-            oppdatertOmgjøring.resultat!!.omgjørRammevedtak.perioder.single() shouldBe opphørsperiode
-            oppdatertOmgjøring.resultat!!.omgjørRammevedtak.rammevedtakIDer.single() shouldBe søknadVedtak.id
+            oppdatertOmgjøring.resultat.vedtaksperiode shouldBe opphørsperiode
+            oppdatertOmgjøring.resultat.omgjørRammevedtak.perioder.single() shouldBe opphørsperiode
+            oppdatertOmgjøring.resultat.omgjørRammevedtak.rammevedtakIDer.single() shouldBe søknadVedtak.id
         }
     }
 
@@ -156,10 +156,10 @@ class OppdaterRevurderingOpphørRouteTest {
 
             oppdatertOmgjøring.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringIkkeValgt>()
             oppdatertOmgjøring.prioritering shouldBe Prioritering.create("Haster")
-            oppdatertOmgjøring.resultat!!.vedtaksperiode shouldBe null
+            oppdatertOmgjøring.resultat.vedtaksperiode shouldBe null
             // Ikke valgt beholder vedtakene og periodene fra forrige resultat.
-            oppdatertOmgjøring.resultat!!.omgjørRammevedtak.rammevedtakIDer.single() shouldBe søknadVedtak.id
-            oppdatertOmgjøring.resultat!!.omgjørRammevedtak.perioder.single() shouldBe opphørsperiode
+            oppdatertOmgjøring.resultat.omgjørRammevedtak.rammevedtakIDer.single() shouldBe søknadVedtak.id
+            oppdatertOmgjøring.resultat.omgjørRammevedtak.perioder.single() shouldBe opphørsperiode
         }
     }
 
@@ -314,8 +314,8 @@ class OppdaterRevurderingOpphørRouteTest {
             )
 
             oppdatertOmgjøring.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringOpphør>()
-            oppdatertOmgjøring.resultat!!.vedtaksperiode shouldBe innvilgelsesperiode
-            oppdatertOmgjøring.resultat!!.omgjørRammevedtak.rammevedtakIDer shouldBe listOf(delvisOpphør.id)
+            oppdatertOmgjøring.resultat.vedtaksperiode shouldBe innvilgelsesperiode
+            oppdatertOmgjøring.resultat.omgjørRammevedtak.rammevedtakIDer shouldBe listOf(delvisOpphør.id)
         }
     }
 
@@ -352,7 +352,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 vedtaksperiode = 15.januar(2025) til 15.mars(2025),
             )
 
-            oppdatertOmgjøring.resultat!!.omgjørRammevedtak shouldBe OmgjørRammevedtak(
+            oppdatertOmgjøring.resultat.omgjørRammevedtak shouldBe OmgjørRammevedtak(
                 Omgjøringsperiode(
                     rammevedtakId = søknadvedtak.id,
                     periode = 15.januar(2025) til 31.januar(2025),

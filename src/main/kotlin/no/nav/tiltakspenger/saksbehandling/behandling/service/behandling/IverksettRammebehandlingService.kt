@@ -173,6 +173,8 @@ class IverksettRammebehandlingService(
             is Søknadsbehandlingsresultat.Avslag -> this.iverksettAvslag(rammevedtak, statistikkhendelser, utøvendeBeslutter)
 
             is Revurderingsresultat -> throw IllegalArgumentException("Kan ikke iverksette revurdering-resultat på en søknadsbehandling")
+
+            is Søknadsbehandlingsresultat.IkkeValgt -> rammevedtak.rammebehandlingsresultat.vedtakError()
         }
     }
 
@@ -212,6 +214,7 @@ class IverksettRammebehandlingService(
     ): Either<KanIkkeIverksetteBehandling, Sak> {
         when (rammevedtak.rammebehandlingsresultat) {
             is Omgjøringsresultat.OmgjøringIkkeValgt,
+            is Søknadsbehandlingsresultat.IkkeValgt,
             is Søknadsbehandlingsresultat.Avslag,
             -> throw IllegalArgumentException("Kan ikke iverksette en behandling med resultat ${rammevedtak.rammebehandlingsresultat::class.simpleName}")
 

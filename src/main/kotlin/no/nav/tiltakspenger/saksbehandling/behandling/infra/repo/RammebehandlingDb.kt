@@ -120,21 +120,19 @@ fun Row.toBehandling(session: Session): Rammebehandling {
 
     when (behandlingstype) {
         Behandlingstype.SØKNADSBEHANDLING -> {
-            val resultatType = stringOrNull("resultat")?.tilSøknadsbehandlingResultatType()
+            val resultat = when (string("resultat").tilSøknadsbehandlingResultatType()) {
+                SøknadsbehandlingsresultatType.INNVILGELSE -> Søknadsbehandlingsresultat.Innvilgelse(
+                    barnetillegg = string("barnetillegg").toBarnetillegg(),
+                    innvilgelsesperioder = innvilgelsesperioder!!,
+                    omgjørRammevedtak = omgjørRammevedtak,
+                )
 
-            val resultat = resultatType?.let {
-                when (it) {
-                    SøknadsbehandlingsresultatType.INNVILGELSE -> Søknadsbehandlingsresultat.Innvilgelse(
-                        barnetillegg = string("barnetillegg").toBarnetillegg(),
-                        innvilgelsesperioder = innvilgelsesperioder!!,
-                        omgjørRammevedtak = omgjørRammevedtak,
-                    )
+                SøknadsbehandlingsresultatType.AVSLAG -> Søknadsbehandlingsresultat.Avslag(
+                    avslagsgrunner = string("valgt_hjemmel_har_ikke_rettighet").toAvslagsgrunnlag(),
+                    avslagsperiode = vedtaksperiode,
+                )
 
-                    SøknadsbehandlingsresultatType.AVSLAG -> Søknadsbehandlingsresultat.Avslag(
-                        avslagsgrunner = string("valgt_hjemmel_har_ikke_rettighet").toAvslagsgrunnlag(),
-                        avslagsperiode = vedtaksperiode,
-                    )
-                }
+                SøknadsbehandlingsresultatType.IKKE_VALGT -> Søknadsbehandlingsresultat.IkkeValgt
             }
 
             return Søknadsbehandling(
@@ -301,7 +299,7 @@ fun Rammebehandling.tilDbParams(): Array<Pair<String, Any?>> {
         "avbrutt" to this.avbrutt?.toDbJson(),
         "ventestatus" to this.ventestatus.toDbJson(),
         "venter_til" to this.venterTil,
-        "resultat" to this.resultat?.toDb(),
+        "resultat" to this.resultat.toDb(),
         "opprettet" to this.opprettet,
         "sak_id" to this.sakId.toString(),
         "behandlingstype" to this.behandlingstype.toDbValue(),
@@ -325,9 +323,13 @@ fun Rammebehandling.tilDbParams(): Array<Pair<String, Any?>> {
     )
 }
 
-fun Rammebehandlingsresultat?.tilDbParams(): Array<Pair<String, Any?>> = when (this) {
+fun Rammebehandlingsresultat.tilDbParams(): Array<Pair<String, Any?>> = when (this) {
     is Søknadsbehandlingsresultat.Avslag -> arrayOf(
         "valgt_hjemmel_har_ikke_rettighet" to this.avslagsgrunner.toDb(),
+        "omgjoer_rammevedtak" to null,
+    )
+
+    is Søknadsbehandlingsresultat.IkkeValgt -> arrayOf(
         "omgjoer_rammevedtak" to null,
     )
 
@@ -370,6 +372,4 @@ fun Rammebehandlingsresultat?.tilDbParams(): Array<Pair<String, Any?>> = when (t
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
         "valgt_hjemmel_har_ikke_rettighet" to this.valgteHjemler.toHjemmelForOpphørDbJson(),
     )
-
-    null -> emptyArray()
 }

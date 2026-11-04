@@ -158,7 +158,7 @@ class OppdaterBeregningOgSimuleringRammebehandlingService(
             "$felt kan ikke være null ved beregning." +
                 " sakId: ${behandling.sakId}, saksnummer: ${behandling.saksnummer}, behandlingId: $behandlingId," +
                 " status: ${behandling.status}, type: ${behandling.behandlingstype}," +
-                " resultat: ${behandling.resultat?.let { it::class.simpleName }}"
+                " resultat: ${behandling.resultat::class.simpleName}"
 
         return when (behandling.resultat) {
             is Omgjøringsresultat.OmgjøringInnvilgelse,
@@ -187,7 +187,7 @@ class OppdaterBeregningOgSimuleringRammebehandlingService(
 
             is Søknadsbehandlingsresultat.Avslag,
             is Omgjøringsresultat.OmgjøringIkkeValgt,
-            null,
+            is Søknadsbehandlingsresultat.IkkeValgt,
             -> null
         }
     }

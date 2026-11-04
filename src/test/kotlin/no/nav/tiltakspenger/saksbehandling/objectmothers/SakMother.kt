@@ -167,6 +167,8 @@ interface SakMother : MotherOfAllMothers {
                             begrunnelseVilkårsvurdering = null,
                             avslagsgrunner = avslagsgrunner!!,
                         )
+
+                        SøknadsbehandlingsresultatType.IKKE_VALGT -> throw IllegalArgumentException("Støtter ikke resultat $resultat")
                     },
                     clock = clock,
                     utbetaling = null,

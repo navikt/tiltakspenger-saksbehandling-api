@@ -44,6 +44,7 @@ enum class Søknadsutfallresultat(val harVedtak: Boolean) {
 fun SøknadsbehandlingsresultatType.tilSøknadsutfallresultat(): Søknadsutfallresultat = when (this) {
     SøknadsbehandlingsresultatType.INNVILGELSE -> Søknadsutfallresultat.INNVILGELSE
     SøknadsbehandlingsresultatType.AVSLAG -> Søknadsutfallresultat.AVSLAG
+    SøknadsbehandlingsresultatType.IKKE_VALGT -> throw IllegalStateException("En vedtatt søknadsbehandling kan ikke ha resultatet $this")
 }
 
 /**

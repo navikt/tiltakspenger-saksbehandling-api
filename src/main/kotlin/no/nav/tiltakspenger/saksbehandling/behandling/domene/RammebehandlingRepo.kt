@@ -62,8 +62,8 @@ interface RammebehandlingRepo {
     ): Boolean
 
     /**
-     * Lagrer at en saksbehandler har tatt over en automatisk behandlet søknadsbehandling som er klar til beslutning.
-     * Hele raden skrives fra [rammebehandling], slik at nullstilt resultat og flagg for automatisk saksbehandling også lagres.
+     * Lagrer at en saksbehandler har tatt over en automatisk behandlet rammebehandling som er klar til beslutning.
+     * Hele raden skrives fra [rammebehandling], slik at et nullstilt resultat også lagres.
      * Lagres bare hvis raden fortsatt er klar til beslutning, tildelt den automatiske saksbehandleren, ikke satt på vent og er den samme innsendingen som ble lastet.
      *
      * @return true dersom behandlingen ble lagret, false dersom den er endret siden den ble lastet.

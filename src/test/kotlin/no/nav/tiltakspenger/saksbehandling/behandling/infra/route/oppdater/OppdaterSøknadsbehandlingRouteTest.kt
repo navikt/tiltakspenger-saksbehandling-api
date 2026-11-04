@@ -54,7 +54,7 @@ class OppdaterSøknadsbehandlingRouteTest {
 
             val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id)
 
-            oppdatertBehandling.resultat.shouldBeNull()
+            oppdatertBehandling.resultat shouldBe Søknadsbehandlingsresultat.IkkeValgt
             oppdatertBehandling.vedtaksperiode.shouldBeNull()
             oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
             oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"

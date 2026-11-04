@@ -66,7 +66,6 @@ data class BenkSøknadsbehandling(
     val status: BenkBehandlingsstatus,
     val søknadstype: BenkSøknadstype,
     val kravtidspunkt: LocalDateTime,
-    /** Basen lagrer null fram til noe er valgt — benken kaller det [BenkSøknadsbehandlingResultat.IKKE_VALGT]. */
     val resultat: BenkSøknadsbehandlingResultat,
     /** null når behandlingen ikke er prioritert. */
     val prioritering: BenkPrioritering?,

@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
@@ -61,7 +62,7 @@ fun Rammebehandling.underkjenn(
             saksbehandler = nySaksbehandler,
             beslutter = nyBeslutter,
             sistEndret = sistEndret,
-            resultat = if (automatiskSaksbehandlet) null else resultat,
+            resultat = if (automatiskSaksbehandlet) Søknadsbehandlingsresultat.IkkeValgt else resultat,
         )
 
         is Revurdering -> this.copy(

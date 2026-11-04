@@ -13,7 +13,31 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 
 sealed interface Søknadsbehandlingsresultat : Rammebehandlingsresultat {
 
-    override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Søknadsbehandlingsresultat?>
+    override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Søknadsbehandlingsresultat>
+
+    /**
+     * Saksbehandler har ikke valgt om søknaden skal innvilges eller avslås ennå.
+     * Er også resultatet når et tidligere valg er nullstilt, for eksempel ved underkjenning av en automatisk saksbehandling eller når saksopplysningene endrer seg.
+     */
+    data object IkkeValgt :
+        Søknadsbehandlingsresultat,
+        Rammebehandlingsresultat.IkkeValgt {
+        override val vedtaksperiode = null
+        override val innvilgelsesperioder = null
+        override val barnetillegg = null
+        override val valgteTiltaksdeltakelser = null
+        override val antallDagerPerMeldeperiode = null
+        override val omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty
+
+        /** IkkeValgt er aldri en ferdig utfylling */
+        override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean = false
+
+        override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, IkkeValgt> = this.right()
+
+        override fun vedtakError(): Nothing {
+            throw IllegalStateException("Søknadsbehandling uten valgt resultat kan ikke vedtas")
+        }
+    }
 
     /**
      * Vedtaksperioden og avslagsperioden vil være 1-1 ved denne revurderingstypen.
@@ -57,13 +81,13 @@ sealed interface Søknadsbehandlingsresultat : Rammebehandlingsresultat {
         override val valgteTiltaksdeltakelser = innvilgelsesperioder.valgteTiltaksdeltagelser
         override val antallDagerPerMeldeperiode = innvilgelsesperioder.antallDagerPerMeldeperiode
 
-        override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Innvilgelse?> {
+        override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Søknadsbehandlingsresultat> {
             return if (skalNullstilleResultatVedNyeSaksopplysninger(
                     valgteTiltaksdeltakelser.verdier,
                     oppdaterteSaksopplysninger,
                 )
             ) {
-                null
+                IkkeValgt
             } else {
                 this
             }.right()
