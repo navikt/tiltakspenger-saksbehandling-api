@@ -53,7 +53,6 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperioder.perioder),
-                automatiskSaksbehandlet = false,
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                 prioritering = prioritering?.tilDomene(),
                 skalJournalføreNotat = skalJournalføreNotat.toDomain(),

@@ -32,7 +32,6 @@ class RammebehandlingHentTilbakeExTest {
     private fun automatiskBehandlingKlarTilBeslutning(): Søknadsbehandling =
         ObjectMother.nySøknadsbehandlingKlarTilBeslutning(
             saksbehandler = AUTOMATISK_SAKSBEHANDLER,
-            automatiskBehandling = true,
             sendtTilBeslutning = nå(clock),
         )
 
@@ -100,7 +99,6 @@ class RammebehandlingHentTilbakeExTest {
         val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(
             saksbehandler = AUTOMATISK_SAKSBEHANDLER,
             beslutter = beslutter,
-            automatiskBehandling = true,
         ).settPåVentAv(beslutter)
 
         behandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -140,7 +138,6 @@ class RammebehandlingHentTilbakeExTest {
             saksbehandler = saksbehandler.navIdent,
             sistEndret = nå(fixedClock),
             sendtTilBeslutning = null,
-            automatiskSaksbehandlet = false,
             resultat = null,
         )
         statistikkhendelser.hendelser.single().shouldBeInstanceOf<GenererSaksstatistikk>()

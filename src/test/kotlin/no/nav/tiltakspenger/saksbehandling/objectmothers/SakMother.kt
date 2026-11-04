@@ -131,7 +131,6 @@ interface SakMother : MotherOfAllMothers {
             kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
         ),
         correlationId: CorrelationId = CorrelationId.generate(),
-        automatiskSaksbehandlet: Boolean = false,
         klagebehandling: Klagebehandling? = null,
     ): Pair<Sak, Søknadsbehandling> {
         val søknadsbehandling =
@@ -157,7 +156,6 @@ interface SakMother : MotherOfAllMothers {
                             fritekstTilVedtaksbrev = null,
                             begrunnelseVilkårsvurdering = null,
                             innvilgelsesperioder = innvilgelsesperioder,
-                            automatiskSaksbehandlet = automatiskSaksbehandlet,
                         )
 
                         SøknadsbehandlingsresultatType.AVSLAG -> oppdaterSøknadsbehandlingAvslagKommando(
@@ -300,7 +298,6 @@ interface SakMother : MotherOfAllMothers {
                         tiltaksdeltakelse = søknadsbehandling.saksopplysninger.tiltaksdeltakelser.first(),
                     ),
                 ),
-                automatiskSaksbehandlet = søknadsbehandling.automatiskSaksbehandlet,
             ),
             clock = clock,
             utbetaling = null,

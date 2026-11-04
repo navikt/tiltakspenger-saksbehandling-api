@@ -178,7 +178,6 @@ class DelautomatiskBehandlingService(
                 ),
             ).tilIkkeTomPeriodisering(),
             barnetillegg = barnetillegg,
-            automatiskSaksbehandlet = true,
             skalSendeVedtaksbrev = true,
             prioritering = behandling.prioritering,
             skalJournalføreNotat = SkalJournalføreNotat.INGEN,

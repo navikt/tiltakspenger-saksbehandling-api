@@ -26,7 +26,8 @@ import java.time.Clock
  * Saksbehandleren tar over en automatisk behandlet søknadsbehandling som er klar til beslutning: [KLAR_TIL_BESLUTNING] -> [UNDER_BEHANDLING].
  * Ta og overta kan ikke brukes, fordi de krever beslutterrollen når behandlingen er klar til beslutning.
  * Underkjenn kan heller ikke brukes, fordi det er en beslutterhandling.
- * Som ved underkjenning av en automatisk behandling nullstilles resultatet og flagget for automatisk saksbehandling, slik at saksbehandleren tar stilling på nytt.
+ * Som ved underkjenning av en automatisk behandling nullstilles resultatet, slik at saksbehandleren tar stilling på nytt.
+ * Siden saken ikke lenger er tildelt den automatiske saksbehandleren, regnes den heller ikke lenger som automatisk saksbehandlet.
  * Krever at [utøvendeSaksbehandler] har rollen saksbehandler, og kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
  * Forutsetningene håndheves av [kanHenteTilbake], og feilene derfra returneres som venstre-verdi.
  */
@@ -46,7 +47,6 @@ fun Rammebehandling.hentTilbakeRammebehandling(
                     saksbehandler = utøvendeSaksbehandler.navIdent,
                     sistEndret = nå,
                     sendtTilBeslutning = null,
-                    automatiskSaksbehandlet = false,
                     resultat = null,
                 )
 

@@ -21,7 +21,6 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
     override val correlationId: CorrelationId
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
     override val begrunnelseVilkårsvurdering: Begrunnelse?
-    val automatiskSaksbehandlet: Boolean
 
     data class Innvilgelse(
         override val sakId: SakId,
@@ -30,7 +29,6 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val correlationId: CorrelationId,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val begrunnelseVilkårsvurdering: Begrunnelse?,
-        override val automatiskSaksbehandlet: Boolean,
         override val innvilgelsesperioder: IkkeTomPeriodisering<InnvilgelsesperiodeKommando>,
         override val barnetillegg: Barnetillegg,
         override val skalSendeVedtaksbrev: Boolean,
@@ -50,9 +48,7 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val skalSendeVedtaksbrev: Boolean,
         override val prioritering: Prioritering?,
         override val skalJournalføreNotat: SkalJournalføreNotat,
-    ) : OppdaterSøknadsbehandlingKommando {
-        override val automatiskSaksbehandlet: Boolean = false
-    }
+    ) : OppdaterSøknadsbehandlingKommando
 
     /**
      * Brukes av saksbehndler til å lagre fritekst og begrunnelse før de har valgt et resultat (innvilgelse/avslag).
@@ -67,7 +63,6 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val prioritering: Prioritering?,
         override val skalJournalføreNotat: SkalJournalføreNotat,
     ) : OppdaterSøknadsbehandlingKommando {
-        override val automatiskSaksbehandlet: Boolean = false
         override val skalSendeVedtaksbrev: Boolean = true
     }
 }

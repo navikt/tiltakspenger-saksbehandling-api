@@ -120,7 +120,6 @@ fun Row.toBehandling(session: Session): Rammebehandling {
 
     when (behandlingstype) {
         Behandlingstype.SØKNADSBEHANDLING -> {
-            val automatiskSaksbehandlet = boolean("automatisk_saksbehandlet")
             val resultatType = stringOrNull("resultat")?.tilSøknadsbehandlingResultatType()
 
             val resultat = resultatType?.let {
@@ -132,7 +131,7 @@ fun Row.toBehandling(session: Session): Rammebehandling {
                     )
 
                     SøknadsbehandlingsresultatType.AVSLAG -> Søknadsbehandlingsresultat.Avslag(
-                        avslagsgrunner = string("avslagsgrunner").toAvslagsgrunnlag(),
+                        avslagsgrunner = string("valgt_hjemmel_har_ikke_rettighet").toAvslagsgrunnlag(),
                         avslagsperiode = vedtaksperiode,
                     )
                 }
@@ -165,7 +164,6 @@ fun Row.toBehandling(session: Session): Rammebehandling {
                 ventestatus = ventestatus,
                 venterTil = venterTil,
                 resultat = resultat,
-                automatiskSaksbehandlet = automatiskSaksbehandlet,
                 manueltBehandlesGrunner = manueltBehandlesGrunner,
                 klagebehandling = stringOrNull("klagebehandling_id")?.let {
                     KlagebehandlingPostgresRepo.hentOrNull(KlagebehandlingId.fromString(it), session)
@@ -279,10 +277,6 @@ fun Rammebehandling.tilDbParams(): Array<Pair<String, Any?>> {
         is Søknadsbehandling -> this.søknad.id.toString()
         is Revurdering -> null
     }
-    val automatiskSaksbehandlet = when (this) {
-        is Søknadsbehandling -> this.automatiskSaksbehandlet
-        is Revurdering -> false
-    }
 
     val manueltBehandlesGrunner = when (this) {
         is Søknadsbehandling -> this.manueltBehandlesGrunner
@@ -296,7 +290,6 @@ fun Rammebehandling.tilDbParams(): Array<Pair<String, Any?>> {
         "sist_endret" to this.sistEndret,
         "iverksatt_tidspunkt" to this.iverksattTidspunkt,
         "sendt_til_datadeling" to this.sendtTilDatadeling,
-        "oppgave_id" to null,
         "vedtaksperiode" to this.vedtaksperiode?.tilDbPeriode(),
         "saksbehandler" to this.saksbehandler,
         "beslutter" to this.beslutter,
@@ -313,7 +306,6 @@ fun Rammebehandling.tilDbParams(): Array<Pair<String, Any?>> {
         "sak_id" to this.sakId.toString(),
         "behandlingstype" to this.behandlingstype.toDbValue(),
         "soknad_id" to søknadId,
-        "automatisk_saksbehandlet" to automatiskSaksbehandlet,
         "manuelt_behandles_grunner" to manueltBehandlesGrunner.toDbJson(),
         "beregning" to this.utbetaling?.let { it.beregning.tilBeregningerDbJsonString() },
         "simulering" to this.utbetaling?.simulering?.toDbJson(),
@@ -335,7 +327,7 @@ fun Rammebehandling.tilDbParams(): Array<Pair<String, Any?>> {
 
 fun Rammebehandlingsresultat?.tilDbParams(): Array<Pair<String, Any?>> = when (this) {
     is Søknadsbehandlingsresultat.Avslag -> arrayOf(
-        "avslagsgrunner" to this.avslagsgrunner.toDb(),
+        "valgt_hjemmel_har_ikke_rettighet" to this.avslagsgrunner.toDb(),
         "omgjoer_rammevedtak" to null,
     )
 

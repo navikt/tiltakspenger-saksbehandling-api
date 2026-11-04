@@ -61,7 +61,6 @@ data class Søknadsbehandling(
     override val resultat: Søknadsbehandlingsresultat?,
     override val begrunnelseVilkårsvurdering: Begrunnelse?,
     val søknad: Søknad,
-    val automatiskSaksbehandlet: Boolean,
     val manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,
     override val utbetaling: BehandlingUtbetaling?,
     override val utbetalingskontroll: Utbetalingskontroll?,
@@ -85,6 +84,13 @@ data class Søknadsbehandling(
     override val barnetillegg = resultat?.barnetillegg
 
     val kravtidspunkt: LocalDateTime = søknad.mottatt
+
+    /**
+     * Utledes fra at behandlingen er tildelt den automatiske saksbehandleren og har et resultat.
+     * Den automatiske saksbehandleren setter resultatet idet den sender behandlingen til beslutning, så før det er behandlingen ikke saksbehandlet ennå.
+     * Når en saksbehandler tar over, byttes saksbehandleren ut, og behandlingen regnes ikke lenger som automatisk saksbehandlet.
+     */
+    val automatiskSaksbehandlet: Boolean = saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID && resultat != null
 
     /**
      * To kriterier må være oppfylt for at en søknadsbehandling skal kunne innvilges:
@@ -233,7 +239,6 @@ data class Søknadsbehandling(
                 venterTil = null,
                 resultat = null,
                 begrunnelseVilkårsvurdering = null,
-                automatiskSaksbehandlet = false,
                 manueltBehandlesGrunner = emptyList(),
                 utbetaling = null,
                 utbetalingskontroll = null,
@@ -294,7 +299,6 @@ data class Søknadsbehandling(
                 venterTil = null,
                 resultat = null,
                 begrunnelseVilkårsvurdering = null,
-                automatiskSaksbehandlet = false,
                 manueltBehandlesGrunner = emptyList(),
                 utbetaling = null,
                 utbetalingskontroll = null,

@@ -48,7 +48,6 @@ fun Søknadsbehandling.oppdater(
         fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
         begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
         resultat = resultat,
-        automatiskSaksbehandlet = kommando.automatiskSaksbehandlet,
         utbetaling = utbetaling,
         skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
         skalJournalføreNotat = kommando.skalJournalføreNotat,

@@ -114,7 +114,6 @@ interface BehandlingMother : MotherOfAllMothers {
         clock: Clock = this.clock,
         sak: Sak = ObjectMother.nySak(sakId = sakId, saksnummer = saksnummer, fnr = fnr, søknader = listOf(søknad)),
         correlationId: CorrelationId = CorrelationId.generate(),
-        automatiskBehandling: Boolean = false,
         klagebehandling: Klagebehandling? = null,
     ): Søknadsbehandling {
         return runBlocking {
@@ -214,7 +213,6 @@ interface BehandlingMother : MotherOfAllMothers {
         resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
         clock: Clock = this.clock,
         omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
-        automatiskBehandling: Boolean = false,
     ): Søknadsbehandling {
         return this.nyOpprettetSøknadsbehandling(
             id = id,
@@ -235,7 +233,6 @@ interface BehandlingMother : MotherOfAllMothers {
                     begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                     innvilgelsesperioder = innvilgelsesperioder.medDeltakelseFra(saksopplysninger),
                     barnetillegg = barnetillegg,
-                    automatiskSaksbehandlet = automatiskBehandling,
                 )
 
                 SøknadsbehandlingsresultatType.AVSLAG -> oppdaterSøknadsbehandlingAvslagKommando(
@@ -281,7 +278,6 @@ interface BehandlingMother : MotherOfAllMothers {
         resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
         clock: Clock = this.clock,
         omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
-        automatiskBehandling: Boolean = false,
     ): Søknadsbehandling {
         return this.oppdatertSøknadsbehandling(
             id = id,
@@ -302,7 +298,6 @@ interface BehandlingMother : MotherOfAllMothers {
             resultat = resultat,
             omgjørRammevedtak = omgjørRammevedtak,
             clock = clock,
-            automatiskBehandling = automatiskBehandling,
         ).tilBeslutning(
             saksbehandler = saksbehandler,
             clock = clock,
@@ -337,7 +332,6 @@ interface BehandlingMother : MotherOfAllMothers {
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
         clock: Clock = fixedClock,
-        automatiskBehandling: Boolean = false,
     ): Søknadsbehandling {
         return nySøknadsbehandlingKlarTilBeslutning(
             id = id,
@@ -358,7 +352,6 @@ interface BehandlingMother : MotherOfAllMothers {
             avslagsgrunner = avslagsgrunner,
             omgjørRammevedtak = omgjørRammevedtak,
             clock = clock,
-            automatiskBehandling = automatiskBehandling,
         ).taBehandling(beslutter, clock).getOrFail().first as Søknadsbehandling
     }
 
@@ -673,7 +666,6 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
     innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(innvilgelsesperiodeKommando(innvilgelsesperiode = periode)),
     barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),
     resultat: SøknadsbehandlingsresultatType,
-    automatiskBehandling: Boolean = false,
 ): Sak {
     val (sakMedSøknadsbehandling) = startSøknadsbehandling(
         periode = periode,
@@ -693,7 +685,6 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg,
-                automatiskSaksbehandlet = automatiskBehandling,
             )
 
             SøknadsbehandlingsresultatType.AVSLAG -> oppdaterSøknadsbehandlingAvslagKommando(

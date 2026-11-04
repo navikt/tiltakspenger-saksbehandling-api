@@ -321,7 +321,6 @@ class RammebehandlingGyldigeKommandoerExTest {
     private fun automatiskBehandlingKlarTilBeslutning(): Søknadsbehandling =
         ObjectMother.nySøknadsbehandlingKlarTilBeslutning(
             saksbehandler = AUTOMATISK_SAKSBEHANDLER,
-            automatiskBehandling = true,
         )
 
     @Test
@@ -359,7 +358,6 @@ class RammebehandlingGyldigeKommandoerExTest {
         val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(
             saksbehandler = AUTOMATISK_SAKSBEHANDLER,
             beslutter = beslutter,
-            automatiskBehandling = true,
         ).settPåVentAv(beslutter)
 
         behandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -372,7 +370,6 @@ class RammebehandlingGyldigeKommandoerExTest {
         val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(
             saksbehandler = AUTOMATISK_SAKSBEHANDLER,
             beslutter = beslutter,
-            automatiskBehandling = true,
         )
 
         behandling.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING

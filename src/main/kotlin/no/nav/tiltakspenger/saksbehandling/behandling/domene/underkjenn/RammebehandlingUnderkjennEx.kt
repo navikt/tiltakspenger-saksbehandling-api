@@ -28,7 +28,8 @@ import java.time.Clock
  *
  * Hvis saken er delautomatisk innstilt til innvilgelse og den som underkjenner har saksbehandlerrollen, tildeles hen saken som saksbehandler, og beslutteren fjernes.
  * Mangler hen saksbehandlerrollen, blir saken klar til behandling uten saksbehandler.
- * Resultatet og flagget som sier at den har blitt behandlet automatisk nullstilles, slik at saksbehandler tar stilling på nytt.
+ * Resultatet nullstilles, slik at saksbehandler tar stilling på nytt.
+ * Siden saken ikke lenger er tildelt den automatiske saksbehandleren, regnes den heller ikke lenger som automatisk saksbehandlet.
  */
 fun Rammebehandling.underkjenn(
     utøvendeBeslutter: Saksbehandler,
@@ -54,7 +55,6 @@ fun Rammebehandling.underkjenn(
                 },
                 // Den som underkjente blir saksbehandler, og kan ikke samtidig være beslutter.
                 beslutter = if (tildelUnderkjenner) null else beslutter,
-                automatiskSaksbehandlet = false,
                 sistEndret = nå(clock),
                 resultat = if (automatiskSaksbehandlet) null else resultat,
             )

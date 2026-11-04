@@ -48,7 +48,6 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
         saksbehandler: Saksbehandler = saksbehandler(),
         fritekstTilVedtaksbrev: String? = null,
         begrunnelseVilkårsvurdering: String? = null,
-        automatiskSaksbehandlet: Boolean = false,
         innvilgelsesperioder: List<InnvilgelsesperiodeKommando>,
         barnetillegg: Barnetillegg = barnetillegg(
             periode = Periode(
@@ -68,7 +67,6 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
             correlationId = correlationId,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.createOrThrow(it) },
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { Begrunnelse.createOrThrow(it) },
-            automatiskSaksbehandlet = automatiskSaksbehandlet,
             innvilgelsesperioder = innvilgelsesperioder.tilPeriodisering(),
             barnetillegg = barnetillegg,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
@@ -109,7 +107,6 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
         saksbehandler: Saksbehandler = saksbehandler(),
         fritekstTilVedtaksbrev: String? = null,
         begrunnelseVilkårsvurdering: String? = null,
-        automatiskSaksbehandlet: Boolean = false,
         innvilgelsesperioder: List<InnvilgelsesperiodeKommando>,
         barnetillegg: Barnetillegg = barnetillegg(
             periode = Periode(
