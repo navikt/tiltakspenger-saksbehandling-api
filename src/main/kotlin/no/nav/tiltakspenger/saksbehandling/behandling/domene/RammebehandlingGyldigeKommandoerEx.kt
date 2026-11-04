@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.angre.kanAngreBehan
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.avbryt.kanAvbryte
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.kanGjenoppta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.hentTilbake.kanHenteTilbake
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.konverter.kanKonvertere
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.leggTilbake.kanLeggeTilbake
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.kanOverta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.kanOppdaterePåVent
@@ -38,6 +39,7 @@ fun Rammebehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<Sa
         if (kanGjenoppta(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.Gjenoppta)
         if (kanAvbryte(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.Avbryt)
         if (kanGjenåpne(saksbehandler)) add(SaksbehandlerBehandlingKommando.Gjenåpne)
+        if (kanKonvertere(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.KonverterRevurdering)
     }
 }
 

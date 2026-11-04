@@ -498,7 +498,7 @@ class RammebehandlingDTOTest {
             sakId = sakId,
             saksnummer = saksnummer,
             behandlingId = omgjøringId,
-            gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"),
+            gyldigeKommandoer = listOf("Saksbehandle", "LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt", "KonverterRevurdering"),
             rammevedtakId = omgjøringVedtakId,
             omgjørVedtak = vedtakId,
             saksbehandler = "Z12345",

@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.hentTilbake.He
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettRevurderingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettSøknadsbehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.konverter.KonverterRevurderingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.leggTilbake.LeggTilbakeRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater.OppdaterRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterForBeslutter.OppdaterRammebehandlingForBeslutterBuilder
@@ -111,6 +112,7 @@ object RouteBehandlingBuilder :
     TaRammebehandlingBuilder,
     AngreRammebehandlingBuilder,
     HentTilbakeRammebehandlingBuilder,
+    KonverterRevurderingBuilder,
     SendSøknadsbehandlingTilBeslutningBuilder,
     SendRevurderingTilBeslutningBuilder,
     UnderkjennRammebehandlingBuilder,

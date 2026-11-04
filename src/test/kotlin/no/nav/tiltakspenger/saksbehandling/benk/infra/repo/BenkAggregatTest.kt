@@ -688,7 +688,7 @@ class BenkAggregatTest {
                 it.status shouldBe BenkBehandlingsstatus.UNDER_BEHANDLING
                 it.resultat shouldBe BenkRevurderingResultat.STANS
                 it.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe
-                    revurdering.finnGyldigeKommandoer(ObjectMother.saksbehandler())
+                    revurdering.finnGyldigeKommandoer(ObjectMother.saksbehandler()) - SaksbehandlerBehandlingKommando.KonverterRevurdering
             }
 
             repo.hentRevurderinger(revurderingerCommand(resultat = BenkRevurderingResultat.STANS)).totalAntall shouldBe 1

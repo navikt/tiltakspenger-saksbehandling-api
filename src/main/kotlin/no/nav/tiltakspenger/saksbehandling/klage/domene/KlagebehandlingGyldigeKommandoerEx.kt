@@ -90,6 +90,7 @@ private fun Klagebehandling.finnGyldigeKommandoerViaTilknyttetBehandling(
             SaksbehandlerBehandlingKommando.LeggTilbakeBeslutter,
             SaksbehandlerBehandlingKommando.HentTilbake,
             SaksbehandlerBehandlingKommando.Gjenåpne,
+            SaksbehandlerBehandlingKommando.KonverterRevurdering,
             -> null
         }
     }
