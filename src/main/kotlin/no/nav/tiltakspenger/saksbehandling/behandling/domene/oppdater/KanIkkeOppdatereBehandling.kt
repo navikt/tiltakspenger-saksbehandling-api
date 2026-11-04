@@ -13,6 +13,9 @@ sealed interface KanIkkeOppdatereBehandling {
 
     data object ErPaVent : KanIkkeOppdatereBehandling
 
+    /** Oppdateringen gjelder en annen behandlingstype eller et resultat behandlingen ikke kan bytte til. */
+    data object FeilResultattype : KanIkkeOppdatereBehandling
+
     data object KanIkkeOpphøre : KanIkkeOppdatereBehandling
 
     data class UgyldigPeriodeForStans(val årsak: String) : KanIkkeOppdatereBehandling

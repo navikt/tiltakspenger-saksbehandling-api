@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterBe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterOmgjøringKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterSøknadsbehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.kanOppdateresMed
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdater
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterForlengelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterInnvilgelse
@@ -60,6 +61,10 @@ class OppdaterRammebehandlingService(
         }
         if (behandling.ventestatus.erSattPåVent) {
             return KanIkkeOppdatereBehandling.ErPaVent.left()
+        }
+        behandling.kanOppdateresMed(kommando).onLeft {
+            log.warn { "Kommandoen ${kommando::class.simpleName} passer ikke med resultatet ${behandling.resultat::class.simpleName} på behandling ${behandling.id} i sak ${behandling.sakId}" }
+            return it.left()
         }
 
         sak.rammevedtaksliste.validerOpphør(kommando).onLeft {

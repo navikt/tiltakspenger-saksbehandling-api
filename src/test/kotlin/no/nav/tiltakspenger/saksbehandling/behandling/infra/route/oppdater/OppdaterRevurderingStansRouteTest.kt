@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgels
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
 import org.junit.jupiter.api.Test
@@ -235,6 +236,23 @@ class OppdaterRevurderingStansRouteTest {
                 stansFraOgMed = 1.mars(2025),
             )
             oppdatertStans.vedtaksperiode shouldBe (1.mars(2025) til 31.mars(2025))
+        }
+    }
+
+    @Test
+    fun `kan ikke oppdatere revurdering stans som innvilgelse`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
+
+            oppdaterRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+            ).also { (_, oppdatertBehandling, response) ->
+                response harKode "feil_resultattype"
+                oppdatertBehandling shouldBe revurdering
+            }
         }
     }
 }

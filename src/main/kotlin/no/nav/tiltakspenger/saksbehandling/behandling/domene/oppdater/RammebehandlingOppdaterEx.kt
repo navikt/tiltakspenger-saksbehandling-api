@@ -9,6 +9,8 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import java.time.Clock
@@ -64,4 +66,20 @@ fun Rammebehandling.kanOppdatere(saksbehandler: Saksbehandler): Either<KanIkkeOp
     }
 
     return Unit.right()
+}
+
+/**
+ * Avgjør om [kommando] passer med behandlingstypen og resultatet behandlingen har fra før.
+ * En søknadsbehandling kan bytte fritt mellom sine resultater, og det samme kan en omgjøring.
+ * Andre revurderinger beholder resultatet de ble opprettet med.
+ */
+fun Rammebehandling.kanOppdateresMed(kommando: OppdaterBehandlingKommando): Either<KanIkkeOppdatereBehandling, Unit> {
+    val passerMedResultatet = when (kommando) {
+        is OppdaterSøknadsbehandlingKommando -> this is Søknadsbehandling
+        is OppdaterOmgjøringKommando -> resultat is Omgjøringsresultat
+        is OppdaterRevurderingKommando.Innvilgelse -> resultat is Revurderingsresultat.Innvilgelse
+        is OppdaterRevurderingKommando.Forlengelse -> resultat is Revurderingsresultat.Forlengelse
+        is OppdaterRevurderingKommando.Stans -> resultat is Revurderingsresultat.Stans
+    }
+    return if (passerMedResultatet) Unit.right() else KanIkkeOppdatereBehandling.FeilResultattype.left()
 }

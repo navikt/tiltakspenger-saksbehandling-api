@@ -24,11 +24,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat.Avslag
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingAvslag
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingIkkeValgt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
@@ -426,6 +428,23 @@ class OppdaterSøknadsbehandlingRouteTest {
 
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.fritekstTilVedtaksbrev.shouldBeNull()
+            }
+        }
+    }
+
+    @Test
+    fun `kan ikke oppdatere søknadsbehandling som revurdering`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+
+            oppdaterRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+            ).also { (_, oppdatertBehandling, response) ->
+                response harKode "feil_resultattype"
+                oppdatertBehandling shouldBe behandling
             }
         }
     }

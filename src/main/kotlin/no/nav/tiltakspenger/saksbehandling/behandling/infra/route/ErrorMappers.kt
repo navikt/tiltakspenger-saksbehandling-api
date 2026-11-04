@@ -45,6 +45,11 @@ fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, Erro
         "behandlingen_er_pa_vent",
     )
 
+    KanIkkeOppdatereBehandling.FeilResultattype -> HttpStatusCode.BadRequest to ErrorJson(
+        "Behandlingen kan ikke oppdateres med dette resultatet",
+        "feil_resultattype",
+    )
+
     KanIkkeOppdatereBehandling.KanIkkeOpphøre -> HttpStatusCode.BadRequest to ErrorJson(
         "Denne behandlingstypen støtter ikke opphør",
         "kan_ikke_opphøre",
