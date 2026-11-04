@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeStarteRevurd
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -58,15 +57,8 @@ class StartRevurderingService(
         kommando: StartRevurderingKommando,
         sak: Sak,
     ): Either<KanIkkeStarteRevurdering, ForberedtRevurdering> {
-        when (kommando.revurderingType) {
-            StartRevurderingType.FORLENGELSE -> if (!forlengelseErPåslått) {
-                return KanIkkeStarteRevurdering.ForlengelseErIkkePåslått.left()
-            }
-
-            StartRevurderingType.STANS,
-            StartRevurderingType.INNVILGELSE,
-            StartRevurderingType.OMGJØRING,
-            -> Unit
+        if (kommando is StartRevurderingKommando.Forlengelse && !forlengelseErPåslått) {
+            return KanIkkeStarteRevurdering.ForlengelseErIkkePåslått.left()
         }
 
         val (oppdatertSak, revurdering) = sak.startRevurdering(

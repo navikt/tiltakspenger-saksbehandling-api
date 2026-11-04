@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeStarteRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
@@ -28,14 +27,11 @@ class StartRevurderingServiceTest {
         )
 
         service.forberedRevurdering(
-            kommando = StartRevurderingKommando(
+            kommando = StartRevurderingKommando.Forlengelse(
                 sakId = sak.id,
                 correlationId = CorrelationId.generate(),
                 saksbehandler = ObjectMother.saksbehandler(),
-                revurderingType = StartRevurderingType.FORLENGELSE,
-                vedtakIdSomOmgjøres = null,
                 vedtakIdSomForlenges = VedtakId.random(),
-                klagebehandlingId = null,
             ),
             sak = sak,
         ).leftOrNull() shouldBe KanIkkeStarteRevurdering.ForlengelseErIkkePåslått

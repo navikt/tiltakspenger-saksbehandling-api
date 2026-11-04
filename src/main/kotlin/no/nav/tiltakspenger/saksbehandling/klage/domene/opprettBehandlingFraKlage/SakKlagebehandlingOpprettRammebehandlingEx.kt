@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeStarteRevurd
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.StartSøknadsbehandlingPåNyttKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -72,21 +71,22 @@ private suspend fun Sak.opprettRevurderingFraKlage(
     opprettRevurdering: suspend (StartRevurderingKommando, Sak) -> Either<KanIkkeStarteRevurdering, Pair<Sak, Revurdering>>,
 ): Either<KanIkkeOppretteBehandlingFraKlage, Pair<Sak, Rammebehandling>> {
     return opprettRevurdering(
-        StartRevurderingKommando(
-            sakId = kommando.sakId,
-            correlationId = kommando.correlationId,
-            saksbehandler = kommando.saksbehandler,
-            revurderingType = when (kommando.type) {
-                OpprettRevurderingFraKlageKommando.Type.INNVILGELSE -> StartRevurderingType.INNVILGELSE
-                OpprettRevurderingFraKlageKommando.Type.OMGJØRING -> StartRevurderingType.OMGJØRING
-            },
-            vedtakIdSomOmgjøres = when (kommando.type) {
-                OpprettRevurderingFraKlageKommando.Type.INNVILGELSE -> null
-                OpprettRevurderingFraKlageKommando.Type.OMGJØRING -> kommando.vedtakIdSomOmgjøres!!
-            },
-            vedtakIdSomForlenges = null,
-            klagebehandlingId = kommando.klagebehandlingId,
-        ),
+        when (kommando.type) {
+            OpprettRevurderingFraKlageKommando.Type.INNVILGELSE -> StartRevurderingKommando.Innvilgelse(
+                sakId = kommando.sakId,
+                correlationId = kommando.correlationId,
+                saksbehandler = kommando.saksbehandler,
+                klagebehandlingId = kommando.klagebehandlingId,
+            )
+
+            OpprettRevurderingFraKlageKommando.Type.OMGJØRING -> StartRevurderingKommando.Omgjøring(
+                sakId = kommando.sakId,
+                correlationId = kommando.correlationId,
+                saksbehandler = kommando.saksbehandler,
+                vedtakIdSomOmgjøres = kommando.vedtakIdSomOmgjøres!!,
+                klagebehandlingId = kommando.klagebehandlingId,
+            )
+        },
         this,
     ).mapLeft { KanIkkeOppretteBehandlingFraKlage.KunneIkkeStarteRevurdering(it) }
 }

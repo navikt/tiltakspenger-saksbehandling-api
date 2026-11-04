@@ -85,14 +85,10 @@ class LeserolleTilgangRammebehandlingTest {
             shouldThrow<TilgangException> {
                 runBlocking {
                     sak.startRevurdering(
-                        kommando = StartRevurderingKommando(
+                        kommando = StartRevurderingKommando.Stans(
                             sakId = SakId.random(),
                             correlationId = CorrelationId.generate(),
                             saksbehandler = bruker,
-                            revurderingType = StartRevurderingType.STANS,
-                            vedtakIdSomOmgjøres = null,
-                            vedtakIdSomForlenges = null,
-                            klagebehandlingId = null,
                         ),
                         clock = ObjectMother.clock,
                         hentSaksopplysninger = { _, _, _, _, _, _ -> error("Skal ikke kalles") },

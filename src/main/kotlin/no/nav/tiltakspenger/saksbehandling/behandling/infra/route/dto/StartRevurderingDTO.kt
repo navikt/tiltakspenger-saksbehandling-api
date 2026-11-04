@@ -5,7 +5,6 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 
 data class StartRevurderingDTO(
     val revurderingType: StartRevurderingTypeDTO,
@@ -17,15 +16,37 @@ data class StartRevurderingDTO(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): StartRevurderingKommando {
-        return StartRevurderingKommando(
-            sakId = sakId,
-            correlationId = correlationId,
-            saksbehandler = saksbehandler,
-            revurderingType = revurderingType.tilKommando(),
-            vedtakIdSomOmgjøres = rammevedtakIdSomOmgjøres?.let { VedtakId.fromString(it) },
-            vedtakIdSomForlenges = rammevedtakIdSomForlenges?.let { VedtakId.fromString(it) },
-            klagebehandlingId = null,
-        )
+        return when (revurderingType) {
+            StartRevurderingTypeDTO.REVURDERING_INNVILGELSE -> StartRevurderingKommando.Innvilgelse(
+                sakId = sakId,
+                correlationId = correlationId,
+                saksbehandler = saksbehandler,
+                klagebehandlingId = null,
+            )
+
+            StartRevurderingTypeDTO.STANS -> StartRevurderingKommando.Stans(
+                sakId = sakId,
+                correlationId = correlationId,
+                saksbehandler = saksbehandler,
+            )
+
+            StartRevurderingTypeDTO.OMGJØRING -> StartRevurderingKommando.Omgjøring(
+                sakId = sakId,
+                correlationId = correlationId,
+                saksbehandler = saksbehandler,
+                vedtakIdSomOmgjøres = rammevedtakIdSomOmgjøres?.let { VedtakId.fromString(it) },
+                klagebehandlingId = null,
+            )
+
+            StartRevurderingTypeDTO.FORLENGELSE -> StartRevurderingKommando.Forlengelse(
+                sakId = sakId,
+                correlationId = correlationId,
+                saksbehandler = saksbehandler,
+                vedtakIdSomForlenges = VedtakId.fromString(
+                    requireNotNull(rammevedtakIdSomForlenges) { "rammevedtakIdSomForlenges må være satt for å starte en forlengelse." },
+                ),
+            )
+        }
     }
 }
 
@@ -34,12 +55,4 @@ enum class StartRevurderingTypeDTO {
     STANS,
     OMGJØRING,
     FORLENGELSE,
-    ;
-
-    fun tilKommando(): StartRevurderingType = when (this) {
-        REVURDERING_INNVILGELSE -> StartRevurderingType.INNVILGELSE
-        STANS -> StartRevurderingType.STANS
-        OMGJØRING -> StartRevurderingType.OMGJØRING
-        FORLENGELSE -> StartRevurderingType.FORLENGELSE
-    }
 }

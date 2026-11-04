@@ -35,7 +35,11 @@ suspend fun Sak.startRevurdering(
     val nå = nå(clock)
     val behandlingId = RammebehandlingId.random()
 
-    val klagebehandling: Klagebehandling? = kommando.klagebehandlingId?.let {
+    val klagebehandling: Klagebehandling? = when (kommando) {
+        is StartRevurderingKommando.Innvilgelse -> kommando.klagebehandlingId
+        is StartRevurderingKommando.Omgjøring -> kommando.klagebehandlingId
+        is StartRevurderingKommando.Stans, is StartRevurderingKommando.Forlengelse -> null
+    }?.let {
         hentKlagebehandling(it).oppdaterBehandlingId(
             behandlingId = behandlingId,
             saksbehandler = kommando.saksbehandler!!,
@@ -43,27 +47,25 @@ suspend fun Sak.startRevurdering(
         )
     }
 
-    val revurdering = when (kommando.revurderingType) {
-        StartRevurderingType.STANS -> startRevurderingStans(
+    val revurdering = when (kommando) {
+        is StartRevurderingKommando.Stans -> startRevurderingStans(
             revurderingId = behandlingId,
             saksbehandler = kommando.saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
             correlationId = kommando.correlationId,
             opprettet = nå,
-            automatiskOpprettetGrunn = kommando.automatiskOpprettetGrunn,
         )
 
-        StartRevurderingType.INNVILGELSE -> startRevurderingInnvilgelse(
+        is StartRevurderingKommando.Innvilgelse -> startRevurderingInnvilgelse(
             revurderingId = behandlingId,
             saksbehandler = kommando.saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
             correlationId = kommando.correlationId,
             opprettet = nå,
             klagebehandling = klagebehandling,
-            automatiskOpprettetGrunn = kommando.automatiskOpprettetGrunn,
         )
 
-        StartRevurderingType.OMGJØRING -> startRevurderingOmgjøring(
+        is StartRevurderingKommando.Omgjøring -> startRevurderingOmgjøring(
             revurderingId = behandlingId,
             saksbehandler = kommando.saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
@@ -74,12 +76,12 @@ suspend fun Sak.startRevurdering(
             automatiskOpprettetGrunn = kommando.automatiskOpprettetGrunn,
         ).getOrElse { return it.left() }
 
-        StartRevurderingType.FORLENGELSE -> startRevurderingForlengelse(
+        is StartRevurderingKommando.Forlengelse -> startRevurderingForlengelse(
             revurderingId = behandlingId,
-            saksbehandler = kommando.saksbehandler!!,
+            saksbehandler = kommando.saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
             correlationId = kommando.correlationId,
-            rammevedtakIdSomForlenges = kommando.vedtakIdSomForlenges!!,
+            rammevedtakIdSomForlenges = kommando.vedtakIdSomForlenges,
             opprettet = nå,
         ).getOrElse { return it.left() }
     }
@@ -92,11 +94,10 @@ suspend fun Sak.startRevurdering(
 
 private suspend fun Sak.startRevurderingStans(
     revurderingId: RammebehandlingId = RammebehandlingId.random(),
-    saksbehandler: Saksbehandler?,
+    saksbehandler: Saksbehandler,
     hentSaksopplysninger: HentSaksopplysninger,
     correlationId: CorrelationId,
     opprettet: LocalDateTime,
-    automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
 ): Revurdering {
     return Revurdering.opprettStans(
         revurderingId = revurderingId,
@@ -106,7 +107,6 @@ private suspend fun Sak.startRevurderingStans(
         saksbehandler = saksbehandler,
         saksopplysninger = hentSaksopplysningerForStans(hentSaksopplysninger, correlationId),
         opprettet = opprettet,
-        automatiskOpprettetGrunn = automatiskOpprettetGrunn,
     )
 }
 
@@ -164,13 +164,12 @@ private suspend fun Sak.hentSaksopplysningerForStans(
 
 // TODO forlengelse jah: Konverter til forlengelse.
 private suspend fun Sak.startRevurderingInnvilgelse(
-    saksbehandler: Saksbehandler?,
+    saksbehandler: Saksbehandler,
     hentSaksopplysninger: HentSaksopplysninger,
     correlationId: CorrelationId,
     opprettet: LocalDateTime,
     klagebehandling: Klagebehandling?,
     revurderingId: RammebehandlingId = RammebehandlingId.random(),
-    automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
 ): Revurdering {
     require(harFørstegangsvedtak) {
         "Må ha en tidligere vedtatt innvilgelse for å kunne revurdere"
@@ -184,7 +183,6 @@ private suspend fun Sak.startRevurderingInnvilgelse(
         saksopplysninger = hentSaksopplysningerForInnvilgelse(hentSaksopplysninger, correlationId),
         opprettet = opprettet,
         klagebehandling = klagebehandling,
-        automatiskOpprettetGrunn = automatiskOpprettetGrunn,
     )
 }
 

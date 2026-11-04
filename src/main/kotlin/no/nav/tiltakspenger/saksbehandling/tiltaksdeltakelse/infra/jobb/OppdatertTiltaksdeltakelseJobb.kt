@@ -18,7 +18,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.ForberedtRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
@@ -266,13 +265,11 @@ class OppdatertTiltaksdeltakelseJobb(
             )
 
             is AutomatiskRevurderingAvEndring.Omgjøring -> startRevurderingService.forberedRevurdering(
-                StartRevurderingKommando(
+                StartRevurderingKommando.Omgjøring(
                     sakId = sak.id,
                     correlationId = correlationId,
                     saksbehandler = null,
-                    revurderingType = StartRevurderingType.OMGJØRING,
                     vedtakIdSomOmgjøres = revurderingSomSkalOpprettes.vedtakIdSomOmgjøres,
-                    vedtakIdSomForlenges = null,
                     klagebehandlingId = null,
                     automatiskOpprettetGrunn = automatiskOpprettetGrunn,
                 ),
