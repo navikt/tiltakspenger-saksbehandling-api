@@ -25,6 +25,19 @@ class BarnSomFyller16Test {
     }
 
     @Test
+    fun `begge barna fyller 16 år på ulike dager i forlengelsen gir siste dag med barnetillegg for det yngste`() {
+        BarnSomFyller16.utled(
+            sisteInnvilgedeDag = sisteInnvilgedeDag,
+            antallBarnIVedtaket = AntallBarn(2),
+            antallBarn = listOf(
+                PeriodeMedVerdi(AntallBarn(2), 1.april(2025) til 10.april(2025)),
+                PeriodeMedVerdi(AntallBarn(1), 11.april(2025) til 20.april(2025)),
+                PeriodeMedVerdi(AntallBarn.ZERO, 21.april(2025) til 30.april(2025)),
+            ).tilIkkeTomPeriodisering(),
+        ) shouldBe BarnSomFyller16(antall = 2, antallBarnIVedtaket = 2, sisteDagMedBarnetillegg = 20.april(2025))
+    }
+
+    @Test
     fun `eneste barn fyller 16 år dagen etter vedtaket gir siste innvilgede dag som siste dag med barnetillegg`() {
         BarnSomFyller16.utled(
             sisteInnvilgedeDag = sisteInnvilgedeDag,

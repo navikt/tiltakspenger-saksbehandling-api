@@ -577,4 +577,7 @@ sealed class TestApplicationContext(
      * Opptaket er da eneste måten å skille «spurte ikke» fra «spurte om feil periode».
      */
     val utbetaldataOppslag: List<SokosUtbetaldataFakeClient.Oppslag> get() = sokosUtbetaldataFakeClient.oppslag
+
+    /** Forlengelsesbrevene [GenererFakeVedtaksbrevKlient] har generert, både forhåndsvisninger og journalførte brev. */
+    val forlengelsesbrev: List<GenererFakeVedtaksbrevKlient.Forlengelsesbrev> get() = genererFakeVedtaksbrevKlient.forlengelsesbrev
 }

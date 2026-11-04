@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.harBarnSomFårRettI
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.periodiserAntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -27,7 +28,8 @@ import java.time.LocalDate
  * Slik faller barnetillegget bort for barn som fyller 16 år i forlengelsen, på samme måte som når saksbehandler forhåndsutfyller fra søknaden.
  * Søknaden må gi like mange barn som det gjeldende vedtaket på [sisteInnvilgedeDag], slik at vi vet at det er de samme barna som er innvilget.
  * Har saksbehandler for eksempel innvilget barnetillegg for et barn utenfor EØS, eller lagt til et barn, overlates forlengelsen til saksbehandler.
- * Det samme gjelder om søknaden gir flere barn i forlengelsen enn i vedtaket, siden et nytt barn må vurderes av saksbehandler.
+ * Det samme gjelder om et barn i søknaden blir født i forlengelsen, siden et nytt barn må vurderes av saksbehandler.
+ * Det gjelder også når et annet barn fyller 16 år samtidig, slik at antallet barn ikke øker.
  */
 fun Sak.utledAntallBarn(
     tiltaksdeltakerId: TiltaksdeltakerId,
@@ -54,12 +56,11 @@ fun Sak.utledAntallBarn(
         return ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG.left()
     }
 
-    val antallBarn = barnFraSøknaden.periodiserAntallBarn(innvilgelsesperiode)
-    if (antallBarn.verdier.any { it.value > antallBarnIVedtaket.value }) {
+    if (barnFraSøknaden.harBarnSomFårRettI(innvilgelsesperiode)) {
         return ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG.left()
     }
 
-    return antallBarn.right()
+    return barnFraSøknaden.periodiserAntallBarn(innvilgelsesperiode).right()
 }
 
 /**

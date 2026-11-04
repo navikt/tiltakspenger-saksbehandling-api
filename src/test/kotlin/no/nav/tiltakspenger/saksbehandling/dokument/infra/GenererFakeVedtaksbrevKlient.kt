@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
+import arrow.atomic.Atomic
 import arrow.core.Either
 import arrow.core.NonEmptySet
 import arrow.core.right
@@ -39,6 +40,17 @@ class GenererFakeVedtaksbrevKlient :
     private val response: Either<KunneIkkeGenererePdf, PdfOgJson> by lazy {
         PdfOgJson(PdfA("pdf".toByteArray()), "{}").right()
     }
+
+    /** Et forlengelsesbrev faken har generert, med det som skiller det fra andre innvilgelsesbrev. */
+    data class Forlengelsesbrev(
+        val forhåndsvisning: Boolean,
+        val barnSomFyller16: BarnSomFyller16?,
+    )
+
+    private val genererteForlengelsesbrev = Atomic(mutableListOf<Forlengelsesbrev>())
+
+    /** Forlengelsesbrevene faken har generert, i rekkefølgen de ble generert. */
+    val forlengelsesbrev: List<Forlengelsesbrev> get() = genererteForlengelsesbrev.get().toList()
 
     override suspend fun genererInnvilgetVedtakBrev(
         vedtak: Rammevedtak,
@@ -87,7 +99,10 @@ class GenererFakeVedtaksbrevKlient :
         tilleggstekst: FritekstTilVedtaksbrev?,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> = response
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        genererteForlengelsesbrev.get().add(Forlengelsesbrev(forhåndsvisning = false, barnSomFyller16 = barnSomFyller16))
+        return response
+    }
 
     override suspend fun genererForlengelseBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
@@ -102,7 +117,10 @@ class GenererFakeVedtaksbrevKlient :
         barnetilleggsperioder: Periodisering<AntallBarn>?,
         barnSomFyller16: BarnSomFyller16?,
         tilleggstekst: FritekstTilVedtaksbrev?,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> = response
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        genererteForlengelsesbrev.get().add(Forlengelsesbrev(forhåndsvisning = true, barnSomFyller16 = barnSomFyller16))
+        return response
+    }
 
     override suspend fun genererStansBrev(
         vedtak: Rammevedtak,
