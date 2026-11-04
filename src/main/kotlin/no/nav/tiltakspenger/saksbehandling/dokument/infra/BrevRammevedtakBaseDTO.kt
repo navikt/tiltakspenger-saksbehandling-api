@@ -42,3 +42,22 @@ data class BrevBarnetilleggDTO(
     val antallBarn: Int,
     val periode: BrevPeriodeDTO,
 )
+
+data class PeriodeInnvilgelseDTO(
+    val periode: BrevPeriodeDTO,
+    val beløp: List<PeriodeBeløpInnvilgelseDTO>,
+)
+
+data class PeriodeBeløpInnvilgelseDTO(
+    val periode: BrevPeriodeDTO,
+    val antallBarn: Int,
+    val tiltakspenger: Int,
+    val barnetilleggBeløp: Int,
+    val total: Int,
+)
+
+data class SatshistorikkDTO(
+    val år: Int,
+    val ordinær: Int,
+    val barnetillegg: Int,
+)

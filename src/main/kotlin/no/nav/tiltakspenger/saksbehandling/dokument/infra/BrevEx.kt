@@ -13,3 +13,17 @@ fun Satser.Companion.tilSatserDTO(periode: Periode): List<SatserDTO> {
         )
     }
 }
+
+fun Satser.Companion.tilSatsHistorikk(periode: Periode): List<SatshistorikkDTO>? {
+    if (periode.tilOgMed.year > satser.last().fraOgMed.year) {
+        return satser.takeLast(2).map { sats ->
+            SatshistorikkDTO(
+                år = sats.fraOgMed.year,
+                ordinær = sats.sats,
+                barnetillegg = sats.satsBarnetillegg,
+            )
+        }
+    } else {
+        return null
+    }
+}
