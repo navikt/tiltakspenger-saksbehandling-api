@@ -46,8 +46,9 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerFakeRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
-import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
-import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.tilUtbetalingsoversiktMetadata
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.SokosUtbetaldataClient
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.YtelserMedMetadata
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.LocalDate
@@ -104,7 +105,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     periode: Periode,
                     correlationId: CorrelationId,
-                ) = emptyList<Ytelse>().right()
+                ) = ingenYtelser().right()
             }
             val tiltakspengerArenaClient = object : TiltakspengerArenaClient {
                 override suspend fun hentTiltakspengevedtakFraArena(
@@ -249,7 +250,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     periode: Periode,
                     correlationId: CorrelationId,
-                ) = emptyList<Ytelse>().right()
+                ) = ingenYtelser().right()
             }
             val tiltakspengerArenaClient = object : TiltakspengerArenaClient {
                 override suspend fun hentTiltakspengevedtakFraArena(
@@ -387,7 +388,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     periode: Periode,
                     correlationId: CorrelationId,
-                ) = emptyList<Ytelse>().right()
+                ) = ingenYtelser().right()
             }
             val tiltakspengerArenaClient = object : TiltakspengerArenaClient {
                 override suspend fun hentTiltakspengevedtakFraArena(
@@ -554,7 +555,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     periode: Periode,
                     correlationId: CorrelationId,
-                ) = emptyList<Ytelse>().right()
+                ) = ingenYtelser().right()
             }
             val tiltakspengerArenaClient = object : TiltakspengerArenaClient {
                 override suspend fun hentTiltakspengevedtakFraArena(
@@ -732,7 +733,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     periode: Periode,
                     correlationId: CorrelationId,
-                ) = emptyList<Ytelse>().right()
+                ) = ingenYtelser().right()
             }
             val tiltakspengerArenaClient = object : TiltakspengerArenaClient {
                 override suspend fun hentTiltakspengevedtakFraArena(
@@ -957,7 +958,7 @@ class HentSaksopplysingerServiceTest {
     private fun serviceMedTiltakshistorikk(
         tiltak: TiltaksdeltakelseIntern,
         vararg andreDeltakelser: LibsTiltaksdeltakelse,
-        ytelser: Either<HttpKlientError, List<Ytelse>> = emptyList<Ytelse>().right(),
+        ytelser: Either<HttpKlientError, YtelserMedMetadata> = ingenYtelser().right(),
         arenavedtak: Either<HttpKlientError, List<ArenaTPVedtak>> = emptyList<ArenaTPVedtak>().right(),
     ): HentSaksopplysingerService {
         val tiltaksdeltakerRepo = TiltaksdeltakerFakeRepo().apply {
@@ -1008,3 +1009,5 @@ class HentSaksopplysingerServiceTest {
         )
     }
 }
+
+private fun ingenYtelser() = YtelserMedMetadata(ytelser = emptyList(), metadata = ObjectMother.httpKlientResponse(body = Unit).metadata.tilUtbetalingsoversiktMetadata(CorrelationId.generate()))

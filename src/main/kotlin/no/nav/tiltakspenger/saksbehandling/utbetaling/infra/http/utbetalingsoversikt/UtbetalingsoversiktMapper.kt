@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Trekk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktMappingfeil
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Ytelseskomponent
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.response.tilYtelsetype
 
 /**
  * Mapper svaret til domenemodellen, uten kontonummer og navn.
@@ -40,8 +41,9 @@ private fun UtbetalingsoversiktDto.tilRegistrertUtbetaling(): Either<Utbetalings
 
 private fun UtbetalingsoversiktDto.YtelseDto.tilRegistrertYtelse(): Either<UtbetalingsoversiktMappingfeil, RegistrertYtelse> = either {
     ensure(!ytelsesperiode.fom.isAfter(ytelsesperiode.tom)) { UtbetalingsoversiktMappingfeil.UgyldigPeriode("ytelsesperiode") }
+    // Avgrensningen har allerede tatt bort ytelsene uten en type vi henter.
     RegistrertYtelse(
-        ytelsestype = ytelsestype,
+        ytelsetype = krev(ytelsestype?.tilYtelsetype(), "ytelsestype"),
         periode = Periode(fraOgMed = ytelsesperiode.fom, tilOgMed = ytelsesperiode.tom),
         nettobeløp = krev(ytelseNettobeloep, "ytelseNettobeloep"),
         rettighetshaver = krev(rettighetshaver, "rettighetshaver").tilAktør("rettighetshaver").bind(),

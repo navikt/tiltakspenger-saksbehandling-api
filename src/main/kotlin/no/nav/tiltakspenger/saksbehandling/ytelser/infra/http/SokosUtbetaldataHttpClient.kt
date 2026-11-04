@@ -18,8 +18,15 @@ import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
 import no.nav.tiltakspenger.libs.httpklient.tryMap
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.tilUtbetalingsoversiktMetadata
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.SokosUtbetaldataClient
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
-import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.YtelserMedMetadata
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.request.SokosHentUtbetalingsinformasjonRequest
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.response.SokosUtbetalingResponse
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.response.tellUkjenteYtelsestyper
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.response.tilYtelsetype
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.response.utelatteYtelsestyper
 import java.net.URI
 import java.time.Clock
 import java.time.LocalDate
@@ -59,45 +66,52 @@ class SokosUtbetaldataHttpClient(
         fnr: Fnr,
         periode: Periode,
         correlationId: CorrelationId,
-    ): Either<HttpKlientError, List<Ytelse>> {
+    ): Either<HttpKlientError, YtelserMedMetadata> {
         // Siden domenet lagrer perioden vi har søkt på, må den ha kontroll på dette selv, den kan ikke bli hemmelig mutert av klienten.
         if (periode.tilOgMed > LocalDate.now(clock)) throw IllegalStateException("Utbetaldata godtar ikke datoer frem i tid.")
         val jsonPayload = serialize(
-            HentUtbetalingsinformasjonRequest(
+            SokosHentUtbetalingsinformasjonRequest(
                 ident = fnr.verdi,
-                periode = UtbetalingDto.UtbetalingsperiodeDto(
+                periode = SokosHentUtbetalingsinformasjonRequest.UtbetalingsperiodeDto(
                     fom = periode.fraOgMed,
                     tom = periode.tilOgMed,
                 ),
             ),
         )
         // Utbetaldata svarer alltid 200 ved suksess; alt annet skal være feil (paritet med gammel successStatus).
-        return httpKlient.postJson<List<UtbetalingDto>>(
+        return httpKlient.postJson<List<SokosUtbetalingResponse>>(
             uri = utbetalingsinformasjonUri,
             body = SerialisertJson(jsonPayload),
             headere = listOf(NavHeadere.navCallId(correlationId.toString())),
             godta = Statusregel.Eksakt(200),
         )
             // Mappingen validerer perioder fra svaret (Periode-init); tryMap gjør et ugyldig svar til typet feil med responsens metadata i stedet for en ukontrollert exception.
-            .flatMap { response -> response.tryMap { it.tilYtelser() } }
+            .flatMap { response ->
+                response.tryMap {
+                    YtelserMedMetadata(
+                        ytelser = it.tilYtelser(),
+                        // DTO-en leser bare ytelsestype og ytelsesperiode, så kontonummer og navn fra svaret blir ikke med.
+                        metadata = response.metadata.tilUtbetalingsoversiktMetadata(correlationId).copy(svar = serialize(it)),
+                    )
+                }
+            }
     }
 
-    private fun List<UtbetalingDto>.tilYtelser(): List<Ytelse> {
+    /** Utelatte typer forkastes; hver tekst blir én ytelse, så begge stavemåtene av samme type gir to. */
+    private fun List<SokosUtbetalingResponse>.tilYtelser(): List<Ytelse> {
         val utbetalinger = this.flatMap { it.ytelseListe }
         meterRegistry.tellUkjenteYtelsestyper(utbetalinger.map { it.ytelsestype })
-        // utbetaldata sender beskrivelsen, ikke kodeverdien
-        val relevanteYtelser = utbetalinger.filter { it.ytelsestype == null || Ytelsetype.entries.any { type -> type.harTekst(it.ytelsestype) } } // 1. Bug til Taulant -> forkaster alt vi ikke har tatt stilling til
-            .groupBy { utbetaling -> Ytelsetype.entries.find { it.harTekst(utbetaling.ytelsestype) } ?: Ytelsetype.UKJENT }
-        return relevanteYtelser.map { ytelse ->
-            Ytelse(
-                ytelsetype = ytelse.key,
-                perioder = ytelse.value.map {
-                    Periode(
-                        fraOgMed = it.ytelsesperiode.fom,
-                        tilOgMed = it.ytelsesperiode.tom,
-                    )
-                },
-            )
-        }
+        return utbetalinger
+            .filterNot { it.ytelsestype in utelatteYtelsestyper }
+            .groupBy { it.ytelsestype }
+            .map { (kildetekst, ytelser) ->
+                val perioder = ytelser.map { Periode(fraOgMed = it.ytelsesperiode.fom, tilOgMed = it.ytelsesperiode.tom) }
+                val ytelsetype = kildetekst?.tilYtelsetype()
+                if (ytelsetype == null) {
+                    Ytelse.Ukjent(kildetekst = kildetekst, perioder = perioder)
+                } else {
+                    Ytelse.Kjent(ytelsetype = ytelsetype, kildetekst = kildetekst, perioder = perioder)
+                }
+            }
     }
 }

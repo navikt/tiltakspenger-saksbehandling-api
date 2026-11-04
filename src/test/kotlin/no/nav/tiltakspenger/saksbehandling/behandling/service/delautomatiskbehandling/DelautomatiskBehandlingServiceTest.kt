@@ -545,7 +545,7 @@ class DelautomatiskBehandlingServiceTest {
             val fnr = Fnr.random()
             tac.leggTilYtelserFraUtbetaldata(
                 fnr = fnr,
-                ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(1.november(2022) til 1.desember(2022)))),
+                ytelser = listOf(Ytelse.Kjent(ytelsetype = Ytelsetype.DAGPENGER, kildetekst = "Dagpenger", perioder = listOf(1.november(2022) til 1.desember(2022)))),
             )
             tac.leggTilTiltakspengevedtakFraArena(
                 fnr = fnr,
@@ -570,7 +570,7 @@ class DelautomatiskBehandlingServiceTest {
             val fnr = Fnr.random()
             tac.leggTilYtelserFraUtbetaldata(
                 fnr = fnr,
-                ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(1.november(2022) til 30.november(2022)))),
+                ytelser = listOf(Ytelse.Kjent(ytelsetype = Ytelsetype.DAGPENGER, kildetekst = "Dagpenger", perioder = listOf(1.november(2022) til 30.november(2022)))),
             )
             tac.leggTilTiltakspengevedtakFraArena(
                 fnr = fnr,

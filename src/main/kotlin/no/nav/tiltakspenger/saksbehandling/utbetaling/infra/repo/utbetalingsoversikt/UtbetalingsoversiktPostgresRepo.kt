@@ -19,13 +19,10 @@ import java.time.LocalDateTime
 /**
  * @param oppfølgesFra Utbetalinger sendt før dette tidspunktet gir ingen oppslag, verken første oppslag eller oppslaget hver 30. dag; null følger opp alle.
  * En gammel sak kommer likevel i køen når den får en ny utbetaling.
- * @param maksAntallOppslag Køen er tom når tabellen har så mange rader, vellykkede og feilede; null gir ingen grense.
- * Hver rad er ett kall mot tjenesten, så grensen avgrenser prøvedriften i prod uten en ny deploy.
  */
 class UtbetalingsoversiktPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val oppfølgesFra: LocalDateTime?,
-    private val maksAntallOppslag: Int?,
 ) : UtbetalingsoversiktRepo {
     override fun lagre(oversikt: Utbetalingsoversikt, metadata: UtbetalingsoversiktMetadata) {
         sessionFactory.withSession { session ->
@@ -102,11 +99,6 @@ class UtbetalingsoversiktPostgresRepo(
      * Siste oppslag slås opp per sak, så arbeidet følger antall saker og ikke lengden på historikken.
      */
     override fun hentSakerKlareForOppslag(nå: LocalDateTime, limit: Int): List<SakId> = sessionFactory.withSession { session ->
-        val gjenstående = maksAntallOppslag?.let { maks ->
-            maks - session.run(sqlQuery("SELECT count(*) FROM utbetalingsoversikt").map { it.int(1) }.asSingle)!!
-        }
-        val avgrensetLimit = minOf(limit, gjenstående ?: limit)
-        if (avgrensetLimit <= 0) return@withSession emptyList()
         session.run(
             sqlQuery(
                 """
@@ -148,7 +140,7 @@ class UtbetalingsoversiktPostgresRepo(
                 "sendt_etter" to nå.minusDays(30),
                 "sendt_foer" to Åpningstider.senesteSendetidspunktSomKanStåIReskontroen(nå),
                 "oppfolges_fra" to oppfølgesFra,
-                "limit" to avgrensetLimit,
+                "limit" to limit,
             ).map { SakId.fromString(it.string("sak_id")) }.asList,
         )
     }

@@ -7,8 +7,8 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktavgrensning
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktgrunnlag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.sha256
-import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
-import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.erUkjentYtelsestype
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.response.erUkjentYtelsestype
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.response.tilYtelsetype
 
 /** Svaret slik det lagres og mappes, og tallene på det som ble tatt bort. */
 data class AvgrensetSvar(
@@ -64,7 +64,7 @@ private fun UtbetalingsoversiktDto.YtelseDto.avgrensningsårsak(grunnlag: Utbeta
 
 /** Tjenesten sender beskrivelsen av ytelsen, ikke en kode. */
 private fun String.tilMottattYtelsestype(): MottattYtelsestype {
-    val ytelsetype = Ytelsetype.entries.find { it != Ytelsetype.UKJENT && it.harTekst(this) }
+    val ytelsetype = tilYtelsetype()
     return when {
         ytelsetype != null -> MottattYtelsestype.Relevant(ytelsetype)
         erUkjentYtelsestype() -> MottattYtelsestype.Ukjent(this)

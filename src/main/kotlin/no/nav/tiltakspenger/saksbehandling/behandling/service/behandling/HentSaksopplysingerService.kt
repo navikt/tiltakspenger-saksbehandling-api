@@ -30,7 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.Tiltaksdeltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilTiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilTiltaksdeltakelseSomFratarRett
-import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.SokosUtbetaldataClient
 import java.time.Clock
 import java.time.LocalDate
 
@@ -249,8 +249,10 @@ class HentSaksopplysingerService(
             error.loggFeil(logger, "henting av ytelser fra Utbetaldata", loggkontekst)
             throw IllegalStateException("Kunne ikke hente ytelser fra Utbetaldata. $loggkontekst")
         }
+        // TODO: Metadataene fra sokos-utbetaldata (ytelser.metadata) brukes ikke ennå.
+        // Planen er å skrive om litt, slik at behandlingen kan peke på utbetalingsoversikten i stedet for å lagre metadataene selv.
         return Ytelser.fromList(
-            ytelser = ytelser,
+            ytelser = ytelser.ytelser,
             oppslagsperiode = utbetaldataPeriode,
             oppslagstidspunkt = nå(clock),
         )

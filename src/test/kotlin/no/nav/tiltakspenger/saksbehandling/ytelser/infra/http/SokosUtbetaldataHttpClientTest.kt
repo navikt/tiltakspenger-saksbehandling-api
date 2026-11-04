@@ -4,6 +4,7 @@ import arrow.core.right
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.throwables.shouldThrowWithMessage
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import kotlinx.coroutines.test.runTest
@@ -21,6 +22,8 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.request.SokosHentUtbetalingsinformasjonRequest
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.response.SokosUtbetalingResponse
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.Instant
@@ -73,11 +76,11 @@ class SokosUtbetaldataHttpClientTest {
         val transport = FakeHttpTransport().apply {
             leggIKøJson(
                 listOf(
-                    UtbetalingDto(
+                    SokosUtbetalingResponse(
                         ytelseListe = listOf(
-                            UtbetalingDto.YtelseDto(
-                                ytelsestype = Ytelsetype.AAP.tekstverdi,
-                                ytelsesperiode = UtbetalingDto.UtbetalingsperiodeDto(fom = fom, tom = tom),
+                            SokosUtbetalingResponse.YtelseDto(
+                                ytelsestype = "Arbeidsavklaringspenger",
+                                ytelsesperiode = SokosUtbetalingResponse.UtbetalingsperiodeDto(fom = fom, tom = tom),
                             ),
                         ),
                     ),
@@ -87,9 +90,11 @@ class SokosUtbetaldataHttpClientTest {
         }
 
         runTest {
-            client(transport).hentYtelserFraUtbetaldata(fnr, periode, correlationId) shouldBe listOf(
-                Ytelse(ytelsetype = Ytelsetype.AAP, perioder = listOf(Periode(fom, tom))),
+            val svar = client(transport).hentYtelserFraUtbetaldata(fnr, periode, correlationId)
+            svar.map { it.ytelser } shouldBe listOf(
+                Ytelse.Kjent(ytelsetype = Ytelsetype.AAP, kildetekst = "Arbeidsavklaringspenger", perioder = listOf(Periode(fom, tom))),
             ).right()
+            svar.getOrNull()!!.metadata.svar shouldContain "\"ytelsestype\":\"Arbeidsavklaringspenger\""
         }
 
         val kall = transport.mottatteKall.single()
@@ -98,15 +103,15 @@ class SokosUtbetaldataHttpClientTest {
     }
 
     @Test
-    fun `henter ytelser - null ytelsestype mappes til UKJENT`() {
+    fun `henter ytelser - null ytelsestype blir en ukjent ytelse`() {
         val transport = FakeHttpTransport().apply {
             leggIKøJson(
                 listOf(
-                    UtbetalingDto(
+                    SokosUtbetalingResponse(
                         ytelseListe = listOf(
-                            UtbetalingDto.YtelseDto(
+                            SokosUtbetalingResponse.YtelseDto(
                                 ytelsestype = null,
-                                ytelsesperiode = UtbetalingDto.UtbetalingsperiodeDto(fom = fom, tom = tom),
+                                ytelsesperiode = SokosUtbetalingResponse.UtbetalingsperiodeDto(fom = fom, tom = tom),
                             ),
                         ),
                     ),
@@ -116,17 +121,17 @@ class SokosUtbetaldataHttpClientTest {
         }
 
         runTest {
-            client(transport).hentYtelserFraUtbetaldata(fnr, periode, correlationId) shouldBe listOf(
-                Ytelse(ytelsetype = Ytelsetype.UKJENT, perioder = listOf(Periode(fom, tom))),
+            client(transport).hentYtelserFraUtbetaldata(fnr, periode, correlationId).map { it.ytelser } shouldBe listOf(
+                Ytelse.Ukjent(kildetekst = null, perioder = listOf(Periode(fom, tom))),
             ).right()
         }
     }
 
     /**
-     * Regresjonsvakt for utvidelsen av [UtbetalingDto].
+     * Regresjonsvakt for utvidelsen av [SokosUtbetalingResponse].
      *
      * Svaret har alle nivåene spec-en beskriver, og alt utenom `ytelsestype` og `ytelsesperiode` er felter DTO-en ikke leser i dag.
-     * Resultatet pinnes eksplisitt: ett [Ytelse]-element per ytelsestype, med periodene i den rekkefølgen de kommer i svaret, ukjente typer filtrert bort og `null`-typen som [Ytelsetype.UKJENT].
+     * Resultatet pinnes eksplisitt: ett [Ytelse]-element per ytelsestype, med periodene i den rekkefølgen de kommer i svaret, og ukjente typer og `null`-typen som [Ytelse.Ukjent].
      */
     @Test
     fun `henter ytelser - rikt svar gir samme ytelser som i dag`() {
@@ -136,20 +141,26 @@ class SokosUtbetaldataHttpClientTest {
 
         runTest {
             client(transport, klokkeEtterFixturperioden)
-                .hentYtelserFraUtbetaldata(fnr, fixturperiode, correlationId) shouldBe listOf(
-                Ytelse(
+                .hentYtelserFraUtbetaldata(fnr, fixturperiode, correlationId).map { it.ytelser } shouldBe listOf(
+                Ytelse.Kjent(
                     ytelsetype = Ytelsetype.TILTAKSPENGER,
+                    kildetekst = "Tiltakspenger",
                     perioder = listOf(
                         Periode(1.august(2025), 14.august(2025)),
                         Periode(1.september(2025), 14.september(2025)),
                     ),
                 ),
-                Ytelse(
+                Ytelse.Kjent(
                     ytelsetype = Ytelsetype.DAGPENGER,
+                    kildetekst = "Dagpenger",
                     perioder = listOf(Periode(1.september(2025), 30.september(2025))),
                 ),
-                Ytelse(
-                    ytelsetype = Ytelsetype.UKJENT,
+                Ytelse.Ukjent(
+                    kildetekst = "Økonomisk sosialhjelp",
+                    perioder = listOf(Periode(1.september(2025), 30.september(2025))),
+                ),
+                Ytelse.Ukjent(
+                    kildetekst = null,
                     perioder = listOf(Periode(18.august(2025), 31.august(2025))),
                 ),
             ).right()
@@ -165,13 +176,13 @@ class SokosUtbetaldataHttpClientTest {
 
         runTest {
             client(transport, klokkeEtterFixturperioden)
-                .hentYtelserFraUtbetaldata(fnr, fixturperiode, correlationId) shouldBe
+                .hentYtelserFraUtbetaldata(fnr, fixturperiode, correlationId).map { it.ytelser } shouldBe
                 UtbetalingDtoTestEx.forventedeYtelserFraRiktSvar.right()
         }
     }
 
     @Test
-    fun `henter ytelser - ytelsestyper vi ikke kjenner, telles per type før de forkastes`() {
+    fun `henter ytelser - ytelsestyper vi ikke kjenner, telles per type`() {
         val transport = FakeHttpTransport().apply {
             leggIKøJson(UtbetalingDtoTestEx.riktSvar(fnr), statusCode = 200)
         }
@@ -194,9 +205,10 @@ class SokosUtbetaldataHttpClientTest {
 
         runTest {
             client(transport, klokkeEtterFixturperioden)
-                .hentYtelserFraUtbetaldata(fnr, fixturperiode, correlationId) shouldBe listOf(
-                Ytelse(
+                .hentYtelserFraUtbetaldata(fnr, fixturperiode, correlationId).map { it.ytelser } shouldBe listOf(
+                Ytelse.Kjent(
                     ytelsetype = Ytelsetype.TILTAKSPENGER,
+                    kildetekst = "Tiltakspenger",
                     perioder = listOf(Periode(1.august(2025), 14.august(2025))),
                 ),
             ).right()
@@ -211,14 +223,14 @@ class SokosUtbetaldataHttpClientTest {
 
         runTest {
             client(transport, klokkeEtterFixturperioden)
-                .hentYtelserFraUtbetaldata(fnr, fixturperiode, correlationId) shouldBe emptyList<Ytelse>().right()
+                .hentYtelserFraUtbetaldata(fnr, fixturperiode, correlationId).map { it.ytelser } shouldBe emptyList<Ytelse>().right()
         }
     }
 
     /**
      * Pinner requesten utbetaldata faktisk får.
      *
-     * `rolle` og `periodetype` har defaultverdier i [HentUtbetalingsinformasjonRequest] og er derfor usynlige på kallstedet.
+     * `rolle` og `periodetype` har defaultverdier i [SokosHentUtbetalingsinformasjonRequest] og er derfor usynlige på kallstedet.
      * Endres en av dem, endres hvilke rader vi får tilbake — uten at noen mapping feiler.
      */
     @Test

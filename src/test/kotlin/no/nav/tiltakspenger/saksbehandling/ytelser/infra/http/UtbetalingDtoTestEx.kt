@@ -6,11 +6,12 @@ import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.response.SokosUtbetalingResponse
 
 /**
  * Eksempelsvar fra sokos-utbetaldata, bygget fra den offisielle spec-en og konsumentenes fixturer.
  *
- * [UtbetalingDto] leser i dag bare `ytelseListe[].ytelsestype` og `ytelseListe[].ytelsesperiode`, og resten av svaret droppes stille av Jackson.
+ * [SokosUtbetalingResponse] leser i dag bare `ytelseListe[].ytelsestype` og `ytelseListe[].ytelsesperiode`, og resten av svaret droppes stille av Jackson.
  * Fixturen tar med alle nivåene spec-en beskriver — utbetalingsnivå, ytelsesnivå, komponenter, trekk, skatt, `bilagsnummer`, `utbetaltTil` og `utbetaltTilKonto` — nettopp fordi de ikke er lest ennå.
  * Da fanger klienttestene at mappingen fortsatt gir det samme når DTO-en utvides med feltene.
  *
@@ -25,7 +26,7 @@ object UtbetalingDtoTestEx {
      * Et svar med to utbetalinger: én utbetalt og én kommende.
      *
      * Den kommende har fire ytelser, slik at alle grenene i mappingen dekkes av ett svar:
-     * to perioder på samme ytelsestype (tiltakspenger, én i hver utbetaling), en annen kjent type (dagpenger), en type vi ikke kjenner («Økonomisk sosialhjelp») som filtreres bort, og en `null`-type som blir [Ytelsetype.UKJENT].
+     * to perioder på samme ytelsestype (tiltakspenger, én i hver utbetaling), en annen kjent type (dagpenger), en type vi ikke kjenner («Økonomisk sosialhjelp») og en `null`-type, som begge blir [Ytelse.Ukjent].
      */
     fun riktSvar(
         fnr: Fnr,
@@ -224,28 +225,33 @@ object UtbetalingDtoTestEx {
      * Ytelsene [riktSvar] skal gi etter dagens mapping.
      *
      * Rekkefølgen er den `groupBy` gir: ytelsestypen som først dukker opp i den flate lista over alle `ytelseListe`-elementene, kommer først.
-     * «Økonomisk sosialhjelp» er filtrert bort før grupperingen fordi den ikke finnes i [Ytelsetype].
      */
     val forventedeYtelserFraRiktSvar: List<Ytelse> = listOf(
-        Ytelse(
+        Ytelse.Kjent(
             ytelsetype = Ytelsetype.TILTAKSPENGER,
+            kildetekst = "Tiltakspenger",
             perioder = listOf(
                 Periode(1.august(2025), 14.august(2025)),
                 Periode(1.september(2025), 14.september(2025)),
             ),
         ),
-        Ytelse(
+        Ytelse.Kjent(
             ytelsetype = Ytelsetype.DAGPENGER,
+            kildetekst = "Dagpenger",
             perioder = listOf(Periode(1.september(2025), 30.september(2025))),
         ),
-        Ytelse(
-            ytelsetype = Ytelsetype.UKJENT,
+        Ytelse.Ukjent(
+            kildetekst = "Økonomisk sosialhjelp",
+            perioder = listOf(Periode(1.september(2025), 30.september(2025))),
+        ),
+        Ytelse.Ukjent(
+            kildetekst = null,
             perioder = listOf(Periode(18.august(2025), 31.august(2025))),
         ),
     )
 
     /**
-     * Svaret slik det ser ut med bare feltene dagens [UtbetalingDto] kjenner.
+     * Svaret slik det ser ut med bare feltene dagens [SokosUtbetalingResponse] kjenner.
      *
      * Pinner at mappingen ikke har begynt å kreve noen av de nye feltene.
      */

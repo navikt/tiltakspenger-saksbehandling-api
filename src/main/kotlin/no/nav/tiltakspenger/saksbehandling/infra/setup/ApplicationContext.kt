@@ -78,7 +78,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtil
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerHendelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
-import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.SokosUtbetaldataClient
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataHttpClient
 import java.time.Clock
 

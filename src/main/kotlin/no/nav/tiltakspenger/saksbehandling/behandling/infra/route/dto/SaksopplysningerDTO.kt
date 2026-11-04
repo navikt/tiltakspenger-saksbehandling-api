@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.Tiltaks
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelseSomFratarRettDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.toDTO
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.route.YtelseDTO
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.route.toDTO
 import java.time.LocalDate
 import java.time.LocalDateTime
 

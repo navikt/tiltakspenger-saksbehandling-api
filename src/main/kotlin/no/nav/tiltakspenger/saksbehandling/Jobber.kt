@@ -85,7 +85,6 @@ private fun utbetalingJobber(
 /**
  * Egen parallell gruppe, slik at pausen mellom oppslagene ikke holder igjen de serielle jobbene.
  * Gruppen tømmer køen med ett oppslag om gangen og venter 500 ms etter hvert, så sokos-utbetaldata får tid til andre konsumenter.
- * Prod har prøvedrift med et tak på antall oppslag; se maksAntallOppslag i UtbetalingContext.
  */
 fun taskGrupper(
     applicationContext: ApplicationContext,

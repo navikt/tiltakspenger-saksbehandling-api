@@ -6,7 +6,11 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.tilUtbetalingsoversiktMetadata
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.SokosUtbetaldataClient
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.YtelserMedMetadata
 
 /**
  * Svarer med tom liste til en test har seedet ytelser for fnr-et med [leggTilYtelser].
@@ -35,9 +39,14 @@ class SokosUtbetaldataFakeClient : SokosUtbetaldataClient {
         fnr: Fnr,
         periode: Periode,
         correlationId: CorrelationId,
-    ): Either<HttpKlientError, List<Ytelse>> {
+    ): Either<HttpKlientError, YtelserMedMetadata> {
         mottatteOppslag.get().add(Oppslag(fnr = fnr, periode = periode))
-        return Either.Right(ytelserPerFnr.get()[fnr] ?: emptyList())
+        return Either.Right(
+            YtelserMedMetadata(
+                ytelser = ytelserPerFnr.get()[fnr] ?: emptyList(),
+                metadata = ObjectMother.httpKlientResponse(body = Unit).metadata.tilUtbetalingsoversiktMetadata(CorrelationId.generate()),
+            ),
+        )
     }
 
     /** Registrerer ytelsene faken skal svare med for [fnr]. */

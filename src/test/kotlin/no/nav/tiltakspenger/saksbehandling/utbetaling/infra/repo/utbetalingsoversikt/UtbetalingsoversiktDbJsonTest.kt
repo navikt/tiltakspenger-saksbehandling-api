@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Ytelseskomponent
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.registrertUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.registrertYtelse
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
 import org.junit.jupiter.api.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -58,7 +59,7 @@ class UtbetalingsoversiktDbJsonTest {
             "nettobeløp": 900.10,
             "melding": "melding",
             "ytelser": [{
-              "ytelsestype": "Tiltakspenger",
+              "ytelsetype": "TILTAKSPENGER",
               "periode": {"fraOgMed": "2025-08-01", "tilOgMed": "2025-08-14"},
               "nettobeløp": 900.1,
               "rettighetshaver": {"type": "PERSON", "ident": "${fnr.verdi}"},
@@ -80,7 +81,7 @@ class UtbetalingsoversiktDbJsonTest {
         forfallsdato = null,
         utbetalingsdato = null,
         nettobeløp = null,
-        ytelser = listOf(registrertYtelse(ytelsestype = null, rettighetshaver = Aktør.Person(fnr))),
+        ytelser = listOf(registrertYtelse(ytelsetype = Ytelsetype.SPK, rettighetshaver = Aktør.Person(fnr))),
     )
 
     //language=json
@@ -96,7 +97,7 @@ class UtbetalingsoversiktDbJsonTest {
             "nettobeløp": null,
             "melding": null,
             "ytelser": [{
-              "ytelsestype": null,
+              "ytelsetype": "SPK",
               "periode": {"fraOgMed": "2025-08-01", "tilOgMed": "2025-08-14"},
               "nettobeløp": 900.1,
               "rettighetshaver": {"type": "PERSON", "ident": "${fnr.verdi}"},

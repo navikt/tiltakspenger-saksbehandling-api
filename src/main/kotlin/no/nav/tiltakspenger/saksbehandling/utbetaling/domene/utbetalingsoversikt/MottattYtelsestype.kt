@@ -8,11 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
  */
 sealed interface MottattYtelsestype {
     /** En type i [Ytelsetype]. */
-    data class Relevant(val ytelsetype: Ytelsetype) : MottattYtelsestype {
-        init {
-            require(ytelsetype != Ytelsetype.UKJENT) { "En ukjent ytelsestype er ikke relevant" }
-        }
-    }
+    data class Relevant(val ytelsetype: Ytelsetype) : MottattYtelsestype
 
     /** En kjent type saksbehandlingen ikke henter, med teksten slik økonomisystemet sendte den. */
     data class Utelatt(val ytelsestype: String) : MottattYtelsestype

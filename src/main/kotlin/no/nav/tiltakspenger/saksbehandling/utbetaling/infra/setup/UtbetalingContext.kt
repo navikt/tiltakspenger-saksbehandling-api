@@ -82,10 +82,8 @@ open class UtbetalingContext(
     open val utbetalingsoversiktRepo: UtbetalingsoversiktRepo by lazy {
         UtbetalingsoversiktPostgresRepo(
             sessionFactory as PostgresSessionFactory,
-            // De to testsakene i dev ble opprettet 25.09.2026; prod følger opp alle saker under prøvedriften, og starttidspunktet avtales før jobben slås på for alle.
+            // De to testsakene i dev ble opprettet 25.09.2026; prod følger opp alle saker.
             oppfølgesFra = if (erDev) LocalDateTime.of(2026, 9, 25, 0, 0) else null,
-            // ponytail: prøvedriften i prod stopper etter 10 000 oppslag; fjernes når jobben slås på for alle.
-            maksAntallOppslag = if (erDev) null else 10_000,
         )
     }
     open val simulerService: SimulerService by lazy {

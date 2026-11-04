@@ -68,11 +68,6 @@ class UtbetalingsoversiktgrunnlagTest {
     }
 
     @Test
-    fun `en ukjent ytelsestype er ikke relevant`() {
-        shouldThrow<IllegalArgumentException> { MottattYtelsestype.Relevant(Ytelsetype.UKJENT) }
-    }
-
-    @Test
     fun `grunnlaget må ha minst én periode`() {
         shouldThrow<IllegalArgumentException> { Utbetalingsoversiktgrunnlag(fnr, emptyList()) }
     }

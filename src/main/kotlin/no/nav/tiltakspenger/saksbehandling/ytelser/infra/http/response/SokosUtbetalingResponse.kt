@@ -1,8 +1,8 @@
-package no.nav.tiltakspenger.saksbehandling.ytelser.infra.http
+package no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.response
 
 import java.time.LocalDate
 
-data class UtbetalingDto(
+data class SokosUtbetalingResponse(
     val ytelseListe: List<YtelseDto>,
 ) {
     data class UtbetalingsperiodeDto(

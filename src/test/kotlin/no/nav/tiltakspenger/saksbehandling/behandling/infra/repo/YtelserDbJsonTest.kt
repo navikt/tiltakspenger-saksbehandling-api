@@ -1,9 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
 import arrow.core.nonEmptyListOf
+import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
@@ -26,8 +28,10 @@ class YtelserDbJsonTest {
     fun `treff med ytelser overlever rundturen`() {
         val treff = Ytelser.Treff(
             value = nonEmptyListOf(
-                Ytelse(ytelsetype = Ytelsetype.AAP, perioder = listOf(oppslagsperiode)),
-                Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(oppslagsperiode)),
+                Ytelse.Kjent(ytelsetype = Ytelsetype.AAP, kildetekst = "Arbeidsavklaringspenger", perioder = listOf(oppslagsperiode)),
+                Ytelse.Kjent(ytelsetype = Ytelsetype.SPK, kildetekst = "Statens pensjonskasse", perioder = listOf(oppslagsperiode)),
+                Ytelse.Ukjent(kildetekst = "Økonomisk sosialhjelp", perioder = listOf(oppslagsperiode)),
+                Ytelse.Ukjent(kildetekst = null, perioder = listOf(oppslagsperiode)),
             ),
             oppslagsperiode = oppslagsperiode,
             oppslagstidspunkt = oppslagstidspunkt,
@@ -52,42 +56,21 @@ class YtelserDbJsonTest {
         Ytelser.BehandletFørFeature.toDbJson().toDomain() shouldBe Ytelser.BehandletFørFeature
     }
 
-    /**
-     * Ytelsetypen lagres som `tekstverdi`, ikke som enum-navnet, og leses tilbake ved å søke opp tekstverdien.
-     * Endres en tekstverdi uten migrering, smeller lesestien på gammel data — derfor sjekkes alle typene.
-     */
     @Test
-    fun `alle ytelsetypene overlever rundturen`() {
-        val alle = Ytelsetype.entries.map { Ytelse(ytelsetype = it, perioder = listOf(oppslagsperiode)) }
+    fun `lagres med vår egen kode`() {
         val treff = Ytelser.Treff(
-            value = alle.toTypedArray().let { nonEmptyListOf(it.first(), *it.drop(1).toTypedArray()) },
+            value = nonEmptyListOf(Ytelse.Kjent(ytelsetype = Ytelsetype.SPK, kildetekst = "Statens pensjonskasse", perioder = listOf(oppslagsperiode))),
             oppslagsperiode = oppslagsperiode,
             oppslagstidspunkt = oppslagstidspunkt,
         )
 
-        treff.toDbJson().toDomain() shouldBe treff
-    }
-
-    @Test
-    fun `barnepensjon i lagrede saksopplysninger hoppes over`() {
-        fun lagret(vararg typer: String) = YtelserDbJson(
-            ytelser = typer.map { YtelserDbJson.YtelseDbJson(ytelsetype = it, perioder = listOf(oppslagsperiode.toDbJson())) },
-            type = YtelserDbJson.Type.Treff,
-            oppslagstidspunkt = oppslagstidspunkt,
-            oppslagsperiode = oppslagsperiode.toDbJson(),
-        )
-
-        lagret("Barnepensjon", "Dagpenger").toDomain() shouldBe Ytelser.Treff(
-            value = nonEmptyListOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(oppslagsperiode))),
-            oppslagsperiode = oppslagsperiode,
-            oppslagstidspunkt = oppslagstidspunkt,
-        )
-        lagret("Barnepensjon").toDomain() shouldBe Ytelser.IngenTreff(oppslagsperiode = oppslagsperiode, oppslagstidspunkt = oppslagstidspunkt)
-    }
-
-    @Test
-    fun `gammel stavemåte av Statens pensjonskasse leses som SPK`() {
-        YtelserDbJson.YtelseDbJson(ytelsetype = "Statens pensjonkasse", perioder = listOf(oppslagsperiode.toDbJson()))
-            .toDomain() shouldBe Ytelse(ytelsetype = Ytelsetype.SPK, perioder = listOf(oppslagsperiode))
+        serialize(treff.toDbJson()) shouldEqualJson """
+            {
+              "ytelser": [{"ytelsetype": "SPK", "kildetekst": "Statens pensjonskasse", "perioder": [{"fraOgMed": "2025-01-01", "tilOgMed": "2025-03-31"}]}],
+              "type": "Treff",
+              "oppslagstidspunkt": "2025-04-01T12:00:00",
+              "oppslagsperiode": {"fraOgMed": "2025-01-01", "tilOgMed": "2025-03-31"}
+            }
+        """.trimIndent()
     }
 }

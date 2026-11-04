@@ -12,6 +12,8 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Skattetrekk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Trekk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Ytelseskomponent
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.repo.tilYtelsetypeFraDb
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.repo.toDb
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -31,7 +33,7 @@ private data class UtbetalingsoversiktDbJson(
     )
 
     data class RegistrertYtelseDbJson(
-        val ytelsestype: String?,
+        val ytelsetype: String,
         val periode: PeriodeDbJson,
         val nettobeløp: BigDecimal,
         val rettighetshaver: AktørDbJson,
@@ -97,7 +99,7 @@ fun String.toRegistrerteUtbetalinger(): List<RegistrertUtbetaling> =
     deserialize<UtbetalingsoversiktDbJson>(this).utbetalinger.map { it.toDomain() }
 
 private fun RegistrertYtelse.toDb() = UtbetalingsoversiktDbJson.RegistrertYtelseDbJson(
-    ytelsestype = ytelsestype,
+    ytelsetype = ytelsetype.toDb(),
     periode = UtbetalingsoversiktDbJson.PeriodeDbJson(periode.fraOgMed, periode.tilOgMed),
     nettobeløp = nettobeløp,
     rettighetshaver = rettighetshaver.toDb(),
@@ -144,7 +146,7 @@ private fun UtbetalingsoversiktDbJson.RegistrertUtbetalingDbJson.toDomain() = Re
 )
 
 private fun UtbetalingsoversiktDbJson.RegistrertYtelseDbJson.toDomain() = RegistrertYtelse(
-    ytelsestype = ytelsestype,
+    ytelsetype = ytelsetype.tilYtelsetypeFraDb(),
     periode = Periode(periode.fraOgMed, periode.tilOgMed),
     nettobeløp = nettobeløp,
     rettighetshaver = rettighetshaver.toDomain(),

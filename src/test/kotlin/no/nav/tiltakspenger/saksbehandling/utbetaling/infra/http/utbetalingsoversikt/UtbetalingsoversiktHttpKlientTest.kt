@@ -41,6 +41,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktgrunnlag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Ytelseskomponent
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.sha256
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
 import org.junit.jupiter.api.Test
 import java.io.IOException
 import java.time.Instant
@@ -110,7 +111,7 @@ class UtbetalingsoversiktHttpKlientTest {
                     melding = "En eller annen melding",
                     ytelser = listOf(
                         RegistrertYtelse(
-                            ytelsestype = "Tiltakspenger",
+                            ytelsetype = Ytelsetype.TILTAKSPENGER,
                             periode = Periode(1.august(2025), 14.august(2025)),
                             nettobeløp = "900.1".toBigDecimal(),
                             rettighetshaver = Aktør.Person(fnr),
@@ -154,7 +155,7 @@ class UtbetalingsoversiktHttpKlientTest {
                     melding = null,
                     ytelser = listOf(
                         RegistrertYtelse(
-                            ytelsestype = "Tiltakspenger",
+                            ytelsetype = Ytelsetype.TILTAKSPENGER,
                             periode = Periode(1.september(2025), 14.september(2025)),
                             nettobeløp = "2850".toBigDecimal(),
                             rettighetshaver = Aktør.Person(fnr),
@@ -176,7 +177,7 @@ class UtbetalingsoversiktHttpKlientTest {
                             refundertFor = null,
                         ),
                         RegistrertYtelse(
-                            ytelsestype = "Dagpenger",
+                            ytelsetype = Ytelsetype.DAGPENGER,
                             periode = Periode(1.september(2025), 30.september(2025)),
                             nettobeløp = "4200".toBigDecimal(),
                             rettighetshaver = Aktør.Person(fnr),
@@ -238,7 +239,7 @@ class UtbetalingsoversiktHttpKlientTest {
         runTest {
             val resultat = hent(transportMed(svar)).getOrFail()
 
-            resultat.utbetalinger.map { it.ytelser.map { ytelse -> ytelse.ytelsestype } } shouldBe listOf(listOf("Dagpenger"))
+            resultat.utbetalinger.map { it.ytelser.map { ytelse -> ytelse.ytelsetype } } shouldBe listOf(listOf(Ytelsetype.DAGPENGER))
             resultat.utbetalinger.single().nettobeløp shouldBe null
             resultat.avgrensning.antallUtbetalingerMottatt shouldBe 2
             resultat.avgrensning.antallYtelserMottatt shouldBe 7
@@ -280,7 +281,7 @@ class UtbetalingsoversiktHttpKlientTest {
         val svar = UtbetalingsoversiktDtoTestEx.svarMedTreTidligereMånederIEnUtbetaling(fnr)
 
         fun ytelse(periode: Periode, nettobeløp: String, vararg komponenter: Pair<String, String>) = RegistrertYtelse(
-            ytelsestype = "Tiltakspenger",
+            ytelsetype = Ytelsetype.TILTAKSPENGER,
             periode = periode,
             nettobeløp = nettobeløp.toBigDecimal(),
             rettighetshaver = Aktør.Person(fnr),

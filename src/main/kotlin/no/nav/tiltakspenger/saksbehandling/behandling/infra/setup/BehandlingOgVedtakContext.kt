@@ -51,7 +51,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.SokosUtbetaldataClient
 import java.time.Clock
 
 open class BehandlingOgVedtakContext(

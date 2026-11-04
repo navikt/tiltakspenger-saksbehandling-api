@@ -344,7 +344,7 @@ class DelautomatiskForlengelseServiceTest {
                 etterInnvilgelse = { sak ->
                     tac.leggTilYtelserFraUtbetaldata(
                         fnr = sak.fnr,
-                        ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(1.juni(2025) til 30.juni(2025)))),
+                        ytelser = listOf(Ytelse.Kjent(ytelsetype = Ytelsetype.DAGPENGER, kildetekst = "Dagpenger", perioder = listOf(1.juni(2025) til 30.juni(2025)))),
                     )
                 },
             ).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.FORLENGELSE_ANDRE_YTELSER)
@@ -359,7 +359,7 @@ class DelautomatiskForlengelseServiceTest {
                 etterInnvilgelse = { sak ->
                     tac.leggTilYtelserFraUtbetaldata(
                         fnr = sak.fnr,
-                        ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.TILTAKSPENGER, perioder = listOf(5.januar(2025) til 30.april(2025)))),
+                        ytelser = listOf(Ytelse.Kjent(ytelsetype = Ytelsetype.TILTAKSPENGER, kildetekst = "Tiltakspenger", perioder = listOf(5.januar(2025) til 30.april(2025)))),
                     )
                 },
             ).skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10)
@@ -439,7 +439,7 @@ class DelautomatiskForlengelseServiceTest {
     private fun Sak.leggTilAndreYtelserOgArenavedtak(tac: TestApplicationContextMedPostgres, tilOgMed: LocalDate) {
         tac.leggTilYtelserFraUtbetaldata(
             fnr = fnr,
-            ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(1.mars(2025) til tilOgMed))),
+            ytelser = listOf(Ytelse.Kjent(ytelsetype = Ytelsetype.DAGPENGER, kildetekst = "Dagpenger", perioder = listOf(1.mars(2025) til tilOgMed))),
         )
         tac.leggTilTiltakspengevedtakFraArena(
             fnr = fnr,
@@ -472,7 +472,7 @@ class DelautomatiskForlengelseServiceTest {
                 etterInnvilgelse = { sak ->
                     tac.leggTilYtelserFraUtbetaldata(
                         fnr = sak.fnr,
-                        ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(1.juni(2025) til 30.juni(2025)))),
+                        ytelser = listOf(Ytelse.Kjent(ytelsetype = Ytelsetype.DAGPENGER, kildetekst = "Dagpenger", perioder = listOf(1.juni(2025) til 30.juni(2025)))),
                     )
                     tac.leggTilTiltakspengevedtakFraArena(
                         fnr = sak.fnr,
@@ -509,7 +509,7 @@ class DelautomatiskForlengelseServiceTest {
                 etterInnvilgelse = { sak ->
                     tac.leggTilYtelserFraUtbetaldata(
                         fnr = sak.fnr,
-                        ytelser = listOf(Ytelse(ytelsetype = Ytelsetype.DAGPENGER, perioder = listOf(1.juni(2025) til 30.juni(2025)))),
+                        ytelser = listOf(Ytelse.Kjent(ytelsetype = Ytelsetype.DAGPENGER, kildetekst = "Dagpenger", perioder = listOf(1.juni(2025) til 30.juni(2025)))),
                     )
                 },
             ).skalVæreOverlattTilSaksbehandler(

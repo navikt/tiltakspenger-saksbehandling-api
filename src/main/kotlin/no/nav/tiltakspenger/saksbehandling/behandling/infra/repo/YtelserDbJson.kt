@@ -4,7 +4,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Yt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
-import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.repo.tilYtelsetypeFraDb
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.repo.toDb
 import java.time.LocalDateTime
 
 data class YtelserDbJson(
@@ -20,23 +21,26 @@ data class YtelserDbJson(
         BehandletFørFeature,
     }
 
+    /** [ytelsetype] er vår egen kode og er null for en ukjent ytelse; [kildetekst] er teksten fra sokos-utbetaldata. */
     data class YtelseDbJson(
-        val ytelsetype: String,
+        val ytelsetype: String?,
+        val kildetekst: String?,
         val perioder: List<PeriodeDbJson>,
     ) {
         fun toDomain(): Ytelse {
-            return Ytelse(
-                ytelsetype = Ytelsetype.entries.single { it.harTekst(ytelsetype) },
-                perioder = perioder.map { it.toDomain() },
-            )
+            val perioder = perioder.map { it.toDomain() }
+            return if (ytelsetype == null) {
+                Ytelse.Ukjent(kildetekst = kildetekst, perioder = perioder)
+            } else {
+                Ytelse.Kjent(ytelsetype = ytelsetype.tilYtelsetypeFraDb(), kildetekst = kildetekst!!, perioder = perioder)
+            }
         }
     }
 
     fun toDomain(): Ytelser {
         return when (type) {
-            // Et lagret Treff som bare hadde fjernede ytelsetyper, blir IngenTreff, slik et nytt oppslag i dag ville gitt.
             Type.Treff -> Ytelser.fromList(
-                ytelser = ytelser.filter { it.ytelsetype !in fjernedeYtelsetyper }.map { it.toDomain() },
+                ytelser = ytelser.map { it.toDomain() },
                 oppslagsperiode = oppslagsperiode!!.toDomain(),
                 oppslagstidspunkt = oppslagstidspunkt!!,
             )
@@ -53,19 +57,15 @@ data class YtelserDbJson(
     }
 }
 
-/**
- * Ytelsetyper som finnes i lagrede saksopplysninger, men som aldri skulle vært hentet, hoppes over ved lesing.
- * Barnepensjon skulle ikke ligget i [Ytelsetype]: den hindrer ikke tiltakspenger (tiltakspengeforskriften § 7 første ledd), men ble hentet og vist til saksbehandler fram til 2026-10-20.
- * Alle vedtak om avslag, stans og opphør med denne opplysningen er gjennomgått, og ingen bygde på barnepensjon.
- * Det kan senere vurderes om typen skal fjernes fra de lagrede dataene.
- */
-private val fjernedeYtelsetyper = setOf("Barnepensjon")
-
 fun Ytelser.toDbJson(): YtelserDbJson {
     return YtelserDbJson(
         ytelser = this.value.map { ytelse ->
             YtelserDbJson.YtelseDbJson(
-                ytelsetype = ytelse.ytelsetype.tekstverdi,
+                ytelsetype = when (ytelse) {
+                    is Ytelse.Kjent -> ytelse.ytelsetype.toDb()
+                    is Ytelse.Ukjent -> null
+                },
+                kildetekst = ytelse.kildetekst,
                 perioder = ytelse.perioder.map { it.toDbJson() },
             )
         },

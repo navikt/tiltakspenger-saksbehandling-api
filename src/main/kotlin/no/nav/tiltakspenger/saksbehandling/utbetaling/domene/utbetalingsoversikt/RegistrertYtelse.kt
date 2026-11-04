@@ -1,13 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
 import java.math.BigDecimal
 
 /**
  * Én ytelse i en registrert utbetaling.
  * Utbetalingen kan også dekke ytelser som ikke er våre.
  *
- * @param ytelsestype Fri tekst fra kilden uten kodeverk, f.eks. «Tiltakspenger».
  * @param periode Perioden ytelsen gjelder.
  * Når den ble bokført, står på [RegistrertUtbetaling.posteringsdato].
  * @param skattesum Negativ fra kilden.
@@ -16,7 +16,7 @@ import java.math.BigDecimal
  * @param refundertFor Organisasjonen det er refundert for når mottakeren er en samlemottaker.
  */
 data class RegistrertYtelse(
-    val ytelsestype: String?,
+    val ytelsetype: Ytelsetype,
     val periode: Periode,
     val nettobeløp: BigDecimal,
     val rettighetshaver: Aktør,

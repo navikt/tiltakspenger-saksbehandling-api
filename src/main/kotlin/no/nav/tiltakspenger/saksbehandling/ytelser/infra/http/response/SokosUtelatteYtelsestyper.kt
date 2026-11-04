@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.ytelser.infra.http
+package no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.response
 
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
 

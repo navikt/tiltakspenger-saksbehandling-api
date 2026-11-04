@@ -23,9 +23,9 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktgrunnlag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktsvar
-import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
-import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.tellUkjenteYtelsestyper
-import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.utelatteYtelsestyper
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.response.henteteYtelsestyper
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.response.tellUkjenteYtelsestyper
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.response.utelatteYtelsestyper
 import java.net.URI
 import java.time.Clock
 import kotlin.time.Duration
@@ -54,7 +54,7 @@ import kotlin.time.Duration.Companion.seconds
  *
  * Kalleren må derfor holde seg innenfor åpningstidene og stoppe ved første feil som rammer alle saker.
  *
- * Ytelsestyper vi ikke kjenner, telles med [tellUkjenteYtelsestyper] ved vellykket oppslag, så vi ser hvilke typer som mangler i [Ytelsetype] eller [utelatteYtelsestyper].
+ * Ytelsestyper vi ikke kjenner, telles med [tellUkjenteYtelsestyper] ved vellykket oppslag, så vi ser hvilke typer som mangler i [henteteYtelsestyper] eller [utelatteYtelsestyper].
  */
 class UtbetalingsoversiktHttpKlient(
     baseUrl: String,

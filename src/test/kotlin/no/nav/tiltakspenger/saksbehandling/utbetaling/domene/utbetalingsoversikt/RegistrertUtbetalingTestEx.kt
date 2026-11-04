@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -31,7 +32,7 @@ fun registrertUtbetaling(
 )
 
 fun registrertYtelse(
-    ytelsestype: String? = "Tiltakspenger",
+    ytelsetype: Ytelsetype = Ytelsetype.TILTAKSPENGER,
     periode: Periode = Periode(1.august(2025), 14.august(2025)),
     nettobeløp: BigDecimal = "900.1".toBigDecimal(),
     rettighetshaver: Aktør = Aktør.Person(Fnr.random()),
@@ -44,7 +45,7 @@ fun registrertYtelse(
     bilagsnummer: String? = null,
     refundertFor: Aktør? = null,
 ): RegistrertYtelse = RegistrertYtelse(
-    ytelsestype = ytelsestype,
+    ytelsetype = ytelsetype,
     periode = periode,
     nettobeløp = nettobeløp,
     rettighetshaver = rettighetshaver,

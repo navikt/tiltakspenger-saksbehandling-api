@@ -33,7 +33,7 @@ import java.time.LocalDate
  * Ytelsene fra sokos-utbetaldata hele veien: fra klienten, gjennom saksopplysningene, ut i behandlingsresponsen og ned i `behandling.saksopplysninger`.
  *
  * Utbetaldata-faken svarer med ytelsene som [UtbetalingDtoTestEx.riktSvar] mapper til, og at den mappingen er riktig, er pinnet i [no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataHttpClientTest].
- * Her er poenget hva som skjer med ytelsene etter mappingen, slik at utvidelsen av `UtbetalingDto` ikke kan endre verken responsen eller kolonnen.
+ * Her er poenget hva som skjer med ytelsene etter mappingen, slik at ingen endring kan flytte verken responsen eller kolonnen uten at testen merker det.
  *
  * Klassen pinner også perioden vi spør utbetaldata om, som svart boks.
  * Den er ikke saksopplysningsperioden: den strekkes bakover til første dag i måneden før, fordi forrige måned ikke nødvendigvis er utbetalt enda, og fram til siste dag i måneden saksopplysningsperioden slutter i.
@@ -60,6 +60,7 @@ class YtelserSaksopplysningTest {
         [
           {
             "ytelsetype": "Tiltakspenger",
+            "kildetekst": "Tiltakspenger",
             "perioder": [
               { "fraOgMed": "2025-08-01", "tilOgMed": "2025-08-14" },
               { "fraOgMed": "2025-09-01", "tilOgMed": "2025-09-14" }
@@ -67,12 +68,57 @@ class YtelserSaksopplysningTest {
           },
           {
             "ytelsetype": "Dagpenger",
+            "kildetekst": "Dagpenger",
             "perioder": [
               { "fraOgMed": "2025-09-01", "tilOgMed": "2025-09-30" }
             ]
           },
           {
-            "ytelsetype": "Ukjent",
+            "ytelsetype": "Ukjent ytelse",
+            "kildetekst": "Økonomisk sosialhjelp",
+            "perioder": [
+              { "fraOgMed": "2025-09-01", "tilOgMed": "2025-09-30" }
+            ]
+          },
+          {
+            "ytelsetype": "Ukjent ytelse",
+            "kildetekst": null,
+            "perioder": [
+              { "fraOgMed": "2025-08-18", "tilOgMed": "2025-08-31" }
+            ]
+          }
+        ]
+    """.trimIndent()
+
+    /** Kolonnen lagrer vår egen kode og teksten fra kilden, mens responsen viser visningsteksten. */
+    // language=json
+    private val forventedeYtelserIKolonnenJson = """
+        [
+          {
+            "ytelsetype": "TILTAKSPENGER",
+            "kildetekst": "Tiltakspenger",
+            "perioder": [
+              { "fraOgMed": "2025-08-01", "tilOgMed": "2025-08-14" },
+              { "fraOgMed": "2025-09-01", "tilOgMed": "2025-09-14" }
+            ]
+          },
+          {
+            "ytelsetype": "DAGPENGER",
+            "kildetekst": "Dagpenger",
+            "perioder": [
+              { "fraOgMed": "2025-09-01", "tilOgMed": "2025-09-30" }
+            ]
+          },
+          {
+            "ytelsetype": null,
+            "kildetekst": "Økonomisk sosialhjelp",
+            "perioder": [
+              { "fraOgMed": "2025-09-01", "tilOgMed": "2025-09-30" }
+            ]
+          },
+          {
+            "ytelsetype": null,
+            "kildetekst": null,
             "perioder": [
               { "fraOgMed": "2025-08-18", "tilOgMed": "2025-08-31" }
             ]
@@ -122,7 +168,7 @@ class YtelserSaksopplysningTest {
             // language=json
             tac.sessionFactory.hentYtelserJson(behandling.id) shouldEqualJson """
                 {
-                  "ytelser": $forventedeYtelserJson,
+                  "ytelser": $forventedeYtelserIKolonnenJson,
                   "type": "Treff",
                   "oppslagstidspunkt": "${ytelser.oppslagstidspunkt}",
                   "oppslagsperiode": {

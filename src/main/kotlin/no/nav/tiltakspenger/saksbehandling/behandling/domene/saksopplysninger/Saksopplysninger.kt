@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseSomFratarRett
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -59,10 +60,10 @@ data class Saksopplysninger(
     }
 
     /**
-     * Tiltakspenger fra utbetaldata regnes ikke som en annen ytelse.
+     * Tiltakspenger fra utbetaldata regnes ikke som en annen ytelse, men en ukjent ytelse gjør det.
      */
     fun harAndreYtelserEnnTiltakspengerSomOverlapper(periode: Periode): Boolean {
-        return ytelser.any { it.ytelsetype != Ytelsetype.TILTAKSPENGER && it.overlapperMed(periode) }
+        return ytelser.any { !(it is Ytelse.Kjent && it.ytelsetype == Ytelsetype.TILTAKSPENGER) && it.overlapperMed(periode) }
     }
 
     /**
