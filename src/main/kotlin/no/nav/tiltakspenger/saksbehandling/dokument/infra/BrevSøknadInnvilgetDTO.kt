@@ -125,7 +125,7 @@ private fun totalDagSatsForAllePeriodene(
 ): List<PeriodeInnvilgelseDTO> {
     return innvilgelsesperioder.perioder.leggSammen(false).map { periode ->
 
-        val beløpPerStrekning = periode.tilDager().map { dag ->
+        val beløpPerPeriode = periode.tilDager().map { dag ->
 
             val satsdag = Satser.sats(dato = dag)
             val antallBarn = barnetillegg?.hentVerdiForDag(dag)?.value ?: 0
@@ -139,7 +139,7 @@ private fun totalDagSatsForAllePeriodene(
 
         PeriodeInnvilgelseDTO(
             periode = BrevPeriodeDTO.fraPeriode(periode),
-            beløp = beløpPerStrekning.perioderMedVerdi.map { (beløp, strekning) ->
+            beløp = beløpPerPeriode.perioderMedVerdi.map { (beløp, strekning) ->
                 PeriodeBeløpInnvilgelseDTO(
                     periode = BrevPeriodeDTO.fraPeriode(strekning),
                     antallBarn = beløp.antallBarn,
