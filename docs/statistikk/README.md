@@ -62,6 +62,7 @@ Lenker til grensesnittbeskrivelsen og Team Saks dokumentasjon står i KDoc på `
 ## Slik leser Team Spenn de tre andre tabellene
 
 `statistikk_kodeverk_tiltakstype` heter `public_statistikk_kodeverk_tiltakstype` i BigQuery; Team Spenn har lesetilgang, men leser den ikke i `datalast_fra_bq.py` ennå.
+Den er også publisert som datasett på datamarkedsplassen, se under.
 
 Koden ligger i [navikt/dvh_tiltakspenger](https://github.com/navikt/dvh_tiltakspenger) (internt repo).
 
@@ -82,7 +83,8 @@ Alt ligger i tpts-prosjektet, og tabellene i `datastream_saksbehandling` har pre
 | `views.meldekort_til_infoskjerm` og `views.utbetalinger_til_infoskjerm` | Grafana | Infoskjerm uten personopplysninger |
 
 Datamarkedsplassen har i tillegg direkte lesetilgang til `public_statistikk_meldekort` og `public_statistikk_utbetaling`.
-Teamet har ett dataprodukt der, «Tiltakspenger», med datasettene Meldekort for tiltakspenger, Tiltakspengesaker, begge også pseudonymisert, Tiltakspengevedtak og Utbetalingsvedtak for tiltakspenger.
+Teamet har ett dataprodukt der, «Tiltakspenger», med datasettene Meldekort for tiltakspenger, Tiltakspengesaker, begge også pseudonymisert, Tiltakspengevedtak, Utbetalingsvedtak for tiltakspenger og [Kodeverk for tiltakstyper](https://data.ansatt.nav.no/dataproduct/f5ecf970-61d3-4748-b2cc-432166cae1ae/Tiltakspenger/11e85edc-9283-4a32-8f85-25e31e37576c).
+Kodeverket er åpent for hele Nav, siden det ikke har personopplysninger.
 Hvem som har fått tilgang gjennom dataproduktet, ser du bare på [datamarkedsplassen](https://data.ansatt.nav.no) under teamet.
 
 I dev har Team Spenn og Team Sak lesetilgang til hele `datastream_saksbehandling`.
