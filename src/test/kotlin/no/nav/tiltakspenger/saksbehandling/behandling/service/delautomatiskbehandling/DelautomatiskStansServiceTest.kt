@@ -18,7 +18,6 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
@@ -35,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMel
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortbehandlingDTO.OppdatertMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
@@ -209,14 +209,14 @@ class DelautomatiskStansServiceTest {
 
     /**
      * Simuleringen fra sluttdatoen viser feilutbetaling for seks utbetalingsdager, 10. og 13.–17. januar.
-     * Da opprettes et utfylt og prioritert opphør fra dagen etter sluttdatoen, som overlates til en saksbehandler uten å behandles automatisk.
-     * Innvilgelsen er passert, så opphøret gjelder i sin helhet tilbake i tid.
+     * Da opprettes en omgjøring av søknadsvedtaket klar til behandling, uten at systemet fyller ut noe i den.
+     * Den behandles ikke automatisk, og saksbehandler fyller ut opphøret.
      */
     @Test
-    fun `utbetalt mer enn fem dager etter sluttdato - opprettes opphør som overlates til saksbehandler`() {
+    fun `utbetalt mer enn fem dager etter sluttdato - opprettes omgjøring uten utfylling som overlates til saksbehandler`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakelse = tac.tiltaksdeltakelse(6.januar(2025) til 31.mars(2025))
-            val (sak) = iverksettSøknadsbehandlingMedUtbetaling(tac, deltakelse)
+            val (sak, søknadsvedtak) = iverksettSøknadsbehandlingMedUtbetaling(tac, deltakelse)
 
             tac.behandleEndring(
                 sak = sak,
@@ -224,29 +224,21 @@ class DelautomatiskStansServiceTest {
                 nåtilstand = deltakelse.medPeriode(tilOgMed = 9.januar(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
             ).shouldBeInstanceOf<RevurderingOpprettet>()
 
-            val opphør = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(opphør.id)
+            val omgjøring = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(omgjøring.id)
 
-            tac.hentRevurdering(sak, opphør).also {
-                it shouldBe opphør
+            tac.hentRevurdering(sak, omgjøring).also {
+                it shouldBe omgjøring
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
                 it.saksbehandler.shouldBeNull()
                 it.erUnderAutomatiskBehandling shouldBe false
                 it.manueltBehandlesGrunner.shouldBeEmpty()
                 it.automatiskOpprettetGrunn.shouldNotBeNull().tiltaksdeltakerId shouldBe deltakelse.internDeltakelseId
-                it.skalSendeVedtaksbrev shouldBe true
-                val resultat = it.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringOpphør>()
-                resultat.vedtaksperiode shouldBe (10.januar(2025) til 31.mars(2025))
-                resultat.valgteHjemler shouldBe nonEmptySetOf(HjemmelForOpphør.DeltarIkkePåArbeidsmarkedstiltak)
-                resultat.omgjørRammevedtak.rammevedtakIDer shouldBe listOf(sak.rammevedtaksliste.single().id)
-                it.begrunnelseVilkårsvurdering!!.verdi shouldBe
-                    "Automatisk opprettet. Tiltaksdeltakelsen er avbrutt, og tiltakspengene opphøres fra og med 10. januar 2025 fordi bruker ikke lenger deltar på arbeidsmarkedstiltak. " +
-                    "Oppdragssystemet har allerede utbetalt tiltakspenger for 6 dager fra og med 10. januar 2025, og utbetalingen for disse dagene blir feilutbetaling."
-                it.prioritering shouldBe Prioritering.create(
-                    "Opphør må behandles omgående for å begrense feilutbetaling. " +
-                        "Oppdragssystemet har allerede utbetalt tiltakspenger for 6 dager etter at deltakelsen ble avbrutt.",
-                )
-                it.utbetaling.shouldNotBeNull().simulering.shouldNotBeNull().harFeilutbetaling shouldBe true
+                it.resultat shouldBe Omgjøringsresultat.OmgjøringIkkeValgt(OmgjørRammevedtak.create(søknadsvedtak))
+                it.begrunnelseVilkårsvurdering.shouldBeNull()
+                it.fritekstTilVedtaksbrev.shouldBeNull()
+                it.prioritering.shouldBeNull()
+                it.utbetaling.shouldBeNull()
             }
         }
     }

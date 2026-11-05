@@ -239,7 +239,7 @@ class OppdatertTiltaksdeltakelseJobb(
     /**
      * En stans, forlengelse eller omgjøring ved avkortet sluttdato opprettes under automatisk behandling og behandles videre av [DelautomatiskRevurderingJobb].
      * Andre omgjøringer opprettes klare til behandling for en saksbehandler.
-     * En stans kan i stedet bli et utfylt opphør klart til behandling, se [DelautomatiskStansService.opprettStansEllerOpphør].
+     * En stans kan i stedet bli en omgjøring klar til behandling, der saksbehandler fyller ut opphøret, se [DelautomatiskStansService.opprettStansEllerOpphør].
      *
      * @return null dersom revurderingen ikke kan opprettes, og endringen må følges opp med en oppgave.
      */

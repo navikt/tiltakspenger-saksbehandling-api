@@ -257,7 +257,7 @@ data class Revurdering(
 
         /**
          * En omgjøring som opprettes av systemet klar til behandling for en saksbehandler.
-         * Den behandles ikke automatisk, men systemet kan fylle den ut før den lagres, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.fyllUtAutomatiskOpprettetOpphør].
+         * Den behandles ikke automatisk, og systemet fyller ikke ut noe i den.
          *
          * @param omgjørRammevedtak Rammevedtaket som erstattes helt eller delvis
          */

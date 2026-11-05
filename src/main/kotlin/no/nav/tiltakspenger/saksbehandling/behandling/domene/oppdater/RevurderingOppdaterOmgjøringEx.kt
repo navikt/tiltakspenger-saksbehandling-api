@@ -105,29 +105,6 @@ private fun Revurdering.oppdaterOmgjøringInnvilgelse(
 }
 
 /**
- * Fyller ut et opphør som systemet har opprettet klart til behandling, før det overlates til en saksbehandler.
- * Behandlingen er ikke tildelt noen, så det sjekkes ikke hvem som oppdaterer den, men opphøret valideres som ved [oppdaterOmgjøring].
- */
-fun Revurdering.fyllUtAutomatiskOpprettetOpphør(
-    kommando: OppdaterOmgjøringKommando.OmgjøringOpphør,
-    utbetaling: BehandlingUtbetaling?,
-    finnRammevedtakSomOmgjøres: (vedtaksperiode: Periode) -> OmgjørRammevedtak,
-    rammevedtaksliste: Rammevedtaksliste,
-    clock: Clock,
-): Either<KanIkkeOppdatereBehandling, Revurdering> {
-    require(automatiskOpprettetGrunn != null && erKlarTilBehandling && resultat is Omgjøringsresultat.OmgjøringIkkeValgt) {
-        "Kun automatisk opprettede omgjøringer som ikke er påbegynt kan fylles ut automatisk. Status: $status, resultat: ${resultat::class.simpleName}"
-    }
-    return oppdaterOmgjøringOpphør(
-        kommando = kommando,
-        utbetaling = utbetaling,
-        finnRammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres,
-        rammevedtaksliste = rammevedtaksliste,
-        clock = clock,
-    )
-}
-
-/**
  * Opphøret kan gå over flere vedtak, men må starte og slutte i en gjeldende innvilgelsesperiode på saken.
  * Det kan dermed gå over stans og tidligere opphør, så lenge det er innvilgelse både før og etter dem.
  * Det kan ikke gå over perioder uten noen tidligere vedtak.

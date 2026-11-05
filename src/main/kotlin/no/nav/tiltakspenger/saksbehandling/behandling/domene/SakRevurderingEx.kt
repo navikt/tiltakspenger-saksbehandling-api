@@ -144,7 +144,7 @@ suspend fun Sak.startAutomatiskStans(
 }
 
 /**
- * Starter en omgjøring av [omgjørRammevedtak] som systemet fyller ut før den overlates til en saksbehandler.
+ * Starter en omgjøring av [omgjørRammevedtak] klar til behandling for en saksbehandler, se [Revurdering.opprettAutomatiskOmgjøring].
  */
 fun Sak.startAutomatiskOmgjøring(
     omgjørRammevedtak: Rammevedtak,
