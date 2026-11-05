@@ -11,9 +11,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonServi
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.TiltakshistorikkRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltakshistorikkHttpKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakshistorikkPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.service.TiltaksdeltakelseService
 import java.time.Clock
 
@@ -25,6 +27,8 @@ open class TiltaksdeltakelseContext(
     clock: Clock,
 ) {
     open val tiltaksdeltakerRepo: TiltaksdeltakerRepo by lazy { TiltaksdeltakerPostgresRepo(sessionFactory as PostgresSessionFactory) }
+
+    open val tiltakshistorikkRepo: TiltakshistorikkRepo by lazy { TiltakshistorikkPostgresRepo(sessionFactory as PostgresSessionFactory) }
 
     open val tiltaksdeltakelseKlient: TiltaksdeltakelseKlient by lazy {
         TiltakshistorikkHttpKlient(

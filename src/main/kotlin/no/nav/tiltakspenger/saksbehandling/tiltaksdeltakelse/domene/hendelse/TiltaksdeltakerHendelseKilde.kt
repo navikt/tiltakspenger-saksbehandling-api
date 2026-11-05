@@ -1,12 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse
 
-/**
- * Kafka-kildene ([Arena], [TeamTiltak], [Komet]) gir hendelser som mottas.
- * [Tiltakshistorikk] er nå-tilstanden som hentes når en endring behandles.
- */
+/** Kafka-kildene som gir hendelser om endringer i tiltaksdeltakelse. */
 enum class TiltaksdeltakerHendelseKilde {
     Arena,
     TeamTiltak,
     Komet,
-    Tiltakshistorikk,
 }

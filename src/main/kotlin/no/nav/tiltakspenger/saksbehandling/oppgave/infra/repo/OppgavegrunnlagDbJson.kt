@@ -12,7 +12,7 @@ import java.time.LocalDateTime
 /**
  * Grunnlaget skrives kun, og leses tilbake som rå json i [no.nav.tiltakspenger.saksbehandling.oppgave.LagretEksternOppgave].
  * Konvolutten (type og kilde) har et fast format.
- * Verdien er nå-tilstanden fra tiltakshistorikk i samme format som i `tiltaksdeltaker_endring`, se [TiltaksdeltakelseNåtilstandDbJson].
+ * Verdien er nå-tilstanden fra tiltakshistorikk i samme format som i `tiltakshistorikk`, se [TiltaksdeltakelseNåtilstandDbJson].
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(

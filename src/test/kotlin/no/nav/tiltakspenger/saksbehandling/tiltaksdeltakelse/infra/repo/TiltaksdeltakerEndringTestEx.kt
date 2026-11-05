@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 import kotliquery.Row
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseKilde
 import java.time.LocalDateTime
 
@@ -31,25 +30,16 @@ data class LagretTiltaksdeltakerEndring(
  */
 fun PostgresSessionFactory.hentTiltaksdeltakerEndringerForEksternId(
     eksternDeltakerId: String,
-): List<LagretTiltaksdeltakerEndring> = hent("ekstern_deltaker_id", eksternDeltakerId)
-
-fun PostgresSessionFactory.hentTiltaksdeltakerEndringer(
-    tiltaksdeltakerId: TiltaksdeltakerId,
-): List<LagretTiltaksdeltakerEndring> = hent("tiltaksdeltaker_id", tiltaksdeltakerId.toString())
-
-private fun PostgresSessionFactory.hent(
-    kolonne: String,
-    verdi: String,
 ): List<LagretTiltaksdeltakerEndring> = withSession { session ->
     session.run(
         sqlQuery(
             """
                 select *
                 from tiltaksdeltaker_endring
-                where $kolonne = :verdi
+                where ekstern_deltaker_id = :ekstern_deltaker_id
                 order by opprettet
             """.trimIndent(),
-            "verdi" to verdi,
+            "ekstern_deltaker_id" to eksternDeltakerId,
         ).map { row -> row.tilLagretTiltaksdeltakerEndring() }.asList,
     )
 }

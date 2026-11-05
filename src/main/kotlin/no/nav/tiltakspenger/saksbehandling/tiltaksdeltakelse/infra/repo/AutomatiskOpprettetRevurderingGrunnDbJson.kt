@@ -59,7 +59,7 @@ fun String.toAutomatiskOpprettetRevurderingGrunn(): AutomatiskOpprettetRevurderi
 
 /**
  * Endringen som en liste av enkeltendringer, i samme format som i [AutomatiskOpprettetRevurderingGrunn].
- * Brukes for sporbarhet i `tiltaksdeltaker_endring`, der den kun skrives.
+ * Brukes i `tiltakshistorikk`, der den kun skrives.
  */
 fun TiltaksdeltakerEndring.toDbJson(): String = serialize(tilEndringerDbJson())
 

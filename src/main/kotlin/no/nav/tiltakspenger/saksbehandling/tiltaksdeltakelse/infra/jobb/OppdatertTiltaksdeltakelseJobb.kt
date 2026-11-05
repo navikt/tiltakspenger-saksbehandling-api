@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
@@ -36,9 +37,9 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.TiltakshistorikkRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.Tiltakshistorikkinnslag
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.TiltakshistorikkinnslagId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilLesbarNåtilstand
@@ -51,8 +52,9 @@ import java.time.LocalDateTime
  * Automatiske søknadsbehandlinger og forlengelser på vent får fremskyndet ny vurdering når deltakelsen endres.
  * Endringer som ikke kan revurderes automatisk fører til en Gosys-oppgave inntil erstatteren er på plass.
  * Referansen til oppgaven lagres som en [EksternOppgave] før markøren nullstilles.
- * Hver ferdig behandlede endring lagres i `tiltaksdeltaker_endring` for sporbarhet, i samme transaksjon som markøren nullstilles.
- * En automatisk revurdering lagres også i den transaksjonen, slik at revurderingen, sporingen og kvitteringen lagres samlet eller ikke i det hele tatt.
+ * Nå-tilstanden lagres i tiltakshistorikken når den er endret siden forrige innslag for deltakeren, eller når den førte til en revurdering eller en oppgave.
+ * Den lagres i samme transaksjon som markøren nullstilles.
+ * En automatisk revurdering lagres også i den transaksjonen, slik at revurderingen, tiltakshistorikken og kvitteringen lagres samlet eller ikke i det hele tatt.
  * En automatisk stans, forlengelse eller omgjøring ved avkortet sluttdato opprettes under automatisk behandling og behandles videre av [DelautomatiskRevurderingJobb].
  */
 class OppdatertTiltaksdeltakelseJobb(
@@ -66,7 +68,7 @@ class OppdatertTiltaksdeltakelseJobb(
     private val delautomatiskOmgjøringService: DelautomatiskOmgjøringService,
     private val oppgaveKlient: OppgaveKlient,
     private val eksternOppgaveRepo: EksternOppgaveRepo,
-    private val tiltaksdeltakerHendelseRepo: TiltaksdeltakerHendelseRepo,
+    private val tiltakshistorikkRepo: TiltakshistorikkRepo,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
     private val korrelasjon: Korrelasjon,
@@ -123,24 +125,38 @@ class OppdatertTiltaksdeltakelseJobb(
             if (resultat is TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet) {
                 startRevurderingService.lagre(resultat.forberedtRevurdering, tx)
             }
-            tiltaksdeltakerHendelseRepo.lagreBehandletEndring(
-                tiltaksdeltakerHendelse = TiltaksdeltakerHendelse(
-                    id = TiltaksdeltakerHendelseId.random(),
-                    internDeltakerId = deltaker.id,
-                    eksternDeltakerId = deltaker.eksternId,
-                    sakId = deltaker.sakId,
-                ),
-                nåtilstand = resultat.nåtilstand,
-                endring = resultat.endring,
-                behandlingId = (resultat as? TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet)?.revurderingId,
-                oppgaveId = (resultat as? TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet)?.oppgaveId,
-                sessionContext = tx,
-            )
+            lagreTiltakshistorikk(deltaker, resultat, tx)
             tiltaksdeltakerRepo.markerEndringSomBehandlet(
                 deltaker.id,
                 deltaker.sisteUbehandletEndringTidspunkt!!,
                 tx,
             )
+        }
+    }
+
+    /**
+     * Et innslag uten nå-tilstand lagres aldri, siden det ikke har noen verdi å vise eller sammenligne med.
+     * Uendret nå-tilstand lagres bare når den likevel førte til en revurdering eller en oppgave.
+     */
+    private fun lagreTiltakshistorikk(
+        deltaker: Tiltaksdeltaker,
+        resultat: TiltaksdeltakelseEndringBehandlet,
+        tx: TransactionContext,
+    ) {
+        val nåtilstand = resultat.nåtilstand ?: return
+        val innslag = Tiltakshistorikkinnslag(
+            id = TiltakshistorikkinnslagId.random(),
+            sakId = deltaker.sakId,
+            tiltaksdeltakerId = deltaker.id,
+            eksternDeltakerId = deltaker.eksternId,
+            innhentet = nå(clock),
+            verdi = nåtilstand,
+            endring = resultat.endring,
+            behandlingId = (resultat as? TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet)?.revurderingId,
+            oppgaveId = (resultat as? TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet)?.oppgaveId,
+        )
+        if (innslag.førteTilBehandlingEllerOppgave || !tiltakshistorikkRepo.erLikSisteVerdi(deltaker.id, nåtilstand, tx)) {
+            tiltakshistorikkRepo.lagre(innslag, tx)
         }
     }
 
@@ -340,7 +356,7 @@ class OppdatertTiltaksdeltakelseJobb(
 
 /**
  * Endringen er ferdig behandlet, og markøren kan nullstilles.
- * [nåtilstand] og [endring] er det jobben vurderte, og lagres for sporbarhet.
+ * [nåtilstand] og [endring] er det jobben vurderte, og lagres i tiltakshistorikken.
  */
 sealed interface TiltaksdeltakelseEndringBehandlet {
     val nåtilstand: Tiltaksdeltakelse.GirRett?

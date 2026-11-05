@@ -6,11 +6,11 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilLokalKilde
 
 /**
- * Nå-tilstanden fra tiltakshistorikk slik den lagres for sporbarhet, i `tiltaksdeltaker_endring.verdi` og i oppgavegrunnlaget.
- * Den skrives kun, og leses aldri tilbake til domenet.
+ * Nå-tilstanden fra tiltakshistorikk slik den lagres, i `tiltakshistorikk.verdi` og i oppgavegrunnlaget.
+ * Den leses bare tilbake for å avgjøre om nå-tilstanden er endret siden forrige innslag i tiltakshistorikken.
  * Feltene settes eksplisitt, slik at formatet i databasen ikke endrer seg stille når libs-domenet gjør det.
  * Kildestatusen lagres slik kilden ga den, og ikke tolket til vår egen deltakerstatus.
- * Tolkningen kan reproduseres fra kildestatus, fraOgMed og tidspunktet raden ble lagret, og en tolket statusendring står i endringen som lagres ved siden av.
+ * Tolkningen kan reproduseres fra kildestatus, fraOgMed og tidspunktet nå-tilstanden ble innhentet, og en tolket statusendring står i endringen som lagres ved siden av.
  * Tittel og arrangør lagres ikke, siden de er stedsinformasjon.
  */
 data class TiltaksdeltakelseNåtilstandDbJson(
