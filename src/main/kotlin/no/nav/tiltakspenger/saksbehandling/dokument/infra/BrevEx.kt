@@ -14,16 +14,8 @@ fun Satser.Companion.tilSatserDTO(periode: Periode): List<SatserDTO> {
     }
 }
 
-fun Satser.Companion.tilSatsHistorikk(periode: Periode): List<SatshistorikkDTO>? {
-    if (periode.tilOgMed.year > satser.last().fraOgMed.year) {
-        return satser.takeLast(2).map { sats ->
-            SatshistorikkDTO(
-                år = sats.fraOgMed.year,
-                ordinær = sats.sats,
-                barnetillegg = sats.satsBarnetillegg,
-            )
-        }
-    } else {
-        return null
-    }
-}
+/**
+ * Året den siste kjente satsen trådte i kraft.
+ * pdfgenrs bruker det til å si fra når beløp etter dette året er vist med satsene for dette året.
+ */
+fun Satser.Companion.sisteKjenteSatsår(): Int = satser.last().fraOgMed.year

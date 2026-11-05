@@ -80,7 +80,7 @@ class BrevSøknadInnvilgetDTOTest {
                     }
                   ]
                  },
-                 "satshistorikk": null,
+                 "sisteKjenteSatsår": 2026,
                  "perioder": [
                    {
                      "periode": {"fraOgMed": "2025-06-01", "tilOgMed": "2025-08-31"},
@@ -153,7 +153,7 @@ class BrevSøknadInnvilgetDTOTest {
                     }
                   ]
                  },
-                 "satshistorikk": null,
+                 "sisteKjenteSatsår": 2026,
                  "perioder": [
                    {
                      "periode": {"fraOgMed": "2024-12-01", "tilOgMed": "2025-01-31"},
@@ -228,7 +228,7 @@ class BrevSøknadInnvilgetDTOTest {
                     }
                   ]
                  },
-                 "satshistorikk": null,
+                 "sisteKjenteSatsår": 2026,
                  "perioder": [
                    {
                      "periode": {"fraOgMed": "2025-06-01", "tilOgMed": "2025-08-31"},
@@ -315,7 +315,7 @@ class BrevSøknadInnvilgetDTOTest {
                     }
                   ]
                  },
-                 "satshistorikk": null,
+                 "sisteKjenteSatsår": 2026,
                  "perioder": [
                    {
                      "periode": {"fraOgMed": "2024-12-01", "tilOgMed": "2025-01-31"},
@@ -417,7 +417,7 @@ class BrevSøknadInnvilgetDTOTest {
                       }
                     ]
                   },
-                  "satshistorikk": null,
+                  "sisteKjenteSatsår": 2026,
                   "perioder": [
                     {
                       "periode": {"fraOgMed": "2024-11-01", "tilOgMed": "2025-01-31"},
@@ -541,7 +541,7 @@ class BrevSøknadInnvilgetDTOTest {
                       }
                       ]
                   },
-                  "satshistorikk": null,
+                  "sisteKjenteSatsår": 2026,
                   "perioder": [
                     {
                       "periode": {"fraOgMed": "2024-11-01", "tilOgMed": "2025-02-28"},
@@ -682,7 +682,7 @@ class BrevSøknadInnvilgetDTOTest {
                       }
                     ]
                   },
-                  "satshistorikk": null,
+                  "sisteKjenteSatsår": 2026,
                   "perioder": [
                     {
                       "periode": {"fraOgMed": "2024-11-01", "tilOgMed": "2025-02-28"},
@@ -1154,28 +1154,7 @@ class BrevSøknadInnvilgetDTOTest {
     }
 
     @Test
-    fun `satshistorikk - vises ikke når vedtaket slutter i året siste sats trådte i kraft`() {
-        runTest {
-            val actual = genererInnvilgetSøknadsbrev(
-                hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
-                hentSaksbehandlersNavn = { "Saksbehandler Navn" },
-                tilleggstekst = null,
-                fnr = Fnr.random(),
-                saksbehandlerNavIdent = "Z123456",
-                beslutterNavIdent = "Z654321",
-                saksnummer = Saksnummer("202501301001"),
-                innvilgelsesperioder = innvilgelsesperioder(Periode(1.november(2026), 31.desember(2026))),
-                barnetillegg = null,
-                forhåndsvisning = true,
-                vedtaksdato = 31.oktober(2026),
-            )
-
-            JSONObject(actual).isNull("satshistorikk") shouldBe true
-        }
-    }
-
-    @Test
-    fun `satshistorikk - vises når vedtaket varer forbi året siste sats trådte i kraft`() {
+    fun `sisteKjenteSatsår - sendes med når vedtaket varer forbi året siste sats trådte i kraft`() {
         runTest {
             val actual = genererInnvilgetSøknadsbrev(
                 hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
@@ -1191,22 +1170,7 @@ class BrevSøknadInnvilgetDTOTest {
                 vedtaksdato = 31.oktober(2026),
             )
 
-            JSONObject(actual).getJSONArray("satshistorikk")
-                .toString() shouldEqualJson
-                """
-                   [
-  {
-    "barnetillegg": 55,
-    "ordinær": 298,
-    "år": 2025
-  },
-  {
-    "barnetillegg": 56,
-    "ordinær": 312,
-    "år": 2026
-  }
-]
-                """
+            JSONObject(actual).getInt("sisteKjenteSatsår") shouldBe 2026
         }
     }
 }
