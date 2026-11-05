@@ -117,6 +117,7 @@ fun Rammevedtaksliste.tidslinjeFørOgEtter(rammebehandling: Rammebehandling): Ti
 
         is Omgjøringsresultat.OmgjøringIkkeValgt,
         is Søknadsbehandlingsresultat.IkkeValgt,
+        is Revurderingsresultat.Ubestemt,
         -> return null
     }
 
@@ -179,6 +180,7 @@ private fun Rammebehandling.tilTidslinjeverdier(rammevedtakId: VedtakId?): Perio
         is Søknadsbehandlingsresultat.Avslag,
         is Omgjøringsresultat.OmgjøringIkkeValgt,
         is Søknadsbehandlingsresultat.IkkeValgt,
+        is Revurderingsresultat.Ubestemt,
         -> Periodisering.empty()
     }
 }

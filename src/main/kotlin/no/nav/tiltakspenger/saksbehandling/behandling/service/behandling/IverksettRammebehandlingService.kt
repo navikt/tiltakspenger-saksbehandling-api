@@ -215,6 +215,7 @@ class IverksettRammebehandlingService(
         when (rammevedtak.rammebehandlingsresultat) {
             is Omgjøringsresultat.OmgjøringIkkeValgt,
             is Søknadsbehandlingsresultat.IkkeValgt,
+            is Revurderingsresultat.Ubestemt,
             is Søknadsbehandlingsresultat.Avslag,
             -> throw IllegalArgumentException("Kan ikke iverksette en behandling med resultat ${rammevedtak.rammebehandlingsresultat::class.simpleName}")
 

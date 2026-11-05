@@ -92,6 +92,7 @@ fun Rammebehandling.getBehandlingAarsak(): StatistikkBehandlingAarsak? {
                 }
 
                 is Omgjøringsresultat.OmgjøringIkkeValgt,
+                is Revurderingsresultat.Ubestemt,
                 is Omgjøringsresultat.OmgjøringInnvilgelse,
                 is Revurderingsresultat.Innvilgelse,
                 is Revurderingsresultat.Forlengelse,

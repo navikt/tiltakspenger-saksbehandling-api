@@ -98,6 +98,7 @@ enum class RevurderingsresultatType {
     OMGJØRING_OPPHØR,
     OMGJØRING_IKKE_VALGT,
     FORLENGELSE,
+    UBESTEMT,
 }
 
 /**

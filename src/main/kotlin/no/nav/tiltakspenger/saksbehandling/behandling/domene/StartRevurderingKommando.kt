@@ -42,4 +42,17 @@ sealed interface StartRevurderingKommando {
         override val saksbehandler: Saksbehandler,
         val vedtakIdSomForlenges: VedtakId,
     ) : StartRevurderingKommando
+
+    /**
+     * En revurdering systemet oppretter når det ikke kan utlede hvilken type revurdering [automatiskOpprettetGrunn] krever.
+     * Kan bare opprettes av systemet, og har derfor aldri en saksbehandler.
+     * Se [Revurdering.opprettUbestemt].
+     */
+    data class Ubestemt(
+        override val sakId: SakId,
+        override val correlationId: CorrelationId,
+        val automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn,
+    ) : StartRevurderingKommando {
+        override val saksbehandler: Saksbehandler? = null
+    }
 }

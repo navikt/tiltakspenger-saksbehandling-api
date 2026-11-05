@@ -219,6 +219,8 @@ fun Row.toBehandling(session: Session): Rammebehandling {
                     innvilgelsesperioder = innvilgelsesperioder,
                     barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                 )
+
+                RevurderingsresultatType.UBESTEMT -> Revurderingsresultat.Ubestemt
             }
 
             return Revurdering(
@@ -371,5 +373,9 @@ fun Rammebehandlingsresultat.tilDbParams(): Array<Pair<String, Any?>> = when (th
     is Omgjøringsresultat.OmgjøringOpphør -> arrayOf(
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
         "valgt_hjemmel_har_ikke_rettighet" to this.valgteHjemler.toHjemmelForOpphørDbJson(),
+    )
+
+    is Revurderingsresultat.Ubestemt -> arrayOf(
+        "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
     )
 }

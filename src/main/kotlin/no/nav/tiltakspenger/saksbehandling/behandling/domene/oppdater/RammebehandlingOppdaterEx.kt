@@ -72,6 +72,7 @@ fun Rammebehandling.kanOppdatere(saksbehandler: Saksbehandler): Either<KanIkkeOp
  * Avgjør om [kommando] passer med behandlingstypen og resultatet behandlingen har fra før.
  * En søknadsbehandling kan bytte fritt mellom sine resultater, og det samme kan en omgjøring.
  * Andre revurderinger beholder resultatet de ble opprettet med.
+ * En ubestemt revurdering kan ikke oppdateres før den er konvertert til en annen type.
  */
 fun Rammebehandling.kanOppdateresMed(kommando: OppdaterBehandlingKommando): Either<KanIkkeOppdatereBehandling, Unit> {
     val passerMedResultatet = when (kommando) {

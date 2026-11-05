@@ -182,4 +182,27 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
             )
         }
     }
+
+    /**
+     * En revurdering opprettet av systemet uten at det kunne utlede hvilken type revurdering endringen krever.
+     * Saksbehandler må konvertere den til en annen type før den kan behandles, eller avbryte den.
+     * Kan derfor aldri lagres med et utfylt resultat, sendes til beslutning eller vedtas.
+     */
+    data object Ubestemt : Revurderingsresultat, Rammebehandlingsresultat.IkkeValgt {
+        override val vedtaksperiode = null
+        override val innvilgelsesperioder = null
+        override val barnetillegg = null
+        override val valgteTiltaksdeltakelser = null
+        override val antallDagerPerMeldeperiode = null
+        override val omgjørRammevedtak = OmgjørRammevedtak.empty
+
+        override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean = false
+
+        override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Ubestemt> =
+            this.right()
+
+        override fun vedtakError(): Nothing {
+            throw IllegalStateException("En ubestemt revurdering kan ikke vedtas")
+        }
+    }
 }

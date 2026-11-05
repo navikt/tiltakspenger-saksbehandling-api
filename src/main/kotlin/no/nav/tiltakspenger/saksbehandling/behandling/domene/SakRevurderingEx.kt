@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
 import java.time.LocalDateTime
 
-/** Generell funksjon for å starte revurdering (stans, forlengelse, omgjøring og opphør) */
+/** Generell funksjon for å starte revurdering (stans, forlengelse, omgjøring, opphør og ubestemt) */
 suspend fun Sak.startRevurdering(
     kommando: StartRevurderingKommando,
     clock: Clock,
@@ -37,8 +37,13 @@ suspend fun Sak.startRevurdering(
 
     val klagebehandling: Klagebehandling? = when (kommando) {
         is StartRevurderingKommando.Innvilgelse -> kommando.klagebehandlingId
+
         is StartRevurderingKommando.Omgjøring -> kommando.klagebehandlingId
-        is StartRevurderingKommando.Stans, is StartRevurderingKommando.Forlengelse -> null
+
+        is StartRevurderingKommando.Stans,
+        is StartRevurderingKommando.Forlengelse,
+        is StartRevurderingKommando.Ubestemt,
+        -> null
     }?.let {
         hentKlagebehandling(it).oppdaterBehandlingId(
             behandlingId = behandlingId,
@@ -84,6 +89,14 @@ suspend fun Sak.startRevurdering(
             rammevedtakIdSomForlenges = kommando.vedtakIdSomForlenges,
             opprettet = nå,
         ).getOrElse { return it.left() }
+
+        is StartRevurderingKommando.Ubestemt -> startUbestemtRevurdering(
+            revurderingId = behandlingId,
+            automatiskOpprettetGrunn = kommando.automatiskOpprettetGrunn,
+            hentSaksopplysninger = hentSaksopplysninger,
+            correlationId = kommando.correlationId,
+            opprettet = nå,
+        )
     }
 
     return Pair(
@@ -243,6 +256,31 @@ suspend fun Sak.startAutomatiskForlengelse(
         automatiskOpprettetGrunn = automatiskOpprettetGrunn,
     )
     return Pair(this.leggTilRevurdering(revurdering), revurdering)
+}
+
+/**
+ * Starter en ubestemt revurdering, se [Revurdering.opprettUbestemt].
+ * Saksopplysningene hentes for alle tiltaksdeltakelsene det er søkt om, siden typen revurdering ikke er kjent ennå.
+ */
+private suspend fun Sak.startUbestemtRevurdering(
+    revurderingId: RammebehandlingId,
+    automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn,
+    hentSaksopplysninger: HentSaksopplysninger,
+    correlationId: CorrelationId,
+    opprettet: LocalDateTime,
+): Revurdering {
+    require(harFørstegangsvedtak) {
+        "Må ha en tidligere vedtatt innvilgelse for å kunne revurdere"
+    }
+    return Revurdering.opprettUbestemt(
+        revurderingId = revurderingId,
+        sakId = this.id,
+        saksnummer = this.saksnummer,
+        fnr = this.fnr,
+        saksopplysninger = hentSaksopplysningerForInnvilgelse(hentSaksopplysninger, correlationId),
+        opprettet = opprettet,
+        automatiskOpprettetGrunn = automatiskOpprettetGrunn,
+    )
 }
 
 private suspend fun Sak.hentSaksopplysningerForInnvilgelse(

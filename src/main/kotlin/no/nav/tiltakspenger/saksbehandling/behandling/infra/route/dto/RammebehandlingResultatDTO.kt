@@ -111,6 +111,10 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
         override val resultat = RammebehandlingResultatTypeDTO.OMGJØRING_IKKE_VALGT
     }
 
+    data object Ubestemt : RevurderingResultatDTO {
+        override val resultat = RammebehandlingResultatTypeDTO.UBESTEMT
+    }
+
     /**
      * @param omgjørVedtak Det eldste vedtaket som omgjøres, eller null dersom ingen vedtak omgjøres ennå.
      * Beholdes for bakoverkompatibilitet til frontend har tatt i bruk [omgjørRammevedtak].
@@ -193,6 +197,8 @@ fun Revurderingsresultat.tilRevurderingResultatDTO(
             omgjørVedtak = omgjørRammevedtak.eldsteVedtakId(),
             omgjørRammevedtak = omgjørRammevedtak.tilOmgjørRammevedtakDTO(),
         )
+
+        is Revurderingsresultat.Ubestemt -> RevurderingResultatDTO.Ubestemt
     }
 }
 

@@ -79,6 +79,9 @@ data class Revurdering(
 
     init {
         super.init()
+        if (resultat is Revurderingsresultat.Ubestemt) {
+            requireNotNull(automatiskOpprettetGrunn) { "En ubestemt revurdering må ha en automatisk opprettet grunn" }
+        }
 
         when (status) {
             KLAR_TIL_BESLUTNING,
@@ -277,6 +280,34 @@ data class Revurdering(
                 resultat = Omgjøringsresultat.OmgjøringIkkeValgt(
                     omgjørRammevedtak = OmgjørRammevedtak.create(omgjørRammevedtak),
                 ),
+                klagebehandling = null,
+                automatiskOpprettetGrunn = automatiskOpprettetGrunn,
+            )
+        }
+
+        /**
+         * En revurdering som opprettes av systemet når det ikke kan utlede hvilken type revurdering [automatiskOpprettetGrunn] krever.
+         * Den er klar til behandling for en saksbehandler, som må konvertere den til en annen type eller avbryte den.
+         */
+        fun opprettUbestemt(
+            revurderingId: RammebehandlingId = RammebehandlingId.random(),
+            sakId: SakId,
+            saksnummer: Saksnummer,
+            fnr: Fnr,
+            saksopplysninger: Saksopplysninger,
+            opprettet: LocalDateTime,
+            automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn,
+        ): Revurdering {
+            return opprett(
+                revurderingId = revurderingId,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                status = KLAR_TIL_BEHANDLING,
+                saksbehandler = null,
+                saksopplysninger = saksopplysninger,
+                opprettet = opprettet,
+                resultat = Revurderingsresultat.Ubestemt,
                 klagebehandling = null,
                 automatiskOpprettetGrunn = automatiskOpprettetGrunn,
             )

@@ -188,6 +188,7 @@ class OppdaterBeregningOgSimuleringRammebehandlingService(
             is Søknadsbehandlingsresultat.Avslag,
             is Omgjøringsresultat.OmgjøringIkkeValgt,
             is Søknadsbehandlingsresultat.IkkeValgt,
+            is Revurderingsresultat.Ubestemt,
             -> null
         }
     }

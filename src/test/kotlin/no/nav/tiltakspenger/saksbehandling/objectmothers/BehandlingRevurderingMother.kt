@@ -561,6 +561,8 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             RevurderingsresultatType.OMGJØRING_OPPHØR,
             RevurderingsresultatType.OMGJØRING_IKKE_VALGT,
             -> StartRevurderingTypeDTO.OMGJØRING
+
+            RevurderingsresultatType.UBESTEMT -> throw IllegalArgumentException("En ubestemt revurdering kan bare opprettes av systemet")
         }
     }
 }

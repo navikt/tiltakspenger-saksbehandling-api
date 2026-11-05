@@ -79,6 +79,7 @@ fun RevurderingResultatDTO.sladdet(): RevurderingResultatDTO = when (this) {
     is RevurderingResultatDTO.Stans,
     is RevurderingResultatDTO.OmgjøringOpphør,
     is RevurderingResultatDTO.OmgjøringIkkeValgt,
+    RevurderingResultatDTO.Ubestemt,
     -> this
 
     is RevurderingDTO -> this.sladdet()

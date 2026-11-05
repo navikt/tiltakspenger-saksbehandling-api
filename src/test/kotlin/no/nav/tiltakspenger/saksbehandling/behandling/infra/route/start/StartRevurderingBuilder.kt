@@ -4,6 +4,7 @@ import arrow.core.Tuple5
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.testing.ApplicationTestBuilder
+import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -22,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -35,7 +37,9 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeTestKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.json.JSONObject
@@ -73,6 +77,25 @@ interface StartRevurderingBuilder {
         revurdering.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
         revurdering.automatiskSaksbehandlet shouldBe true
         return oppdatertSak to revurdering
+    }
+
+    /**
+     * Iverksetter en innvilgelse og lar systemet opprette en ubestemt revurdering på saken.
+     * Ubestemte revurderinger har ingen route, så de opprettes gjennom servicen slik systemet gjør det.
+     */
+    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgOpprettUbestemtRevurdering(
+        tac: TestApplicationContext,
+        endring: TiltaksdeltakerEndring = TiltaksdeltakerEndring.AvbruttDeltakelse,
+    ): Pair<Sak, Revurdering> {
+        val (sak) = iverksettSøknadsbehandling(tac)
+        val tiltaksdeltakerId = sak.tiltaksdeltakelserDetErSøktTiltakspengerFor.single().søknadstiltak.tiltaksdeltakerId
+        return tac.behandlingContext.startRevurderingService.startRevurdering(
+            StartRevurderingKommando.Ubestemt(
+                sakId = sak.id,
+                correlationId = CorrelationId.generate(),
+                automatiskOpprettetGrunn = AutomatiskOpprettetRevurderingGrunn(endring, tiltaksdeltakerId),
+            ),
+        ).getOrNull()!!
     }
 
     /** Oppretter ny sak, søknad, innvilget søknadsbehandling og revurdering. */
