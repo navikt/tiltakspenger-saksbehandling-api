@@ -55,9 +55,3 @@ data class PeriodeBeløpInnvilgelseDTO(
     val barnetilleggBeløp: Int,
     val total: Int,
 )
-
-data class SatshistorikkDTO(
-    val år: Int,
-    val ordinær: Int,
-    val barnetillegg: Int,
-)
