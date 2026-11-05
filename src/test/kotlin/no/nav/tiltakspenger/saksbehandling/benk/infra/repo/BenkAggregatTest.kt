@@ -69,6 +69,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandlingTilVurdering
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettUbestemtRevurdering
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.mottaMeldekortRequest
@@ -704,6 +705,21 @@ class BenkAggregatTest {
             repo.hentRevurderinger(
                 revurderingerCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT_SAKSBEHANDLER),
             ).totalAntall shouldBe 0
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `revurderingsfanen viser og filtrerer på ubestemte revurderinger`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (_, revurdering) = iverksettSøknadsbehandlingOgOpprettUbestemtRevurdering(tac)
+            val repo = tac.benkContext.benkRepo
+
+            repo.hentRevurderinger(revurderingerCommand()).behandlinger.single().let {
+                it.id shouldBe revurdering.id
+                it.resultat shouldBe BenkRevurderingResultat.UBESTEMT
+            }
+            repo.hentRevurderinger(revurderingerCommand(resultat = BenkRevurderingResultat.UBESTEMT)).totalAntall shouldBe 1
         }
     }
 

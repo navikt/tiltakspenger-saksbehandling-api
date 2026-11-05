@@ -26,6 +26,7 @@ enum class BenkRevurderingResultat {
     OMGJØRING_OPPHØR,
     OMGJØRING_IKKE_VALGT,
     FORLENGELSE,
+    UBESTEMT,
 }
 
 enum class BenkKlagebehandlingResultat {
