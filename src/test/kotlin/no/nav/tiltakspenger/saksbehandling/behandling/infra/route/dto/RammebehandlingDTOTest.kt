@@ -31,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplys
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.TiltakshistorikkForBehandling
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import org.junit.jupiter.api.Test
 
@@ -99,6 +100,7 @@ class RammebehandlingDTOTest {
                 rammevedtakId = vedtakId,
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
                 tidslinjeFørOgEtter = null,
+                tiltakshistorikk = TiltakshistorikkForBehandling(innslag = emptyList(), utløsendeInnslag = null, harEndringEtterSistEndret = false),
             ),
         )
 
@@ -172,6 +174,7 @@ class RammebehandlingDTOTest {
                 rammevedtakId = vedtakId,
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
                 tidslinjeFørOgEtter = null,
+                tiltakshistorikk = TiltakshistorikkForBehandling(innslag = emptyList(), utløsendeInnslag = null, harEndringEtterSistEndret = false),
             ),
         )
 
@@ -249,6 +252,7 @@ class RammebehandlingDTOTest {
                 rammevedtakId = vedtakId,
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
                 tidslinjeFørOgEtter = null,
+                tiltakshistorikk = TiltakshistorikkForBehandling(innslag = emptyList(), utløsendeInnslag = null, harEndringEtterSistEndret = false),
             ),
         )
 
@@ -318,6 +322,7 @@ class RammebehandlingDTOTest {
                 rammevedtakId = vedtakId,
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
                 tidslinjeFørOgEtter = null,
+                tiltakshistorikk = TiltakshistorikkForBehandling(innslag = emptyList(), utløsendeInnslag = null, harEndringEtterSistEndret = false),
                 tiltaksdeltakelserSomKanForlenges = emptyList(),
             ),
         )
@@ -380,6 +385,7 @@ class RammebehandlingDTOTest {
                 rammevedtakId = vedtakId,
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
                 tidslinjeFørOgEtter = null,
+                tiltakshistorikk = TiltakshistorikkForBehandling(innslag = emptyList(), utløsendeInnslag = null, harEndringEtterSistEndret = false),
                 tiltaksdeltakelserSomKanForlenges = emptyList(),
             ),
         )
@@ -490,6 +496,7 @@ class RammebehandlingDTOTest {
                 rammevedtakId = omgjøringVedtakId,
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
                 tidslinjeFørOgEtter = null,
+                tiltakshistorikk = TiltakshistorikkForBehandling(innslag = emptyList(), utløsendeInnslag = null, harEndringEtterSistEndret = false),
                 tiltaksdeltakelserSomKanForlenges = emptyList(),
             ),
         )

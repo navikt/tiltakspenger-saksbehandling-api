@@ -75,6 +75,7 @@ interface SakMother : MotherOfAllMothers {
         søknader = søknader,
         tilbakekrevinger = emptyList(),
         kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
+        tiltakshistorikk = emptyList(),
     )
 
     fun sakMedOpprettetBehandling(
@@ -191,6 +192,7 @@ interface SakMother : MotherOfAllMothers {
             søknader = listOf(søknad),
             tilbakekrevinger = emptyList(),
             kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
+            tiltakshistorikk = emptyList(),
         ) to søknadsbehandling
     }
 
@@ -264,6 +266,7 @@ interface SakMother : MotherOfAllMothers {
             søknader = listOf(søknad),
             tilbakekrevinger = emptyList(),
             kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
+            tiltakshistorikk = emptyList(),
         ) to søknadsbehandling
     }
 

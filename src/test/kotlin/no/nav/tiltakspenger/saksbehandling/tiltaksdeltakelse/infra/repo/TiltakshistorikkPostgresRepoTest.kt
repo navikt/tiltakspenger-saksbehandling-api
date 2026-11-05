@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testStatusOpprettet
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
@@ -18,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.TiltakshistorikkId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.Tiltakshistorikkinnslag
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.utenTittelOgArrangør
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import org.junit.jupiter.api.Test
@@ -81,6 +83,33 @@ class TiltakshistorikkPostgresRepoTest {
                 repo.lagre(tac.innslag(annenSak, nåtilstand(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 4, 30))), tx)
                 repo.hentSisteVerdi(deltakerId, tx) shouldBe verdi.utenTittelOgArrangør()
             }
+        }
+    }
+
+    @Test
+    fun `innslagene hentes for saken sortert etter innhentet, og følger med saken`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val sak = opprettSak(tac)
+            val repo = tac.tiltakContext.tiltakshistorikkRepo
+            val førsteInnhentet = nå(tac.clock)
+            val første = tac.innslag(sak, nåtilstand(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31))).copy(
+                innhentet = førsteInnhentet,
+                behandlingId = sak.rammebehandlinger.single().id,
+            )
+            val andre = tac.innslag(sak, nåtilstand(fraOgMed = null, tilOgMed = null)).copy(
+                innhentet = førsteInnhentet.plusMinutes(1),
+                endring = TiltaksdeltakerEndring.AvbruttDeltakelse,
+                oppgaveId = OppgaveId("oppgave-id"),
+            )
+
+            tac.sessionFactory.withTransactionContext { tx ->
+                repo.lagre(andre, tx)
+                repo.lagre(første, tx)
+            }
+
+            val forventet = listOf(første, andre).map { it.copy(verdi = it.verdi.tilNåtilstandDbJson().tilDomene()) }
+            repo.hentForSakId(sak.id) shouldBe forventet
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.tiltakshistorikk shouldBe forventet
         }
     }
 

@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePost
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakshistorikkPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
@@ -460,6 +461,7 @@ class SakPostgresRepo(
                     søknader = soknader,
                     tilbakekrevinger = TilbakekrevingBehandlingPostgresRepo.hentForSakId(id, session),
                     kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
+                    tiltakshistorikk = TiltakshistorikkPostgresRepo.hentForSakId(id, session),
                 )
             }
         }

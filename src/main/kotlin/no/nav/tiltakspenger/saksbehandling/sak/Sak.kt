@@ -38,6 +38,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldepe
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.genererMeldeperioderOgOppdaterKjeder
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.Tiltakshistorikkinnslag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
@@ -56,6 +57,8 @@ data class Sak(
     val søknader: List<Søknad>,
     val tilbakekrevinger: List<TilbakekrevingBehandling>,
     val kanSendeInnHelgForMeldekort: Boolean,
+    /** Innhentet tiltakshistorikk for sakens tiltaksdeltakelser, sortert etter når den ble innhentet. */
+    val tiltakshistorikk: List<Tiltakshistorikkinnslag>,
 ) {
     val utbetalinger: Utbetalinger by lazy {
         Utbetalinger(

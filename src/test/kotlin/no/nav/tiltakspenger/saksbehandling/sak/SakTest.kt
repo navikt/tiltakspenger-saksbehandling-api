@@ -251,6 +251,7 @@ class SakTest {
             søknader = listOf(),
             tilbakekrevinger = emptyList(),
             kanSendeInnHelgForMeldekort = false,
+            tiltakshistorikk = emptyList(),
         )
 
         sak.hentNyesteTiltaksdeltakelserForRammevedtakIder(
