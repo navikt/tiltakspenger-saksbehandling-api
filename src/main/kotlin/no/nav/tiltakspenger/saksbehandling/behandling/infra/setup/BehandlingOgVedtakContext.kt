@@ -163,6 +163,7 @@ open class BehandlingOgVedtakContext(
     val hentSaksopplysingerService: HentSaksopplysingerService by lazy {
         HentSaksopplysingerService(
             hentPersonopplysninger = personService::hentPersonopplysninger,
+            hentNåværendeOgHistoriskeFnr = personService::hentNåværendeOgHistoriskeFnr,
             tiltaksdeltakelseKlient = tiltaksdeltakelseKlient,
             sokosUtbetaldataClient = sokosUtbetaldataClient,
             clock = clock,

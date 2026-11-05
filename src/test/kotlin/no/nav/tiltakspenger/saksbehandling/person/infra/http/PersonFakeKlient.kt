@@ -14,7 +14,9 @@ import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.ForelderBarnRelasjon
 import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.ForelderBarnRelasjonRolle
 import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
+import no.nav.tiltakspenger.saksbehandling.person.Fødselsnumre
 import no.nav.tiltakspenger.saksbehandling.person.KunneIkkeHenteAdressebeskyttelseEllerSkjerming
+import no.nav.tiltakspenger.saksbehandling.person.KunneIkkeHenteFødselsnumre
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.Personident
 import java.time.Clock
@@ -48,6 +50,8 @@ class PersonFakeKlient(private val clock: Clock) : PersonKlient {
     override suspend fun hentIdenter(aktorId: String): List<Personident> {
         return emptyList()
     }
+
+    override suspend fun hentNåværendeOgHistoriskeFnr(fnr: Fnr): Either<KunneIkkeHenteFødselsnumre, Fødselsnumre> = Fødselsnumre(fnr).right()
 
     /**
      * Denne bør kalles av testoppsettet før vi lager en søknad.

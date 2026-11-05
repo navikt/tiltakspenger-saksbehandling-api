@@ -2,21 +2,23 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversik
 
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.person.Fødselsnumre
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
 import java.time.DayOfWeek
 
 /**
  * Det vi har behandlingsgrunnlag for å lagre om en persons utbetalinger fra økonomisystemet.
- * En ytelse beholdes bare når typen står i [Ytelsetype], perioden overlapper sakens perioder, og personen er rettighetshaver.
+ * En ytelse beholdes bare når typen står i [Ytelsetype], perioden overlapper sakens perioder, og personen er rettighetshaver under ett av [fødselsnumre].
  * Oppslaget mot tjenesten er bredere enn dette, og det som faller utenfor, tas bort før lagring og telles per årsak.
  * For tiltakspenger regnes en periode som starter i helgen, fra fredagen før, fordi vi utbetaler helgedagene på fredagen i samme uke.
  * Økonomisystemet deler ytelsene per kalendermåned, så den fredagen kan komme som en egen ytelse i måneden før.
  *
+ * @param fødselsnumre Alle numrene personen har eller har hatt i PDL; hvert slås opp og godtas som rettighetshaver.
  * @param perioder Sakens behandlingsgrunnlagsperioder, sortert og slått sammen.
  */
 data class Utbetalingsoversiktgrunnlag(
-    val fnr: Fnr,
+    val fødselsnumre: Fødselsnumre,
     val perioder: List<Periode>,
 ) {
     init {
@@ -40,7 +42,7 @@ data class Utbetalingsoversiktgrunnlag(
 
         is MottattYtelsestype.Relevant -> when {
             !periode.overlapperMed(perioderFor(ytelsestype.ytelsetype)) -> Avgrensningsårsak.UTENFOR_PERIODENE
-            rettighetshaver != fnr -> Avgrensningsårsak.ANNEN_ELLER_MANGLENDE_RETTIGHETSHAVER
+            rettighetshaver !in fødselsnumre.alle -> Avgrensningsårsak.ANNEN_ELLER_MANGLENDE_RETTIGHETSHAVER
             else -> null
         }
     }
@@ -58,11 +60,16 @@ data class Utbetalingsoversiktgrunnlag(
         /**
          * Grunnlaget fra sakens behandlingsgrunnlagsperioder.
          * Forutsetter at saken har en søknad med tiltak eller et rammevedtak.
+         *
+         * @param fødselsnumre Personens fødselsnumre, der det gjeldende er sakens.
          */
-        fun forSak(sak: Sak): Utbetalingsoversiktgrunnlag = Utbetalingsoversiktgrunnlag(
-            fnr = sak.fnr,
-            perioder = requireNotNull(sak.behandlingsgrunnlagsperioder) { "Sak ${sak.id} har ingen behandlingsgrunnlagsperioder" }.perioder,
-        )
+        fun forSak(sak: Sak, fødselsnumre: Fødselsnumre): Utbetalingsoversiktgrunnlag {
+            require(fødselsnumre.gjeldende == sak.fnr) { "Det gjeldende fødselsnummeret må være sakens" }
+            return Utbetalingsoversiktgrunnlag(
+                fødselsnumre = fødselsnumre,
+                perioder = requireNotNull(sak.behandlingsgrunnlagsperioder) { "Sak ${sak.id} har ingen behandlingsgrunnlagsperioder" }.perioder,
+            )
+        }
     }
 }
 

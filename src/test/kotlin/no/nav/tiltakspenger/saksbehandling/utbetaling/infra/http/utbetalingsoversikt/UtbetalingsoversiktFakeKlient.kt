@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.left
+import arrow.core.raise.either
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
@@ -52,9 +54,13 @@ class UtbetalingsoversiktFakeKlient : Utbetalingsoversiktklient {
         periode: Periode,
         periodetype: Oppslagsperiodetype,
         correlationId: CorrelationId,
-    ): Either<KunneIkkeHenteUtbetalingsoversikt, Utbetalingsoversiktsvar> {
-        mottatteOppslag[grunnlag.fnr] = Oppslag(periode, periodetype)
-        return (svar[grunnlag.fnr] ?: emptyList<RegistrertUtbetaling>().right()).map {
+    ): Either<KunneIkkeHenteUtbetalingsoversikt, NonEmptyList<Utbetalingsoversiktsvar>> {
+        mottatteOppslag[grunnlag.fødselsnumre.gjeldende] = Oppslag(periode, periodetype)
+        return either { grunnlag.fødselsnumre.alle.map { ident -> hentForIdent(ident, grunnlag).bind() } }
+    }
+
+    private fun hentForIdent(ident: Fnr, grunnlag: Utbetalingsoversiktgrunnlag): Either<KunneIkkeHenteUtbetalingsoversikt, Utbetalingsoversiktsvar> {
+        return (svar[ident] ?: emptyList<RegistrertUtbetaling>().right()).map {
             val metadata = ObjectMother.httpKlientResponse(body = it, rawRequestString = RÅ_REQUEST, rawResponseString = AVGRENSET_SVAR).metadata
             Utbetalingsoversiktsvar(
                 utbetalinger = it,

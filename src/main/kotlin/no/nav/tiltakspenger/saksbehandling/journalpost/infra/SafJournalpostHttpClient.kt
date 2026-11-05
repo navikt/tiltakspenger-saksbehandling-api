@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.infra.graphql.GraphQLResponse
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalpost.HentDokumentCommand
+import org.intellij.lang.annotations.Language
 import java.net.URI
 import java.time.Clock
 import kotlin.time.Duration
@@ -70,20 +71,13 @@ class SafJournalpostHttpClient(
 
     private val graphqlUri = URI.create("$baseUrl/graphql")
 
-    private val journalPostQuery =
-        SafJournalpostClient::class
-            .java
-            .getResource("/saf/hentJournalpost.graphql")!!
-            .readText()
-            .replace(Regex("[\n\t]"), "")
-
     override suspend fun hentJournalpost(
         journalpostId: JournalpostId,
     ): Either<KanIkkeHenteJournalpost, Journalpost?> {
         return httpKlient.postJson<GraphQLResponse<HentJournalpostResponse>>(
             uri = graphqlUri,
             body = FindJournalpostRequest(
-                query = journalPostQuery,
+                query = HENT_JOURNALPOST,
                 variables = Variables(journalpostId.toString()),
             ),
             headere = listOf(Header("X-Correlation-ID", journalpostId.toString())),
@@ -166,3 +160,14 @@ data class Variables(val id: String)
 data class HentJournalpostResponse(
     val journalpost: Journalpost?,
 )
+
+@Language("GraphQL")
+private const val HENT_JOURNALPOST = """
+query FindJournalpost(${'$'}id: String!) {
+    journalpost(journalpostId: ${'$'}id) {
+        avsenderMottaker { id type }
+        datoOpprettet
+        bruker { id type }
+    }
+}
+"""

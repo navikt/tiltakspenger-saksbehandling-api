@@ -32,8 +32,11 @@ private data class AvgrensningDbJson(
     val antallFjernedeUtbetalinger: Int,
 )
 
-fun UtbetalingsoversiktMetadata.toDbJson(): String = serialize(
-    UtbetalingsoversiktMetadataDbJson(
+/** Lagres som en liste med ett element per kall; rader fra før identene ble slått opp hver for seg, har ett objekt. */
+fun List<UtbetalingsoversiktMetadata>.toDbJson(): String = serialize(map { it.toMetadataDbJson() })
+
+private fun UtbetalingsoversiktMetadata.toMetadataDbJson(): UtbetalingsoversiktMetadataDbJson {
+    return UtbetalingsoversiktMetadataDbJson(
         request = request,
         svar = svar,
         mottattSvarSha256 = mottattSvarSha256,
@@ -45,8 +48,8 @@ fun UtbetalingsoversiktMetadata.toDbJson(): String = serialize(
         varighetMs = varighet.inWholeMilliseconds,
         antallForsøk = antallForsøk,
         avgrensning = avgrensning?.toDbJson(),
-    ),
-)
+    )
+}
 
 private fun Utbetalingsoversiktavgrensning.toDbJson() = AvgrensningDbJson(
     regelversjon = regelversjon,

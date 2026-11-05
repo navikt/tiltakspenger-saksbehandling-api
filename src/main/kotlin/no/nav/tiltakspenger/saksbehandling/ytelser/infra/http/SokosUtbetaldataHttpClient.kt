@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.ytelser.infra.http
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.raise.either
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
@@ -18,6 +19,8 @@ import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
 import no.nav.tiltakspenger.libs.httpklient.tryMap
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.person.Fødselsnumre
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.tilUtbetalingsoversiktMetadata
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.SokosUtbetaldataClient
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
@@ -62,16 +65,31 @@ class SokosUtbetaldataHttpClient(
 
     private val utbetalingsinformasjonUri = URI.create("$baseUrl/utbetaldata/api/v2/hent-utbetalingsinformasjon/intern")
 
+    /** Slår opp hver ident etter tur og slår sammen ytelsene, slik at samme type fra flere identer blir én ytelse. */
     override suspend fun hentYtelserFraUtbetaldata(
-        fnr: Fnr,
+        fødselsnumre: Fødselsnumre,
         periode: Periode,
         correlationId: CorrelationId,
     ): Either<HttpKlientError, YtelserMedMetadata> {
         // Siden domenet lagrer perioden vi har søkt på, må den ha kontroll på dette selv, den kan ikke bli hemmelig mutert av klienten.
         if (periode.tilOgMed > LocalDate.now(clock)) throw IllegalStateException("Utbetaldata godtar ikke datoer frem i tid.")
+        return either {
+            val svar = fødselsnumre.alle.map { hentForIdent(it, periode, correlationId).bind() }
+            YtelserMedMetadata(
+                ytelser = svar.toList().flatMap { it.ytelser }.tilYtelser(),
+                metadata = svar.map { it.metadata },
+            )
+        }
+    }
+
+    private suspend fun hentForIdent(
+        ident: Fnr,
+        periode: Periode,
+        correlationId: CorrelationId,
+    ): Either<HttpKlientError, SvarForIdent> {
         val jsonPayload = serialize(
             SokosHentUtbetalingsinformasjonRequest(
-                ident = fnr.verdi,
+                ident = ident.verdi,
                 periode = SokosHentUtbetalingsinformasjonRequest.UtbetalingsperiodeDto(
                     fom = periode.fraOgMed,
                     tom = periode.tilOgMed,
@@ -88,8 +106,13 @@ class SokosUtbetaldataHttpClient(
             // Mappingen validerer perioder fra svaret (Periode-init); tryMap gjør et ugyldig svar til typet feil med responsens metadata i stedet for en ukontrollert exception.
             .flatMap { response ->
                 response.tryMap {
-                    YtelserMedMetadata(
-                        ytelser = it.tilYtelser(),
+                    SvarForIdent(
+                        ytelser = it.flatMap { utbetaling -> utbetaling.ytelseListe }.map { ytelse ->
+                            MottattYtelse(
+                                kildetekst = ytelse.ytelsestype,
+                                periode = Periode(fraOgMed = ytelse.ytelsesperiode.fom, tilOgMed = ytelse.ytelsesperiode.tom),
+                            )
+                        },
                         // DTO-en leser bare ytelsestype og ytelsesperiode, så kontonummer og navn fra svaret blir ikke med.
                         metadata = response.metadata.tilUtbetalingsoversiktMetadata(correlationId).copy(svar = serialize(it)),
                     )
@@ -97,15 +120,18 @@ class SokosUtbetaldataHttpClient(
             }
     }
 
+    private data class MottattYtelse(val kildetekst: String?, val periode: Periode)
+
+    private data class SvarForIdent(val ytelser: List<MottattYtelse>, val metadata: UtbetalingsoversiktMetadata)
+
     /** Utelatte typer forkastes; hver tekst blir én ytelse, så begge stavemåtene av samme type gir to. */
-    private fun List<SokosUtbetalingResponse>.tilYtelser(): List<Ytelse> {
-        val utbetalinger = this.flatMap { it.ytelseListe }
-        meterRegistry.tellUkjenteYtelsestyper(utbetalinger.map { it.ytelsestype })
-        return utbetalinger
-            .filterNot { it.ytelsestype in utelatteYtelsestyper }
-            .groupBy { it.ytelsestype }
+    private fun List<MottattYtelse>.tilYtelser(): List<Ytelse> {
+        meterRegistry.tellUkjenteYtelsestyper(map { it.kildetekst })
+        return this
+            .filterNot { it.kildetekst in utelatteYtelsestyper }
+            .groupBy { it.kildetekst }
             .map { (kildetekst, ytelser) ->
-                val perioder = ytelser.map { Periode(fraOgMed = it.ytelsesperiode.fom, tilOgMed = it.ytelsesperiode.tom) }
+                val perioder = ytelser.map { it.periode }
                 val ytelsetype = kildetekst?.tilYtelsetype()
                 if (ytelsetype == null) {
                     Ytelse.Ukjent(kildetekst = kildetekst, perioder = perioder)

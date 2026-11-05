@@ -17,11 +17,11 @@ import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.avklarNavn
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import tools.jackson.module.kotlin.readValue
 
-data class PdlHentPersonResponse(
+private data class PdlHentPersonResponse(
     val hentPerson: PdlPerson,
 )
 
-data class PdlHentPersonBolkResponse(
+private data class PdlHentPersonBolkResponse(
     val hentPersonBolk: List<PdlPersonBolk>,
 )
 

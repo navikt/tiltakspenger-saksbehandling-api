@@ -1,5 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import io.github.oshai.kotlinlogging.Level
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
@@ -7,12 +10,16 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.common.Loggfanger
 import no.nav.tiltakspenger.saksbehandling.common.Sikkerloggfanger
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.felles.Loggkontekst
 import no.nav.tiltakspenger.saksbehandling.infra.setup.MdcKorrelasjon
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.person.Fødselsnumre
+import no.nav.tiltakspenger.saksbehandling.person.KunneIkkeHenteFødselsnumre
 import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
@@ -119,6 +126,26 @@ class OppdaterUtbetalingsoversiktJobbLoggTest {
         }
     }
 
+    @Test
+    fun `feilet identoppslag i PDL gir én error-linje uten fødselsnummer`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val sak = sakMedOkUtbetaling(tac)
+            val feil = KunneIkkeHenteFødselsnumre(
+                loggkontekst = Loggkontekst("Feil ved PDL-oppslag: UkjentFeil"),
+                sikkerloggkontekst = Loggkontekst("Feil ved PDL-oppslag: ${sak.fnr.verdi}"),
+            )
+            val (jobb, loggfanger, sikkerloggfanger) = jobbMedFangere(tac, hentNåværendeOgHistoriskeFnr = { feil.left() })
+
+            jobb.oppdaterForSak(sak.id).leftOrNull() shouldBe feil
+
+            val linje = loggfanger.logglinjer.single()
+            linje.nivå shouldBe Level.ERROR
+            linje.melding!! shouldContain "saksnummer=${sak.saksnummer}"
+            linje.melding!! shouldNotContain sak.fnr.verdi
+            sikkerloggfanger.sikkerlogglinjer.single().melding!! shouldContain sak.fnr.verdi
+        }
+    }
+
     private data class JobbMedFangere(
         val jobb: OppdaterUtbetalingsoversiktJobb,
         val loggfanger: Loggfanger,
@@ -126,7 +153,10 @@ class OppdaterUtbetalingsoversiktJobbLoggTest {
         val meterRegistry: SimpleMeterRegistry,
     )
 
-    private fun jobbMedFangere(tac: TestApplicationContext): JobbMedFangere {
+    private fun jobbMedFangere(
+        tac: TestApplicationContext,
+        hentNåværendeOgHistoriskeFnr: suspend (Fnr) -> Either<KunneIkkeHenteFødselsnumre, Fødselsnumre> = { Fødselsnumre(it).right() },
+    ): JobbMedFangere {
         val loggfanger = Loggfanger(OppdaterUtbetalingsoversiktJobb::class.java.name)
         val sikkerloggfanger = Sikkerloggfanger()
         val meterRegistry = SimpleMeterRegistry()
@@ -135,6 +165,7 @@ class OppdaterUtbetalingsoversiktJobbLoggTest {
                 sakRepo = tac.sakContext.sakRepo,
                 utbetalingsoversiktRepo = tac.utbetalingContext.utbetalingsoversiktRepo,
                 utbetalingsoversiktklient = tac.utbetalingsoversiktFakeKlient,
+                hentNåværendeOgHistoriskeFnr = hentNåværendeOgHistoriskeFnr,
                 clock = tac.clock,
                 meterRegistry = meterRegistry,
                 limit = 10,

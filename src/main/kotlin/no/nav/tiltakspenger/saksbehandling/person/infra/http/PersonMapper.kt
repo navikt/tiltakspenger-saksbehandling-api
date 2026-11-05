@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.person.infra.http
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.personklient.infra.pdl.FellesPersonklientError
 import no.nav.tiltakspenger.libs.personklient.infra.pdl.FellesPersonklientError.AdressebeskyttelseKunneIkkeAvklares
 import no.nav.tiltakspenger.libs.personklient.infra.pdl.FellesPersonklientError.DeserializationException
@@ -23,6 +24,7 @@ private val logger = KotlinLogging.logger {}
  * For [Kallfeil] gjøres det med `loggFeil`, som får med feilart, endepunkt, antall forsøk og varighet — kontekst som ikke finnes noe annet sted.
  * En `HttpConnectTimeoutException` lages på JDK-ens egen I/O-tråd, så exceptionen vi kaster videre herfra bærer en stacktrace uten en eneste applikasjonsframe.
  * De øvrige variantene er utledet av et svar vi forsto, og har ingen HTTP-kontekst å logge.
+ * TODO jah: Hvorfor er denne fila VM i exceptions fra en god feiltype?
  */
 fun FellesPersonklientError.mapError(): Nothing {
     if (this is Kallfeil) {
@@ -60,6 +62,10 @@ fun FellesPersonklientError.mapError(): Nothing {
 
         is ResponsManglerData -> throw RuntimeException("Feil ved henting av personopplysninger: ResponsManglerPerson")
 
-        is UkjentFeil -> throw RuntimeException("Feil ved henting av personopplysninger: $this")
+        is UkjentFeil -> {
+            // Feilmeldingene fra PDL kan inneholde identer, så de går bare til sikkerlogg.
+            Sikkerlogg.error { "Feil ved henting av personopplysninger: $this" }
+            throw RuntimeException("Feil ved henting av personopplysninger: UkjentFeil. Se sikkerlogg for mer kontekst.")
+        }
     }
 }

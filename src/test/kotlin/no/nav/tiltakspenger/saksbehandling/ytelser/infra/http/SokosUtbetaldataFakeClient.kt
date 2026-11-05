@@ -2,11 +2,13 @@ package no.nav.tiltakspenger.saksbehandling.ytelser.infra.http
 
 import arrow.atomic.Atomic
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.person.Fødselsnumre
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.tilUtbetalingsoversiktMetadata
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.SokosUtbetaldataClient
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
@@ -28,7 +30,7 @@ class SokosUtbetaldataFakeClient : SokosUtbetaldataClient {
 
     /** Ett oppslag faken har mottatt. */
     data class Oppslag(
-        val fnr: Fnr,
+        val identer: NonEmptyList<Fnr>,
         val periode: Periode,
     )
 
@@ -36,15 +38,15 @@ class SokosUtbetaldataFakeClient : SokosUtbetaldataClient {
     val oppslag: List<Oppslag> get() = mottatteOppslag.get().toList()
 
     override suspend fun hentYtelserFraUtbetaldata(
-        fnr: Fnr,
+        fødselsnumre: Fødselsnumre,
         periode: Periode,
         correlationId: CorrelationId,
     ): Either<HttpKlientError, YtelserMedMetadata> {
-        mottatteOppslag.get().add(Oppslag(fnr = fnr, periode = periode))
+        mottatteOppslag.get().add(Oppslag(identer = fødselsnumre.alle, periode = periode))
         return Either.Right(
             YtelserMedMetadata(
-                ytelser = ytelserPerFnr.get()[fnr] ?: emptyList(),
-                metadata = ObjectMother.httpKlientResponse(body = Unit).metadata.tilUtbetalingsoversiktMetadata(CorrelationId.generate()),
+                ytelser = fødselsnumre.alle.toList().flatMap { ytelserPerFnr.get()[it] ?: emptyList() },
+                metadata = fødselsnumre.alle.map { ObjectMother.httpKlientResponse(body = Unit).metadata.tilUtbetalingsoversiktMetadata(CorrelationId.generate()) },
             ),
         )
     }

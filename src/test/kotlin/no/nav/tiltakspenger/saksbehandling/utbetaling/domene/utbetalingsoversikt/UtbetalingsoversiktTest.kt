@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.person.Fødselsnumre
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
@@ -35,7 +36,7 @@ class UtbetalingsoversiktTest {
     @Test
     fun `oppslaget starter første dag i måneden før grunnlagets første periode og slutter i dag`() {
         val grunnlag = Utbetalingsoversiktgrunnlag(
-            ObjectMother.gyldigFnr(),
+            Fødselsnumre(ObjectMother.gyldigFnr()),
             listOf(Periode(1.mars(2025), 31.mars(2025)), Periode(15.januar(2025), 31.januar(2025))),
         )
 
@@ -45,7 +46,7 @@ class UtbetalingsoversiktTest {
 
     @Test
     fun `oppslaget starter første dag i denne måneden når grunnlagets første periode starter neste måned`() {
-        val grunnlag = Utbetalingsoversiktgrunnlag(ObjectMother.gyldigFnr(), listOf(Periode(30.juni(2025), 30.juni(2025))))
+        val grunnlag = Utbetalingsoversiktgrunnlag(Fødselsnumre(ObjectMother.gyldigFnr()), listOf(Periode(30.juni(2025), 30.juni(2025))))
 
         Oppslag.forGrunnlag(grunnlag, iDag = 5.mai(2025)) shouldBe
             Oppslag(Periode(1.mai(2025), 5.mai(2025)), Oppslagsperiodetype.UTBETALINGSPERIODE)
@@ -53,7 +54,7 @@ class UtbetalingsoversiktTest {
 
     @Test
     fun `oppslaget starter i dag når grunnlagets første periode starter senere enn neste måned`() {
-        val grunnlag = Utbetalingsoversiktgrunnlag(ObjectMother.gyldigFnr(), listOf(Periode(1.juli(2025), 31.juli(2025))))
+        val grunnlag = Utbetalingsoversiktgrunnlag(Fødselsnumre(ObjectMother.gyldigFnr()), listOf(Periode(1.juli(2025), 31.juli(2025))))
 
         Oppslag.forGrunnlag(grunnlag, iDag = 5.mai(2025)) shouldBe
             Oppslag(Periode(5.mai(2025), 5.mai(2025)), Oppslagsperiodetype.UTBETALINGSPERIODE)

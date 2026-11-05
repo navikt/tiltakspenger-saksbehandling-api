@@ -1,17 +1,24 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.nonEmptyListOf
 import io.github.oshai.kotlinlogging.KLogger
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.backoff.shouldRetry
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
 import no.nav.tiltakspenger.libs.jobber.TaskResultat
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.Korrelasjon
+import no.nav.tiltakspenger.saksbehandling.felles.Loggbar
 import no.nav.tiltakspenger.saksbehandling.felles.loggFeil
+import no.nav.tiltakspenger.saksbehandling.person.Fødselsnumre
+import no.nav.tiltakspenger.saksbehandling.person.KunneIkkeHenteFødselsnumre
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Avgrensningsårsak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.KunneIkkeHenteUtbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Oppslag
@@ -22,7 +29,9 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktgrunnlag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktklient
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.fjernedeYtelserPerÅrsak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.tilUtbetalingsoversiktMetadata
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.utbetalinger
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.erInnenforØkonomisystemetsÅpningstider
 import java.time.Clock
 import java.time.LocalDate
@@ -39,6 +48,7 @@ class OppdaterUtbetalingsoversiktJobb(
     private val sakRepo: SakRepo,
     private val utbetalingsoversiktRepo: UtbetalingsoversiktRepo,
     private val utbetalingsoversiktklient: Utbetalingsoversiktklient,
+    private val hentNåværendeOgHistoriskeFnr: suspend (fnr: Fnr) -> Either<KunneIkkeHenteFødselsnumre, Fødselsnumre>,
     private val clock: Clock,
     private val meterRegistry: MeterRegistry,
     private val limit: Int,
@@ -74,8 +84,9 @@ class OppdaterUtbetalingsoversiktJobb(
                     utfall.fold(
                         ifLeft = { feil ->
                             antallFeil++
-                            if (feil.rammerAlleSaker) pauseEtterTekniskFeil() else avsluttSystempause()
-                            feil.rammerAlleSaker || antallFeil >= MAKS_FEIL_PER_KJØRING
+                            val rammerAlleSaker = feil !is KunneIkkeHenteUtbetalingsoversikt || feil.rammerAlleSaker
+                            if (rammerAlleSaker) pauseEtterTekniskFeil() else avsluttSystempause()
+                            rammerAlleSaker || antallFeil >= MAKS_FEIL_PER_KJØRING
                         },
                         ifRight = {
                             avsluttSystempause()
@@ -118,19 +129,25 @@ class OppdaterUtbetalingsoversiktJobb(
      * Utfallet måles før lagringen, slik at en lagringsfeil ikke skjuler det i metrikkene.
      * Loggen skrives etter lagringen, slik at hvert oppslag gir én linje: info når det lykkes og error når det feiler.
      * Kaster lagringen, logges bare denne feilen.
+     * Feiler PDL-oppslaget av identene, logges feilen, ingenting lagres, og kjøringen pauser som ved en teknisk feil.
+     * Venstresiden er derfor enten [KunneIkkeHenteFødselsnumre] eller [KunneIkkeHenteUtbetalingsoversikt].
      * Forutsetter at saken finnes og har minst én sendt utbetaling.
      */
-    suspend fun oppdaterForSak(sakId: SakId): Either<KunneIkkeHenteUtbetalingsoversikt, Unit> {
+    suspend fun oppdaterForSak(sakId: SakId): Either<Loggbar, Unit> {
         val sak = sakRepo.hentForSakId(sakId)!!
-        val grunnlag = Utbetalingsoversiktgrunnlag.forSak(sak)
+        val fødselsnumre = hentNåværendeOgHistoriskeFnr(sak.fnr).getOrElse { feil ->
+            feil.loggFeil(logger, sikkerlogg, "sakId=${sak.id}, saksnummer=${sak.saksnummer}")
+            return feil.left()
+        }
+        val grunnlag = Utbetalingsoversiktgrunnlag.forSak(sak, fødselsnumre)
         val oppslag = Oppslag.forGrunnlag(grunnlag, iDag = LocalDate.now(clock))
         val tidligereFeilPåRad = utbetalingsoversiktRepo.hentStatusForSak(sakId).antallFeilPåRad
         return korrelasjon.medNyCorrelationId { correlationId ->
             val kontekst = "sakId=${sak.id}, saksnummer=${sak.saksnummer}, correlationId=${correlationId.value}"
 
             return@medNyCorrelationId utbetalingsoversiktklient.hent(grunnlag, oppslag.periode, oppslag.periodetype, correlationId)
-                .onRight { svar ->
-                    val hentet = svar.metadata.hentet()
+                .onRight { svarene ->
+                    val hentet = svarene.maxOf { it.metadata.hentet() }
                     val oversikt = Utbetalingsoversikt.Vellykket(
                         id = UtbetalingsoversiktId.random(),
                         sakId = sak.id,
@@ -140,14 +157,15 @@ class OppdaterUtbetalingsoversiktJobb(
                             hentet = hentet,
                             harNyligSendtUtbetaling = sak.utbetalinger.harOkUtbetalingSendtEtter(hentet.minusDays(30)),
                         ),
-                        utbetalinger = svar.utbetalinger,
+                        utbetalinger = svarene.utbetalinger,
                     )
-                    registrerMetrikker(resultat = "vellykket", metadata = svar.metadata)
-                    registrerFjernedeYtelser(svar.avgrensning.fjernedeYtelserPerÅrsak)
-                    utbetalingsoversiktRepo.lagre(oversikt, svar.tilUtbetalingsoversiktMetadata(correlationId))
+                    svarene.forEach { registrerMetrikker(resultat = "vellykket", metadata = it.metadata) }
+                    registrerFjernedeYtelser(svarene.fjernedeYtelserPerÅrsak)
+                    utbetalingsoversiktRepo.lagre(oversikt, svarene.map { it.tilUtbetalingsoversiktMetadata(correlationId) })
                     logger.info {
-                        "Hentet utbetalingsoversikt. $kontekst, antallUtbetalinger=${oversikt.utbetalinger.size}, antallMottatt=${svar.avgrensning.antallUtbetalingerMottatt}, " +
-                            "antallYtelserMottatt=${svar.avgrensning.antallYtelserMottatt}, fjernedeYtelserPerÅrsak=${svar.avgrensning.fjernedeYtelserPerÅrsak}, nesteOppslag=${oversikt.plan.nesteOppslag}."
+                        "Hentet utbetalingsoversikt. $kontekst, antallIdenter=${svarene.size}, antallUtbetalinger=${oversikt.utbetalinger.size}, " +
+                            "antallMottatt=${svarene.sumOf { it.avgrensning.antallUtbetalingerMottatt }}, antallYtelserMottatt=${svarene.sumOf { it.avgrensning.antallYtelserMottatt }}, " +
+                            "fjernedeYtelserPerÅrsak=${svarene.fjernedeYtelserPerÅrsak}, nesteOppslag=${oversikt.plan.nesteOppslag}."
                     }
                 }
                 .onLeft { feil ->
@@ -161,7 +179,7 @@ class OppdaterUtbetalingsoversiktJobb(
                         feiltype = feil.feiltype,
                     )
                     registrerMetrikker(resultat = feil.feiltype.tilMetrikkverdi(), metadata = feil.metadata)
-                    utbetalingsoversiktRepo.lagre(oversikt, feil.metadata.tilUtbetalingsoversiktMetadata(correlationId))
+                    utbetalingsoversiktRepo.lagre(oversikt, nonEmptyListOf(feil.metadata.tilUtbetalingsoversiktMetadata(correlationId)))
                     feil.loggFeil(logger, sikkerlogg, "$kontekst, nesteOppslag=${oversikt.plan.nesteOppslag}")
                 }
                 .map { }

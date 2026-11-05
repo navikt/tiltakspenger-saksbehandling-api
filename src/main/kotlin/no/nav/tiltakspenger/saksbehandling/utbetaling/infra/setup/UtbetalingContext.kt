@@ -130,6 +130,7 @@ open class UtbetalingContext(
             sakRepo = sakRepo,
             utbetalingsoversiktRepo = utbetalingsoversiktRepo,
             utbetalingsoversiktklient = utbetalingsoversiktklient,
+            hentNåværendeOgHistoriskeFnr = personService::hentNåværendeOgHistoriskeFnr,
             clock = clock,
             meterRegistry = meterRegistry,
             // Ett oppslag per kjøring, slik at pausen mellom kjøringene i Jobber.kt kommer etter hvert kall.

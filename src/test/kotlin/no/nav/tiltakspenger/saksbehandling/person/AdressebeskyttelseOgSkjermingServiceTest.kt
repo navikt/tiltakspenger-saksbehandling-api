@@ -185,6 +185,8 @@ class AdressebeskyttelseOgSkjermingServiceTest {
         override suspend fun hentPersonSineForelderBarnRelasjoner(fnr: Fnr): List<ForelderBarnRelasjon> = throw NotImplementedError()
 
         override suspend fun hentIdenter(aktorId: String): List<Personident> = throw NotImplementedError()
+
+        override suspend fun hentNåværendeOgHistoriskeFnr(fnr: Fnr): Either<KunneIkkeHenteFødselsnumre, Fødselsnumre> = throw NotImplementedError()
     }
 
     private inner class TellendeSkjermingsklient(

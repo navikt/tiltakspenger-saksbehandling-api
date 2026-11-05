@@ -21,4 +21,9 @@ interface PersonKlient {
     ): Either<KunneIkkeHenteAdressebeskyttelseEllerSkjerming.FeilVedKallMotPdl, Map<Fnr, Adressebeskyttelse>>
 
     suspend fun hentIdenter(aktorId: String): List<Personident>
+
+    /**
+     * Henter alle fødselsnumre og d-numre personen har eller har hatt, med [fnr] først.
+     */
+    suspend fun hentNåværendeOgHistoriskeFnr(fnr: Fnr): Either<KunneIkkeHenteFødselsnumre, Fødselsnumre>
 }

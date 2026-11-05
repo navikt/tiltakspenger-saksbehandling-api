@@ -26,8 +26,10 @@ import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.libs.json.deserialize
+import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.person.Fødselsnumre
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Aktør
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Avgrensningsårsak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.KunneIkkeHenteUtbetalingsoversikt
@@ -52,7 +54,7 @@ class UtbetalingsoversiktHttpKlientTest {
     private val correlationId = CorrelationId.generate()
     private val fnr = Fnr.random()
     private val periode = Periode(fraOgMed = 1.august(2025), tilOgMed = 30.september(2025))
-    private val grunnlag = Utbetalingsoversiktgrunnlag(fnr, listOf(periode))
+    private val grunnlag = Utbetalingsoversiktgrunnlag(Fødselsnumre(fnr), listOf(periode))
 
     private val meterRegistry = SimpleMeterRegistry()
 
@@ -83,7 +85,39 @@ class UtbetalingsoversiktHttpKlientTest {
         periodetype: Oppslagsperiodetype = Oppslagsperiodetype.UTBETALINGSPERIODE,
         klient: UtbetalingsoversiktHttpKlient = klient(transport),
         grunnlag: Utbetalingsoversiktgrunnlag = this.grunnlag,
-    ) = klient.hent(grunnlag = grunnlag, periode = periode, periodetype = periodetype, correlationId = correlationId)
+    ) = klient.hent(grunnlag = grunnlag, periode = periode, periodetype = periodetype, correlationId = correlationId).map { it.single() }
+
+    @Test
+    fun `slår opp hver ident etter tur og godtar et tidligere fnr som rettighetshaver`() {
+        val tidligereFnr = Fnr.random()
+        val transport = FakeHttpTransport().apply {
+            leggIKøJson(UtbetalingsoversiktDtoTestEx.riktSvar(fnr), statusCode = 200)
+            leggIKøJson(UtbetalingsoversiktDtoTestEx.riktSvar(tidligereFnr), statusCode = 200)
+        }
+        val grunnlag = Utbetalingsoversiktgrunnlag(Fødselsnumre(fnr, listOf(tidligereFnr)), listOf(periode))
+
+        runTest {
+            val svarene = klient(transport).hent(grunnlag, periode, Oppslagsperiodetype.UTBETALINGSPERIODE, correlationId).getOrFail()
+
+            svarene.map { svar -> svar.utbetalinger.map { it.utbetaltTil } } shouldBe listOf(
+                listOf(Aktør.Person(fnr), Aktør.Person(fnr)),
+                listOf(Aktør.Person(tidligereFnr), Aktør.Person(tidligereFnr)),
+            )
+            transport.mottatteKall.map { objectMapper.readTree(it.bodyTekst)["ident"].asText() } shouldBe listOf(fnr.verdi, tidligereFnr.verdi)
+        }
+    }
+
+    @Test
+    fun `stopper ved første ident som feiler`() {
+        val transport = transportMedStatus(500)
+        val grunnlag = Utbetalingsoversiktgrunnlag(Fødselsnumre(fnr, listOf(Fnr.random())), listOf(periode))
+
+        runTest {
+            klient(transport).hent(grunnlag, periode, Oppslagsperiodetype.UTBETALINGSPERIODE, correlationId).leftOrNull()
+                .shouldBeInstanceOf<KunneIkkeHenteUtbetalingsoversikt.Tjenestefeil>()
+            transport.mottatteKall.size shouldBe 1
+        }
+    }
 
     @Test
     fun `klienten kan bygges med standardtransporten`() {
@@ -277,7 +311,7 @@ class UtbetalingsoversiktHttpKlientTest {
     /** Hele lista sammenlignes, så endringer i hvordan et ekte svar leses, blir synlige. */
     @Test
     fun `tre tidligere måneder i én utbetaling gir alle ytelsene med beløp, komponenter og satsfelt som er 0`() {
-        val grunnlag = Utbetalingsoversiktgrunnlag(fnr, listOf(Periode(1.januar(2026), 31.oktober(2026))))
+        val grunnlag = Utbetalingsoversiktgrunnlag(Fødselsnumre(fnr), listOf(Periode(1.januar(2026), 31.oktober(2026))))
         val svar = UtbetalingsoversiktDtoTestEx.svarMedTreTidligereMånederIEnUtbetaling(fnr)
 
         fun ytelse(periode: Periode, nettobeløp: String, vararg komponenter: Pair<String, String>) = RegistrertYtelse(
@@ -324,7 +358,7 @@ class UtbetalingsoversiktHttpKlientTest {
 
     @Test
     fun `en ytelse som begynner dagen før grunnlaget, beholdes med totalbeløpet`() {
-        val grunnlag = Utbetalingsoversiktgrunnlag(fnr, listOf(Periode(6.desember(2025), 31.august(2026))))
+        val grunnlag = Utbetalingsoversiktgrunnlag(Fødselsnumre(fnr), listOf(Periode(6.desember(2025), 31.august(2026))))
         val svar = UtbetalingsoversiktDtoTestEx.svarMedYtelseSomBegynnerFørGrunnlaget(fnr)
 
         runTest {
@@ -337,7 +371,7 @@ class UtbetalingsoversiktHttpKlientTest {
 
     @Test
     fun `fredagen før en periode som starter i helgen, beholdes når den kommer som egen ytelse i måneden før`() {
-        val grunnlag = Utbetalingsoversiktgrunnlag(fnr, listOf(Periode(1.november(2025), 31.desember(2025))))
+        val grunnlag = Utbetalingsoversiktgrunnlag(Fødselsnumre(fnr), listOf(Periode(1.november(2025), 31.desember(2025))))
         val svar = UtbetalingsoversiktDtoTestEx.svarMedFredagenFørHelgestartIMånedenFør(fnr)
 
         runTest {

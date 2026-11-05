@@ -18,10 +18,11 @@ import no.nav.tiltakspenger.saksbehandling.felles.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerloggkontekst
 import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
+import no.nav.tiltakspenger.saksbehandling.person.Fødselsnumre
 import no.nav.tiltakspenger.saksbehandling.person.KunneIkkeHenteAdressebeskyttelseEllerSkjerming
+import no.nav.tiltakspenger.saksbehandling.person.KunneIkkeHenteFødselsnumre
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.Personident
-import org.intellij.lang.annotations.Language
 import java.time.Clock
 
 /**
@@ -38,163 +39,94 @@ class PersonHttpklient(
     clock: Clock,
     private val getToken: suspend () -> AccessToken,
 ) : PersonKlient {
-    private val personklient =
-        FellesPersonklient.create(
-            endepunkt = endepunkt,
-            clock = clock,
-        )
+    private val personklient = FellesPersonklient.create(
+        endepunkt = endepunkt,
+        clock = clock,
+    )
 
     /**
      * Kommentar jah: Dersom vi ønsker og sende saksbehandler sitt OBO-token, kan vi lage en egen metode for dette.
      */
-    override suspend fun hentEnkelPerson(fnr: Fnr): EnkelPerson {
-        return withContext(Dispatchers.IO) {
-            personklient.graphqlRequest(
-                token = getToken(),
-                jsonRequestBody = objectMapper.writeValueAsString(hentPersonQuery(fnr)),
-            )
-                .map { it.toEnkelPerson(fnr) }
-                .getOrElse { it.mapError() }
-        }
-    }
+    override suspend fun hentEnkelPerson(fnr: Fnr): EnkelPerson = spør(HENT_PERSON, fnr).map { it.toEnkelPerson(fnr) }.getOrElse { it.mapError() }
 
-    override suspend fun hentPersonSineForelderBarnRelasjoner(fnr: Fnr): List<ForelderBarnRelasjon> {
-        return withContext(Dispatchers.IO) {
-            personklient.graphqlRequest(
-                token = getToken(),
-                jsonRequestBody = objectMapper.writeValueAsString(hentForelderBarnRelasjon(fnr)),
-            )
-                .map { it.toForelderBarnRelasjon(fnr) }
-                .getOrElse { it.mapError() }
-        }
-    }
+    override suspend fun hentPersonSineForelderBarnRelasjoner(fnr: Fnr): List<ForelderBarnRelasjon> = spør(HENT_FORELDER_BARN_RELASJON, fnr).map { it.toForelderBarnRelasjon(fnr) }.getOrElse { it.mapError() }
 
-    override suspend fun hentPersonBolk(fnrs: List<Fnr>): List<EnkelPerson> {
-        return withContext(Dispatchers.IO) {
-            personklient.graphqlRequest(
-                token = getToken(),
-                jsonRequestBody = objectMapper.writeValueAsString(hentPersonBolkQuery(fnrs)),
-            )
-                .map { it.toEnkelPersonBolk(fnrs) }
-                .getOrElse { it.mapError() }
-        }
-    }
+    override suspend fun hentPersonBolk(fnrs: List<Fnr>): List<EnkelPerson> = spørBolk(HENT_PERSON_BOLK, fnrs).map { it.toEnkelPersonBolk(fnrs) }.getOrElse { it.mapError() }
 
     override suspend fun hentAdressebeskyttelse(
         fnrs: List<Fnr>,
     ): Either<KunneIkkeHenteAdressebeskyttelseEllerSkjerming.FeilVedKallMotPdl, Map<Fnr, Adressebeskyttelse>> {
-        return withContext(Dispatchers.IO) {
-            personklient.graphqlRequest(
-                token = getToken(),
-                jsonRequestBody = objectMapper.writeValueAsString(
-                    GraphqlBolkQuery(
-                        query = HENT_ADRESSEBESKYTTELSE_BOLK,
-                        variables = mapOf("identer" to fnrs.map { it.verdi }),
-                    ),
-                ),
+        return spørBolk(HENT_ADRESSEBESKYTTELSE_BOLK, fnrs).mapLeft {
+            it.tilPdlfeil(
+                operasjon = OPERASJON_ADRESSEBESKYTTELSE,
+                omfang = " for ${fnrs.size} personer",
+                lagFeil = KunneIkkeHenteAdressebeskyttelseEllerSkjerming::FeilVedKallMotPdl,
             )
-                .mapLeft { it.tilFeilVedKallMotPdl(fnrs.size) }
-                .flatMap { respons ->
-                    Either.catch { respons.toAdressebeskyttelseBolk() }.mapLeft {
-                        KunneIkkeHenteAdressebeskyttelseEllerSkjerming.FeilVedKallMotPdl(
-                            loggkontekst = Loggkontekst("Feil ved $OPERASJON_ADRESSEBESKYTTELSE. Kunne ikke lese svaret for ${fnrs.size} personer"),
-                            sikkerloggkontekst = Loggkontekst("Feil ved $OPERASJON_ADRESSEBESKYTTELSE. Respons: $respons", it),
-                        )
-                    }
-                }
-        }
-    }
-
-    override suspend fun hentIdenter(aktorId: String): List<Personident> {
-        return withContext(Dispatchers.IO) {
-            personklient.graphqlRequest(
-                token = getToken(),
-                jsonRequestBody = objectMapper.writeValueAsString(hentIdenterQuery(aktorId)),
-            )
-                .map { it.toPersonidenter(aktorId) }
-                .getOrElse { it.mapError() }
-        }
-    }
-
-    /**
-     * Query for å hente person fra PersonDataLøsningen (PDL)
-     */
-    private fun hentPersonQuery(fnr: Fnr): GraphqlQuery {
-        return GraphqlQuery(
-            query = getResource("/pdl/hentPerson.graphql"),
-            variables = mapOf("ident" to fnr.verdi),
-        )
-    }
-
-    /**
-     * Query for å hente informasjon om en forelder/barn relasjoner for person fra PersonDataLøsningen (PDL)
-     */
-    private fun hentForelderBarnRelasjon(fnr: Fnr): GraphqlQuery {
-        return GraphqlQuery(
-            query = getResource("/pdl/hentPersonForelderBarnRelasjon.graphql"),
-            variables = mapOf("ident" to fnr.verdi),
-        )
-    }
-
-    /**
-     * Query for å hente informasjon om en forelder/barn relasjoner for person fra PersonDataLøsningen (PDL)
-     */
-    private fun hentPersonBolkQuery(fnrs: List<Fnr>): GraphqlBolkQuery {
-        return GraphqlBolkQuery(
-            query = getResource("/pdl/hentPersonBolk.graphql"),
-            variables = mapOf("identer" to fnrs.map { it.verdi }),
-        )
-    }
-
-    private fun hentIdenterQuery(aktorId: String): GraphqlQuery {
-        return GraphqlQuery(
-            query = getResource("/pdl/hentIdenter.graphql"),
-            variables = mapOf("ident" to aktorId),
-        )
-    }
-
-    private fun getResource(path: String): String {
-        return requireNotNull(PersonHttpklient::class.java.getResource(path)).readText()
-    }
-}
-
-/**
- * Henter bare adressebeskyttelsen, med metadataene `avklarGradering` trenger for å velge gradering.
- */
-@Language("GraphQL")
-private const val HENT_ADRESSEBESKYTTELSE_BOLK = """
-query(${'$'}identer: [ID!]!) {
-    hentPersonBolk(identer: ${'$'}identer) {
-        ident
-        person {
-            adressebeskyttelse(historikk: false) {
-                gradering
-                folkeregistermetadata { ajourholdstidspunkt }
-                metadata {
-                    endringer { kilde registrert registrertAv systemkilde type }
-                    master
-                }
+        }.flatMap { respons ->
+            Either.catch { respons.toAdressebeskyttelseBolk() }.mapLeft {
+                KunneIkkeHenteAdressebeskyttelseEllerSkjerming.FeilVedKallMotPdl(
+                    loggkontekst = Loggkontekst("Feil ved $OPERASJON_ADRESSEBESKYTTELSE. Kunne ikke lese svaret for ${fnrs.size} personer"),
+                    sikkerloggkontekst = Loggkontekst("Feil ved $OPERASJON_ADRESSEBESKYTTELSE. Respons: $respons", it),
+                )
             }
         }
-        code
+    }
+
+    override suspend fun hentIdenter(aktorId: String): List<Personident> = spør(HENT_IDENTER, aktorId).map { it.toPersonidenter(aktorId) }.getOrElse { it.mapError() }
+
+    override suspend fun hentNåværendeOgHistoriskeFnr(fnr: Fnr): Either<KunneIkkeHenteFødselsnumre, Fødselsnumre> {
+        return spør(HENT_IDENTER_MED_HISTORIKK, fnr).mapLeft {
+            it.tilPdlfeil(operasjon = OPERASJON_FØDSELSNUMRE, omfang = "", lagFeil = ::KunneIkkeHenteFødselsnumre)
+        }.flatMap { respons ->
+            Either.catch { respons.toFødselsnumre(fnr) }.mapLeft {
+                KunneIkkeHenteFødselsnumre(
+                    loggkontekst = Loggkontekst("Feil ved $OPERASJON_FØDSELSNUMRE. Kunne ikke lese svaret"),
+                    sikkerloggkontekst = Loggkontekst("Feil ved $OPERASJON_FØDSELSNUMRE. Respons: $respons", it),
+                )
+            }
+        }
+    }
+
+    private suspend fun spør(query: String, fnr: Fnr): Either<FellesPersonklientError, String> = spør(query, fnr.verdi)
+
+    private suspend fun spør(query: String, ident: String): Either<FellesPersonklientError, String> = post(objectMapper.writeValueAsString(GraphqlQuery(query = query, variables = mapOf("ident" to ident))))
+
+    private suspend fun spørBolk(query: String, fnrs: List<Fnr>): Either<FellesPersonklientError, String> {
+        return post(
+            objectMapper.writeValueAsString(
+                GraphqlBolkQuery(
+                    query = query,
+                    variables = mapOf("identer" to fnrs.map { it.verdi }),
+                ),
+            ),
+        )
+    }
+
+    private suspend fun post(jsonRequestBody: String): Either<FellesPersonklientError, String> {
+        return withContext(Dispatchers.IO) {
+            personklient.graphqlRequest(token = getToken(), jsonRequestBody = jsonRequestBody)
+        }
     }
 }
-"""
 
 private const val OPERASJON_ADRESSEBESKYTTELSE = "PDL-oppslag av adressebeskyttelse"
+
+private const val OPERASJON_FØDSELSNUMRE = "PDL-oppslag av nåværende og historiske fødselsnumre"
 
 /**
  * Kallfeil bærer HTTP-konteksten fra klienten.
  * De øvrige feilene er utledet av et svar vi forsto, og navngis med typen; innholdet kan bære identer og går bare til sikkerlogg.
+ *
+ * @param omfang PII-fri tekst som følger operasjonen i vanlig logg, for eksempel antall personer.
  */
-private fun FellesPersonklientError.tilFeilVedKallMotPdl(antall: Int) = when (this) {
-    is FellesPersonklientError.Kallfeil -> KunneIkkeHenteAdressebeskyttelseEllerSkjerming.FeilVedKallMotPdl(
-        loggkontekst = httpKlientError.loggkontekst("$OPERASJON_ADRESSEBESKYTTELSE for $antall personer"),
-        sikkerloggkontekst = httpKlientError.sikkerloggkontekst(OPERASJON_ADRESSEBESKYTTELSE),
-    )
-
-    else -> KunneIkkeHenteAdressebeskyttelseEllerSkjerming.FeilVedKallMotPdl(
-        loggkontekst = Loggkontekst("Feil ved $OPERASJON_ADRESSEBESKYTTELSE for $antall personer: ${this::class.simpleName}"),
-        sikkerloggkontekst = Loggkontekst("Feil ved $OPERASJON_ADRESSEBESKYTTELSE: $this"),
-    )
+private fun <T> FellesPersonklientError.tilPdlfeil(
+    operasjon: String,
+    omfang: String,
+    lagFeil: (loggkontekst: Loggkontekst, sikkerloggkontekst: Loggkontekst) -> T,
+): T {
+    val (loggkontekst, sikkerloggkontekst) = when (this) {
+        is FellesPersonklientError.Kallfeil -> httpKlientError.loggkontekst("$operasjon$omfang") to httpKlientError.sikkerloggkontekst(operasjon)
+        else -> Loggkontekst("Feil ved $operasjon$omfang: ${this::class.simpleName}") to Loggkontekst("Feil ved $operasjon: $this")
+    }
+    return lagFeil(loggkontekst, sikkerloggkontekst)
 }

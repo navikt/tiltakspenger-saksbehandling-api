@@ -1,22 +1,31 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
+import arrow.core.right
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.testing.ApplicationTestBuilder
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
+import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
+import no.nav.tiltakspenger.saksbehandling.common.Loggfanger
+import no.nav.tiltakspenger.saksbehandling.common.Sikkerloggfanger
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.infra.setup.MdcKorrelasjon
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.person.Fødselsnumre
 import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Aktør
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.KunneIkkeHenteUtbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Oppslag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Oppslagsfeiltype
@@ -44,7 +53,7 @@ class OppdaterUtbetalingsoversiktJobbTest {
 
             val oversikt = status(tac, sak).shouldBeInstanceOf<Utbetalingsoversiktstatus.SisteOppslagVellykket>().oversikt
             oversikt.utbetalinger shouldBe utbetalinger
-            val førstePeriode = Utbetalingsoversiktgrunnlag.forSak(sak).perioder.first()
+            val førstePeriode = Utbetalingsoversiktgrunnlag.forSak(sak, Fødselsnumre(sak.fnr)).perioder.first()
             oversikt.oppslag shouldBe Oppslag(
                 Periode(
                     førstePeriode.fraOgMed.withDayOfMonth(1).minusMonths(Oppslag.MÅNEDER_FØR_FØRSTE_PERIODE),
@@ -55,11 +64,11 @@ class OppdaterUtbetalingsoversiktJobbTest {
             tac.utbetalingsoversiktFakeKlient.sisteOppslagFor(sak.fnr) shouldBe oversikt.oppslag
             oversikt.plan shouldBe Oppslagsplan.etterVellykketOppslag(oversikt.hentet, harNyligSendtUtbetaling = true)
             hentMetadata(tac, oversikt.id).shouldNotBeNull().let { (metadata, correlationId) ->
-                val perioder = Utbetalingsoversiktgrunnlag.forSak(sak).perioder.joinToString(",") {
+                val perioder = Utbetalingsoversiktgrunnlag.forSak(sak, Fødselsnumre(sak.fnr)).perioder.joinToString(",") {
                     """{"fraOgMed":"${it.fraOgMed}","tilOgMed":"${it.tilOgMed}"}"""
                 }
                 metadata shouldEqualJson """
-                    {
+                    [{
                       "request": "${UtbetalingsoversiktFakeKlient.RÅ_REQUEST}",
                       "svar": "${UtbetalingsoversiktFakeKlient.AVGRENSET_SVAR}",
                       "mottattSvarSha256": "${UtbetalingsoversiktFakeKlient.AVGRENSET_SVAR.sha256()}",
@@ -78,10 +87,40 @@ class OppdaterUtbetalingsoversiktJobbTest {
                         "fjernedeYtelserPerÅrsak": {},
                         "antallFjernedeUtbetalinger": 0
                       }
-                    }
+                    }]
                 """.trimIndent()
             }
             antallOppslag(tac, "vellykket") shouldBe 1.0
+        }
+    }
+
+    @Test
+    fun `slår opp alle identene fra PDL og lagrer utbetalingene og ett metadataelement per ident`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val sak = sakMedOkUtbetaling(tac)
+            val tidligereFnr = Fnr.random()
+            val påSakensFnr = registrertUtbetaling(utbetaltTil = Aktør.Person(sak.fnr))
+            val påTidligereFnr = registrertUtbetaling(utbetaltTil = Aktør.Person(tidligereFnr))
+            tac.utbetalingsoversiktFakeKlient.leggTilUtbetalinger(sak.fnr, listOf(påSakensFnr))
+            tac.utbetalingsoversiktFakeKlient.leggTilUtbetalinger(tidligereFnr, listOf(påTidligereFnr))
+            val jobb = OppdaterUtbetalingsoversiktJobb(
+                sakRepo = tac.sakContext.sakRepo,
+                utbetalingsoversiktRepo = tac.utbetalingContext.utbetalingsoversiktRepo,
+                utbetalingsoversiktklient = tac.utbetalingsoversiktFakeKlient,
+                hentNåværendeOgHistoriskeFnr = { Fødselsnumre(it, listOf(tidligereFnr)).right() },
+                clock = tac.clock,
+                meterRegistry = SimpleMeterRegistry(),
+                limit = 1,
+                logger = Loggfanger(OppdaterUtbetalingsoversiktJobb::class.java.name),
+                sikkerlogg = Sikkerloggfanger(),
+                korrelasjon = MdcKorrelasjon(),
+            )
+
+            jobb.oppdaterForSak(sak.id).isRight() shouldBe true
+
+            status(tac, sak).shouldBeInstanceOf<Utbetalingsoversiktstatus.SisteOppslagVellykket>().oversikt.utbetalinger shouldBe
+                listOf(påSakensFnr, påTidligereFnr)
+            hentAntallMetadataelementer(tac, sak) shouldBe 1 + 1
         }
     }
 
@@ -199,12 +238,23 @@ class OppdaterUtbetalingsoversiktJobbTest {
         }
     }
 
-    /** Metadata leses aldri ut i domenet, så testen leser kolonnen med egen SQL. */
+    private fun hentAntallMetadataelementer(tac: TestApplicationContext, sak: Sak): Int? {
+        return (tac.sessionFactory as PostgresSessionFactory).withSession {
+            it.run(
+                queryOf(
+                    statement = "SELECT jsonb_array_length(metadata) AS antall FROM utbetalingsoversikt WHERE sak_id = :sakId",
+                    paramMap = mapOf("sakId" to sak.id.toString()),
+                ).map { row -> row.int("antall") }.asSingle,
+            )
+        }
+    }
+
+    /** Metadata leses aldri ut i domenet, så testen leser kolonnen med egen SQL; correlationId hentes fra første oppslag. */
     private fun hentMetadata(tac: TestApplicationContext, id: UtbetalingsoversiktId): Pair<String, String>? =
         (tac.sessionFactory as PostgresSessionFactory).withSession {
             it.run(
                 queryOf(
-                    "SELECT metadata::text AS metadata, metadata ->> 'correlationId' AS correlation_id FROM utbetalingsoversikt WHERE id = :id",
+                    "SELECT metadata::text AS metadata, metadata -> 0 ->> 'correlationId' AS correlation_id FROM utbetalingsoversikt WHERE id = :id",
                     mapOf("id" to id.toString()),
                 ).map { row -> row.string("metadata") to row.string("correlation_id") }.asSingle,
             )

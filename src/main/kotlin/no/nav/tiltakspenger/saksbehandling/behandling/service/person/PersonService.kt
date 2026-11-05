@@ -13,6 +13,8 @@ import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.ForelderBarnRelasjon
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.PersonRepo
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
+import no.nav.tiltakspenger.saksbehandling.person.Fødselsnumre
+import no.nav.tiltakspenger.saksbehandling.person.KunneIkkeHenteFødselsnumre
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 
@@ -22,9 +24,7 @@ class PersonService(
 ) {
     val logger = KotlinLogging.logger {}
 
-    fun hentFnrForRammebehandlingId(behandlingId: RammebehandlingId): Fnr {
-        return personRepo.hentFnrForRammebehandlingId(behandlingId)
-    }
+    fun hentFnrForRammebehandlingId(behandlingId: RammebehandlingId): Fnr = personRepo.hentFnrForRammebehandlingId(behandlingId)
 
     fun hentFnrForSakId(sakId: SakId): Fnr {
         return personRepo.hentFnrForSakId(sakId)
@@ -86,7 +86,7 @@ class PersonService(
         }
     }
 
-    suspend fun hentPersonopplysninger(fnr: Fnr): EnkelPerson {
-        return personClient.hentEnkelPerson(fnr)
-    }
+    suspend fun hentPersonopplysninger(fnr: Fnr): EnkelPerson = personClient.hentEnkelPerson(fnr)
+
+    suspend fun hentNåværendeOgHistoriskeFnr(fnr: Fnr): Either<KunneIkkeHenteFødselsnumre, Fødselsnumre> = personClient.hentNåværendeOgHistoriskeFnr(fnr)
 }

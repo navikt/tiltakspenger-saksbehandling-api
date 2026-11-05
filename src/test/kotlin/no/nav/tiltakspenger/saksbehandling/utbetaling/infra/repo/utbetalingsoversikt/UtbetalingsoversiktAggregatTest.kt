@@ -1,5 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.utbetalingsoversikt
 
+import arrow.core.Either
+import arrow.core.NonEmptyList
+import arrow.core.left
+import arrow.core.right
 import io.github.oshai.kotlinlogging.Level
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -10,6 +14,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.jobber.TaskResultat
@@ -19,8 +24,11 @@ import no.nav.tiltakspenger.saksbehandling.common.Loggfanger
 import no.nav.tiltakspenger.saksbehandling.common.Sikkerloggfanger
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.felles.Loggkontekst
 import no.nav.tiltakspenger.saksbehandling.infra.setup.MdcKorrelasjon
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.person.Fødselsnumre
+import no.nav.tiltakspenger.saksbehandling.person.KunneIkkeHenteFødselsnumre
 import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
@@ -189,6 +197,23 @@ class UtbetalingsoversiktAggregatTest {
         }
     }
 
+    @Test
+    @IsolatedDatabaseTest
+    fun `kjøringen stopper når identoppslaget i PDL feiler, uten å lagre eller kalle tjenesten`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val første = sakMedOkUtbetaling(tac)
+            val andre = sakMedOkUtbetaling(tac)
+            spolTilÅpent(tac, 6.mai(2025))
+            val pdlfeil = KunneIkkeHenteFødselsnumre(Loggkontekst("Feil ved PDL-oppslag"), null)
+
+            jobbMedLimit(tac, limit = 10, hentNåværendeOgHistoriskeFnr = { pdlfeil.left() }).oppdaterUtbetalingsoversikter() shouldBe TaskResultat.Feilet
+
+            status(tac, første) shouldBe Utbetalingsoversiktstatus.IkkeHentet
+            status(tac, andre) shouldBe Utbetalingsoversiktstatus.IkkeHentet
+            tac.utbetalingsoversiktFakeKlient.sisteOppslagFor(første.fnr) shouldBe null
+        }
+    }
+
     /**
      * Når lagringen kaster, vet vi ikke hvorfor, og da skal ikke neste sak gi et nytt kall mot tjenesten.
      * Oppslaget logges først etter lagringen, slik at feilen gir én error-linje og ingen info-linje om et oppslag som ikke ble lagret.
@@ -202,7 +227,7 @@ class UtbetalingsoversiktAggregatTest {
             val andre = sakMedOkUtbetaling(tac)
             spolTilÅpent(tac, 6.mai(2025))
             val repoSomKasterVedLagring = object : UtbetalingsoversiktRepo by tac.utbetalingContext.utbetalingsoversiktRepo {
-                override fun lagre(oversikt: Utbetalingsoversikt, metadata: UtbetalingsoversiktMetadata) = throw IllegalStateException("databasen svarer ikke")
+                override fun lagre(oversikt: Utbetalingsoversikt, metadata: NonEmptyList<UtbetalingsoversiktMetadata>) = throw IllegalStateException("databasen svarer ikke")
             }
 
             val loggfanger = Loggfanger(OppdaterUtbetalingsoversiktJobb::class.java.name)
@@ -212,6 +237,7 @@ class UtbetalingsoversiktAggregatTest {
                 sakRepo = tac.sakContext.sakRepo,
                 utbetalingsoversiktRepo = repoSomKasterVedLagring,
                 utbetalingsoversiktklient = tac.utbetalingsoversiktFakeKlient,
+                hentNåværendeOgHistoriskeFnr = { Fødselsnumre(it).right() },
                 clock = tac.clock,
                 meterRegistry = SimpleMeterRegistry(),
                 limit = 10,
@@ -334,17 +360,24 @@ class UtbetalingsoversiktAggregatTest {
 
     private fun jobb(tac: TestApplicationContext) = tac.utbetalingContext.oppdaterUtbetalingsoversiktJobb
 
-    private fun jobbMedLimit(tac: TestApplicationContext, limit: Int) = OppdaterUtbetalingsoversiktJobb(
-        sakRepo = tac.sakContext.sakRepo,
-        utbetalingsoversiktRepo = tac.utbetalingContext.utbetalingsoversiktRepo,
-        utbetalingsoversiktklient = tac.utbetalingsoversiktFakeKlient,
-        clock = tac.clock,
-        meterRegistry = SimpleMeterRegistry(),
-        limit = limit,
-        logger = Loggfanger(OppdaterUtbetalingsoversiktJobb::class.java.name),
-        sikkerlogg = Sikkerloggfanger(),
-        korrelasjon = MdcKorrelasjon(),
-    )
+    private fun jobbMedLimit(
+        tac: TestApplicationContext,
+        limit: Int,
+        hentNåværendeOgHistoriskeFnr: suspend (Fnr) -> Either<KunneIkkeHenteFødselsnumre, Fødselsnumre> = { Fødselsnumre(it).right() },
+    ): OppdaterUtbetalingsoversiktJobb {
+        return OppdaterUtbetalingsoversiktJobb(
+            sakRepo = tac.sakContext.sakRepo,
+            utbetalingsoversiktRepo = tac.utbetalingContext.utbetalingsoversiktRepo,
+            utbetalingsoversiktklient = tac.utbetalingsoversiktFakeKlient,
+            hentNåværendeOgHistoriskeFnr = hentNåværendeOgHistoriskeFnr,
+            clock = tac.clock,
+            meterRegistry = SimpleMeterRegistry(),
+            limit = limit,
+            logger = Loggfanger(OppdaterUtbetalingsoversiktJobb::class.java.name),
+            sikkerlogg = Sikkerloggfanger(),
+            korrelasjon = MdcKorrelasjon(),
+        )
+    }
 
     private fun kø(tac: TestApplicationContext, limit: Int = 10): List<SakId> =
         tac.utbetalingContext.utbetalingsoversiktRepo.hentSakerKlareForOppslag(nå = nå(tac.clock), limit = limit)

@@ -1,9 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.flatMap
+import arrow.core.raise.either
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.UriSynlighet
 import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient
@@ -43,6 +46,7 @@ import kotlin.time.Duration.Companion.seconds
  * Kalleren er en bakgrunnsjobb uten ventende bruker, og jobben prøver saken igjen senere, så klienten har ingen retry.
  * Svarer tjenesten 401, gjør httpklient ett forsøk til med ferskt token.
  * URI-en har ingen personopplysninger, siden identen ligger i bodyen.
+ * Har personen flere identer, slås de opp etter tur; de er få, og et parallelt oppslag ville bare spart tid for et fåtall saker.
  *
  * Slik svarer tjenesten (lest i kildekoden 2026-09-14), og slik klassifiserer vi svarene:
  * - 200 med `[]` betyr ingen treff; applikasjonen svarer ikke 404.
@@ -83,10 +87,22 @@ class UtbetalingsoversiktHttpKlient(
         periode: Periode,
         periodetype: Oppslagsperiodetype,
         correlationId: CorrelationId,
+    ): Either<KunneIkkeHenteUtbetalingsoversikt, NonEmptyList<Utbetalingsoversiktsvar>> {
+        return either {
+            grunnlag.fødselsnumre.alle.map { ident -> hentForIdent(ident, grunnlag, periode, periodetype, correlationId).bind() }
+        }
+    }
+
+    private suspend fun hentForIdent(
+        ident: Fnr,
+        grunnlag: Utbetalingsoversiktgrunnlag,
+        periode: Periode,
+        periodetype: Oppslagsperiodetype,
+        correlationId: CorrelationId,
     ): Either<KunneIkkeHenteUtbetalingsoversikt, Utbetalingsoversiktsvar> {
         val payload = serialize(
             UtbetalingsoversiktRequestDto(
-                ident = grunnlag.fnr.verdi,
+                ident = ident.verdi,
                 // Vi spør om utbetalinger personen har rett på, ikke om utbetalinger som gikk til personen.
                 rolle = "RETTIGHETSHAVER",
                 periode = UtbetalingsoversiktDto.UtbetalingsperiodeDto(fom = periode.fraOgMed, tom = periode.tilOgMed),

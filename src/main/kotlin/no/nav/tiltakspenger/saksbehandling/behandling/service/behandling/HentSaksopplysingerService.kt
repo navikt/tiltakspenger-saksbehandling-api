@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
+import arrow.core.Either
 import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -9,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.periode.Overlapp
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.ÅpenPeriode
@@ -22,8 +24,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.medPaddingForAndreYtelser
+import no.nav.tiltakspenger.saksbehandling.felles.loggFeil
 import no.nav.tiltakspenger.saksbehandling.felles.min
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
+import no.nav.tiltakspenger.saksbehandling.person.Fødselsnumre
+import no.nav.tiltakspenger.saksbehandling.person.KunneIkkeHenteFødselsnumre
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
@@ -36,6 +41,7 @@ import java.time.LocalDate
 
 class HentSaksopplysingerService(
     private val hentPersonopplysninger: suspend (fnr: Fnr) -> EnkelPerson,
+    private val hentNåværendeOgHistoriskeFnr: suspend (fnr: Fnr) -> Either<KunneIkkeHenteFødselsnumre, Fødselsnumre>,
     private val tiltaksdeltakelseKlient: TiltaksdeltakelseKlient,
     private val sokosUtbetaldataClient: SokosUtbetaldataClient,
     private val tiltakspengerArenaClient: TiltakspengerArenaClient,
@@ -57,7 +63,7 @@ class HentSaksopplysingerService(
      * Husk og sett [inkluderOverlappendeTiltaksdeltakelserDetErSøktOm] til true dersom vi skal hente saksopplysninger for tiltaksdeltakelser som overlapper denne.
      * @param inkluderOverlappendeTiltaksdeltakelserDetErSøktOm Typisk bare brukt ved søknadsbehandling når det er søkt om mer enn 1 tiltaksdeltakelse.
      *
-     * Kaster når tiltakshistorikken, Utbetaldata eller Arena ikke svarer, slik at automatiske behandlinger prøves på nytt og saksbehandler får en feil i stedet for ufullstendige saksopplysninger.
+     * Kaster når tiltakshistorikken, PDL, Utbetaldata eller Arena ikke svarer, slik at automatiske behandlinger prøves på nytt og saksbehandler får en feil i stedet for ufullstendige saksopplysninger.
      * TODO: Returner Either i stedet for å kaste.
      *  Det krever at typealiasen HentSaksopplysninger og kallerne, både servicene og domenefunksjonene den sendes inn i, får en egen feilvariant med statuskode i rutene.
      */
@@ -153,6 +159,7 @@ class HentSaksopplysingerService(
             correlationId = correlationId,
         ).getOrElse { feil ->
             feil.loggFeil(logger, "henting av tiltaksdeltakelser fra tiltakshistorikk", loggkontekst)
+            // TODO jah: Gjør om til left ved neste korsvei
             throw IllegalStateException("Kunne ikke hente tiltaksdeltakelser fra tiltakshistorikk. $loggkontekst")
         }
         val tiltaksdeltakelserSomKanGiRettTilTiltakspenger: List<Tiltaksdeltakelse.GirRett> = fraTiltakshistorikk.girRett
@@ -234,8 +241,14 @@ class HentSaksopplysingerService(
             } else {
                 Periode(utbetaldataFraOgMed, utbetaldataTilOgMed)
             }
+        val fødselsnumre = hentNåværendeOgHistoriskeFnr(fnr).getOrElse { feil ->
+            val loggkontekst = lagLoggcontext(correlationId = correlationId, sakId = sakId, saksnummer = saksnummer, behandlingId = behandlingId)
+            feil.loggFeil(logger, Sikkerlogg, loggkontekst)
+            // TODO jah: Gjør om til left ved neste korsvei
+            throw IllegalStateException("Kunne ikke hente identer fra PDL. $loggkontekst")
+        }
         val ytelser = sokosUtbetaldataClient.hentYtelserFraUtbetaldata(
-            fnr,
+            fødselsnumre,
             utbetaldataPeriode,
             correlationId,
         ).getOrElse { error ->
@@ -247,6 +260,7 @@ class HentSaksopplysingerService(
                 behandlingId = behandlingId,
             )
             error.loggFeil(logger, "henting av ytelser fra Utbetaldata", loggkontekst)
+            // TODO jah: Gjør om til left ved neste korsvei
             throw IllegalStateException("Kunne ikke hente ytelser fra Utbetaldata. $loggkontekst")
         }
         // TODO: Metadataene fra sokos-utbetaldata (ytelser.metadata) brukes ikke ennå.
@@ -280,6 +294,7 @@ class HentSaksopplysingerService(
                 behandlingId = behandlingId,
             )
             error.loggFeil(logger, "henting av tiltakspengevedtak fra Arena", loggkontekst)
+            // TODO jah: Gjør om til left ved neste korsvei
             throw IllegalStateException("Kunne ikke hente tiltakspengevedtak fra Arena. $loggkontekst")
         }
         return TiltakspengevedtakFraArena.fromList(

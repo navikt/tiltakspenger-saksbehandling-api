@@ -18,8 +18,10 @@ import no.nav.tiltakspenger.libs.dato.oktober
 import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
+import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.person.Fødselsnumre
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.request.SokosHentUtbetalingsinformasjonRequest
@@ -90,16 +92,61 @@ class SokosUtbetaldataHttpClientTest {
         }
 
         runTest {
-            val svar = client(transport).hentYtelserFraUtbetaldata(fnr, periode, correlationId)
+            val svar = client(transport).hentYtelserFraUtbetaldata(Fødselsnumre(fnr), periode, correlationId)
             svar.map { it.ytelser } shouldBe listOf(
                 Ytelse.Kjent(ytelsetype = Ytelsetype.AAP, kildetekst = "Arbeidsavklaringspenger", perioder = listOf(Periode(fom, tom))),
             ).right()
-            svar.getOrNull()!!.metadata.svar shouldContain "\"ytelsestype\":\"Arbeidsavklaringspenger\""
+            svar.getOrNull()!!.metadata.single().svar shouldContain "\"ytelsestype\":\"Arbeidsavklaringspenger\""
         }
 
         val kall = transport.mottatteKall.single()
         kall.metode shouldBe "POST"
         kall.uri.toString() shouldBe "$baseUrl/utbetaldata/api/v2/hent-utbetalingsinformasjon/intern"
+    }
+
+    @Test
+    fun `slår opp hver ident etter tur og slår sammen ytelsene`() {
+        val tidligereFnr = Fnr.random()
+        val senere = Periode(tom.plusDays(1), tom.plusDays(10))
+
+        fun svarMed(periode: Periode): List<SokosUtbetalingResponse> {
+            return listOf(
+                SokosUtbetalingResponse(
+                    ytelseListe = listOf(
+                        SokosUtbetalingResponse.YtelseDto(
+                            ytelsestype = "Arbeidsavklaringspenger",
+                            ytelsesperiode = SokosUtbetalingResponse.UtbetalingsperiodeDto(fom = periode.fraOgMed, tom = periode.tilOgMed),
+                        ),
+                    ),
+                ),
+            )
+        }
+        val transport = FakeHttpTransport().apply {
+            leggIKøJson(svarMed(periode), statusCode = 200)
+            leggIKøJson(svarMed(senere), statusCode = 200)
+        }
+
+        runTest {
+            val svar = client(transport).hentYtelserFraUtbetaldata(Fødselsnumre(fnr, listOf(tidligereFnr)), periode, correlationId).getOrNull()!!
+
+            svar.ytelser shouldBe listOf(
+                Ytelse.Kjent(ytelsetype = Ytelsetype.AAP, kildetekst = "Arbeidsavklaringspenger", perioder = listOf(periode, senere)),
+            )
+            svar.metadata.size shouldBe 2
+        }
+        transport.mottatteKall.map { objectMapper.readTree(it.bodyTekst)["ident"].asText() } shouldBe listOf(fnr.verdi, tidligereFnr.verdi)
+    }
+
+    @Test
+    fun `stopper ved første ident som feiler`() {
+        val transport = FakeHttpTransport().apply {
+            leggIKøStatus(statusCode = 500, body = "feil", contentType = "text/plain")
+        }
+
+        runTest {
+            client(transport).hentYtelserFraUtbetaldata(Fødselsnumre(fnr, listOf(Fnr.random())), periode, correlationId).isLeft() shouldBe true
+        }
+        transport.mottatteKall.size shouldBe 1
     }
 
     @Test
@@ -121,7 +168,7 @@ class SokosUtbetaldataHttpClientTest {
         }
 
         runTest {
-            client(transport).hentYtelserFraUtbetaldata(fnr, periode, correlationId).map { it.ytelser } shouldBe listOf(
+            client(transport).hentYtelserFraUtbetaldata(Fødselsnumre(fnr), periode, correlationId).map { it.ytelser } shouldBe listOf(
                 Ytelse.Ukjent(kildetekst = null, perioder = listOf(Periode(fom, tom))),
             ).right()
         }
@@ -141,7 +188,7 @@ class SokosUtbetaldataHttpClientTest {
 
         runTest {
             client(transport, klokkeEtterFixturperioden)
-                .hentYtelserFraUtbetaldata(fnr, fixturperiode, correlationId).map { it.ytelser } shouldBe listOf(
+                .hentYtelserFraUtbetaldata(Fødselsnumre(fnr), fixturperiode, correlationId).map { it.ytelser } shouldBe listOf(
                 Ytelse.Kjent(
                     ytelsetype = Ytelsetype.TILTAKSPENGER,
                     kildetekst = "Tiltakspenger",
@@ -176,7 +223,7 @@ class SokosUtbetaldataHttpClientTest {
 
         runTest {
             client(transport, klokkeEtterFixturperioden)
-                .hentYtelserFraUtbetaldata(fnr, fixturperiode, correlationId).map { it.ytelser } shouldBe
+                .hentYtelserFraUtbetaldata(Fødselsnumre(fnr), fixturperiode, correlationId).map { it.ytelser } shouldBe
                 UtbetalingDtoTestEx.forventedeYtelserFraRiktSvar.right()
         }
     }
@@ -189,7 +236,7 @@ class SokosUtbetaldataHttpClientTest {
         val meterRegistry = SimpleMeterRegistry()
 
         runTest {
-            client(transport, klokkeEtterFixturperioden, meterRegistry).hentYtelserFraUtbetaldata(fnr, fixturperiode, correlationId)
+            client(transport, klokkeEtterFixturperioden, meterRegistry).hentYtelserFraUtbetaldata(Fødselsnumre(fnr), fixturperiode, correlationId)
 
             meterRegistry.find("tpts_saksbehandlingapi_utbetaldata_ukjente_ytelser").counters()
                 .associate { it.id.getTag("ytelsestype") to it.count() } shouldBe mapOf("Økonomisk sosialhjelp" to 1.0)
@@ -205,7 +252,7 @@ class SokosUtbetaldataHttpClientTest {
 
         runTest {
             client(transport, klokkeEtterFixturperioden)
-                .hentYtelserFraUtbetaldata(fnr, fixturperiode, correlationId).map { it.ytelser } shouldBe listOf(
+                .hentYtelserFraUtbetaldata(Fødselsnumre(fnr), fixturperiode, correlationId).map { it.ytelser } shouldBe listOf(
                 Ytelse.Kjent(
                     ytelsetype = Ytelsetype.TILTAKSPENGER,
                     kildetekst = "Tiltakspenger",
@@ -223,7 +270,7 @@ class SokosUtbetaldataHttpClientTest {
 
         runTest {
             client(transport, klokkeEtterFixturperioden)
-                .hentYtelserFraUtbetaldata(fnr, fixturperiode, correlationId).map { it.ytelser } shouldBe emptyList<Ytelse>().right()
+                .hentYtelserFraUtbetaldata(Fødselsnumre(fnr), fixturperiode, correlationId).map { it.ytelser } shouldBe emptyList<Ytelse>().right()
         }
     }
 
@@ -241,7 +288,7 @@ class SokosUtbetaldataHttpClientTest {
 
         runTest {
             client(transport, klokkeEtterFixturperioden)
-                .hentYtelserFraUtbetaldata(fnr, fixturperiode, correlationId)
+                .hentYtelserFraUtbetaldata(Fødselsnumre(fnr), fixturperiode, correlationId)
         }
 
         val kall = transport.mottatteKall.single()
@@ -276,7 +323,7 @@ class SokosUtbetaldataHttpClientTest {
 
         runTest {
             shouldThrowWithMessage<IllegalStateException>("Utbetaldata godtar ikke datoer frem i tid.") {
-                client(transport).hentYtelserFraUtbetaldata(fnr, fremtidigPeriode, correlationId)
+                client(transport).hentYtelserFraUtbetaldata(Fødselsnumre(fnr), fremtidigPeriode, correlationId)
             }
         }
 

@@ -1,5 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.person.infra.http
 
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.containing
+import com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.marcinziolo.kotlin.wiremock.equalTo
 import com.marcinziolo.kotlin.wiremock.post
 import com.marcinziolo.kotlin.wiremock.returns
@@ -13,6 +18,7 @@ import no.nav.tiltakspenger.libs.common.withWireMockServer
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
+import no.nav.tiltakspenger.saksbehandling.person.Fødselsnumre
 import org.junit.jupiter.api.Test
 
 /**
@@ -28,6 +34,41 @@ class PersonHttpklientTest {
         clock = fixedClock,
         getToken = { ObjectMother.accessToken() },
     )
+
+    @Test
+    fun `gir nåværende fnr først og deretter de historiske fra PDL`() {
+        val tidligereFnr = Fnr.random()
+        withWireMockServer { wiremock ->
+            wiremock.post {
+                url equalTo "/graphql"
+            } returns {
+                statusCode = 200
+                header = "Content-Type" to "application/json"
+                body = """
+                    {
+                      "data": {
+                        "hentIdenter": {
+                          "identer": [
+                            { "ident": "${tidligereFnr.verdi}", "historisk": true, "gruppe": "FOLKEREGISTERIDENT" },
+                            { "ident": "${fnr.verdi}", "historisk": false, "gruppe": "FOLKEREGISTERIDENT" }
+                          ]
+                        }
+                      }
+                    }
+                """.trimIndent()
+            }
+
+            runTest {
+                klient(wiremock.baseUrl()).hentNåværendeOgHistoriskeFnr(fnr).getOrNull() shouldBe Fødselsnumre(fnr, listOf(tidligereFnr))
+            }
+            wiremock.verify(
+                postRequestedFor(urlEqualTo("/graphql"))
+                    .withRequestBody(containing("historikk: true"))
+                    .withRequestBody(containing("FOLKEREGISTERIDENT"))
+                    .withRequestBody(matchingJsonPath("$.variables.ident", WireMock.equalTo(fnr.verdi))),
+            )
+        }
+    }
 
     @Test
     fun `gir graderingen per person`() {

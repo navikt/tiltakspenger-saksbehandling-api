@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.ytelser
 
+import arrow.core.nonEmptyListOf
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -153,7 +154,7 @@ class YtelserSaksopplysningTest {
             ytelser.value shouldBe UtbetalingDtoTestEx.forventedeYtelserFraRiktSvar
             ytelser.oppslagsperiode shouldBe forventetOppslagsperiode
             tac.utbetaldataOppslag.distinct() shouldBe listOf(
-                SokosUtbetaldataFakeClient.Oppslag(fnr = fnr, periode = forventetOppslagsperiode),
+                SokosUtbetaldataFakeClient.Oppslag(identer = nonEmptyListOf(fnr), periode = forventetOppslagsperiode),
             )
             // Perioden vi spurte om må romme svaret vi lagrer, ellers pinner testen noe utbetaldata ikke kunne svart.
             UtbetalingDtoTestEx.forventedeYtelserFraRiktSvar.flatMap { it.perioder }.forAll {

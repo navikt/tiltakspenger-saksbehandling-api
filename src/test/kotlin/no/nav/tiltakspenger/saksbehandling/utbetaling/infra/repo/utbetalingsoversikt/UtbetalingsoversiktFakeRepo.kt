@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.utbetalingsoversikt
 
+import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktMetadata
@@ -11,7 +12,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 class UtbetalingsoversiktFakeRepo : UtbetalingsoversiktRepo {
     private val oversikter = CopyOnWriteArrayList<Utbetalingsoversikt>()
 
-    override fun lagre(oversikt: Utbetalingsoversikt, metadata: UtbetalingsoversiktMetadata) {
+    override fun lagre(oversikt: Utbetalingsoversikt, metadata: NonEmptyList<UtbetalingsoversiktMetadata>) {
         oversikter.add(oversikt)
     }
 

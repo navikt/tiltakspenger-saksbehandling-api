@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.utbetalingsoversikt
 
+import arrow.core.NonEmptyList
 import kotliquery.Row
 import kotliquery.Session
 import no.nav.tiltakspenger.libs.common.SakId
@@ -24,7 +25,7 @@ class UtbetalingsoversiktPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val oppfølgesFra: LocalDateTime?,
 ) : UtbetalingsoversiktRepo {
-    override fun lagre(oversikt: Utbetalingsoversikt, metadata: UtbetalingsoversiktMetadata) {
+    override fun lagre(oversikt: Utbetalingsoversikt, metadata: NonEmptyList<UtbetalingsoversiktMetadata>) {
         sessionFactory.withSession { session ->
             session.run(
                 sqlQuery(

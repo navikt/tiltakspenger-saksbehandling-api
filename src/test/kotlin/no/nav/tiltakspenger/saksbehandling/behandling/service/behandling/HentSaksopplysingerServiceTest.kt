@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
 import io.kotest.assertions.throwables.shouldThrow
@@ -35,6 +36,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Yt
 import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import no.nav.tiltakspenger.saksbehandling.felles.uventetStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.person.Fødselsnumre
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
@@ -102,7 +104,7 @@ class HentSaksopplysingerServiceTest {
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {
                 override suspend fun hentYtelserFraUtbetaldata(
-                    fnr: Fnr,
+                    fødselsnumre: Fødselsnumre,
                     periode: Periode,
                     correlationId: CorrelationId,
                 ) = ingenYtelser().right()
@@ -172,6 +174,7 @@ class HentSaksopplysingerServiceTest {
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
                 hentPersonopplysninger = { fyr },
+                hentNåværendeOgHistoriskeFnr = { Fødselsnumre(it).right() },
                 tiltaksdeltakelseKlient = tiltaksdeltakelseKlient,
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
@@ -247,7 +250,7 @@ class HentSaksopplysingerServiceTest {
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {
                 override suspend fun hentYtelserFraUtbetaldata(
-                    fnr: Fnr,
+                    fødselsnumre: Fødselsnumre,
                     periode: Periode,
                     correlationId: CorrelationId,
                 ) = ingenYtelser().right()
@@ -317,6 +320,7 @@ class HentSaksopplysingerServiceTest {
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
                 hentPersonopplysninger = { fyr },
+                hentNåværendeOgHistoriskeFnr = { Fødselsnumre(it).right() },
                 tiltaksdeltakelseKlient = tiltaksdeltakelseKlient,
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
@@ -385,7 +389,7 @@ class HentSaksopplysingerServiceTest {
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {
                 override suspend fun hentYtelserFraUtbetaldata(
-                    fnr: Fnr,
+                    fødselsnumre: Fødselsnumre,
                     periode: Periode,
                     correlationId: CorrelationId,
                 ) = ingenYtelser().right()
@@ -462,6 +466,7 @@ class HentSaksopplysingerServiceTest {
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
                 hentPersonopplysninger = { fyr },
+                hentNåværendeOgHistoriskeFnr = { Fødselsnumre(it).right() },
                 tiltaksdeltakelseKlient = tiltaksdeltakelseKlient,
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
@@ -552,7 +557,7 @@ class HentSaksopplysingerServiceTest {
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {
                 override suspend fun hentYtelserFraUtbetaldata(
-                    fnr: Fnr,
+                    fødselsnumre: Fødselsnumre,
                     periode: Periode,
                     correlationId: CorrelationId,
                 ) = ingenYtelser().right()
@@ -646,6 +651,7 @@ class HentSaksopplysingerServiceTest {
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
                 hentPersonopplysninger = { fyr },
+                hentNåværendeOgHistoriskeFnr = { Fødselsnumre(it).right() },
                 tiltaksdeltakelseKlient = tiltaksdeltakelseKlient,
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
@@ -730,7 +736,7 @@ class HentSaksopplysingerServiceTest {
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {
                 override suspend fun hentYtelserFraUtbetaldata(
-                    fnr: Fnr,
+                    fødselsnumre: Fødselsnumre,
                     periode: Periode,
                     correlationId: CorrelationId,
                 ) = ingenYtelser().right()
@@ -824,6 +830,7 @@ class HentSaksopplysingerServiceTest {
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
                 hentPersonopplysninger = { fyr },
+                hentNåværendeOgHistoriskeFnr = { Fødselsnumre(it).right() },
                 tiltaksdeltakelseKlient = tiltaksdeltakelseKlient,
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
@@ -971,6 +978,7 @@ class HentSaksopplysingerServiceTest {
         }
         return HentSaksopplysingerService(
             hentPersonopplysninger = { ObjectMother.personopplysningKjedeligFyr(fnr = it) },
+            hentNåværendeOgHistoriskeFnr = { Fødselsnumre(it).right() },
             tiltaksdeltakelseKlient = object : TiltaksdeltakelseKlient {
                 override suspend fun hentTiltaksdeltakelser(
                     fnr: Fnr,
@@ -992,7 +1000,7 @@ class HentSaksopplysingerServiceTest {
             },
             sokosUtbetaldataClient = object : SokosUtbetaldataClient {
                 override suspend fun hentYtelserFraUtbetaldata(
-                    fnr: Fnr,
+                    fødselsnumre: Fødselsnumre,
                     periode: Periode,
                     correlationId: CorrelationId,
                 ) = ytelser
@@ -1010,4 +1018,4 @@ class HentSaksopplysingerServiceTest {
     }
 }
 
-private fun ingenYtelser() = YtelserMedMetadata(ytelser = emptyList(), metadata = ObjectMother.httpKlientResponse(body = Unit).metadata.tilUtbetalingsoversiktMetadata(CorrelationId.generate()))
+private fun ingenYtelser() = YtelserMedMetadata(ytelser = emptyList(), metadata = nonEmptyListOf(ObjectMother.httpKlientResponse(body = Unit).metadata.tilUtbetalingsoversiktMetadata(CorrelationId.generate())))
