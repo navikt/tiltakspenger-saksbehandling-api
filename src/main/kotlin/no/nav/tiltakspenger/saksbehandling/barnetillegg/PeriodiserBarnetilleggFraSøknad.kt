@@ -23,18 +23,29 @@ fun List<BarnetilleggFraSøknad>.periodiserAntallBarn(periode: Periode): Sammenh
         .filter { it.oppholderSegIEØS.erJa() }
         .mapNotNull { it.periodeMedRettPåBarnetillegg().overlappendePeriode(periode) }
 
-    // Antallet kan bare endre seg på dagen et barn får eller mister rett, så det holder å telle på disse dagene.
+    return rettsperioder.periodiserAntall(periode)
+}
+
+/**
+ * Teller hvor mange av periodene i lista som dekker hver dag i [periode].
+ * Dekker hele [periode], der dager uten noen perioder får 0 barn.
+ * Tilstøtende perioder med samme antall barn er slått sammen.
+ */
+fun List<Periode>.periodiserAntall(periode: Periode): SammenhengendePeriodisering<AntallBarn> {
+    val perioder = this.mapNotNull { it.overlappendePeriode(periode) }
+
+    // Antallet kan bare endre seg på dagen en periode starter eller slutter, så det holder å telle på disse dagene.
     val endringsdager = (
         listOf(periode.fraOgMed) +
-            rettsperioder.map { it.fraOgMed } +
-            rettsperioder.map { it.tilOgMed.plusDays(1) }.filter { it <= periode.tilOgMed }
+            perioder.map { it.fraOgMed } +
+            perioder.map { it.tilOgMed.plusDays(1) }.filter { it <= periode.tilOgMed }
         ).distinct().sorted()
 
     return endringsdager
         .mapIndexed { index, fraOgMed ->
             val tilOgMed = endringsdager.getOrNull(index + 1)?.minusDays(1) ?: periode.tilOgMed
             PeriodeMedVerdi(
-                verdi = AntallBarn(rettsperioder.count { it.inneholder(fraOgMed) }),
+                verdi = AntallBarn(perioder.count { it.inneholder(fraOgMed) }),
                 periode = fraOgMed til tilOgMed,
             )
         }
@@ -50,7 +61,7 @@ fun List<BarnetilleggFraSøknad>.harBarnSomFårRettI(periode: Periode): Boolean 
     this.any { it.oppholderSegIEØS.erJa() && periode.inneholder(it.periodeMedRettPåBarnetillegg().fraOgMed) }
 
 /** Fra og med fødselsdatoen til og med dagen før barnet fyller 16 år. */
-private fun BarnetilleggFraSøknad.periodeMedRettPåBarnetillegg(): Periode =
-    fødselsdato til sisteDagMedRett()
+private fun BarnetilleggFraSøknad.periodeMedRettPåBarnetillegg(): Periode = periodeMedRettPåBarnetillegg(fødselsdato)
 
-private fun BarnetilleggFraSøknad.sisteDagMedRett(): LocalDate = fødselsdato.plusYears(16).minusDays(1)
+/** Fra og med [fødselsdato] til og med dagen før barnet fyller 16 år. */
+fun periodeMedRettPåBarnetillegg(fødselsdato: LocalDate): Periode = fødselsdato til fødselsdato.plusYears(16).minusDays(1)

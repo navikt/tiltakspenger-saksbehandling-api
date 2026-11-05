@@ -8,12 +8,13 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.utenBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
@@ -27,7 +28,8 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnMedBarnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -72,10 +74,10 @@ class OppdaterSøknadsbehandlingRouteTest {
             val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.first()
             val nyInnvilgelsesperiode = tiltaksdeltakelse.lukketPeriode!!.minusTilOgMed(1)
 
-            val barnetillegg = barnetillegg(
+            val barnetillegg = barnetilleggV2(
                 begrunnelse = Begrunnelse.create("barnetillegg begrunnelse"),
-                periode = nyInnvilgelsesperiode,
-                antallBarn = AntallBarn(1),
+                innvilgelsesperioder = nonEmptyListOf(nyInnvilgelsesperiode),
+                barn = listOf(barnMedBarnetillegg(fornavn = "Ola"), barnMedBarnetillegg(fornavn = "Kari", periode = nyInnvilgelsesperiode.minusTilOgMed(7))),
             )
 
             val antallDager = SammenhengendePeriodisering(
@@ -109,6 +111,30 @@ class OppdaterSøknadsbehandlingRouteTest {
     }
 
     @Test
+    fun `barnetillegg for et barn fra en søknad som ikke finnes i saken avvises`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+            val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.first()
+            val innvilgelsesperiode = tiltaksdeltakelse.lukketPeriode!!
+
+            val (_, _, responseJson) = oppdaterSøknadsbehandlingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode, tiltaksdeltakelse),
+                barnetillegg = barnetilleggV2(
+                    innvilgelsesperioder = nonEmptyListOf(innvilgelsesperiode),
+                    barn = listOf(barnMedBarnetillegg(kilde = BarnMedBarnetillegg.Kilde.Søknad(SøknadId.random()))),
+                ),
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+            )
+
+            JSONObject(responseJson).getString("kode") shouldBe "ugyldig_barnetillegg"
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).barnetillegg.shouldBeNull()
+        }
+    }
+
+    @Test
     fun `kan oppdatere innvilget søknadsbehandling uten brev`() {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
@@ -116,10 +142,10 @@ class OppdaterSøknadsbehandlingRouteTest {
             val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.first()
             val nyInnvilgelsesperiode = tiltaksdeltakelse.lukketPeriode!!.minusTilOgMed(1)
 
-            val barnetillegg = barnetillegg(
+            val barnetillegg = barnetilleggV2(
                 begrunnelse = Begrunnelse.create("barnetillegg begrunnelse"),
-                periode = nyInnvilgelsesperiode,
-                antallBarn = AntallBarn(1),
+                innvilgelsesperioder = nonEmptyListOf(nyInnvilgelsesperiode),
+                barn = listOf(barnMedBarnetillegg(fornavn = "Ola"), barnMedBarnetillegg(fornavn = "Kari", periode = nyInnvilgelsesperiode.minusTilOgMed(7))),
             )
 
             val antallDager = SammenhengendePeriodisering(

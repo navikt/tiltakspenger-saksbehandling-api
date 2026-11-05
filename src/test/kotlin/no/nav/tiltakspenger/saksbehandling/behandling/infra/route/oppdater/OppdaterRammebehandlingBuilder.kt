@@ -18,9 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.tiltaksdeltakelsenSomForlenges
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.OppdaterBarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilBarnetilleggPerioderDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilOppdaterBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilHjemmelForOpphørDTO
@@ -323,7 +321,7 @@ interface OppdaterRammebehandlingBuilder {
               "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
               "tilOgMed": "$tilOgMed",
               "internDeltakelseId": "${tiltaksdeltakerId ?: tac.sakContext.sakRepo.hentForSakId(sakId)!!.tiltaksdeltakelsenSomForlenges(behandlingId)}",
-              "barnetillegg": ${barnetillegg?.let { serialize(OppdaterBarnetilleggDTO(perioder = it.periodisering.tilBarnetilleggPerioderDTO(), begrunnelse = it.begrunnelse?.verdi)) }},
+              "barnetillegg": ${barnetillegg?.let { serialize(it.tilOppdaterBarnetilleggDTO()) }},
               "skalSendeVedtaksbrev": true,
               "skalJournalføreNotat": ${serialize(SkalJournalføreNotat.INGEN.tilDTO())}
             }
@@ -449,25 +447,7 @@ interface OppdaterRammebehandlingBuilder {
                 """.trimIndent()
             }
         }],
-            "barnetillegg": ${
-            barnetillegg.toBarnetilleggDTO().let { bt ->
-                """
-                        {
-                            "begrunnelse": ${bt.begrunnelse.verdi?.medQuotes()},
-                            "perioder": [${
-                    bt.perioder.joinToString(",") {
-                        """
-                                    {
-                                        "periode": ${serialize(it.periode)},
-                                        "antallBarn": ${it.antallBarn} 
-                                    }
-                        """.trimIndent()
-                    }
-                }]                                                  
-                        }
-                """.trimIndent()
-            }
-        },
+            "barnetillegg": ${serialize(barnetillegg.tilOppdaterBarnetilleggDTO())},
         "skalSendeVedtaksbrev": $skalSendeVedtaksbrev,
         "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
         "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())}

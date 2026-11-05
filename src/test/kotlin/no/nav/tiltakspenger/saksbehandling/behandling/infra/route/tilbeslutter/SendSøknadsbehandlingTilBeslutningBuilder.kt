@@ -38,6 +38,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
         tiltaksdeltakelse: TiltaksdeltakelseIntern = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.flatten().distinct().single(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         barnFraSøknad: List<BarnetilleggFraSøknad> = emptyList(),
+        barnetilleggForSøknad: ((Søknad) -> Barnetillegg)? = null,
     ): Tuple4<Sak, Søknad, RammebehandlingId, String> {
         val (sak, søknad, behandling) = when (resultat) {
             SøknadsbehandlingsresultatType.INNVILGELSE -> opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
@@ -50,6 +51,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
                 barnetillegg = barnetillegg,
                 tiltaksdeltakelse = tiltaksdeltakelse,
                 barnFraSøknad = barnFraSøknad,
+                barnetilleggForSøknad = barnetilleggForSøknad,
             )
 
             SøknadsbehandlingsresultatType.AVSLAG -> opprettSøknadsbehandlingUnderBehandlingMedAvslag(

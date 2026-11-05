@@ -11,9 +11,7 @@ import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev.Companion.toFritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ValgtBarnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilPeriodisering
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.OppdaterBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.HjemmelForOpphørDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.HjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperioderDTO
@@ -61,7 +59,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
 
     data class SøknadsbehandlingInnvilgelse(
         val fritekst: String?,
-        val barnetillegg: List<BarnetilleggPeriodeDTO>?,
+        val barnetillegg: OppdaterBarnetilleggDTO?,
         val innvilgelsesperioder: InnvilgelsesperioderDTO,
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
@@ -77,7 +75,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
                 saksbehandler = saksbehandler,
                 fritekstTilVedtaksbrev = fritekst?.toFritekstTilVedtaksbrev(),
                 innvilgelsesperioder = innvilgelsesperioder.tilKommando(),
-                barnetillegg = if (barnetillegg.isNullOrEmpty()) null else (barnetillegg.tilPeriodisering() as IkkeTomPeriodisering),
+                barnetillegg = barnetillegg.tilAntallBarn(innvilgelsesperioder),
             )
         }
     }
@@ -105,7 +103,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
 
     data class RevurderingInnvilgelse(
         val fritekst: String?,
-        val barnetillegg: List<BarnetilleggPeriodeDTO>?,
+        val barnetillegg: OppdaterBarnetilleggDTO?,
         val innvilgelsesperioder: InnvilgelsesperioderDTO,
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
@@ -121,7 +119,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
                 saksbehandler = saksbehandler,
                 fritekstTilVedtaksbrev = fritekst?.toFritekstTilVedtaksbrev(),
                 innvilgelsesperioder = innvilgelsesperioder.tilKommando(),
-                barnetillegg = if (barnetillegg.isNullOrEmpty()) null else (barnetillegg.tilPeriodisering() as IkkeTomPeriodisering),
+                barnetillegg = barnetillegg.tilAntallBarn(innvilgelsesperioder),
             )
         }
     }
@@ -153,7 +151,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
     data class OmgjøringInnvilgelse(
         val fritekst: String?,
         val innvilgelsesperioder: InnvilgelsesperioderDTO,
-        val barnetillegg: List<BarnetilleggPeriodeDTO>?,
+        val barnetillegg: OppdaterBarnetilleggDTO?,
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
             sakId: SakId,
@@ -168,7 +166,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
                 saksbehandler = saksbehandler,
                 fritekstTilVedtaksbrev = fritekst?.toFritekstTilVedtaksbrev(),
                 innvilgelsesperioder = innvilgelsesperioder.tilKommando(),
-                barnetillegg = if (barnetillegg.isNullOrEmpty()) null else (barnetillegg.tilPeriodisering() as IkkeTomPeriodisering),
+                barnetillegg = barnetillegg.tilAntallBarn(innvilgelsesperioder),
             )
         }
     }
@@ -203,7 +201,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
         val fritekst: String?,
         val tilOgMed: LocalDate,
         val internDeltakelseId: String,
-        val barnetillegg: List<BarnetilleggPeriodeDTO>?,
+        val barnetillegg: OppdaterBarnetilleggDTO?,
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
             sakId: SakId,
@@ -219,13 +217,14 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
                 fritekstTilVedtaksbrev = fritekst?.toFritekstTilVedtaksbrev(),
                 tilOgMed = tilOgMed,
                 tiltaksdeltakerId = TiltaksdeltakerId.fromString(internDeltakelseId),
-                barnetillegg = barnetillegg?.let { perioder ->
-                    ValgtBarnetillegg(
-                        perioderMedBarn = perioder.map { it.periode.toDomain() to AntallBarn(it.antallBarn) },
-                        begrunnelse = null,
-                    )
-                },
+                barnetillegg = barnetillegg?.tilValgtBarnetillegg(),
             )
         }
     }
+}
+
+/** Null når det ikke er barnetillegg, som i brevet. */
+private fun OppdaterBarnetilleggDTO?.tilAntallBarn(innvilgelsesperioder: InnvilgelsesperioderDTO): IkkeTomPeriodisering<AntallBarn>? {
+    if (this == null || this.barn.isEmpty()) return null
+    return tilBarnetillegg(innvilgelsesperioder.tilKommando().perioder).periodisering
 }

@@ -2,92 +2,31 @@ package no.nav.tiltakspenger.saksbehandling.barnetillegg
 
 import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.libs.periode.trekkFra
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.perioder
-import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 
 /**
- * Representerer en periodisering av barnetillegg.
+ * Barnetillegget i en innvilgelse.
+ * Uansett versjon gir [periodisering] antall barn med barnetillegg per dag i innvilgelsesperiodene, og det er den beregning, brev og statistikk bygger på.
+ *
+ * - [BarnetilleggV1]: antall barn per periode, uten å vite hvilke barn, og kun for eldre data.
+ * - [BarnetilleggV2]: de valgte barna, som antall barn utledes fra.
  */
-data class Barnetillegg(
-    val periodisering: IkkeTomPeriodisering<AntallBarn>,
-    val begrunnelse: Begrunnelse?,
-) {
-    val harBarnetillegg: Boolean by lazy {
-        periodisering.any { it.verdi != AntallBarn.ZERO }
-    }
+sealed interface Barnetillegg {
+    val periodisering: IkkeTomPeriodisering<AntallBarn>
+    val begrunnelse: Begrunnelse?
+
+    val harBarnetillegg: Boolean
+        get() = periodisering.any { it.verdi != AntallBarn.ZERO }
 
     fun harBarnetilleggIPeriode(periode: Periode): Boolean {
         return periodisering.overlappendePeriode(periode).any { it.verdi != AntallBarn.ZERO }
     }
 
-    fun krympTilPerioder(perioder: List<Periode>): Barnetillegg? {
-        val krympetPeriodisering = periodisering.perioderMedVerdi.toList().flatMap { bt ->
-            bt.periode.overlappendePerioder(perioder).map {
-                PeriodeMedVerdi(
-                    periode = it,
-                    verdi = bt.verdi,
-                )
-            }
-        }
-
-        if (krympetPeriodisering.isEmpty()) {
-            return null
-        }
-
-        return this.copy(periodisering = krympetPeriodisering.tilIkkeTomPeriodisering())
-    }
+    /** Gir null dersom ingen av dagene i barnetillegget er innenfor [perioder]. */
+    fun krympTilPerioder(perioder: List<Periode>): Barnetillegg?
 
     companion object {
-
-        /** Fyller hullene innenfor innvilgelsesperiodene med 0 barn, men ikke evt hull mellom innvilgelsesperiodene */
-        fun periodiserOgFyllUtHullMed0(
-            perioderMedBarn: NonEmptyList<Pair<Periode, AntallBarn>>,
-            begrunnelse: Begrunnelse?,
-            innvilgelsesperioder: NonEmptyList<Periode>,
-        ): Barnetillegg {
-            val perioderMedBarnetillegg = perioderMedBarn.map {
-                PeriodeMedVerdi(
-                    verdi = it.second,
-                    periode = it.first,
-                )
-            }
-
-            val perioder = perioderMedBarnetillegg.perioder()
-            val perioderUtenInnvilgelse = perioder.trekkFra(innvilgelsesperioder)
-
-            require(perioderUtenInnvilgelse.isEmpty()) {
-                "Barnetilleggsperiodene må være innenfor innvilgelsesperiodene"
-            }
-
-            val perioderUtenBarnetillegg = innvilgelsesperioder.trekkFra(perioder).map {
-                PeriodeMedVerdi(
-                    verdi = AntallBarn.ZERO,
-                    periode = it,
-                )
-            }
-
-            return Barnetillegg(
-                periodisering = perioderMedBarnetillegg.plus(perioderUtenBarnetillegg)
-                    .sortedBy { it.periode.fraOgMed }
-                    .tilIkkeTomPeriodisering(),
-                begrunnelse = begrunnelse,
-            )
-        }
-
-        fun utenBarnetillegg(perioder: NonEmptyList<Periode>): Barnetillegg {
-            return Barnetillegg(
-                periodisering = perioder.map {
-                    PeriodeMedVerdi(
-                        periode = it,
-                        verdi = AntallBarn.ZERO,
-                    )
-                }.tilIkkeTomPeriodisering(),
-                begrunnelse = null,
-            )
-        }
+        fun utenBarnetillegg(perioder: NonEmptyList<Periode>): BarnetilleggV2 = BarnetilleggV2.utenBarnetillegg(perioder)
     }
 }

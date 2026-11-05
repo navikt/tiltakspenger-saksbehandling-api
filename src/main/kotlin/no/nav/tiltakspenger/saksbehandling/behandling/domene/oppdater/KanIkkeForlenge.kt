@@ -25,5 +25,7 @@ sealed interface KanIkkeForlenge : KanIkkeOppdatereBehandling {
     /** Tiltaksdeltakelsen i saksopplysningene dekker ikke hele forlengelsen, eller finnes ikke lenger. */
     data class TiltaksdeltakelsenDekkerIkkeForlengelsen(val forlengelsesperiode: Periode) : KanIkkeForlenge
 
-    data class BarnetilleggetGårUtoverForlengelsen(val forlengelsesperiode: Periode) : KanIkkeForlenge
+    data class UgyldigBarnetillegg(
+        val feil: no.nav.tiltakspenger.saksbehandling.barnetillegg.UgyldigBarnetillegg,
+    ) : KanIkkeForlenge
 }

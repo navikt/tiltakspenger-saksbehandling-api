@@ -6,6 +6,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.UgyldigBarnetilleggException
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForInnvilgelseKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForOpphørKlient
@@ -17,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.barnSomFyller16
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.utledForlengelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeForlenge
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.perioderForReversertOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.tilInnvilgelsesperioderMedReversertOpphør
@@ -176,6 +178,7 @@ class ForhåndsvisRammevedtaksbrevService(
                     tiltaksdeltakerId = kommando.tiltaksdeltakerId,
                     barnetillegg = kommando.barnetillegg,
                 ).getOrElse {
+                    if (it is KanIkkeForlenge.UgyldigBarnetillegg) throw UgyldigBarnetilleggException(it.feil)
                     throw IllegalArgumentException("Kan ikke forhåndsvise vedtaksbrev for forlengelsen ${behandling.id}: $it")
                 }
                 Triple(

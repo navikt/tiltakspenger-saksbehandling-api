@@ -1,11 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
@@ -13,7 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderin
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnMedBarnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.httpKlientUventetStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -34,10 +35,10 @@ class OppdaterRevurderingInnvilgelseRouteTest {
             val tiltaksdeltakelse = revurdering.saksopplysninger.tiltaksdeltakelser.first()
             val nyInnvilgelsesperiode = tiltaksdeltakelse.lukketPeriode!!.minusTilOgMed(1)
 
-            val barnetillegg = barnetillegg(
+            val barnetillegg = barnetilleggV2(
                 begrunnelse = Begrunnelse.create("barnetillegg begrunnelse"),
-                periode = nyInnvilgelsesperiode,
-                antallBarn = AntallBarn(1),
+                innvilgelsesperioder = nonEmptyListOf(nyInnvilgelsesperiode),
+                barn = listOf(barnMedBarnetillegg(fornavn = "Ola"), barnMedBarnetillegg(fornavn = "Kari", periode = nyInnvilgelsesperiode.minusTilOgMed(7))),
             )
 
             val antallDager = SammenhengendePeriodisering(
@@ -76,10 +77,10 @@ class OppdaterRevurderingInnvilgelseRouteTest {
             val tiltaksdeltakelse = revurdering.saksopplysninger.tiltaksdeltakelser.first()
             val nyInnvilgelsesperiode = tiltaksdeltakelse.lukketPeriode!!.minusTilOgMed(1)
 
-            val barnetillegg = barnetillegg(
+            val barnetillegg = barnetilleggV2(
                 begrunnelse = Begrunnelse.create("barnetillegg begrunnelse"),
-                periode = nyInnvilgelsesperiode,
-                antallBarn = AntallBarn(1),
+                innvilgelsesperioder = nonEmptyListOf(nyInnvilgelsesperiode),
+                barn = listOf(barnMedBarnetillegg(fornavn = "Ola"), barnMedBarnetillegg(fornavn = "Kari", periode = nyInnvilgelsesperiode.minusTilOgMed(7))),
             )
 
             val antallDager = SammenhengendePeriodisering(

@@ -46,6 +46,7 @@ interface IverksettSøknadsbehandlingBuilder {
         tiltaksdeltakelse: TiltaksdeltakelseIntern = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.flatten().distinct().single(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         barnFraSøknad: List<BarnetilleggFraSøknad> = emptyList(),
+        barnetilleggForSøknad: ((Søknad) -> Barnetillegg)? = null,
     ): Tuple4<Sak, Søknad, Rammevedtak, RammebehandlingDTOJson> {
         val (sak, søknad, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(
             tac = tac,
@@ -58,6 +59,7 @@ interface IverksettSøknadsbehandlingBuilder {
             tiltaksdeltakelse = tiltaksdeltakelse,
             saksbehandler = saksbehandler,
             barnFraSøknad = barnFraSøknad,
+            barnetilleggForSøknad = barnetilleggForSøknad,
         )
 
         taRammebehandlinger(tac, behandlinger = listOf(sak.id to behandlingId), saksbehandler = beslutter)

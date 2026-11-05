@@ -12,7 +12,11 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
@@ -157,17 +161,69 @@ fun Sak.utledAutomatiskOmgjøringAvSluttdato(
  * Det gjeldende barnetillegget i [vedtaksperiode], sammenstilt fra vedtakene som gjelder i perioden.
  * Begrunnelsen hentes fra det sist opprettede vedtaket i perioden som har en begrunnelse for barnetillegget.
  * Gir null dersom ingen av vedtakene har barnetillegg.
+ *
+ * Har alle vedtakene i perioden [BarnetilleggV2], blir også resultatet V2, se [slåSammenBarnetilleggV2].
+ * Ellers blir det [BarnetilleggV1] med antall barn fra tidslinjen.
  */
 private fun Rammevedtaksliste.gjeldendeBarnetillegg(vedtaksperiode: Periode): Barnetillegg? {
-    val barnetilleggIVedtakene = innvilgetTidslinje.krymp(vedtaksperiode).perioderMedVerdi
+    val vedtakIPerioden = innvilgetTidslinje.krymp(vedtaksperiode).perioderMedVerdi
+    val barnetilleggIVedtakene = vedtakIPerioden
         .map { it.verdi }
         .sortedBy { it.opprettet }
         .mapNotNull { it.barnetillegg }
         .ifEmpty { return null }
-    return Barnetillegg(
-        periodisering = barnetilleggsperioder.krymp(vedtaksperiode).perioderMedVerdi.tilIkkeTomPeriodisering(),
-        begrunnelse = barnetilleggIVedtakene.mapNotNull { it.begrunnelse }.lastOrNull(),
-    )
+    val begrunnelse = barnetilleggIVedtakene.mapNotNull { it.begrunnelse }.lastOrNull()
+    val antallBarn = barnetilleggsperioder.krymp(vedtaksperiode).perioderMedVerdi.tilIkkeTomPeriodisering()
+
+    return slåSammenBarnetilleggV2(
+        barnetilleggIPerioder = vedtakIPerioden.map { it.verdi.barnetillegg to it.periode },
+        antallBarn = antallBarn,
+        begrunnelse = begrunnelse,
+    ) ?: BarnetilleggV1(periodisering = antallBarn, begrunnelse = begrunnelse)
+}
+
+/**
+ * Slår sammen barnetillegget i periodene til ett [BarnetilleggV2], slik at det fortsatt er kjent hvilke barn det gjelder.
+ * Gjelder ett barnetillegg i alle periodene, brukes det som det er.
+ * Ellers får hvert barn en valgt periode som dekker dagene barnet har barnetillegg i periodene.
+ *
+ * Gir null dersom et av barnetilleggene ikke er V2, eller om resultatet ville gitt et annet antall barn enn [antallBarn].
+ * Det siste kan skje når et barn har barnetillegg i flere perioder med opphold mellom.
+ */
+private fun slåSammenBarnetilleggV2(
+    barnetilleggIPerioder: List<Pair<Barnetillegg?, Periode>>,
+    antallBarn: IkkeTomPeriodisering<AntallBarn>,
+    begrunnelse: Begrunnelse?,
+): BarnetilleggV2? {
+    val barnetilleggV2 = barnetilleggIPerioder.map { (barnetillegg, periode) -> (barnetillegg as? BarnetilleggV2 ?: return null) to periode }
+    val innvilgelsesperioder = antallBarn.perioder.leggSammen().toNonEmptyListOrNull()!!
+
+    val sammenslått = barnetilleggV2.map { it.first }.distinct().singleOrNull()
+        ?.copy(begrunnelse = begrunnelse)
+        ?: BarnetilleggV2(
+            barn = barnetilleggV2
+                .flatMap { (barnetillegg, periode) ->
+                    barnetillegg.barn.map { barn -> barn to barnetillegg.perioderMedBarnetillegg(barn).mapNotNull { it.overlappendePeriode(periode) } }
+                }
+                .fold(emptyList<Pair<BarnMedBarnetillegg, List<Periode>>>()) { acc, (barn, perioder) ->
+                    val eksisterende = acc.find { it.first.erSammeBarn(barn) }
+                    if (eksisterende == null) {
+                        acc + (barn to perioder)
+                    } else {
+                        acc - eksisterende + (eksisterende.first to eksisterende.second + perioder)
+                    }
+                }
+                .mapNotNull { (barn, perioder) ->
+                    val sortert = perioder.sortedBy { it.fraOgMed }.ifEmpty { return@mapNotNull null }
+                    barn.copy(periode = sortert.first().fraOgMed til sortert.maxOf { it.tilOgMed })
+                },
+            innvilgelsesperioder = innvilgelsesperioder,
+            begrunnelse = begrunnelse,
+        )
+
+    return sammenslått.takeIf {
+        it.krympTilPerioder(innvilgelsesperioder)?.periodisering?.perioderMedVerdi?.toList() == antallBarn.perioderMedVerdi.toList()
+    }
 }
 
 /**

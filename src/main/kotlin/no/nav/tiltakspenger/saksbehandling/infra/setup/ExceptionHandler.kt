@@ -8,10 +8,12 @@ import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.libs.ktor.common.respond404NotFound
 import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.UgyldigBarnetilleggException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.ikkeFunnet
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.serverfeil
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.ugyldigBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.ugyldigJournalpostIdInput
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.ugyldigRequest
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.route.JournalpostIdInputValidationException
@@ -45,6 +47,11 @@ object ExceptionHandler {
                         ),
                     )
                 }
+            }
+
+            is UgyldigBarnetilleggException -> {
+                logger.warn(cause) { loggmelding }
+                call.run { respond400BadRequest(errorJson = ugyldigBarnetillegg(cause.feil.melding)) }
             }
 
             is TilgangException -> {

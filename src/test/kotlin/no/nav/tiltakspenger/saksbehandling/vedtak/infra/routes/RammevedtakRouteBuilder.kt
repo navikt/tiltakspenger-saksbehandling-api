@@ -47,6 +47,8 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
     barnetillegg: String? = """
         {
             "begrunnelse": {"verdi": null, "erSladdet": false},
+            "versjon": "V2",
+            "barn": [],
             "perioder": [
               {
                 "antallBarn": 0,

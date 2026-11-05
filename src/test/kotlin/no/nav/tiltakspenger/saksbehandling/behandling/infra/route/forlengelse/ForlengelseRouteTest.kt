@@ -19,17 +19,19 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.lagreBarnetilleggSomV1
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.BarnSomFyller16
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ForlengerRammevedtak
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilBarnetilleggPerioderDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilOppdaterBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetilleggForBarnISøknaden
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetilleggMedIdent
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
@@ -44,6 +46,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRe
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.json.JSONObject
@@ -61,6 +64,7 @@ class ForlengelseRouteTest {
         tac: TestApplicationContext,
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(nonEmptyListOf(vedtaksperiode)),
         barnFraSøknad: List<BarnetilleggFraSøknad> = emptyList(),
+        barnetilleggForSøknad: ((Søknad) -> Barnetillegg)? = null,
     ): Pair<Sak, Rammevedtak> {
         val deltakelse = tac.tiltaksdeltakelse(1.januar(2025) til 30.juni(2025))
         val (sak, _, vedtak) = iverksettSøknadsbehandling(
@@ -69,6 +73,7 @@ class ForlengelseRouteTest {
             innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode, deltakelse),
             barnetillegg = barnetillegg,
             barnFraSøknad = barnFraSøknad,
+            barnetilleggForSøknad = barnetilleggForSøknad,
         )
         return sak to vedtak
     }
@@ -105,8 +110,8 @@ class ForlengelseRouteTest {
     private suspend fun ApplicationTestBuilder.iverksettVedtakDerEttAvToBarnFyller16IForlengelsen(tac: TestApplicationContext) =
         iverksettVedtakSomKanForlenges(
             tac = tac,
-            barnetillegg = barnetillegg(periode = vedtaksperiode, antallBarn = AntallBarn(2)),
             barnFraSøknad = barnFraSøknadDerEttFyller16,
+            barnetilleggForSøknad = barnetilleggForBarnISøknaden(nonEmptyListOf(vedtaksperiode)),
         )
 
     /** Barna som fyller 16 år, i brevet som forhåndsvises for forlengelsen med [tilOgMed] og eventuelt [barnetillegg] valgt av saksbehandler. */
@@ -123,7 +128,7 @@ class ForlengelseRouteTest {
             behandlingId = behandling.id,
             resultat = RammebehandlingResultatTypeDTO.FORLENGELSE,
             tilOgMed = tilOgMed,
-            barnetillegg = barnetillegg?.periodisering?.tilBarnetilleggPerioderDTO(),
+            barnetillegg = barnetillegg?.tilOppdaterBarnetilleggDTO(),
         )
         return tac.forlengelsesbrev.last().also { it.forhåndsvisning shouldBe true }.barnSomFyller16
     }
@@ -231,7 +236,7 @@ class ForlengelseRouteTest {
     }
 
     @Test
-    fun `barnetillegget utledes fra søknaden for tiltaket saksbehandler velger å forlenge`() {
+    fun `barnetillegget i eldre vedtak utledes fra søknaden for tiltaket saksbehandler velger å forlenge`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakelseMedEttBarn = tac.tiltaksdeltakelse(1.januar(2025) til 30.juni(2025))
             val deltakelseMedToBarn = tac.tiltaksdeltakelse(1.januar(2025) til 30.juni(2025))
@@ -260,6 +265,7 @@ class ForlengelseRouteTest {
                 ),
                 barnetilleggRevurdering = barnetillegg(periode = vedtaksperiode, antallBarn = AntallBarn(2)),
             )
+            tac.lagreBarnetilleggSomV1(vedtak.rammebehandling.id)
             val (_, forlengelse) = startForlengelse(tac, sak.id, vedtak.id)!!
 
             val (_, medToBarn, json) = oppdaterForlengelse(
@@ -294,8 +300,8 @@ class ForlengelseRouteTest {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, vedtak) = iverksettVedtakSomKanForlenges(
                 tac = tac,
-                barnetillegg = barnetillegg(periode = vedtaksperiode, antallBarn = AntallBarn(2)),
                 barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015)), barnetilleggMedIdent(fødselsdato = 1.mai(2009))),
+                barnetilleggForSøknad = barnetilleggForBarnISøknaden(nonEmptyListOf(vedtaksperiode)),
             )
             val valgt = startOgOppdaterForlengelse(
                 tac = tac,
@@ -316,12 +322,13 @@ class ForlengelseRouteTest {
     }
 
     @Test
-    fun `barnetillegget i vedtaket videreføres uendret og må vurderes av saksbehandler når barna ikke kan utledes fra søknaden`() {
+    fun `barnetillegget i eldre vedtak videreføres uendret og må vurderes av saksbehandler når barna ikke kan utledes fra søknaden`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, vedtak) = iverksettVedtakSomKanForlenges(
                 tac = tac,
                 barnetillegg = barnetillegg(periode = vedtaksperiode, antallBarn = AntallBarn(1)),
             )
+            tac.lagreBarnetilleggSomV1(vedtak.rammebehandling.id)
             val (_, forlengelse) = startForlengelse(tac, sak.id, vedtak.id)!!
 
             val (_, oppdatert, oppdatertJson) = oppdaterForlengelse(tac, sak.id, forlengelse.id, tilOgMed = 31.mai(2025))
@@ -370,7 +377,7 @@ class ForlengelseRouteTest {
             oppdaterForlengelse(tac, sak.id, forlengelse.id, tilOgMed = 31.mai(2025), tiltaksdeltakerId = TiltaksdeltakerId.random(), forventet = feil(400))
                 .third.skalHaFeilkode("tiltaksdeltakelsen_kan_ikke_forlenges")
             oppdater(30.april(2025), barnetillegg(periode = 1.april(2025) til 31.mai(2025)))
-                .skalHaFeilkode("barnetillegget_går_utover_forlengelsen")
+                .skalHaFeilkode("ugyldig_barnetillegg")
         }
     }
 

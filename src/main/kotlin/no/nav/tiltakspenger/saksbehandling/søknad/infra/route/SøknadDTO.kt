@@ -33,11 +33,16 @@ data class SøknadDTO(
     val svar: SøknadSvarDTO,
     val behandlingsarsak: Behandlingsarsak?,
 ) {
+    /**
+     * @param internDeltakelseId Vår id for tiltaksdeltakelsen, som i innvilgelsesperiodene.
+     * Brukes av frontenden for å finne søknaden, og dermed barna, for tiltaket det innvilges for.
+     */
     data class TiltaksdeltagelseFraSøknadDTO(
         val id: String,
         val fraOgMed: String?,
         val tilOgMed: String?,
         val typeNavn: String,
+        val internDeltakelseId: String,
     )
 
     /**
@@ -237,6 +242,7 @@ fun Søknadstiltak.toDTO(): SøknadDTO.TiltaksdeltagelseFraSøknadDTO {
         fraOgMed = this.deltakelseFom.toString(),
         tilOgMed = this.deltakelseTom.toString(),
         typeNavn = this.typeNavn,
+        internDeltakelseId = this.tiltaksdeltakerId.toString(),
     )
 }
 

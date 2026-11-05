@@ -1,12 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periode.toDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnKildeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.OppdaterBarnMedBarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.OppdaterBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -63,11 +65,9 @@ class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                         internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
                     ),
                 ),
-                barnetillegg = listOf(
-                    BarnetilleggPeriodeDTO(
-                        antallBarn = 1,
-                        periode = innvilgelsesperiode.toDTO(),
-                    ),
+                barnetillegg = OppdaterBarnetilleggDTO(
+                    barn = listOf(barnLagtTilAvSaksbehandler(fornavn = "Ola", periode = null)),
+                    begrunnelse = null,
                 ),
                 resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
                 avslagsgrunner = null,
@@ -98,16 +98,27 @@ class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                         internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
                     ),
                 ),
-                barnetillegg = listOf(
-                    BarnetilleggPeriodeDTO(
-                        antallBarn = 1,
-                        periode = (1 til 31.januar(2025)).toDTO(),
+                barnetillegg = OppdaterBarnetilleggDTO(
+                    barn = listOf(
+                        barnLagtTilAvSaksbehandler(fornavn = "Ola", periode = (1 til 31.januar(2025)).toDTO()),
+                        barnLagtTilAvSaksbehandler(fornavn = "Kari", periode = null),
                     ),
-                    BarnetilleggPeriodeDTO(antallBarn = 1, periode = (1.februar(2025) til 31.mars(2025)).toDTO()),
+                    begrunnelse = null,
                 ),
                 resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
             )
             responseJson shouldBe "pdf"
         }
     }
+
+    private fun barnLagtTilAvSaksbehandler(fornavn: String, periode: PeriodeDTO?) = OppdaterBarnMedBarnetilleggDTO(
+        fnr = null,
+        fornavn = fornavn,
+        mellomnavn = null,
+        etternavn = "Nordmann",
+        fødselsdato = 1.januar(2020),
+        kilde = BarnKildeDTO.SAKSBEHANDLER,
+        søknadId = null,
+        periode = periode,
+    )
 }

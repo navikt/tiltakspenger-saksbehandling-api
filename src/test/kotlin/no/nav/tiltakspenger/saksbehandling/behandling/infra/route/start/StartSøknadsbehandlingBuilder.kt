@@ -166,6 +166,8 @@ interface StartSøknadsbehandlingBuilder {
         clock: Clock = fixedClock,
         prioriteringBegrunnelse: String? = null,
         barnFraSøknad: List<BarnetilleggFraSøknad> = emptyList(),
+        // Overstyrer barnetillegg med et barnetillegg som kan referere til søknaden, f.eks. barna i søknaden.
+        barnetilleggForSøknad: ((Søknad) -> Barnetillegg)? = null,
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad, behandling) = opprettSøknadsbehandlingUnderBehandling(
             tac = tac,
@@ -187,7 +189,7 @@ interface StartSøknadsbehandlingBuilder {
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             skalJournalføreNotat = skalJournalføreNotat,
             innvilgelsesperioder = innvilgelsesperioder,
-            barnetillegg = barnetillegg,
+            barnetillegg = barnetilleggForSøknad?.invoke(søknad) ?: barnetillegg,
             prioriteringBegrunnelse = prioriteringBegrunnelse,
         )
 

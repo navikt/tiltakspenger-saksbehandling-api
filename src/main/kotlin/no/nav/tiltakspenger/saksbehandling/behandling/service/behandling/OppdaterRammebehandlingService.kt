@@ -8,6 +8,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.trekkFra
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.UgyldigBarnetilleggException
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.validerSøknader
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
@@ -90,6 +93,15 @@ class OppdaterRammebehandlingService(
         sak.rammevedtaksliste.validerOpphør(kommando).onLeft {
             log.error { "Ugyldig opphør ved forsøk på oppdatering av behandling - $kommando" }
             return it.left()
+        }
+
+        val valgteBarn = when (kommando) {
+            is OppdaterBehandlingKommando.Innvilgelse -> (kommando.barnetillegg as? BarnetilleggV2)?.barn
+            is OppdaterRevurderingKommando.Forlengelse -> kommando.barnetillegg?.barn
+            else -> null
+        }.orEmpty()
+        valgteBarn.validerSøknader(sak.søknader.map { it.id }.toSet()).onLeft {
+            throw UgyldigBarnetilleggException(it)
         }
 
         val utledetForlengelse = (kommando as? OppdaterRevurderingKommando.Forlengelse)?.let {

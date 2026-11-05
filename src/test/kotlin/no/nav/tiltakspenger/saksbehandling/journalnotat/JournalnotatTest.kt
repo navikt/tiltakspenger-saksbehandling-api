@@ -11,6 +11,8 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -224,7 +226,10 @@ class JournalnotatTest {
                 begrunnelseVilkårsvurdering = begrunnelse,
                 resultat = when (val resultat = behandling.resultat) {
                     is Søknadsbehandlingsresultat.Innvilgelse -> resultat.copy(
-                        barnetillegg = resultat.barnetillegg.copy(begrunnelse = barnetilleggBegrunnelse),
+                        barnetillegg = when (val barnetillegg = resultat.barnetillegg) {
+                            is BarnetilleggV1 -> barnetillegg.copy(begrunnelse = barnetilleggBegrunnelse)
+                            is BarnetilleggV2 -> barnetillegg.copy(begrunnelse = barnetilleggBegrunnelse)
+                        },
                     )
 
                     else -> resultat
