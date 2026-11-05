@@ -70,7 +70,7 @@ fun Sak.konverterRevurdering(
 /**
  * Avgjør om [saksbehandler] kan konvertere behandlingen til en annen revurderingstype.
  * Bare revurderinger [UNDER_BEHANDLING] kan konverteres, og bare av den tildelte saksbehandleren.
- * En behandling som settes på vent går ut av [UNDER_BEHANDLING], så den kan heller ikke konverteres.
+ * En behandling som er satt på vent kan ikke konverteres, heller ikke etter at den er tatt igjen uten å være gjenopptatt.
  * Revurderinger som er knyttet til en klagebehandling kan ikke konverteres.
  * Kalles også fra DTO-mappingen for å avgjøre om kommandoen skal tilbys, og må derfor ikke kaste.
  */
@@ -80,6 +80,7 @@ fun Rammebehandling.kanKonvertere(saksbehandler: Saksbehandler): Either<KanIkkeK
         !saksbehandler.erSaksbehandler -> KanIkkeKonvertereRevurdering.MåVæreSaksbehandler.left()
         status != UNDER_BEHANDLING -> KanIkkeKonvertereRevurdering.MåVæreUnderBehandling(status).left()
         this.saksbehandler != saksbehandler.navIdent -> KanIkkeKonvertereRevurdering.EiesAvAnnenSaksbehandler(this.saksbehandler).left()
+        ventestatus.erSattPåVent -> KanIkkeKonvertereRevurdering.ErSattPåVent.left()
         klagebehandling != null -> KanIkkeKonvertereRevurdering.HarKlagebehandling.left()
         else -> Unit.right()
     }

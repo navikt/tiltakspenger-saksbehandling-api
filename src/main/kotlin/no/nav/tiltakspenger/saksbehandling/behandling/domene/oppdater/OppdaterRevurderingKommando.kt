@@ -151,16 +151,17 @@ sealed interface OppdaterOmgjøringKommando : OppdaterRevurderingKommando {
         override val skalJournalføreNotat: SkalJournalføreNotat,
     ) : OppdaterOmgjøringKommando
 
+    /** Begrunnelsen og friteksten beholdes selv om resultatet ikke er valgt, slik at de ikke går tapt når saksbehandler bytter resultat. */
     data class OmgjøringIkkeValgt(
         override val sakId: SakId,
         override val behandlingId: RammebehandlingId,
         override val saksbehandler: Saksbehandler,
         override val correlationId: CorrelationId,
+        override val begrunnelseVilkårsvurdering: Begrunnelse?,
+        override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val prioritering: Prioritering?,
     ) : OppdaterOmgjøringKommando {
         override val vedtaksperiode = null
-        override val begrunnelseVilkårsvurdering = null
-        override val fritekstTilVedtaksbrev = null
         override val skalSendeVedtaksbrev = true
         override val skalJournalføreNotat = SkalJournalføreNotat.INGEN
     }

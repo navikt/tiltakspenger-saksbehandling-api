@@ -23,6 +23,11 @@ sealed interface KanIkkeKonvertereRevurdering : Loggbar {
         override val loggkontekst = Loggkontekst(melding = "Revurderingen er tildelt $eiesAvSaksbehandler, og kan bare konverteres av den tildelte saksbehandleren")
     }
 
+    /** Å ta en behandling som er på vent setter den under behandling uten å gjenoppta den, så status alene er ikke nok. */
+    data object ErSattPåVent : KanIkkeKonvertereRevurdering {
+        override val loggkontekst = Loggkontekst(melding = "Revurderingen er satt på vent")
+    }
+
     /** Klagebehandlingen er knyttet til revurderingen slik den ble startet, så den kan ikke bytte type. */
     data object HarKlagebehandling : KanIkkeKonvertereRevurdering {
         override val loggkontekst = Loggkontekst(melding = "Revurderingen er knyttet til en klagebehandling")

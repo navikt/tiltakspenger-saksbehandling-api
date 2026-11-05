@@ -105,6 +105,11 @@ fun KanIkkeKonvertereRevurdering.tilStatusOgErrorJson(): Pair<HttpStatusCode, Er
         eiesAvSaksbehandler,
     )
 
+    KanIkkeKonvertereRevurdering.ErSattPåVent -> HttpStatusCode.BadRequest to ErrorJson(
+        "Behandlingen er satt på vent.",
+        "behandlingen_kan_ikke_være_satt_på_vent",
+    )
+
     KanIkkeKonvertereRevurdering.HarKlagebehandling -> HttpStatusCode.BadRequest to ErrorJson(
         "Revurderingen er knyttet til en klagebehandling og kan ikke konverteres.",
         "har_klagebehandling",

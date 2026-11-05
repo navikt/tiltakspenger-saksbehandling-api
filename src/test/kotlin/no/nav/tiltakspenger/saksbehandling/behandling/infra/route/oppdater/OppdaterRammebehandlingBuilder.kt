@@ -273,6 +273,8 @@ interface OppdaterRammebehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         behandlingId: RammebehandlingId,
+        begrunnelseVilkårsvurdering: String? = null,
+        fritekstTilVedtaksbrev: String? = null,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         prioriteringBegrunnelse: String? = null,
@@ -281,6 +283,8 @@ interface OppdaterRammebehandlingBuilder {
         val body = """
             {
               "resultat": "OMGJØRING_IKKE_VALGT",
+              "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
+              "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
               "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()}
             }
         """.trimIndent()

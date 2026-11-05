@@ -151,11 +151,15 @@ class OppdaterRevurderingOpphørRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
+                begrunnelseVilkårsvurdering = "begrunnelse",
+                fritekstTilVedtaksbrev = "fritekst",
                 prioriteringBegrunnelse = "Haster",
             )
 
             oppdatertOmgjøring.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringIkkeValgt>()
             oppdatertOmgjøring.prioritering shouldBe Prioritering.create("Haster")
+            oppdatertOmgjøring.begrunnelseVilkårsvurdering?.verdi shouldBe "begrunnelse"
+            oppdatertOmgjøring.fritekstTilVedtaksbrev?.verdi shouldBe "fritekst"
             oppdatertOmgjøring.resultat.vedtaksperiode shouldBe null
             // Ikke valgt beholder vedtakene og periodene fra forrige resultat.
             oppdatertOmgjøring.resultat.omgjørRammevedtak.rammevedtakIDer.single() shouldBe søknadVedtak.id

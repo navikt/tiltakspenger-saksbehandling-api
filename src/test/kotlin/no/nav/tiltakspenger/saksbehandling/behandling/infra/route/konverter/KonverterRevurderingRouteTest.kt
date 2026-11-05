@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.konverter
 
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -22,12 +23,16 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.rammebehandlingJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.konverterRevurdering
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settRammebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingForSakId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import org.junit.jupiter.api.Test
 
 class KonverterRevurderingRouteTest {
@@ -222,6 +227,54 @@ class KonverterRevurderingRouteTest {
                 behandlingId = søknadsbehandling.id,
                 revurderingType = "STANS",
                 forventet = feil("Bare revurderinger kan konverteres.", "må_være_revurdering"),
+            ).shouldBeNull()
+        }
+    }
+
+    @Test
+    fun `utfylt innvilgelse konverteres til stans, og det innvilgende resultatet fjernes fra databasen`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _, _, innvilgelse) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(tac)
+            oppdaterRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = innvilgelse.id,
+                begrunnelseVilkårsvurdering = "begrunnelse",
+                fritekstTilVedtaksbrev = "fritekst",
+            )
+            (tac.behandlingContext.rammebehandlingRepo.hent(innvilgelse.id) as Revurdering).resultat
+                .shouldBeInstanceOf<Revurderingsresultat.Innvilgelse>().innvilgelsesperioder.shouldNotBeNull()
+
+            konverterRevurdering(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = innvilgelse.id,
+                revurderingType = "STANS",
+            )!!
+
+            val lagret = tac.behandlingContext.rammebehandlingRepo.hent(innvilgelse.id) as Revurdering
+            lagret.resultat shouldBe Revurderingsresultat.Stans.empty
+            lagret.utbetaling.shouldBeNull()
+            lagret.utbetalingskontroll.shouldBeNull()
+            lagret.begrunnelseVilkårsvurdering?.verdi shouldBe "begrunnelse"
+            lagret.fritekstTilVedtaksbrev?.verdi shouldBe "fritekst"
+        }
+    }
+
+    @Test
+    fun `revurdering som er tatt igjen uten å være gjenopptatt fra vent kan ikke konverteres`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _, _, stans) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
+            settRammebehandlingPåVent(tac, sak.id, stans.id)
+            taRammebehandlinger(tac, listOf(sak.id to stans.id))!!
+            tac.behandlingContext.rammebehandlingRepo.hent(stans.id).status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+
+            konverterRevurdering(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = stans.id,
+                revurderingType = "OMGJØRING",
+                forventet = feil("Behandlingen er satt på vent.", "behandlingen_kan_ikke_være_satt_på_vent"),
             ).shouldBeNull()
         }
     }
