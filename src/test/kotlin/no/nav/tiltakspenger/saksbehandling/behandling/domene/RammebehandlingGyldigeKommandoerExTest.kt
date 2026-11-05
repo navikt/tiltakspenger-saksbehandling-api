@@ -158,7 +158,7 @@ class RammebehandlingGyldigeKommandoerExTest {
     }
 
     @Test
-    fun `revurdering følger de samme reglene som søknadsbehandling`() {
+    fun `revurdering følger de samme reglene som søknadsbehandling, og tildelt saksbehandler kan i tillegg konvertere`() {
         val revurdering = ObjectMother.nyOpprettetRevurderingStans(saksbehandler = saksbehandler)
 
         revurdering.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
@@ -167,6 +167,7 @@ class RammebehandlingGyldigeKommandoerExTest {
             SaksbehandlerBehandlingKommando.LeggTilbakeSaksbehandler,
             SaksbehandlerBehandlingKommando.SettPåVent,
             SaksbehandlerBehandlingKommando.Avbryt,
+            SaksbehandlerBehandlingKommando.KonverterRevurdering,
         )
         revurdering.finnGyldigeKommandoer(annenSaksbehandler) shouldBe listOf(
             SaksbehandlerBehandlingKommando.OvertaSaksbehandler,

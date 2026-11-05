@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Gjenopp
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentTilbakeRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.KonverterRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterRammebehandlingForBeslutterService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterRammebehandlingService
@@ -297,6 +298,15 @@ open class BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,
             statistikkService = statistikkService,
             clock = clock,
+        )
+    }
+
+    val konverterRevurderingService by lazy {
+        KonverterRevurderingService(
+            sakService = sakService,
+            rammebehandlingRepo = rammebehandlingRepo,
+            clock = clock,
+            forlengelseErPåslått = !erProd,
         )
     }
 

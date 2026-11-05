@@ -213,11 +213,11 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
     }
 
     data class OmgjøringIkkeValgt(
+        override val fritekstTilVedtaksbrev: String? = null,
+        override val begrunnelseVilkårsvurdering: String? = null,
         override val prioritering: OppdaterPrioriteringDTO? = null,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.OMGJØRING_IKKE_VALGT
-        override val fritekstTilVedtaksbrev = null
-        override val begrunnelseVilkårsvurdering = null
         override val skalSendeVedtaksbrev = true
         override val skalJournalføreNotat = SkalJournalføreNotatDTO.INGEN
 
@@ -232,6 +232,8 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
+                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
                 prioritering = prioritering?.tilDomene(),
             )
         }

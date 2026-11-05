@@ -24,6 +24,9 @@ enum class SaksbehandlerBehandlingKommando {
     Gjenoppta,
     Avbryt,
     Gjenåpne,
+
+    /** Saksbehandleren kan konvertere revurderingen til en annen revurderingstype. */
+    KonverterRevurdering,
     ;
 
     fun tilDTO(): SaksbehandlerBehandlingKommandoDTO {
@@ -43,6 +46,7 @@ enum class SaksbehandlerBehandlingKommando {
             Avbryt -> SaksbehandlerBehandlingKommandoDTO.Avbryt
             Gjenåpne -> SaksbehandlerBehandlingKommandoDTO.Gjenåpne
             AngreSendTilBeslutning -> SaksbehandlerBehandlingKommandoDTO.AngreSendTilBeslutning
+            KonverterRevurdering -> SaksbehandlerBehandlingKommandoDTO.KonverterRevurdering
         }
     }
 }
@@ -63,6 +67,7 @@ enum class SaksbehandlerBehandlingKommandoDTO {
     Gjenoppta,
     Avbryt,
     Gjenåpne,
+    KonverterRevurdering,
 }
 
 fun List<SaksbehandlerBehandlingKommando>.tilDTO(): List<SaksbehandlerBehandlingKommandoDTO> {

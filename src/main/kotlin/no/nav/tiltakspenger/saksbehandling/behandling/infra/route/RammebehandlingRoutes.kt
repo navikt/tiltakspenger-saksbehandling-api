@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Gjenopp
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenåpneSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentTilbakeRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.KonverterRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterRammebehandlingForBeslutterService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterRammebehandlingService
@@ -36,6 +37,7 @@ fun Route.rammebehandlingRoutes(
     sendBehandlingTilBeslutningService: SendRammebehandlingTilBeslutningService,
     forhåndsvisVedtaksbrevService: ForhåndsvisRammevedtaksbrevService,
     startRevurderingService: StartRevurderingService,
+    konverterRevurderingService: KonverterRevurderingService,
     taRammebehandlingService: TaRammebehandlingService,
     angreRammebehandlingService: AngreRammebehandlingService,
     overtaBehandlingService: OvertaRammebehandlingService,
@@ -57,6 +59,7 @@ fun Route.rammebehandlingRoutes(
     sendRammebehandlingTilBeslutningRoute(sendBehandlingTilBeslutningService, auditService, tilgangskontrollService)
     forhåndsvisVedtaksbrevRoute(auditService, forhåndsvisVedtaksbrevService, tilgangskontrollService)
     startRevurderingRoute(startRevurderingService, auditService, tilgangskontrollService)
+    konverterRevurderingRoute(konverterRevurderingService, auditService, tilgangskontrollService, clock)
     taRammebehandlingerRoute(auditService, taRammebehandlingService, tilgangskontrollService, clock)
     angreRammebehandlingRoute(auditService, angreRammebehandlingService, tilgangskontrollService, clock)
     underkjennRammebehandlingRoute(auditService, behandlingService, tilgangskontrollService)

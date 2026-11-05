@@ -37,6 +37,7 @@ fun Route.routes(
             sendBehandlingTilBeslutningService = applicationContext.behandlingContext.sendRammebehandlingTilBeslutningService,
             forhåndsvisVedtaksbrevService = applicationContext.behandlingContext.forhåndsvisRammevedtaksbrevService,
             startRevurderingService = applicationContext.behandlingContext.startRevurderingService,
+            konverterRevurderingService = applicationContext.behandlingContext.konverterRevurderingService,
             taRammebehandlingService = applicationContext.behandlingContext.taRammebehandlingService,
             angreRammebehandlingService = applicationContext.behandlingContext.angreRammebehandlingService,
             overtaBehandlingService = applicationContext.behandlingContext.overtaRammebehandlingService,

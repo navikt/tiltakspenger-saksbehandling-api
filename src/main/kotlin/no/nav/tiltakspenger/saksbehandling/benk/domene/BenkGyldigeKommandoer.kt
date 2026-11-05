@@ -34,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
  *
  * Reglene speiler `Rammebehandling.finnGyldigeKommandoer`, `Meldekortbehandling.finnGyldigeKommandoer` og `TilbakekrevingBehandling.gyldigeKommandoer`, men regnes ut fra radens felter — benken laster ikke de fulle behandlingene.
  * Speilingen er pinnet mot de ekte reglene i `BenkAggregatTest`; endres reglene der, skal testene si ifra.
+ * Unntaket er [SaksbehandlerBehandlingKommando.KonverterRevurdering], som bare tilbys inne i behandlingen.
  *
  * Rader uten behandling — innsendte eller korrigerte meldekort som venter på at noen starter en behandling — har ingen kommandoer, fordi kommandoene alle er handlinger på en behandling.
  *
