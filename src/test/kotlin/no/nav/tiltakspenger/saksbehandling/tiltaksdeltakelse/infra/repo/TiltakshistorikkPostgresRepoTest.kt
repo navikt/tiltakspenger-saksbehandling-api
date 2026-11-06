@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.TiltakshistorikkId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.Tiltakshistorikkinnslag
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.utenTittelOgArrangør
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import org.junit.jupiter.api.Test
@@ -48,7 +49,7 @@ class TiltakshistorikkPostgresRepoTest {
     }
 
     @Test
-    fun `nå-tilstanden sammenlignes med siste innslag for deltakeren`() {
+    fun `henter verdien fra siste innslag for deltakeren`() {
         withTestApplicationContextAndPostgres { tac ->
             val sak = opprettSak(tac)
             val repo = tac.tiltakContext.tiltakshistorikkRepo
@@ -57,13 +58,11 @@ class TiltakshistorikkPostgresRepoTest {
             val forlenget = nåtilstand(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 4, 30))
 
             tac.sessionFactory.withTransactionContext { tx ->
-                repo.erLikSisteVerdi(deltakerId, opprinnelig, tx) shouldBe false
+                repo.hentSisteVerdi(deltakerId, tx) shouldBe null
                 repo.lagre(tac.innslag(sak, opprinnelig), tx)
-                repo.erLikSisteVerdi(deltakerId, opprinnelig, tx) shouldBe true
-                repo.erLikSisteVerdi(deltakerId, forlenget, tx) shouldBe false
+                repo.hentSisteVerdi(deltakerId, tx) shouldBe opprinnelig.utenTittelOgArrangør()
                 repo.lagre(tac.innslag(sak, forlenget), tx)
-                repo.erLikSisteVerdi(deltakerId, forlenget, tx) shouldBe true
-                repo.erLikSisteVerdi(deltakerId, opprinnelig, tx) shouldBe false
+                repo.hentSisteVerdi(deltakerId, tx) shouldBe forlenget.utenTittelOgArrangør()
             }
         }
     }

@@ -14,13 +14,14 @@ class TiltakshistorikkFakeRepo : TiltakshistorikkRepo {
         data.add(innslag)
     }
 
-    override fun erLikSisteVerdi(
+    /** Gir verdien slik Postgres-repoet ville lest den tilbake, uten tittel og arrangør. */
+    override fun hentSisteVerdi(
         tiltaksdeltakerId: TiltaksdeltakerId,
-        verdi: Tiltaksdeltakelse.GirRett,
         sessionContext: SessionContext,
-    ): Boolean {
-        val siste = data.filter { it.tiltaksdeltakerId == tiltaksdeltakerId }
+    ): Tiltaksdeltakelse.GirRett? =
+        data.filter { it.tiltaksdeltakerId == tiltaksdeltakerId }
             .maxWithOrNull(compareBy<Tiltakshistorikkinnslag> { it.innhentet }.thenBy { it.id.toString() })
-        return siste?.verdi?.tilNåtilstandDbJson() == verdi.tilNåtilstandDbJson()
-    }
+            ?.verdi
+            ?.tilNåtilstandDbJson()
+            ?.tilDomene()
 }

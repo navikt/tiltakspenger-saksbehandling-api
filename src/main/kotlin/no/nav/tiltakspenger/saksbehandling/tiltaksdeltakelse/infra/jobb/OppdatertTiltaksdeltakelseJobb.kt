@@ -40,6 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOp
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.TiltakshistorikkId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.TiltakshistorikkRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.Tiltakshistorikkinnslag
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.erEndretFra
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilLesbarNåtilstand
@@ -155,7 +156,8 @@ class OppdatertTiltaksdeltakelseJobb(
             behandlingId = (resultat as? TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet)?.revurderingId,
             oppgaveId = (resultat as? TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet)?.oppgaveId,
         )
-        if (innslag.førteTilBehandlingEllerOppgave || !tiltakshistorikkRepo.erLikSisteVerdi(deltaker.id, nåtilstand, tx)) {
+        val forrigeVerdi = tiltakshistorikkRepo.hentSisteVerdi(deltaker.id, tx)
+        if (innslag.førteTilBehandlingEllerOppgave || nåtilstand.erEndretFra(forrigeVerdi)) {
             tiltakshistorikkRepo.lagre(innslag, tx)
         }
     }

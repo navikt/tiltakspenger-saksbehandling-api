@@ -56,12 +56,11 @@ class TiltakshistorikkPostgresRepo(
         }
     }
 
-    override fun erLikSisteVerdi(
+    override fun hentSisteVerdi(
         tiltaksdeltakerId: TiltaksdeltakerId,
-        verdi: Tiltaksdeltakelse.GirRett,
         sessionContext: SessionContext,
-    ): Boolean {
-        val sisteVerdi = sessionFactory.withSession(sessionContext) { session ->
+    ): Tiltaksdeltakelse.GirRett? =
+        sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
                     """
@@ -72,9 +71,7 @@ class TiltakshistorikkPostgresRepo(
                         LIMIT 1
                     """.trimIndent(),
                     "tiltaksdeltaker_id" to tiltaksdeltakerId.toString(),
-                ).map { row -> deserialize<TiltaksdeltakelseNåtilstandDbJson>(row.string("verdi")) }.asSingle,
+                ).map { row -> deserialize<TiltaksdeltakelseNåtilstandDbJson>(row.string("verdi")).tilDomene() }.asSingle,
             )
         }
-        return sisteVerdi == verdi.tilNåtilstandDbJson()
-    }
 }

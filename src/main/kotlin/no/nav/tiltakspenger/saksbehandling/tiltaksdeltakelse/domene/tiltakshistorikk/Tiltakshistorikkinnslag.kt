@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshist
 
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Arrangør
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -30,4 +31,20 @@ data class Tiltakshistorikkinnslag(
     }
 
     val førteTilBehandlingEllerOppgave: Boolean = behandlingId != null || oppgaveId != null
+}
+
+/**
+ * Er true når nå-tilstanden er endret siden [forrige] innslag i tiltakshistorikken, eller når det ikke finnes noe forrige innslag.
+ * Tittel og arrangør lagres ikke i tiltakshistorikken, og regnes derfor ikke som endringer.
+ */
+fun Tiltaksdeltakelse.GirRett.erEndretFra(forrige: Tiltaksdeltakelse.GirRett?): Boolean =
+    forrige == null || utenTittelOgArrangør() != forrige.utenTittelOgArrangør()
+
+/** Nå-tilstanden slik den lagres i tiltakshistorikken, uten stedsinformasjonen tittel og arrangør. */
+fun Tiltaksdeltakelse.GirRett.utenTittelOgArrangør(): Tiltaksdeltakelse.GirRett {
+    val ukjentArrangør = Arrangør(hovedenhet = null, underenhet = null)
+    return when (this) {
+        is Tiltaksdeltakelse.GirRett.MedPeriode -> copy(tittel = null, arrangør = ukjentArrangør)
+        is Tiltaksdeltakelse.GirRett.UtenPeriode -> copy(tittel = null, arrangør = ukjentArrangør)
+    }
 }

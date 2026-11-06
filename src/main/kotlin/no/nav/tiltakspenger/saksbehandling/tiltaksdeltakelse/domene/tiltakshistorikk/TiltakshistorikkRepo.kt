@@ -10,13 +10,12 @@ interface TiltakshistorikkRepo {
     fun lagre(innslag: Tiltakshistorikkinnslag, sessionContext: SessionContext)
 
     /**
-     * Sammenligner med verdien slik den ble lagret i siste innslag for deltakeren.
-     * Felter som ikke lagres, som tittel og arrangør, regnes derfor ikke som endringer.
-     * Er false når deltakeren ikke har noen innslag.
+     * Verdien slik den ble lagret i siste innslag for deltakeren.
+     * Tittel og arrangør lagres ikke, og er derfor alltid ukjente.
+     * Er null når deltakeren ikke har noen innslag.
      */
-    fun erLikSisteVerdi(
+    fun hentSisteVerdi(
         tiltaksdeltakerId: TiltaksdeltakerId,
-        verdi: Tiltaksdeltakelse.GirRett,
         sessionContext: SessionContext,
-    ): Boolean
+    ): Tiltaksdeltakelse.GirRett?
 }

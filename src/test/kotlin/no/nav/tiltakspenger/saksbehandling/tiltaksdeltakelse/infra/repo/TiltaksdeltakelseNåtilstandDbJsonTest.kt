@@ -1,26 +1,32 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Arenastatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kildestatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kometstatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kometårsak
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TeamTiltakstatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.utenTittelOgArrangør
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
  * Ren mapping testes uten database, og pinner json-en slik den lagres.
- * Verdien leses aldri tilbake, så en formatendring ville ellers gått upåaktet hen.
+ * Verdien sammenlignes med neste nå-tilstand, så en formatendring ville ellers gitt nye innslag for alle deltakere.
  */
 class TiltaksdeltakelseNåtilstandDbJsonTest {
 
@@ -118,5 +124,41 @@ class TiltaksdeltakelseNåtilstandDbJsonTest {
 
         nåtilstand.tilJson() shouldBe
             """{"eksternDeltakelseId":"ekstern-id","gjennomføringId":null,"tiltakstype":"GRUPPE_AMO","tiltakstypenavn":"Gruppe AMO","tiltakskodeFraKilden":"GRUPPE_AMO","fraOgMed":null,"tilOgMed":null,"kildestatus":{"kilde":"Komet","kodeIKontrakten":"VENTER_PA_OPPSTART","årsak":null,"opprettet":"2026-01-02T13:14:15"},"deltakelsesprosent":null,"dagerPerUke":null,"deltidsprosentPåGjennomføring":null}"""
+    }
+
+    fun nåtilstanderSomLesesTilbake(): List<Arguments> {
+        val medPeriode = deltakelse().tilLibsDeltakelse()
+        val utenDatoer = deltakelse().medPeriode(fraOgMed = null, tilOgMed = null).copy(
+            gjennomføringId = null,
+            deltakelseProsent = null,
+            antallDagerPerUke = null,
+            deltidsprosentGjennomforing = null,
+        ).tilLibsDeltakelse()
+        val bareStartdato = deltakelse().medPeriode(fraOgMed = LocalDate.of(2026, 1, 1), tilOgMed = null).tilLibsDeltakelse()
+        return listOf(
+            Kometstatus.Kjent(Kometstatus.Type.HAR_SLUTTET, Kometårsak.Kjent(Kometstatus.Årsak.FATT_JOBB), opprettet),
+            Kometstatus.Kjent(Kometstatus.Type.DELTAR, årsak = null, opprettet = opprettet),
+            Kometstatus.Ukjent("HELT_NY_STATUS", Kometårsak.Ukjent("HELT_NY_ÅRSAK"), opprettet),
+            Arenastatus.Kjent(Arenastatus.Type.GJENNOMFORES),
+            Arenastatus.Ukjent("HELT_NY_STATUS"),
+            TeamTiltakstatus.Kjent(TeamTiltakstatus.Type.AVSLUTTET),
+            TeamTiltakstatus.Ukjent("HELT_NY_STATUS"),
+        ).map { Arguments.of(medPeriode.medKildestatus(it)) } +
+            listOf(utenDatoer, bareStartdato).map { Arguments.of(it) }
+    }
+
+    @ParameterizedTest
+    @MethodSource("nåtilstanderSomLesesTilbake")
+    fun `nå-tilstanden leses tilbake slik den ble lagret, uten tittel og arrangør`(nåtilstand: Tiltaksdeltakelse.GirRett) {
+        nåtilstand.tilNåtilstandDbJson().tilDomene() shouldBe nåtilstand.utenTittelOgArrangør()
+    }
+
+    @Test
+    fun `Komet-status uten statustidspunkt kan ikke leses tilbake`() {
+        val lagret = deltakelse().tilLibsDeltakelse().tilNåtilstandDbJson()
+
+        shouldThrow<IllegalStateException> {
+            lagret.copy(kildestatus = lagret.kildestatus.copy(opprettet = null)).tilDomene()
+        }
     }
 }
