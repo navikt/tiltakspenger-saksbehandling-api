@@ -5,6 +5,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testStatusOpprettet
@@ -110,6 +111,57 @@ class TiltakshistorikkPostgresRepoTest {
             val forventet = listOf(første, andre).map { it.copy(verdi = it.verdi.tilNåtilstandDbJson().tilDomene()) }
             repo.hentForSakId(sak.id) shouldBe forventet
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.tiltakshistorikk shouldBe forventet
+        }
+    }
+
+    /** Innslag i formatet som ble lagret i `tiltaksdeltaker_endring` før nå-tilstanden fikk eksplisitte libs-felter, og som V274 kopierte hit. */
+    @Test
+    fun `innslag som ikke kan leses hoppes over, slik at saken fortsatt kan hentes`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val sak = opprettSak(tac)
+            val repo = tac.tiltakContext.tiltakshistorikkRepo
+            val lesbart = tac.innslag(sak, nåtilstand(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31)))
+            tac.sessionFactory.withTransactionContext { tx -> repo.lagre(lesbart, tx) }
+            tac.lagreInnslagIUtdatertFormat(sak)
+
+            val forventet = listOf(lesbart.copy(verdi = lesbart.verdi.tilNåtilstandDbJson().tilDomene()))
+            repo.hentForSakId(sak.id) shouldBe forventet
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.tiltakshistorikk shouldBe forventet
+        }
+    }
+
+    private fun TestApplicationContextMedPostgres.lagreInnslagIUtdatertFormat(sak: Sak) {
+        val søknadstiltak = sak.søknader.single().tiltak.shouldNotBeNull()
+        sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                        INSERT INTO tiltakshistorikk (id, sak_id, tiltaksdeltaker_id, ekstern_deltaker_id, innhentet, verdi)
+                        VALUES (:id, :sak_id, :tiltaksdeltaker_id, :ekstern_deltaker_id, :innhentet, :verdi::jsonb)
+                    """.trimIndent(),
+                    "id" to TiltakshistorikkId.random().toString(),
+                    "sak_id" to sak.id.toString(),
+                    "tiltaksdeltaker_id" to søknadstiltak.tiltaksdeltakerId.toString(),
+                    "ekstern_deltaker_id" to søknadstiltak.id,
+                    "innhentet" to nå(clock).minusDays(1),
+                    "verdi" to """
+                        {
+                          "eksternDeltakelseId": "${søknadstiltak.id}",
+                          "gjennomføringId": null,
+                          "typeNavn": "Arbeidsmarkedsopplæring",
+                          "typeKode": "ARBEIDSMARKEDSOPPLAERING",
+                          "rettPåTiltakspenger": true,
+                          "deltakelseFraOgMed": "2026-01-01",
+                          "deltakelseTilOgMed": "2026-03-31",
+                          "deltakelseStatus": "Deltar",
+                          "deltakelseProsent": 50.0,
+                          "antallDagerPerUke": 2.5,
+                          "kilde": "Komet",
+                          "deltidsprosentGjennomforing": 80.0
+                        }
+                    """.trimIndent(),
+                ).asUpdate,
+            )
         }
     }
 

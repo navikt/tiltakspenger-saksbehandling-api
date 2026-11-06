@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotliquery.Row
 import kotliquery.Session
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
@@ -85,6 +86,12 @@ class TiltakshistorikkPostgresRepo(
         sessionFactory.withSession(sessionContext) { session -> hentForSakId(sakId, session) }
 
     companion object {
+        private val log = KotlinLogging.logger {}
+
+        /**
+         * Innslag som ikke kan leses, hoppes over og logges, slik at de ikke hindrer uthenting av hele saken.
+         * Det gjelder blant annet innslag som ble lagret i et eldre format før V274 kopierte dem hit.
+         */
         fun hentForSakId(sakId: SakId, session: Session): List<Tiltakshistorikkinnslag> =
             session.run(
                 sqlQuery(
@@ -95,8 +102,19 @@ class TiltakshistorikkPostgresRepo(
                         ORDER BY innhentet, id
                     """.trimIndent(),
                     "sak_id" to sakId.toString(),
-                ).map { row -> row.tilTiltakshistorikkinnslag() }.asList,
+                ).map { row -> row.tilTiltakshistorikkinnslagEllerNull() }.asList,
             )
+
+        private fun Row.tilTiltakshistorikkinnslagEllerNull(): Tiltakshistorikkinnslag? =
+            try {
+                tilTiltakshistorikkinnslag()
+            } catch (e: Exception) {
+                log.error(e) {
+                    "Kunne ikke lese innslag i tiltakshistorikk, og hopper over det. " +
+                        "id=${string("id")}, sakId=${string("sak_id")}, tiltaksdeltakerId=${string("tiltaksdeltaker_id")}"
+                }
+                null
+            }
 
         private fun Row.tilTiltakshistorikkinnslag() = Tiltakshistorikkinnslag(
             id = TiltakshistorikkId.fromString(string("id")),
