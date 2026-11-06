@@ -15,7 +15,7 @@ import java.time.LocalDateTime
  * [behandlingId] og [oppgaveId] er satt når endringen førte til en automatisk opprettet revurdering eller en Gosys-oppgave.
  */
 data class Tiltakshistorikkinnslag(
-    val id: TiltakshistorikkinnslagId,
+    val id: TiltakshistorikkId,
     val sakId: SakId,
     val tiltaksdeltakerId: TiltaksdeltakerId,
     val eksternDeltakerId: String,

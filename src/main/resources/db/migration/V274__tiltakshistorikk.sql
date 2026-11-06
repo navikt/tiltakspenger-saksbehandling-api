@@ -30,7 +30,7 @@ INSERT INTO tiltakshistorikk (id,
                               endring,
                               behandling_id,
                               oppgave_id)
-SELECT 'tiltakshistorikkinnslag_' || split_part(id, '_', 2),
+SELECT 'tiltakshistorikk_' || split_part(id, '_', 2),
        sak_id,
        tiltaksdeltaker_id,
        ekstern_deltaker_id,

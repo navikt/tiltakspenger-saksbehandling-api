@@ -15,8 +15,8 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.TiltakshistorikkId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.Tiltakshistorikkinnslag
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.TiltakshistorikkinnslagId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import org.junit.jupiter.api.Test
@@ -89,7 +89,7 @@ class TiltakshistorikkPostgresRepoTest {
     private fun TestApplicationContextMedPostgres.innslag(sak: Sak, verdi: Tiltaksdeltakelse.GirRett): Tiltakshistorikkinnslag {
         val søknadstiltak = sak.søknader.single().tiltak.shouldNotBeNull()
         return Tiltakshistorikkinnslag(
-            id = TiltakshistorikkinnslagId.random(),
+            id = TiltakshistorikkId.random(),
             sakId = sak.id,
             tiltaksdeltakerId = søknadstiltak.tiltaksdeltakerId,
             eksternDeltakerId = søknadstiltak.id,

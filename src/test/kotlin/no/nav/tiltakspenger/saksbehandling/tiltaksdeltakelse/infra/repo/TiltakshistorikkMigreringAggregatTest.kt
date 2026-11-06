@@ -56,7 +56,7 @@ class TiltakshistorikkMigreringAggregatTest {
             val historikk = tac.sessionFactory.hentTiltakshistorikk(tiltak.tiltaksdeltakerId)
             historikk shouldHaveSize 2
             historikk[0].also {
-                it.id shouldBe medBehandling.replace("tiltaksdeltakerhendelse_", "tiltakshistorikkinnslag_")
+                it.id shouldBe medBehandling.replace("tiltaksdeltakerhendelse_", "tiltakshistorikk_")
                 it.sakId shouldBe sak.id.toString()
                 it.eksternDeltakerId shouldBe tiltak.id
                 it.innhentet shouldBe tidspunkt.minusMinutes(20)
@@ -66,7 +66,7 @@ class TiltakshistorikkMigreringAggregatTest {
                 it.oppgaveId.shouldBeNull()
             }
             historikk[1].also {
-                it.id shouldBe medOppgave.replace("tiltaksdeltakerhendelse_", "tiltakshistorikkinnslag_")
+                it.id shouldBe medOppgave.replace("tiltaksdeltakerhendelse_", "tiltakshistorikk_")
                 it.innhentet shouldBe tidspunkt.minusMinutes(10)
                 it.verdi shouldEqualJson """{"versjon":2}"""
                 it.endring.shouldBeNull()
