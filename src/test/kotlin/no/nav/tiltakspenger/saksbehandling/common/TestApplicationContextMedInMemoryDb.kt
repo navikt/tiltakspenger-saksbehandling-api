@@ -60,6 +60,7 @@ open class TestApplicationContextMedInMemoryDb(
     private val tiltaksdeltakerFakeRepo = TiltaksdeltakerFakeRepo()
     private val tilbakekrevingBehandlingFakeRepo = TilbakekrevingBehandlingFakeRepo()
     val tilbakekrevingHendelseFakeRepo = TilbakekrevingHendelseFakeRepo(clock)
+    private val tiltakshistorikkFakeRepo = TiltakshistorikkFakeRepo()
     private val sakFakeRepo =
         SakFakeRepo(
             behandlingRepo = rammebehandlingFakeRepo,
@@ -72,6 +73,7 @@ open class TestApplicationContextMedInMemoryDb(
             klagebehandlingFakeRepo = klagebehandlingFakeRepo,
             brukersMeldekortFakeRepo = brukersMeldekortFakeRepo,
             tilbakekrevingBehandlingFakeRepo = tilbakekrevingBehandlingFakeRepo,
+            tiltakshistorikkFakeRepo = tiltakshistorikkFakeRepo,
             clock = clock,
         )
     private val personFakeRepo =
@@ -82,7 +84,7 @@ open class TestApplicationContextMedInMemoryDb(
     override val sakRepoOverride = sakFakeRepo
     override val benkRepoOverride = BenkFakeRepo()
     override val tiltaksdeltakerRepoOverride = tiltaksdeltakerFakeRepo
-    override val tiltakshistorikkRepoOverride = TiltakshistorikkFakeRepo()
+    override val tiltakshistorikkRepoOverride = tiltakshistorikkFakeRepo
     override val statistikkRepoOverride = statistikkFakeRepo
     override val søknadRepoOverride = søknadFakeRepo
     override val meldekortbehandlingRepoOverride = meldekortbehandlingFakeRepo

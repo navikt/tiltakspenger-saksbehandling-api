@@ -31,6 +31,8 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.toSøknadDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.TiltakshistorikkForBehandling
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.forBehandling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.vedtak.TidslinjeFørOgEtter
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.TidslinjeFørOgEtterDTO
@@ -90,6 +92,9 @@ sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
      * Null dersom behandlingen er avbrutt eller mangler vedtaksperiode.
      */
     val tidslinjeFørOgEtter: TidslinjeFørOgEtterDTO?
+
+    /** Tiltakshistorikken vi har innhentet for tiltaksdeltakelsene i behandlingen, fra den ble opprettet til den ble iverksatt eller avbrutt. */
+    val tiltakshistorikk: TiltakshistorikkForBehandlingDTO
 }
 
 data class SøknadsbehandlingDTO(
@@ -126,6 +131,7 @@ data class SøknadsbehandlingDTO(
     override val beslutterEndringer: RammebehandlingBeslutterEndringerDTO,
     override val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
     override val tidslinjeFørOgEtter: TidslinjeFørOgEtterDTO?,
+    override val tiltakshistorikk: TiltakshistorikkForBehandlingDTO,
 ) : RammebehandlingDTO,
     SøknadsbehandlingResultatDTO by resultatDTO {
     override val type = RammebehandlingstypeDTO.SØKNADSBEHANDLING
@@ -166,6 +172,7 @@ data class RevurderingDTO(
     override val beslutterEndringer: RammebehandlingBeslutterEndringerDTO,
     override val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
     override val tidslinjeFørOgEtter: TidslinjeFørOgEtterDTO?,
+    override val tiltakshistorikk: TiltakshistorikkForBehandlingDTO,
 ) : RammebehandlingDTO,
     RevurderingResultatDTO by resultatDTO {
     override val type = RammebehandlingstypeDTO.REVURDERING
@@ -187,6 +194,7 @@ fun Sak.tilRammebehandlingDTO(
     val rammevedtakId = rammevedtaksliste.finnRammevedtakForBehandling(behandlingId)?.id
     val tilbakekrevingId = hentTilbakekrevingForRammebehandling(behandlingId)?.id
     val tidslinjeFørOgEtter = rammevedtaksliste.tidslinjeFørOgEtter(behandling)
+    val tiltakshistorikk = tiltakshistorikk.forBehandling(behandling)
 
     return when (behandling) {
         is Revurdering -> behandling.tilRevurderingDTO(
@@ -196,6 +204,7 @@ fun Sak.tilRammebehandlingDTO(
             rammevedtakId = rammevedtakId,
             kallendeSaksbehandler = kallendeSaksbehandler,
             tidslinjeFørOgEtter = tidslinjeFørOgEtter,
+            tiltakshistorikk = tiltakshistorikk,
             tiltaksdeltakelserSomKanForlenges = (behandling.resultat as? Revurderingsresultat.Forlengelse)?.let { resultat ->
                 tiltaksdeltakelserSomKanForlenges(resultat.forlenger, behandling.saksopplysninger)
                     .map { it.tiltaksdeltakelse.internDeltakelseId }
@@ -209,6 +218,7 @@ fun Sak.tilRammebehandlingDTO(
             rammevedtakId = rammevedtakId,
             kallendeSaksbehandler = kallendeSaksbehandler,
             tidslinjeFørOgEtter = tidslinjeFørOgEtter,
+            tiltakshistorikk = tiltakshistorikk,
         )
     }
 }
@@ -224,6 +234,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
     rammevedtakId: VedtakId?,
     kallendeSaksbehandler: Saksbehandler,
     tidslinjeFørOgEtter: TidslinjeFørOgEtter?,
+    tiltakshistorikk: TiltakshistorikkForBehandling,
 ): SøknadsbehandlingDTO {
     return SøknadsbehandlingDTO(
         id = this.id.toString(),
@@ -259,6 +270,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         beslutterEndringer = this.beslutterEndringer.tilDTO(),
         gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
         tidslinjeFørOgEtter = tidslinjeFørOgEtter?.tilTidslinjeFørOgEtterDTO(),
+        tiltakshistorikk = tiltakshistorikk.tilDTO(),
     )
 }
 
@@ -269,6 +281,7 @@ fun Revurdering.tilRevurderingDTO(
     rammevedtakId: VedtakId?,
     kallendeSaksbehandler: Saksbehandler,
     tidslinjeFørOgEtter: TidslinjeFørOgEtter?,
+    tiltakshistorikk: TiltakshistorikkForBehandling,
     tiltaksdeltakelserSomKanForlenges: List<TiltaksdeltakerId>,
 ): RevurderingDTO {
     return RevurderingDTO(
@@ -303,6 +316,7 @@ fun Revurdering.tilRevurderingDTO(
         beslutterEndringer = this.beslutterEndringer.tilDTO(),
         gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
         tidslinjeFørOgEtter = tidslinjeFørOgEtter?.tilTidslinjeFørOgEtterDTO(),
+        tiltakshistorikk = tiltakshistorikk.tilDTO(),
     )
 }
 

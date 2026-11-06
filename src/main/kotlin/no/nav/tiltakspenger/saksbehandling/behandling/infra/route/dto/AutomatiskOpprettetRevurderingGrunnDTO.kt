@@ -55,7 +55,7 @@ fun AutomatiskOpprettetRevurderingGrunn.toDTO(): AutomatiskOpprettetRevurderingG
     )
 }
 
-private fun TiltaksdeltakerEndring.toDTO(): List<TiltaksdeltakerEndringDTO> = when (this) {
+fun TiltaksdeltakerEndring.toDTO(): List<TiltaksdeltakerEndringDTO> = when (this) {
     is TiltaksdeltakerEndring.AvsluttetSomForventet -> listOf(TiltaksdeltakerEndringDTO.AvsluttetSomForventet)
 
     is TiltaksdeltakerEndring.AvbruttDeltakelse -> listOf(TiltaksdeltakerEndringDTO.AvbruttDeltakelse)

@@ -21,7 +21,7 @@ import java.time.LocalDateTime
 
 /**
  * Nå-tilstanden fra tiltakshistorikk slik den lagres, i `tiltakshistorikk.verdi` og i oppgavegrunnlaget.
- * Den leses tilbake for å avgjøre om nå-tilstanden er endret siden forrige innslag i tiltakshistorikken.
+ * Den leses tilbake for å avgjøre om nå-tilstanden er endret siden forrige innslag i tiltakshistorikken, og for å vise tiltakshistorikken til saksbehandler.
  * Feltene settes eksplisitt, slik at formatet i databasen ikke endrer seg stille når libs-domenet gjør det.
  * Kildestatusen lagres slik kilden ga den, og ikke tolket til vår egen deltakerstatus.
  * Tolkningen kan reproduseres fra kildestatus, fraOgMed og tidspunktet nå-tilstanden ble innhentet, og en tolket statusendring står i endringen som lagres ved siden av.

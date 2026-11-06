@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -24,4 +25,7 @@ class TiltakshistorikkFakeRepo : TiltakshistorikkRepo {
             ?.verdi
             ?.tilNåtilstandDbJson()
             ?.tilDomene()
+
+    override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): List<Tiltakshistorikkinnslag> =
+        data.filter { it.sakId == sakId }.sortedWith(compareBy<Tiltakshistorikkinnslag> { it.innhentet }.thenBy { it.id.toString() })
 }

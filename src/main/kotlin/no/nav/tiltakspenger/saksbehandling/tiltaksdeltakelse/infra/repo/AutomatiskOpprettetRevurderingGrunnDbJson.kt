@@ -59,9 +59,11 @@ fun String.toAutomatiskOpprettetRevurderingGrunn(): AutomatiskOpprettetRevurderi
 
 /**
  * Endringen som en liste av enkeltendringer, i samme format som i [AutomatiskOpprettetRevurderingGrunn].
- * Brukes i `tiltakshistorikk`, der den kun skrives.
+ * Brukes i `tiltakshistorikk`.
  */
 fun TiltaksdeltakerEndring.toDbJson(): String = serialize(tilEndringerDbJson())
+
+fun String.tilTiltaksdeltakerEndring(): TiltaksdeltakerEndring = deserialize<List<TiltaksdeltakerEndringDbJson>>(this).toDomain()
 
 private fun TiltaksdeltakerEndring.tilEndringerDbJson(): List<TiltaksdeltakerEndringDbJson> = when (this) {
     is TiltaksdeltakerEndring.AvsluttetSomForventet -> listOf(TiltaksdeltakerEndringDbJson(type = TiltaksdeltakerEndringTypeDb.AVSLUTTET_SOM_FORVENTET))

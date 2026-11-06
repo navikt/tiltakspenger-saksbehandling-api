@@ -1,16 +1,22 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
+import kotliquery.Row
+import kotliquery.Session
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.TiltakshistorikkId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.TiltakshistorikkRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.Tiltakshistorikkinnslag
 
-/** Lagrer i `tiltakshistorikk`. */
+/** Lagrer og leser `tiltakshistorikk`. */
 class TiltakshistorikkPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : TiltakshistorikkRepo {
@@ -74,4 +80,34 @@ class TiltakshistorikkPostgresRepo(
                 ).map { row -> deserialize<TiltaksdeltakelseNåtilstandDbJson>(row.string("verdi")).tilDomene() }.asSingle,
             )
         }
+
+    override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): List<Tiltakshistorikkinnslag> =
+        sessionFactory.withSession(sessionContext) { session -> hentForSakId(sakId, session) }
+
+    companion object {
+        fun hentForSakId(sakId: SakId, session: Session): List<Tiltakshistorikkinnslag> =
+            session.run(
+                sqlQuery(
+                    """
+                        SELECT *
+                        FROM tiltakshistorikk
+                        WHERE sak_id = :sak_id
+                        ORDER BY innhentet, id
+                    """.trimIndent(),
+                    "sak_id" to sakId.toString(),
+                ).map { row -> row.tilTiltakshistorikkinnslag() }.asList,
+            )
+
+        private fun Row.tilTiltakshistorikkinnslag() = Tiltakshistorikkinnslag(
+            id = TiltakshistorikkId.fromString(string("id")),
+            sakId = SakId.fromString(string("sak_id")),
+            tiltaksdeltakerId = TiltaksdeltakerId.fromString(string("tiltaksdeltaker_id")),
+            eksternDeltakerId = string("ekstern_deltaker_id"),
+            innhentet = localDateTime("innhentet"),
+            verdi = deserialize<TiltaksdeltakelseNåtilstandDbJson>(string("verdi")).tilDomene(),
+            endring = stringOrNull("endring")?.tilTiltaksdeltakerEndring(),
+            behandlingId = stringOrNull("behandling_id")?.let { RammebehandlingId.fromString(it) },
+            oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) },
+        )
+    }
 }

@@ -12,6 +12,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
@@ -39,8 +40,10 @@ import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgave
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgaveRepo
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
@@ -53,6 +56,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.Tiltaksd
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.LagretTiltakshistorikkinnslag
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltakshistorikk
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
+import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.Duration
@@ -518,6 +522,75 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
             historikk.map { it.oppgaveId } shouldBe oppgaveIder
             historikk.map { it.verdi }.distinct() shouldHaveSize 1
         }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `automatisk opprettet revurdering viser innslaget som utløste den, men varsler ikke mens den er under automatisk behandling`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, deltakelse) = opprettInnvilgetSak(tac)
+            val jobb = tac.jobb()
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.medPeriode(tilOgMed = 5.juni(2025)))
+            tac.registrerEndring(sak, deltakelse)
+            jobb.håndterUbehandledeEndringer()
+            val revurdering = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
+
+            hentTiltakshistorikk(tac, sak, revurdering.id).also { historikk ->
+                historikk.getBoolean("harEndringEtterSistEndret") shouldBe false
+                val innslag = historikk.getJSONArray("innslag")
+                innslag.length() shouldBe 1
+                innslag.getJSONObject(0).getBoolean("utløsteBehandlingen") shouldBe true
+                innslag.getJSONObject(0).getString("behandlingId") shouldBe revurdering.id.toString()
+                innslag.getJSONObject(0).getJSONArray("endringer").getJSONObject(0).getString("type") shouldBe "FORLENGELSE"
+                innslag.getJSONObject(0).getJSONObject("periode").getString("tilOgMed") shouldBe "2025-06-05"
+            }
+
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.medPeriode(tilOgMed = 10.juni(2025)))
+            tac.registrerEndring(sak, deltakelse)
+            jobb.håndterUbehandledeEndringer()
+
+            hentTiltakshistorikk(tac, sak, revurdering.id).also { historikk ->
+                historikk.getBoolean("harEndringEtterSistEndret") shouldBe false
+                val innslag = historikk.getJSONArray("innslag")
+                innslag.length() shouldBe 2
+                innslag.getJSONObject(1).getBoolean("utløsteBehandlingen") shouldBe false
+                innslag.getJSONObject(1).getJSONObject("periode").getString("tilOgMed") shouldBe "2025-06-10"
+            }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `behandling under behandling varsler om tiltakshistorikk innhentet etter at den sist ble endret`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, deltakelse) = opprettInnvilgetSak(tac)
+            val (_, revurdering) = startRevurderingInnvilgelse(tac, sak.id).shouldNotBeNull()
+
+            hentTiltakshistorikk(tac, sak, revurdering.id).getBoolean("harEndringEtterSistEndret") shouldBe false
+
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.medPeriode(tilOgMed = 5.juni(2025)))
+            tac.registrerEndring(sak, deltakelse)
+            tac.jobb().håndterUbehandledeEndringer()
+
+            hentTiltakshistorikk(tac, sak, revurdering.id).also { historikk ->
+                historikk.getBoolean("harEndringEtterSistEndret") shouldBe true
+                val innslag = historikk.getJSONArray("innslag")
+                innslag.length() shouldBe 1
+                innslag.getJSONObject(0).getBoolean("utløsteBehandlingen") shouldBe false
+                innslag.getJSONObject(0).getJSONObject("periode").getString("tilOgMed") shouldBe "2025-06-05"
+            }
+        }
+    }
+
+    private suspend fun ApplicationTestBuilder.hentTiltakshistorikk(
+        tac: TestApplicationContextMedPostgres,
+        sak: Sak,
+        behandlingId: RammebehandlingId,
+    ): JSONObject {
+        val behandlinger = hentSakForSaksnummer(tac, sak.saksnummer).shouldNotBeNull().getJSONArray("rammebehandlinger")
+        return (0 until behandlinger.length()).map { behandlinger.getJSONObject(it) }
+            .single { it.getString("id") == behandlingId.toString() }
+            .getJSONObject("tiltakshistorikk")
     }
 
     private suspend fun ApplicationTestBuilder.opprettDeltaker(tac: TestApplicationContextMedPostgres): Tiltaksdeltaker {

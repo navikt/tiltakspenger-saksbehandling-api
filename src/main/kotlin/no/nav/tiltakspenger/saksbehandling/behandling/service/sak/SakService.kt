@@ -52,6 +52,7 @@ class SakService(
             søknader = emptyList(),
             tilbakekrevinger = emptyList(),
             kanSendeInnHelgForMeldekort = false,
+            tiltakshistorikk = emptyList(),
         )
         sakRepo.opprettSak(sak)
         logger.info { "Opprettet ny sak med saksnummer ${sak.saksnummer}, correlationId $correlationId" }

@@ -61,6 +61,7 @@ fun String.shouldBeRevurderingDTO(
     // JSON for feltet.
     // Null betyr at feltet ikke sammenlignes.
     tidslinjeFørOgEtter: String? = null,
+    tiltakshistorikk: String = """{"innslag": [], "harEndringEtterSistEndret": false}""",
     periodeFraOgMed: String = "2023-01-01",
     periodeTilOgMed: String = "2023-03-31",
     eksternDeltagelseId: String,
@@ -211,6 +212,7 @@ fun String.shouldBeRevurderingDTO(
           "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
           "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())},
           "beslutterEndringer": {"skalJournalføreNotat": null},
+          "tiltakshistorikk": $tiltakshistorikk,
           "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}${tidslinjeFørOgEtter.tilValgfrittJsonFelt()}
         }
     """
@@ -259,6 +261,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
     // JSON for feltet.
     // Null betyr at feltet ikke sammenlignes.
     tidslinjeFørOgEtter: String? = null,
+    tiltakshistorikk: String = """{"innslag": [], "harEndringEtterSistEndret": false}""",
     automatiskSaksbehandlet: Boolean = false,
     kanInnvilges: Boolean = true,
     manueltBehandlesGrunner: List<String> = emptyList(),
@@ -420,6 +423,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
         "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
         "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())},
         "beslutterEndringer": {"skalJournalføreNotat": null},
+        "tiltakshistorikk": $tiltakshistorikk,
         "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}${tidslinjeFørOgEtter.tilValgfrittJsonFelt()}
     }
     """

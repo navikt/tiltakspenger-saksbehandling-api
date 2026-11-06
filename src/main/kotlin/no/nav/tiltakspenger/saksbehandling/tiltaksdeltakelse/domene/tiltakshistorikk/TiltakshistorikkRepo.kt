@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk
 
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -18,4 +19,7 @@ interface TiltakshistorikkRepo {
         tiltaksdeltakerId: TiltaksdeltakerId,
         sessionContext: SessionContext,
     ): Tiltaksdeltakelse.GirRett?
+
+    /** Alle innslag for saken, sortert etter når de ble innhentet. */
+    fun hentForSakId(sakId: SakId, sessionContext: SessionContext? = null): List<Tiltakshistorikkinnslag>
 }

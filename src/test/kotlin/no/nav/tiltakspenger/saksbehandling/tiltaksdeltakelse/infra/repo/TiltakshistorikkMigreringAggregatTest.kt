@@ -18,14 +18,14 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 /**
- * Gjenskaper rader jobben tidligere skrev til `tiltaksdeltaker_endring` med SQL, og kjører den faktiske migreringsfila på nytt.
- * DDL-en i migreringen er idempotent, så det er flyttingen av radene som testes her.
+ * Gjenskaper rader jobben tidligere skrev til `tiltaksdeltaker_endring` med SQL, og kjører de faktiske migreringsfilene på nytt.
+ * DDL-en i V274 er idempotent, så det er kopieringen av radene som testes her, og deretter slettingen i V275.
  */
 class TiltakshistorikkMigreringAggregatTest {
 
     @Test
     @IsolatedDatabaseTest
-    fun `kopierer nå-tilstandene fra tiltakshistorikk og beholder radene i tiltaksdeltaker_endring`() {
+    fun `kopierer nå-tilstandene fra tiltakshistorikk, og sletter dem deretter fra tiltaksdeltaker_endring`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak) = iverksettSøknadsbehandling(tac = tac)
             val tidspunkt = nå(tac.clock).withNano(0)
@@ -48,9 +48,8 @@ class TiltakshistorikkMigreringAggregatTest {
             )
             val utenVerdi = tac.lagreHistoriskRad(sak = sak, kilde = "Tiltakshistorikk", verdi = null, opprettet = tidspunkt.minusMinutes(5))
             val komet = tac.lagreHistoriskRad(sak = sak, kilde = "Komet", verdi = """{"komet":true}""", opprettet = tidspunkt.minusMinutes(40))
-            val migrering = javaClass.getResource("/db/migration/V274__tiltakshistorikk.sql").shouldNotBeNull().readText()
 
-            tac.sessionFactory.withSession { session -> session.run(sqlQuery(migrering).asExecute) }
+            tac.kjørMigrering("V274__tiltakshistorikk.sql")
 
             val tiltak = sak.søknader.single().tiltak.shouldNotBeNull()
             val historikk = tac.sessionFactory.hentTiltakshistorikk(tiltak.tiltaksdeltakerId)
@@ -79,7 +78,17 @@ class TiltakshistorikkMigreringAggregatTest {
                 medOppgave to "Tiltakshistorikk",
                 utenVerdi to "Tiltakshistorikk",
             )
+
+            tac.kjørMigrering("V275__slett_tiltakshistorikk_fra_tiltaksdeltaker_endring.sql")
+
+            tac.hentKilderITiltaksdeltakerEndring(tiltak.id) shouldBe listOf(komet to "Komet")
+            tac.sessionFactory.hentTiltakshistorikk(tiltak.tiltaksdeltakerId) shouldBe historikk
         }
+    }
+
+    private fun TestApplicationContextMedPostgres.kjørMigrering(filnavn: String) {
+        val migrering = javaClass.getResource("/db/migration/$filnavn").shouldNotBeNull().readText()
+        sessionFactory.withSession { session -> session.run(sqlQuery(migrering).asExecute) }
     }
 
     /**
