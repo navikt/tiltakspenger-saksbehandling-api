@@ -21,6 +21,8 @@ sealed interface BrevRammevedtakInnvilgelseBaseDTO : BrevRammevedtakBaseDTO {
     val satser: List<SatserDTO>
     val innvilgelsesperioder: BrevInnvilgelsesperioderDTO
     val barnetillegg: List<BrevBarnetilleggDTO>
+    val perioder: List<PeriodeInnvilgelseDTO>
+    val sisteKjenteSatsår: Int
 
     data class SatserDTO(
         val år: Int,

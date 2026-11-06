@@ -24,6 +24,8 @@ private data class BrevRevurderingInnvilgetDTO(
     override val forhandsvisning: Boolean,
     override val harBarnetillegg: Boolean,
     override val satser: List<SatserDTO>,
+    override val perioder: List<PeriodeInnvilgelseDTO>,
+    override val sisteKjenteSatsår: Int,
     override val innvilgelsesperioder: BrevInnvilgelsesperioderDTO,
     override val barnetillegg: List<BrevBarnetilleggDTO>,
 ) : BrevRammevedtakInnvilgelseBaseDTO
@@ -76,6 +78,8 @@ suspend fun genererRevurderingInnvilgetBrev(
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
         satser = Satser.tilSatserDTO(innvilgelsesperioder.totalPeriode),
+        perioder = totalDagSatsForAllePeriodene(innvilgelsesperioder, barnetillegg),
+        sisteKjenteSatsår = Satser.sisteKjenteSatsår(),
         tilleggstekst = tilleggstekst?.verdi,
         forhandsvisning = forhåndsvisning,
         harBarnetillegg = barnetillegg != null && barnetillegg.any { it.verdi.value > 0 },
