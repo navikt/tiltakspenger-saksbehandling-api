@@ -117,7 +117,7 @@ class StartRevurderingTest {
                 behandlingId = omgjøring.id,
                 vedtaksperiode = rammevedtakSøknadsbehandling.periode,
                 innvilgelsesperioder = innvilgelsesperioder(rammevedtakSøknadsbehandling.periode),
-                forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             )
 
             val (_, oppdatertOmgjøring) = oppdaterOmgjøringInnvilgelse(
@@ -226,7 +226,7 @@ class StartRevurderingTest {
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
                 vedtaksperiode = 2 til 9.april(2025),
-                forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             )
 
             // Men kan opphøre opprinnelig vedtaksperiode

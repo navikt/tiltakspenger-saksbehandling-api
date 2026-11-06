@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
@@ -119,6 +120,7 @@ private fun Rammebehandling.iverksettKlagebehandling(
  *  - [utøvendeBeslutter] må være beslutteren på behandlingen
  *  - behandlingen kan ikke allerede være godkjent
  *  - behandlingen kan ikke stå på vent
+ *  - innvilgelsesperiodene må passe med tiltaksdeltakelsene i saksopplysningene
  *
  * Statusen sjekkes først, fordi saksbehandleren kan ha angret sendingen til beslutning i mellomtiden.
  * Da er beslutteren fjernet fra behandlingen, og beslutteren skal få vite at behandlingen ikke lenger er under beslutning.
@@ -147,6 +149,9 @@ private fun Rammebehandling.kanIverksette(utøvendeBeslutter: Saksbehandler): Ei
     }
     if (ventestatus.erSattPåVent) {
         return KanIkkeIverksetteBehandling.BehandlingenErSattPåVent.left()
+    }
+    innvilgelsesperioder?.ugyldigePerioder(saksopplysninger.tiltaksdeltakelser)?.toNonEmptyListOrNull()?.let {
+        return KanIkkeIverksetteBehandling.InnvilgelsenPasserIkkeMedTiltaksdeltakelsene(it).left()
     }
     return Unit.right()
 }

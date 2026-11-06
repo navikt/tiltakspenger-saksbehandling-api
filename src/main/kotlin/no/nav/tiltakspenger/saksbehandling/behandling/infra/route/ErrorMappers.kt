@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.UgyldigInnvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeForlenge
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeOppdatereBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeOppdatereOmgjøring
@@ -119,4 +120,11 @@ fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, Erro
         "Innvilgelsesperiode har ingen overlapp med tiltaksdeltakelser fra saksopplysninger",
         "innvilgelsesperiode_har_ingen_overlapp_med_tiltaksdeltakelser_fra_saksopplysninger",
     )
+
+    is KanIkkeOppdatereBehandling.InnvilgelsenPasserIkkeMedTiltaksdeltakelsene -> HttpStatusCode.BadRequest to innvilgelsenPasserIkkeMedTiltaksdeltakelsene(this.ugyldigePerioder)
 }
+
+fun innvilgelsenPasserIkkeMedTiltaksdeltakelsene(ugyldigePerioder: List<UgyldigInnvilgelsesperiode>) = ErrorJson(
+    "Innvilgelsen passer ikke med tiltaksdeltakelsene i saksopplysningene: ${ugyldigePerioder.joinToString("; ") { it.beskrivelse() }}",
+    "innvilgelsen_passer_ikke_med_tiltaksdeltakelsene",
+)

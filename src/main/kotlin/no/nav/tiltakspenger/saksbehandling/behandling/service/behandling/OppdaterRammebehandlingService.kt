@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import arrow.core.toNonEmptyListOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.trekkFra
@@ -28,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterIn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterOmgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilInnvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ugyldigePerioder
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnOpphør
@@ -65,6 +67,13 @@ class OppdaterRammebehandlingService(
         behandling.kanOppdateresMed(kommando).onLeft {
             log.warn { "Kommandoen ${kommando::class.simpleName} passer ikke med resultatet ${behandling.resultat::class.simpleName} på behandling ${behandling.id} i sak ${behandling.sakId}" }
             return it.left()
+        }
+
+        if (kommando is OppdaterBehandlingKommando.Innvilgelse) {
+            kommando.innvilgelsesperioder.ugyldigePerioder(behandling.saksopplysninger.tiltaksdeltakelser).toNonEmptyListOrNull()?.let {
+                log.warn { "Innvilgelsen passer ikke med tiltaksdeltakelsene på behandling ${behandling.id} i sak ${behandling.sakId}: ${it.joinToString { feil -> feil.beskrivelse() }}" }
+                return KanIkkeOppdatereBehandling.InnvilgelsenPasserIkkeMedTiltaksdeltakelsene(it).left()
+            }
         }
 
         sak.rammevedtaksliste.validerOpphør(kommando).onLeft {

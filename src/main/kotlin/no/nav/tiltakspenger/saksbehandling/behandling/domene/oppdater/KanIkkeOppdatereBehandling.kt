@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater
 
+import arrow.core.NonEmptyList
 import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.UgyldigInnvilgelsesperiode
 
 sealed interface KanIkkeOppdatereBehandling {
     /** Inntil videre støtter vi ikke vedtak over allerede utbetalte perioder (gjelder søknadsbehandling) */
@@ -23,6 +25,8 @@ sealed interface KanIkkeOppdatereBehandling {
     data object UgyldigeMeldeperioderHelg : KanIkkeOppdatereBehandling
 
     data object InnvilgelsesperiodeHarIngenOverlappMedTiltaksdeltakelserFraSaksopplysninger : KanIkkeOppdatereBehandling
+
+    data class InnvilgelsenPasserIkkeMedTiltaksdeltakelsene(val ugyldigePerioder: NonEmptyList<UgyldigInnvilgelsesperiode>) : KanIkkeOppdatereBehandling
 }
 
 sealed interface KanIkkeOppdatereOmgjøring : KanIkkeOppdatereBehandling {

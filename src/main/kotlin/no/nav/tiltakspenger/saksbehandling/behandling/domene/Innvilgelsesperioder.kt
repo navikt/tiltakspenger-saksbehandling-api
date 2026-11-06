@@ -105,6 +105,31 @@ data class Innvilgelsesperioder(
         )
     }
 
+    /**
+     * Oppdaterer tiltaksdeltakelsene i innvilgelsesperiodene som fortsatt passer med [tiltaksdeltakelser], uten å endre periodene.
+     * Innvilgelsesperioder som ikke lenger passer, beholder tiltaksdeltakelsen de ble innvilget for, slik at saksbehandler kan rette dem selv.
+     * Se [ugyldigePerioder].
+     */
+    fun medOppdaterteTiltaksdeltakelser(tiltaksdeltakelser: Tiltaksdeltakelser): Innvilgelsesperioder {
+        return Innvilgelsesperioder(
+            periodisering.map {
+                val internDeltakelseId = it.verdi.valgtTiltaksdeltakelse.internDeltakelseId
+                if (tiltaksdeltakelser.validerInnvilgelsesperiode(it.periode, internDeltakelseId) == null) {
+                    it.verdi.copy(valgtTiltaksdeltakelse = tiltaksdeltakelser.getTiltaksdeltakelse(internDeltakelseId)!!)
+                } else {
+                    it.verdi
+                }
+            },
+        )
+    }
+
+    /** @return innvilgelsesperiodene som ikke passer med [tiltaksdeltakelser], eller en tom liste dersom alle er gyldige */
+    fun ugyldigePerioder(tiltaksdeltakelser: Tiltaksdeltakelser): List<UgyldigInnvilgelsesperiode> {
+        return periodisering.perioderMedVerdi.mapNotNull {
+            tiltaksdeltakelser.validerInnvilgelsesperiode(it.periode, it.verdi.valgtTiltaksdeltakelse.internDeltakelseId)
+        }
+    }
+
     /** Sjekker om alle innvilgelsesperiodene er innenfor tiltaksdeltakelsesperiodene */
     fun erInnenforTiltaksperiodene(saksopplysninger: Saksopplysninger): Boolean {
         return this.perioder.trekkFra(saksopplysninger.tiltaksdeltakelser.perioder).isEmpty()

@@ -2,18 +2,19 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSakso
 
 import io.kotest.assertions.json.shouldContainJsonKeyValue
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakstype
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.UgyldigInnvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -23,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSaksopplysningerForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
@@ -94,7 +96,39 @@ class OppdaterRammebehandlingSaksopplysningerTest {
     ) as Tiltaksdeltakelse.FratarRett
 
     @Test
-    fun `revurdering til omgjøring - kan oppdatere saksopplysninger`() {
+    fun `revurdering til omgjøring - oppdaterer valgt tiltaksdeltakelse som fortsatt dekker innvilgelsen`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, søknadsvedtak, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac)!!
+
+            oppdaterOmgjøringInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                vedtaksperiode = søknadsvedtak.periode,
+            )
+
+            val forrigeTiltaksdeltakelse = revurdering.saksopplysninger.tiltaksdeltakelser.first()
+            val endretTiltaksdeltakelse = forrigeTiltaksdeltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)
+
+            tac.oppdaterTiltaksdeltakelse(fnr = sak.fnr, tiltaksdeltakelse = endretTiltaksdeltakelse)
+            val (_, oppdatertRevurdering: Rammebehandling) = oppdaterSaksopplysningerForBehandlingId(
+                tac,
+                sak.id,
+                revurdering.id,
+            )
+
+            (oppdatertRevurdering as Revurdering).saksopplysninger.tiltaksdeltakelser.single() shouldBe endretTiltaksdeltakelse
+            val innvilgelsesperioder = (oppdatertRevurdering.resultat as OmgjøringInnvilgelse).innvilgelsesperioder!!
+            innvilgelsesperioder.totalPeriode shouldBe søknadsvedtak.periode
+            innvilgelsesperioder.valgteTiltaksdeltagelser.single().verdi shouldBe endretTiltaksdeltakelse
+            oppdatertRevurdering.erFerdigutfylt() shouldBe true
+            // Forsikrer oss om at vi ikke har brutt noen init-regler i Sak.kt.
+            tac.sakContext.sakService.hentForSakId(sakId = revurdering.sakId).rammebehandlinger[1] shouldBe oppdatertRevurdering
+        }
+    }
+
+    @Test
+    fun `revurdering til omgjøring - beholder innvilgelsen når tiltaksdeltakelsen har krympet`() {
         withTestApplicationContext { tac ->
             val (sak, _, søknadsvedtak, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac)!!
 
@@ -117,25 +151,31 @@ class OppdaterRammebehandlingSaksopplysningerTest {
                 revurdering.id,
             )
 
-            // Forventer at saksopplysningene er oppdatert og at resultatet har resatt seg.
             (oppdatertRevurdering as Revurdering).saksopplysninger.tiltaksdeltakelser.single() shouldBe avbruttTiltaksdeltakelse
-
-            (oppdatertRevurdering.resultat as OmgjøringInnvilgelse)
-                .innvilgelsesperioder!!.valgteTiltaksdeltagelser
-                .single().verdi shouldBe avbruttTiltaksdeltakelse
-
-            oppdatertRevurdering.erFerdigutfylt() shouldBe true
-            // Forsikrer oss om at vi ikke har brutt noen init-regler i Sak.kt.
+            val innvilgelsesperioder = (oppdatertRevurdering.resultat as OmgjøringInnvilgelse).innvilgelsesperioder!!
+            innvilgelsesperioder.totalPeriode shouldBe søknadsvedtak.periode
+            innvilgelsesperioder.valgteTiltaksdeltagelser.single().verdi shouldBe forrigeTiltaksdeltakelse
+            innvilgelsesperioder.ugyldigePerioder(oppdatertRevurdering.saksopplysninger.tiltaksdeltakelser) shouldBe listOf(
+                UgyldigInnvilgelsesperiode.TiltaksdeltakelsenDekkerIkkePerioden(
+                    periode = søknadsvedtak.periode,
+                    internDeltakelseId = forrigeTiltaksdeltakelse.internDeltakelseId,
+                    deltakelsesperiode = avbruttTiltaksdeltakelse.lukketPeriode!!,
+                ),
+            )
             tac.sakContext.sakService.hentForSakId(sakId = revurdering.sakId).rammebehandlinger[1] shouldBe oppdatertRevurdering
+
+            sendRevurderingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+            ).shouldContainJsonKeyValue("$.kode", "innvilgelsen_passer_ikke_med_tiltaksdeltakelsene")
         }
     }
 
-    /**
-     * En fersk omgjøring står som `OmgjøringIkkeValgt`, så innvilgelsen må velges før den kan nulles.
-     * Kjører mot postgres fordi det er lagringen av det nullstilte resultatet som dekkes.
-     */
+    /** Kjører mot postgres fordi det er lagringen av en innvilgelse som ikke passer med saksopplysningene som dekkes. */
     @Test
-    fun `revurdering til omgjøring - skal nulle ut innvilgelsen dersom tiltaksdeltakelsen vi omgjør har blitt filtrert bort`() {
+    fun `revurdering til omgjøring - beholder innvilgelsen når tiltaksdeltakelsen vi omgjør har blitt filtrert bort`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, _, søknadsvedtak, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac)!!
             oppdaterOmgjøringInnvilgelse(
@@ -144,6 +184,7 @@ class OppdaterRammebehandlingSaksopplysningerTest {
                 behandlingId = revurdering.id,
                 vedtaksperiode = søknadsvedtak.periode,
             )
+            val forrigeTiltaksdeltakelse = revurdering.saksopplysninger.tiltaksdeltakelser.first()
 
             tac.oppdaterTiltaksdeltakelse(fnr = sak.fnr, tiltaksdeltakelse = null)
             val (_, oppdatertBehandling) = oppdaterSaksopplysningerForBehandlingId(
@@ -153,8 +194,14 @@ class OppdaterRammebehandlingSaksopplysningerTest {
             )
 
             val resultat = (oppdatertBehandling as Revurdering).resultat as OmgjøringInnvilgelse
-            resultat.innvilgelsesperioder.shouldBeNull()
-            resultat.barnetillegg.shouldBeNull()
+            resultat.innvilgelsesperioder!!.valgteTiltaksdeltagelser.single().verdi shouldBe forrigeTiltaksdeltakelse
+            resultat.innvilgelsesperioder.ugyldigePerioder(oppdatertBehandling.saksopplysninger.tiltaksdeltakelser) shouldBe listOf(
+                UgyldigInnvilgelsesperiode.TiltaksdeltakelsenFinnesIkke(
+                    periode = søknadsvedtak.periode,
+                    internDeltakelseId = forrigeTiltaksdeltakelse.internDeltakelseId,
+                ),
+            )
+            tac.sakContext.sakService.hentForSakId(sakId = revurdering.sakId).rammebehandlinger[1] shouldBe oppdatertBehandling
         }
     }
 }

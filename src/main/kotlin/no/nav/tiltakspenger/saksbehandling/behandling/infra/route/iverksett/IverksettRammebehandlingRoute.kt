@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.infra.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.iverksett.KanIkkeIverksetteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.innvilgelsenPasserIkkeMedTiltaksdeltakelsene
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.omgjøringsgrunnlagetErEndretForBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
@@ -128,6 +129,10 @@ private suspend fun ApplicationCall.handleIverksettFeil(feil: KanIkkeIverksetteB
                 "Behandlingen er allerede godkjent.",
                 "behandlingen_er_allerede_godkjent",
             ),
+        )
+
+        is KanIkkeIverksetteBehandling.InnvilgelsenPasserIkkeMedTiltaksdeltakelsene -> respond400BadRequest(
+            innvilgelsenPasserIkkeMedTiltaksdeltakelsene(feil.ugyldigePerioder),
         )
 
         KanIkkeIverksetteBehandling.BehandlingenErSattPåVent -> respondJson(

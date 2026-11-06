@@ -63,6 +63,7 @@ fun Route.sendRammebehandlingTilBeslutningRoute(
                         is KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeil,
                         KanIkkeSendeRammebehandlingTilBeslutter.MåHaBegrunnelseForÅJournalføreNotat,
                         KanIkkeSendeRammebehandlingTilBeslutter.MåHaBegrunnelseForBarnetilleggForÅJournalføreNotat,
+                        is KanIkkeSendeRammebehandlingTilBeslutter.InnvilgelsenPasserIkkeMedTiltaksdeltakelsene,
                         -> call.respondJson(statusAndValue = it.toErrorJson(saksbehandler))
 
                         is KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingFeil -> call.respondJson(it.toErrorJson(saksbehandler))
@@ -109,6 +110,8 @@ private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(saksbehandler: S
         "Behandlingen må ha et ferdig utfylt resultat med vedtaksperiode for å kunne sendes til beslutning",
         "behandlingen_er_ikke_ferdigutfylt",
     )
+
+    is KanIkkeSendeRammebehandlingTilBeslutter.InnvilgelsenPasserIkkeMedTiltaksdeltakelsene -> HttpStatusCode.BadRequest to innvilgelsenPasserIkkeMedTiltaksdeltakelsene(this.ugyldigePerioder)
 
     is KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeil -> this.feil.tilSimuleringErrorJson()
 

@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater
 
 import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
+import io.kotest.assertions.json.shouldContainJsonKeyValue
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -222,7 +223,7 @@ class OppdaterSøknadsbehandlingRouteTest {
 
             val oppdatertTiltaksdeltakelsesPeriode = tiltaksdeltakelsePeriode.minusFraOgMed(7)
 
-            oppdaterSøknadsbehandlingInnvilgelse(
+            val (_, _, body) = oppdaterSøknadsbehandlingInnvilgelse(
                 tac,
                 sak.id,
                 behandlingId,
@@ -230,8 +231,9 @@ class OppdaterSøknadsbehandlingRouteTest {
                 begrunnelseVilkårsvurdering = null,
                 innvilgelsesperioder = innvilgelsesperioder(oppdatertTiltaksdeltakelsesPeriode),
                 barnetillegg = Barnetillegg.utenBarnetillegg(oppdatertTiltaksdeltakelsesPeriode),
-                forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             )
+            body.shouldContainJsonKeyValue("$.kode", "innvilgelsen_passer_ikke_med_tiltaksdeltakelsene")
 
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
