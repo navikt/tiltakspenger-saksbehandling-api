@@ -56,6 +56,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.Tiltaksd
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltakshistorikk
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -234,6 +235,19 @@ class OppdatertTiltaksdeltakelseJobbTest {
             oppdatertBehandling.ventestatus.erSattPåVent shouldBe true
             repo.hent(annenBehandling.id).venterTil shouldBe annenVenterTil
             oppdatertSak.rammebehandlinger shouldHaveSize 2
+
+            // Nå-tilstanden lagres i tiltakshistorikken selv om behandlingen er under automatisk behandling.
+            val historikk = tac.sessionFactory.hentTiltakshistorikk(tiltaksdeltakelse.internDeltakelseId)
+            if (nåtilstandMangler) {
+                historikk.shouldBeEmpty()
+            } else {
+                historikk.single().also {
+                    it.verdi.shouldContainJsonKeyValue("$.fraOgMed", "2025-05-01")
+                    it.endring.shouldBeNull()
+                    it.behandlingId.shouldBeNull()
+                    it.oppgaveId.shouldBeNull()
+                }
+            }
         }
     }
 
