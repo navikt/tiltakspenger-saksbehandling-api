@@ -3,10 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
@@ -26,8 +24,8 @@ private data class BrevFørstegangsvedtakInnvilgelseDTO(
     override val forhandsvisning: Boolean,
     override val harBarnetillegg: Boolean,
     override val satser: List<SatserDTO>,
-    val sisteKjenteSatsår: Int,
-    val perioder: List<PeriodeInnvilgelseDTO>,
+    override val sisteKjenteSatsår: Int,
+    override val perioder: List<PeriodeInnvilgelseDTO>,
     override val innvilgelsesperioder: BrevInnvilgelsesperioderDTO,
     override val barnetillegg: List<BrevBarnetilleggDTO>,
 ) : BrevRammevedtakInnvilgelseBaseDTO
@@ -118,46 +116,3 @@ private fun tilBarnetillegg(
         )
     } ?: emptyList()
 }
-
-private fun totalDagSatsForAllePeriodene(
-    innvilgelsesperioder: Innvilgelsesperioder,
-    barnetillegg: Periodisering<AntallBarn>?,
-): List<PeriodeInnvilgelseDTO> {
-    return innvilgelsesperioder.perioder.leggSammen(false).map { periode ->
-
-        val beløpPerPeriode = periode.tilDager().map { dag ->
-
-            val satsdag = Satser.sats(dato = dag)
-            val antallBarn = barnetillegg?.hentVerdiForDag(dag)?.value ?: 0
-
-            Periode(fraOgMed = dag, tilOgMed = dag) to DagBeløp(
-                antallBarn = antallBarn,
-                tiltakspenger = satsdag.sats,
-                barnetillegg = satsdag.satsBarnetillegg * antallBarn,
-            )
-        }.tilPeriodisering()
-
-        PeriodeInnvilgelseDTO(
-            periode = BrevPeriodeDTO.fraPeriode(periode),
-            beløp = beløpPerPeriode.perioderMedVerdi.map { (beløp, strekning) ->
-                PeriodeBeløpInnvilgelseDTO(
-                    periode = BrevPeriodeDTO.fraPeriode(strekning),
-                    antallBarn = beløp.antallBarn,
-                    tiltakspenger = beløp.tiltakspenger,
-                    barnetilleggBeløp = beløp.barnetillegg,
-                    total = beløp.tiltakspenger + beløp.barnetillegg,
-                )
-            },
-        )
-    }
-}
-
-/**
- * Beløpene for én dag.
- * Må være en data class, slik at like nabodager slås sammen av tilPeriodisering.
- */
-private data class DagBeløp(
-    val antallBarn: Int,
-    val tiltakspenger: Int,
-    val barnetillegg: Int,
-)

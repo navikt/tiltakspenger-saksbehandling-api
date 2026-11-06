@@ -73,6 +73,21 @@ class BrevRevurderingInnvilgetDTOTest {
                     }
                   ]
                  },
+                 "sisteKjenteSatsår": 2026,
+                 "perioder": [
+                   {
+                     "periode": {"fraOgMed": "2025-06-01", "tilOgMed": "2025-08-31"},
+                     "beløp": [
+                       {
+                         "periode": {"fraOgMed": "2025-06-01", "tilOgMed": "2025-08-31"},
+                         "antallBarn": 0,
+                         "tiltakspenger": 298,
+                         "barnetilleggBeløp": 0,
+                         "total": 298
+                       }
+                     ]
+                   }
+                 ],
                  "barnetillegg": []
                }
             """.trimIndent()
@@ -131,6 +146,28 @@ class BrevRevurderingInnvilgetDTOTest {
                     }
                   ]
                  },
+                 "sisteKjenteSatsår": 2026,
+                 "perioder": [
+                   {
+                     "periode": {"fraOgMed": "2024-12-01", "tilOgMed": "2025-01-31"},
+                     "beløp": [
+                       {
+                         "periode": {"fraOgMed": "2024-12-01", "tilOgMed": "2024-12-31"},
+                         "antallBarn": 0,
+                         "tiltakspenger": 285,
+                         "barnetilleggBeløp": 0,
+                         "total": 285
+                       },
+                       {
+                         "periode": {"fraOgMed": "2025-01-01", "tilOgMed": "2025-01-31"},
+                         "antallBarn": 0,
+                         "tiltakspenger": 298,
+                         "barnetilleggBeløp": 0,
+                         "total": 298
+                       }
+                     ]
+                   }
+                 ],
                  "barnetillegg": []
                }
             """.trimIndent()
@@ -184,6 +221,21 @@ class BrevRevurderingInnvilgetDTOTest {
                     }
                   ]
                  },
+                 "sisteKjenteSatsår": 2026,
+                 "perioder": [
+                   {
+                     "periode": {"fraOgMed": "2025-06-01", "tilOgMed": "2025-08-31"},
+                     "beløp": [
+                       {
+                         "periode": {"fraOgMed": "2025-06-01", "tilOgMed": "2025-08-31"},
+                         "antallBarn": 2,
+                         "tiltakspenger": 298,
+                         "barnetilleggBeløp": 110,
+                         "total": 408
+                       }
+                     ]
+                   }
+                 ],
                  "barnetillegg": [
                    {
                       "antallBarn": 2,
@@ -256,6 +308,28 @@ class BrevRevurderingInnvilgetDTOTest {
                     }
                   ]
                  },
+                 "sisteKjenteSatsår": 2026,
+                 "perioder": [
+                   {
+                     "periode": {"fraOgMed": "2024-12-01", "tilOgMed": "2025-01-31"},
+                     "beløp": [
+                       {
+                         "periode": {"fraOgMed": "2024-12-01", "tilOgMed": "2024-12-31"},
+                         "antallBarn": 2,
+                         "tiltakspenger": 285,
+                         "barnetilleggBeløp": 106,
+                         "total": 391
+                       },
+                       {
+                         "periode": {"fraOgMed": "2025-01-01", "tilOgMed": "2025-01-31"},
+                         "antallBarn": 3,
+                         "tiltakspenger": 298,
+                         "barnetilleggBeløp": 165,
+                         "total": 463
+                       }
+                     ]
+                   }
+                 ],
                  "barnetillegg": [
                     {
                         "antallBarn": 2,
@@ -336,6 +410,35 @@ class BrevRevurderingInnvilgetDTOTest {
                       }
                     ]
                   },
+                  "sisteKjenteSatsår": 2026,
+                  "perioder": [
+                    {
+                      "periode": {"fraOgMed": "2024-11-01", "tilOgMed": "2025-01-31"},
+                      "beløp": [
+                        {
+                          "periode": {"fraOgMed": "2024-11-01", "tilOgMed": "2024-11-30"},
+                          "antallBarn": 1,
+                          "tiltakspenger": 285,
+                          "barnetilleggBeløp": 53,
+                          "total": 338
+                        },
+                        {
+                          "periode": {"fraOgMed": "2024-12-01", "tilOgMed": "2024-12-31"},
+                          "antallBarn": 2,
+                          "tiltakspenger": 285,
+                          "barnetilleggBeløp": 106,
+                          "total": 391
+                        },
+                        {
+                          "periode": {"fraOgMed": "2025-01-01", "tilOgMed": "2025-01-31"},
+                          "antallBarn": 3,
+                          "tiltakspenger": 298,
+                          "barnetilleggBeløp": 165,
+                          "total": 463
+                        }
+                      ]
+                    }
+                  ],
                   "barnetillegg": [
                     {
                       "antallBarn": 1,
@@ -431,6 +534,47 @@ class BrevRevurderingInnvilgetDTOTest {
                       }
                       ]
                   },
+                  "sisteKjenteSatsår": 2026,
+                  "perioder": [
+                    {
+                      "periode": {"fraOgMed": "2024-11-01", "tilOgMed": "2025-02-28"},
+                      "beløp": [
+                        {
+                          "periode": {"fraOgMed": "2024-11-01", "tilOgMed": "2024-12-31"},
+                          "antallBarn": 1,
+                          "tiltakspenger": 285,
+                          "barnetilleggBeløp": 53,
+                          "total": 338
+                        },
+                        {
+                          "periode": {"fraOgMed": "2025-01-01", "tilOgMed": "2025-01-31"},
+                          "antallBarn": 1,
+                          "tiltakspenger": 298,
+                          "barnetilleggBeløp": 55,
+                          "total": 353
+                        },
+                        {
+                          "periode": {"fraOgMed": "2025-02-01", "tilOgMed": "2025-02-28"},
+                          "antallBarn": 2,
+                          "tiltakspenger": 298,
+                          "barnetilleggBeløp": 110,
+                          "total": 408
+                        }
+                      ]
+                    },
+                    {
+                      "periode": {"fraOgMed": "2025-04-01", "tilOgMed": "2025-04-30"},
+                      "beløp": [
+                        {
+                          "periode": {"fraOgMed": "2025-04-01", "tilOgMed": "2025-04-30"},
+                          "antallBarn": 3,
+                          "tiltakspenger": 298,
+                          "barnetilleggBeløp": 165,
+                          "total": 463
+                        }
+                      ]
+                    }
+                  ],
                   "barnetillegg": [
                     {
                       "antallBarn": 1,
@@ -531,6 +675,52 @@ class BrevRevurderingInnvilgetDTOTest {
                       }
                     ]
                   },
+                  "sisteKjenteSatsår": 2026,
+                  "perioder": [
+                    {
+                      "periode": {"fraOgMed": "2024-11-01", "tilOgMed": "2025-02-28"},
+                      "beløp": [
+                        {
+                          "periode": {"fraOgMed": "2024-11-01", "tilOgMed": "2024-12-31"},
+                          "antallBarn": 1,
+                          "tiltakspenger": 285,
+                          "barnetilleggBeløp": 53,
+                          "total": 338
+                        },
+                        {
+                          "periode": {"fraOgMed": "2025-01-01", "tilOgMed": "2025-02-28"},
+                          "antallBarn": 1,
+                          "tiltakspenger": 298,
+                          "barnetilleggBeløp": 55,
+                          "total": 353
+                        }
+                      ]
+                    },
+                    {
+                      "periode": {"fraOgMed": "2025-04-01", "tilOgMed": "2025-04-30"},
+                      "beløp": [
+                        {
+                          "periode": {"fraOgMed": "2025-04-01", "tilOgMed": "2025-04-30"},
+                          "antallBarn": 2,
+                          "tiltakspenger": 298,
+                          "barnetilleggBeløp": 110,
+                          "total": 408
+                        }
+                      ]
+                    },
+                    {
+                      "periode": {"fraOgMed": "2025-05-02", "tilOgMed": "2025-05-31"},
+                      "beløp": [
+                        {
+                          "periode": {"fraOgMed": "2025-05-02", "tilOgMed": "2025-05-31"},
+                          "antallBarn": 3,
+                          "tiltakspenger": 298,
+                          "barnetilleggBeløp": 165,
+                          "total": 463
+                        }
+                      ]
+                    }
+                  ],
                   "barnetillegg": [
                     {
                       "antallBarn": 1,
