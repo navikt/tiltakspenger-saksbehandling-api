@@ -25,7 +25,7 @@ class TiltakshistorikkMigreringAggregatTest {
 
     @Test
     @IsolatedDatabaseTest
-    fun `flytter nå-tilstandene fra tiltakshistorikk og beholder hendelsene fra andre kilder`() {
+    fun `kopierer nå-tilstandene fra tiltakshistorikk og beholder radene i tiltaksdeltaker_endring`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak) = iverksettSøknadsbehandling(tac = tac)
             val tidspunkt = nå(tac.clock).withNano(0)
@@ -46,7 +46,7 @@ class TiltakshistorikkMigreringAggregatTest {
                 oppgaveId = "oppgave-1",
                 opprettet = tidspunkt.minusMinutes(10),
             )
-            tac.lagreHistoriskRad(sak = sak, kilde = "Tiltakshistorikk", verdi = null, opprettet = tidspunkt.minusMinutes(5))
+            val utenVerdi = tac.lagreHistoriskRad(sak = sak, kilde = "Tiltakshistorikk", verdi = null, opprettet = tidspunkt.minusMinutes(5))
             val komet = tac.lagreHistoriskRad(sak = sak, kilde = "Komet", verdi = """{"komet":true}""", opprettet = tidspunkt.minusMinutes(40))
             val migrering = javaClass.getResource("/db/migration/V274__tiltakshistorikk.sql").shouldNotBeNull().readText()
 
@@ -73,10 +73,28 @@ class TiltakshistorikkMigreringAggregatTest {
                 it.behandlingId.shouldBeNull()
                 it.oppgaveId shouldBe "oppgave-1"
             }
-            tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(tiltak.id).map { it.id to it.kilde } shouldBe
-                listOf(komet to TiltaksdeltakerHendelseKilde.Komet)
+            tac.hentKilderITiltaksdeltakerEndring(tiltak.id) shouldBe listOf(
+                komet to "Komet",
+                medBehandling to "Tiltakshistorikk",
+                medOppgave to "Tiltakshistorikk",
+                utenVerdi to "Tiltakshistorikk",
+            )
         }
     }
+
+    /**
+     * Id og kilde for radene i `tiltaksdeltaker_endring`, sortert etter når de ble opprettet.
+     * Kilden leses som tekst, siden `Tiltakshistorikk` ikke lenger er en [TiltaksdeltakerHendelseKilde].
+     */
+    private fun TestApplicationContextMedPostgres.hentKilderITiltaksdeltakerEndring(eksternDeltakerId: String): List<Pair<String, String>> =
+        sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    "SELECT id, kilde FROM tiltaksdeltaker_endring WHERE ekstern_deltaker_id = :ekstern_deltaker_id ORDER BY opprettet",
+                    "ekstern_deltaker_id" to eksternDeltakerId,
+                ).map { row -> row.string("id") to row.string("kilde") }.asList,
+            )
+        }
 
     /** Skriver en rad slik den gamle jobben og consumerne gjorde, og returnerer id-en. */
     private fun TestApplicationContextMedPostgres.lagreHistoriskRad(

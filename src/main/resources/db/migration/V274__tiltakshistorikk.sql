@@ -18,8 +18,9 @@ CREATE INDEX IF NOT EXISTS idx_tiltakshistorikk_sak_id ON tiltakshistorikk (sak_
 CREATE INDEX IF NOT EXISTS idx_tiltakshistorikk_tiltaksdeltaker_id_innhentet ON tiltakshistorikk (tiltaksdeltaker_id, innhentet);
 CREATE INDEX IF NOT EXISTS idx_tiltakshistorikk_behandling_id ON tiltakshistorikk (behandling_id);
 
--- Flytter nå-tilstandene jobben har lagret i tiltaksdeltaker_endring.
--- Rader uten verdi, der deltakelsen manglet i tiltakshistorikken eller ikke kunne leses, har ingen innslag å flytte og slettes.
+-- Kopierer nå-tilstandene jobben har lagret i tiltaksdeltaker_endring.
+-- Rader uten verdi, der deltakelsen manglet i tiltakshistorikken eller ikke kunne leses, har ingen innslag å kopiere.
+-- Radene i tiltaksdeltaker_endring beholdes inntil videre, og slettes i en senere migrering.
 -- Id-en beholder ULID-delen, med prefikset til den nye typen.
 INSERT INTO tiltakshistorikk (id,
                               sak_id,
@@ -43,7 +44,3 @@ FROM tiltaksdeltaker_endring
 WHERE kilde = 'Tiltakshistorikk'
   AND verdi IS NOT NULL
 ON CONFLICT (id) DO NOTHING;
-
-DELETE
-FROM tiltaksdeltaker_endring
-WHERE kilde = 'Tiltakshistorikk';
