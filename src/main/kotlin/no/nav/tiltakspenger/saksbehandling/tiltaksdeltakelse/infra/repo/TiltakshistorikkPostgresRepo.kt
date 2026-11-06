@@ -90,7 +90,7 @@ class TiltakshistorikkPostgresRepo(
 
         /**
          * Innslag som ikke kan leses, hoppes over og logges, slik at de ikke hindrer uthenting av hele saken.
-         * Det gjelder blant annet innslag som ble lagret i et eldre format før V274 kopierte dem hit.
+         * Innslagene V274 kopierte i et eldre format er konvertert i V276, så dette er et sikkerhetsnett.
          */
         fun hentForSakId(sakId: SakId, session: Session): List<Tiltakshistorikkinnslag> =
             session.run(

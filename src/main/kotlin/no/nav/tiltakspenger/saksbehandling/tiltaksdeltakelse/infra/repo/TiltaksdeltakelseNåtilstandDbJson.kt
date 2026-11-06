@@ -26,6 +26,8 @@ import java.time.LocalDateTime
  * Kildestatusen lagres slik kilden ga den, og ikke tolket til vår egen deltakerstatus.
  * Tolkningen kan reproduseres fra kildestatus, fraOgMed og tidspunktet nå-tilstanden ble innhentet, og en tolket statusendring står i endringen som lagres ved siden av.
  * Tittel og arrangør lagres ikke, siden de er stedsinformasjon.
+ * Innslag som V276 konverterte fra et eldre format har i tillegg feltet `migrertFraTidligereFormat`, som sier hvilke verdier som kan være unøyaktige.
+ * Feltet leses ikke tilbake, siden ukjente felter ignoreres.
  */
 data class TiltaksdeltakelseNåtilstandDbJson(
     val eksternDeltakelseId: String,

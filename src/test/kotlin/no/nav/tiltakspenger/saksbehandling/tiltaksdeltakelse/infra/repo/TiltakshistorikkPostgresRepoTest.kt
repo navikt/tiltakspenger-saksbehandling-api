@@ -114,7 +114,7 @@ class TiltakshistorikkPostgresRepoTest {
         }
     }
 
-    /** Innslag i formatet som ble lagret i `tiltaksdeltaker_endring` før nå-tilstanden fikk eksplisitte libs-felter, og som V274 kopierte hit. */
+    /** Et innslag i et format vi ikke kan lese, her formatet V276 konverterer fra. */
     @Test
     fun `innslag som ikke kan leses hoppes over, slik at saken fortsatt kan hentes`() {
         withTestApplicationContextAndPostgres { tac ->
