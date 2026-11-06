@@ -79,6 +79,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.Tilbakekre
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.TiltakshistorikkRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeTestKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
@@ -254,6 +255,7 @@ sealed class TestApplicationContext(
     protected open val sakRepoOverride: SakRepo? = null
     protected open val benkRepoOverride: BenkRepo? = null
     protected open val tiltaksdeltakerRepoOverride: TiltaksdeltakerRepo? = null
+    protected open val tiltakshistorikkRepoOverride: TiltakshistorikkRepo? = null
     protected open val statistikkRepoOverride: StatistikkRepo? = null
     protected open val søknadRepoOverride: SøknadRepo? = null
     protected open val meldekortbehandlingRepoOverride: MeldekortbehandlingRepo? = null
@@ -319,6 +321,8 @@ sealed class TestApplicationContext(
             override val tiltaksdeltakelseKlient = tiltaksdeltakelseFakeKlient
             override val tiltaksdeltakerRepo: TiltaksdeltakerRepo
                 get() = tiltaksdeltakerRepoOverride ?: super.tiltaksdeltakerRepo
+            override val tiltakshistorikkRepo: TiltakshistorikkRepo
+                get() = tiltakshistorikkRepoOverride ?: super.tiltakshistorikkRepo
         }
     }
 

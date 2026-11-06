@@ -47,12 +47,11 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseKilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.LagretTiltaksdeltakerEndring
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltaksdeltakerEndringer
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.LagretTiltakshistorikkinnslag
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltakshistorikk
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -309,11 +308,11 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
 
             jobb.håndterUbehandledeEndringer()
 
-            // Revurderingen og sporingsraden lagres i samme transaksjon som kvitteringen, og rulles tilbake sammen med den.
+            // Revurderingen og tiltakshistorikken lagres i samme transaksjon som kvitteringen, og rulles tilbake sammen med den.
             antallKvitteringer shouldBe 1
             tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt shouldBe deltaker.sisteUbehandletEndringTidspunkt
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
-            tac.sessionFactory.hentTiltaksdeltakerEndringer(deltakelse.internDeltakelseId).shouldBeEmpty()
+            tac.sessionFactory.hentTiltakshistorikk(deltakelse.internDeltakelseId).shouldBeEmpty()
 
             jobb.håndterUbehandledeEndringer()
 
@@ -323,7 +322,7 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
             etterRetry.rammebehandlinger.size shouldBe 2
             val revurdering = etterRetry.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
             revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe TiltaksdeltakerEndring.Forlengelse(5.juni(2025))
-            tac.sessionFactory.hentTiltaksdeltakerEndringer(deltakelse.internDeltakelseId).single()
+            tac.sessionFactory.hentTiltakshistorikk(deltakelse.internDeltakelseId).single()
                 .behandlingId shouldBe revurdering.id.toString()
             tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>().opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
         }
@@ -363,10 +362,10 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
             tac.hentDeltaker(registerfeilDeltakelse).sisteUbehandletEndringTidspunkt shouldBe registerfeil.sisteUbehandletEndringTidspunkt
             tac.hentDeltaker(gosysfeilDeltakelse).sisteUbehandletEndringTidspunkt shouldBe gosysfeil.sisteUbehandletEndringTidspunkt
             tac.eksternOppgaveRepo.hentForSakId(gosysfeilSak.id).shouldBeEmpty()
-            tac.sessionFactory.hentTiltaksdeltakerEndringer(registerfeilDeltakelse.internDeltakelseId).shouldBeEmpty()
-            tac.sessionFactory.hentTiltaksdeltakerEndringer(gosysfeilDeltakelse.internDeltakelseId).shouldBeEmpty()
+            tac.sessionFactory.hentTiltakshistorikk(registerfeilDeltakelse.internDeltakelseId).shouldBeEmpty()
+            tac.sessionFactory.hentTiltakshistorikk(gosysfeilDeltakelse.internDeltakelseId).shouldBeEmpty()
             tac.hentDeltaker(okDeltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
-            tac.sessionFactory.hentTiltaksdeltakerEndringer(okDeltakelse.internDeltakelseId) shouldHaveSize 1
+            tac.sessionFactory.hentTiltakshistorikk(okDeltakelse.internDeltakelseId) shouldHaveSize 1
             tac.sakContext.sakRepo.hentForSakId(okSak.id)!!.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
         }
     }
@@ -410,7 +409,7 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
 
     @Test
     @IsolatedDatabaseTest
-    fun `hver ferdigbehandlede endring lagres for sporbarhet med nå-tilstand, tolket endring og utfall`() {
+    fun `nå-tilstanden lagres i tiltakshistorikken med utledet endring og utfall`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (revurderingSak, revurderingDeltakelse) = opprettInnvilgetSak(tac)
             val (oppgaveSak, oppgaveDeltakelse) = opprettInnvilgetSak(tac)
@@ -436,51 +435,88 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
 
             tac.jobb().håndterUbehandledeEndringer()
 
-            fun sporing(deltakelse: TiltaksdeltakelseIntern): LagretTiltaksdeltakerEndring {
-                val rad = tac.sessionFactory.hentTiltaksdeltakerEndringer(deltakelse.internDeltakelseId).single()
+            fun innslag(deltakelse: TiltaksdeltakelseIntern): LagretTiltakshistorikkinnslag {
+                val innslag = tac.sessionFactory.hentTiltakshistorikk(deltakelse.internDeltakelseId).single()
                 val deltaker = deltakere.getValue(deltakelse.internDeltakelseId)
-                rad.kilde shouldBe TiltaksdeltakerHendelseKilde.Tiltakshistorikk
-                rad.eksternDeltakerId shouldBe deltaker.eksternId
-                rad.sakId shouldBe deltaker.sakId.toString()
-                rad.behandletTidspunkt.shouldNotBeNull()
-                rad.verdi?.let {
-                    it.shouldContainJsonKeyValue("$.eksternDeltakelseId", deltakelse.eksternDeltakelseId)
-                    it.shouldNotContainJsonKey("$.periode")
-                    it.shouldNotContainJsonKey("$.kanInnvilges")
-                }
-                return rad
+                innslag.eksternDeltakerId shouldBe deltaker.eksternId
+                innslag.sakId shouldBe deltaker.sakId.toString()
+                innslag.verdi.shouldContainJsonKeyValue("$.eksternDeltakelseId", deltakelse.eksternDeltakelseId)
+                innslag.verdi.shouldNotContainJsonKey("$.periode")
+                innslag.verdi.shouldNotContainJsonKey("$.kanInnvilges")
+                return innslag
             }
 
-            sporing(revurderingDeltakelse).also {
+            innslag(revurderingDeltakelse).also {
                 it.behandlingId shouldBe tac.sakContext.sakRepo.hentForSakId(revurderingSak.id)!!.rammebehandlinger.last().id.toString()
                 it.oppgaveId.shouldBeNull()
-                it.verdi.shouldNotBeNull()
                 it.endring.shouldNotBeNull().shouldContainJsonKeyValue("$[0].type", "FORLENGELSE")
             }
-            sporing(oppgaveDeltakelse).also {
+            innslag(oppgaveDeltakelse).also {
                 it.behandlingId.shouldBeNull()
                 it.oppgaveId shouldBe tac.eksternOppgaveRepo.hentForSakId(oppgaveSak.id).single().oppgaveId.toString()
-                it.verdi.shouldNotBeNull()
                 it.endring.shouldNotBeNull().shouldContainJsonKeyValue("$[0].type", "ENDRET_STATUS")
             }
-            sporing(uendretDeltakelse).also {
+            innslag(uendretDeltakelse).also {
                 it.behandlingId.shouldBeNull()
                 it.oppgaveId.shouldBeNull()
-                it.verdi.shouldNotBeNull()
                 it.endring.shouldBeNull()
             }
-            sporing(avsluttetDeltakelse).also {
+            innslag(avsluttetDeltakelse).also {
                 it.behandlingId.shouldBeNull()
                 it.oppgaveId.shouldBeNull()
-                it.verdi.shouldNotBeNull()
                 it.endring.shouldNotBeNull().shouldContainJsonKeyValue("$[0].type", "AVSLUTTET_SOM_FORVENTET")
             }
-            sporing(manglerDeltakelse).also {
-                it.behandlingId.shouldBeNull()
-                it.oppgaveId.shouldBeNull()
-                it.verdi.shouldBeNull()
-                it.endring.shouldBeNull()
-            }
+            // Uten nå-tilstand finnes det ingen verdi å lagre.
+            tac.sessionFactory.hentTiltakshistorikk(manglerDeltakelse.internDeltakelseId).shouldBeEmpty()
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `nå-tilstanden lagres bare når den er endret siden forrige innslag, også når endringen ikke er relevant`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, deltakelse) = opprettInnvilgetSak(tac)
+            val jobb = tac.jobb()
+
+            tac.registrerEndring(sak, deltakelse)
+            jobb.håndterUbehandledeEndringer()
+            tac.registrerEndring(sak, deltakelse)
+            jobb.håndterUbehandledeEndringer()
+
+            tac.sessionFactory.hentTiltakshistorikk(deltakelse.internDeltakelseId).single().endring.shouldBeNull()
+
+            // Navnet på tiltakstypen er ikke en relevant endring for saken, men er likevel en endring i tiltakshistorikken.
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(typeNavn = "Nytt navn"))
+            tac.registrerEndring(sak, deltakelse)
+            jobb.håndterUbehandledeEndringer()
+
+            val historikk = tac.sessionFactory.hentTiltakshistorikk(deltakelse.internDeltakelseId)
+            historikk shouldHaveSize 2
+            historikk.last().verdi.shouldContainJsonKeyValue("$.tiltakstypenavn", "Nytt navn")
+            historikk.last().endring.shouldBeNull()
+            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `uendret nå-tilstand lagres likevel når den fører til en ny oppgave`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, deltakelse) = opprettInnvilgetSak(tac)
+            val jobb = tac.jobb()
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Venteliste))
+
+            tac.registrerEndring(sak, deltakelse)
+            jobb.håndterUbehandledeEndringer()
+            tac.registrerEndring(sak, deltakelse)
+            jobb.håndterUbehandledeEndringer()
+
+            val oppgaveIder = tac.eksternOppgaveRepo.hentForSakId(sak.id).map { it.oppgaveId.toString() }
+            oppgaveIder shouldHaveSize 2
+            val historikk = tac.sessionFactory.hentTiltakshistorikk(deltakelse.internDeltakelseId)
+            historikk.map { it.oppgaveId } shouldBe oppgaveIder
+            historikk.map { it.verdi }.distinct() shouldHaveSize 1
         }
     }
 
@@ -538,7 +574,7 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
         delautomatiskOmgjøringService = behandlingContext.delautomatiskOmgjøringService,
         oppgaveKlient = oppgaveKlient,
         eksternOppgaveRepo = eksternOppgaveRepo,
-        tiltaksdeltakerHendelseRepo = tiltaksdeltakerHendelseRepo,
+        tiltakshistorikkRepo = tiltakContext.tiltakshistorikkRepo,
         sessionFactory = sessionFactory,
         clock = clock,
         korrelasjon = MdcKorrelasjon(),

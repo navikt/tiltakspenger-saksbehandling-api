@@ -240,7 +240,7 @@ open class ApplicationContext(
             delautomatiskOmgjøringService = behandlingContext.delautomatiskOmgjøringService,
             oppgaveKlient = oppgaveKlient,
             eksternOppgaveRepo = eksternOppgaveRepo,
-            tiltaksdeltakerHendelseRepo = tiltaksdeltakerHendelseRepo,
+            tiltakshistorikkRepo = tiltakContext.tiltakshistorikkRepo,
             sessionFactory = sessionFactory,
             clock = clock,
             korrelasjon = MdcKorrelasjon(),

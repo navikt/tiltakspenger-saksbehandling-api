@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 /**
- *  En endring i en tiltaksdeltakelse, slik vi mottok eller hentet den fra en kilde.
+ *  En endring i en tiltaksdeltakelse, slik vi mottok den fra en kilde.
  *  Lagres kun for sporbarhet, og verdien fra kilden tolkes ikke.
  *  [id] Vår interne id for endringen
  *  [internDeltakerId] Vår interne id for deltakelsen
