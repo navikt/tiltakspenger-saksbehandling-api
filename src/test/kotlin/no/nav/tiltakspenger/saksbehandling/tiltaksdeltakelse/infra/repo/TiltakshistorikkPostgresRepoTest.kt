@@ -67,6 +67,23 @@ class TiltakshistorikkPostgresRepoTest {
         }
     }
 
+    @Test
+    fun `henter ikke verdien fra innslag for andre deltakere`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val sak = opprettSak(tac)
+            val annenSak = opprettSak(tac)
+            val repo = tac.tiltakContext.tiltakshistorikkRepo
+            val deltakerId = sak.søknader.single().tiltak.shouldNotBeNull().tiltaksdeltakerId
+            val verdi = nåtilstand(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31))
+
+            tac.sessionFactory.withTransactionContext { tx ->
+                repo.lagre(tac.innslag(sak, verdi), tx)
+                repo.lagre(tac.innslag(annenSak, nåtilstand(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 4, 30))), tx)
+                repo.hentSisteVerdi(deltakerId, tx) shouldBe verdi.utenTittelOgArrangør()
+            }
+        }
+    }
+
     private suspend fun ApplicationTestBuilder.opprettSak(tac: TestApplicationContextMedPostgres): Sak =
         iverksettSøknadsbehandling(tac = tac).first
 

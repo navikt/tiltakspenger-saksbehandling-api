@@ -135,6 +135,7 @@ class TiltaksdeltakelseNåtilstandDbJsonTest {
             deltidsprosentGjennomforing = null,
         ).tilLibsDeltakelse()
         val bareStartdato = deltakelse().medPeriode(fraOgMed = LocalDate.of(2026, 1, 1), tilOgMed = null).tilLibsDeltakelse()
+        val bareSluttdato = deltakelse().medPeriode(fraOgMed = null, tilOgMed = LocalDate.of(2026, 3, 31)).tilLibsDeltakelse()
         return listOf(
             Kometstatus.Kjent(Kometstatus.Type.HAR_SLUTTET, Kometårsak.Kjent(Kometstatus.Årsak.FATT_JOBB), opprettet),
             Kometstatus.Kjent(Kometstatus.Type.DELTAR, årsak = null, opprettet = opprettet),
@@ -144,7 +145,7 @@ class TiltaksdeltakelseNåtilstandDbJsonTest {
             TeamTiltakstatus.Kjent(TeamTiltakstatus.Type.AVSLUTTET),
             TeamTiltakstatus.Ukjent("HELT_NY_STATUS"),
         ).map { Arguments.of(medPeriode.medKildestatus(it)) } +
-            listOf(utenDatoer, bareStartdato).map { Arguments.of(it) }
+            listOf(utenDatoer, bareStartdato, bareSluttdato).map { Arguments.of(it) }
     }
 
     @ParameterizedTest

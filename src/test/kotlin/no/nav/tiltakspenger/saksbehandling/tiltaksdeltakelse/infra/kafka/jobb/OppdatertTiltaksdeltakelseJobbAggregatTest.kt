@@ -499,6 +499,27 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
         }
     }
 
+    @Test
+    @IsolatedDatabaseTest
+    fun `uendret nå-tilstand lagres likevel når den fører til en ny oppgave`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, deltakelse) = opprettInnvilgetSak(tac)
+            val jobb = tac.jobb()
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Venteliste))
+
+            tac.registrerEndring(sak, deltakelse)
+            jobb.håndterUbehandledeEndringer()
+            tac.registrerEndring(sak, deltakelse)
+            jobb.håndterUbehandledeEndringer()
+
+            val oppgaveIder = tac.eksternOppgaveRepo.hentForSakId(sak.id).map { it.oppgaveId.toString() }
+            oppgaveIder shouldHaveSize 2
+            val historikk = tac.sessionFactory.hentTiltakshistorikk(deltakelse.internDeltakelseId)
+            historikk.map { it.oppgaveId } shouldBe oppgaveIder
+            historikk.map { it.verdi }.distinct() shouldHaveSize 1
+        }
+    }
+
     private suspend fun ApplicationTestBuilder.opprettDeltaker(tac: TestApplicationContextMedPostgres): Tiltaksdeltaker {
         val deltakelse = tac.tiltaksdeltakelse()
         opprettSakOgSøknad(tac = tac, fnr = ObjectMother.gyldigFnr(), tiltaksdeltakelse = deltakelse)
