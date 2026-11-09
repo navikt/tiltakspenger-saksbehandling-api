@@ -55,6 +55,7 @@ private val avsluttedeDeltakerstatuser = setOf(
  * Stansen gjelder da tidligst fra dagen etter siste dag med feilutbetaling.
  * Er alle innvilgede dager etter sluttdatoen allerede utbetalt, overlates stansen til saksbehandler.
  * Er andre deltakelser innvilget fra stansdatoen, vil stansen berøre mer enn denne deltakelsen.
+ * Er noe innvilget som reversert opphør fra stansdatoen, overlates stansen til saksbehandler, siden det er innvilget uten gyldig tiltaksdeltakelse.
  *
  * Gjelder stansen dager vi har sendt utbetaling for, er utbetalingen ikke utbetalt av oppdragssystemet ennå, og stansen prioriteres.
  *
@@ -105,6 +106,13 @@ fun Sak.utledAutomatiskStans(
     }
     if (harAndreDeltakelserInnvilgetEtterStans) {
         grunner.add(ManueltBehandlesGrunn.STANS_ANDRE_DELTAKELSER_INNVILGET_ETTER_SLUTTDATO)
+    }
+
+    val harReversertOpphørEtterStans = rammevedtaksliste.innvilgelsesperioder.perioderMedVerdi.any {
+        !it.periode.tilOgMed.isBefore(stansFraOgMed) && it.verdi.erReversertOpphør
+    }
+    if (harReversertOpphørEtterStans) {
+        grunner.add(ManueltBehandlesGrunn.STANS_REVERSERT_OPPHOR_ETTER_SLUTTDATO)
     }
 
     grunner.toNonEmptyListOrNull()?.also { return it.left() }

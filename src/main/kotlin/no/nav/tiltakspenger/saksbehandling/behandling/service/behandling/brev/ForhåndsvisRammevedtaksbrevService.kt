@@ -18,6 +18,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.barnSomFyller16
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.utledForlengelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.perioderForReversertOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.tilInnvilgelsesperioderMedReversertOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilInnvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
@@ -98,8 +100,9 @@ class ForhåndsvisRammevedtaksbrevService(
                         sak = sak,
                         behandling = behandling,
                         innvilgelsesperioder = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) {
-                            k.innvilgelsesperioder.tilInnvilgelsesperioder(
-                                behandling,
+                            k.innvilgelsesperioder.tilInnvilgelsesperioderMedReversertOpphør(
+                                behandling = behandling,
+                                perioderForReversertOpphør = sak.rammevedtaksliste.perioderForReversertOpphør(),
                             )
                         } else {
                             behandling.innvilgelsesperioder!!

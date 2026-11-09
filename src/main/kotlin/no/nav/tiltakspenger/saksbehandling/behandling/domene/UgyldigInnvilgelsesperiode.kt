@@ -72,11 +72,15 @@ fun Tiltaksdeltakelser.validerInnvilgelsesperiode(
     return UgyldigInnvilgelsesperiode.TiltaksdeltakelsenDekkerIkkePerioden(periode, internDeltakelseId, deltakelsesperiode)
 }
 
-/** @return innvilgelsesperiodene som ikke passer med [tiltaksdeltakelser], eller null dersom alle er gyldige */
+/**
+ * Perioder som er markert som reversert opphør valideres ikke her, men mot periodene som kan reverseres.
+ * Se [no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.validerReversertOpphør].
+ * @return innvilgelsesperiodene som ikke passer med [tiltaksdeltakelser], eller null dersom alle er gyldige
+ */
 fun IkkeTomPeriodisering<InnvilgelsesperiodeKommando>.ugyldigePerioder(
     tiltaksdeltakelser: Tiltaksdeltakelser,
 ): NonEmptyList<UgyldigInnvilgelsesperiode>? {
-    return perioderMedVerdi.mapNotNull {
+    return perioderMedVerdi.filterNot { it.verdi.erReversertOpphør }.mapNotNull {
         tiltaksdeltakelser.validerInnvilgelsesperiode(it.periode, it.verdi.internDeltakelseId)
     }.toNonEmptyListOrNull()
 }

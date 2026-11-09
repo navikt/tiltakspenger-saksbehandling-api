@@ -407,11 +407,12 @@ interface OppdaterRammebehandlingBuilder {
      * Bytter ut ukjente deltakelse-id-er i innvilgelsesperiodene med behandlingens faktiske.
      * Kallstedene uttrykker hvilke perioder som innvilges; deltakelsen eies av flyten og har unik id per test.
      * Jobber på DTO-nivå slik at serverens validering av periodene fortsatt nås av tester som tester den.
+     * Perioder som er reversert opphør beholder deltakelsen sin, siden den ikke skal finnes i saksopplysningene.
      */
     private fun Innvilgelsesperioder.tilDTOMedDeltakelseFra(behandling: Rammebehandling): List<InnvilgelsesperiodeDTO> {
         val kjenteDeltakelser = behandling.saksopplysninger.tiltaksdeltakelser.value
         return tilDTO(behandling.saksopplysninger.tiltaksdeltakelser).map { dto ->
-            if (kjenteDeltakelser.any { it.internDeltakelseId.toString() == dto.internDeltakelseId }) {
+            if (dto.erReversertOpphør || kjenteDeltakelser.any { it.internDeltakelseId.toString() == dto.internDeltakelseId }) {
                 dto
             } else {
                 val dekkende = kjenteDeltakelser.firstOrNull { deltakelse ->
@@ -442,7 +443,8 @@ interface OppdaterRammebehandlingBuilder {
                             {
                                 "periode": ${serialize(it.periode)},
                                 "antallDagerPerMeldeperiode": ${it.antallDagerPerMeldeperiode},
-                                "internDeltakelseId": ${it.internDeltakelseId.medQuotes()}
+                                "internDeltakelseId": ${it.internDeltakelseId.medQuotes()},
+                                "erReversertOpphør": ${it.erReversertOpphør}
                             }                  
                 """.trimIndent()
             }

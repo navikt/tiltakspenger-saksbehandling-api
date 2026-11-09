@@ -79,6 +79,10 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
         override val valgteTiltaksdeltakelser = innvilgelsesperioder?.valgteTiltaksdeltagelser
         override val antallDagerPerMeldeperiode = innvilgelsesperioder?.antallDagerPerMeldeperiode
 
+        init {
+            require(innvilgelsesperioder?.harReversertOpphør != true) { "Reversert opphør kan bare innvilges ved omgjøring" }
+        }
+
         /**
          * Innvilgelsen nullstilles ikke dersom tiltaksdeltakelsene er endret.
          * Se [Innvilgelsesperioder.medOppdaterteTiltaksdeltakelser].
@@ -127,6 +131,7 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
 
         init {
             if (innvilgelsesperioder != null) {
+                require(!innvilgelsesperioder.harReversertOpphør) { "Reversert opphør kan bare innvilges ved omgjøring" }
                 require(innvilgelsesperioder.fraOgMed == forlenger.forlengesFraOgMed) {
                     "Forlengelsen må starte ${forlenger.forlengesFraOgMed}, men starter ${innvilgelsesperioder.fraOgMed}"
                 }

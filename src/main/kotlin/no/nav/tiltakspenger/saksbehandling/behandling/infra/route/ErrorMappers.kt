@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.UgyldigInnvilgelses
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeForlenge
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeOppdatereBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeOppdatereOmgjøring
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeReversereOpphør
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 
 /**
@@ -122,6 +123,18 @@ fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, Erro
     )
 
     is KanIkkeOppdatereBehandling.InnvilgelsenPasserIkkeMedTiltaksdeltakelsene -> HttpStatusCode.BadRequest to innvilgelsenPasserIkkeMedTiltaksdeltakelsene(this.ugyldigePerioder)
+
+    KanIkkeReversereOpphør.KunVedOmgjøring -> HttpStatusCode.BadRequest to ErrorJson(
+        "Reversert opphør kan bare innvilges ved omgjøring",
+        "reversert_opphør_kun_ved_omgjøring",
+    )
+
+    is KanIkkeReversereOpphør.PeriodeneKanIkkeReverseres -> HttpStatusCode.BadRequest to ErrorJson(
+        "Periodene er ikke innenfor den opphørte delen av en tidligere innvilgelse for tiltaksdeltakelsen: ${
+            this.perioder.joinToString("; ") { "${it.periode} (${it.internDeltakelseId})" }
+        }",
+        "perioden_kan_ikke_reverseres",
+    )
 }
 
 fun innvilgelsenPasserIkkeMedTiltaksdeltakelsene(ugyldigePerioder: List<UgyldigInnvilgelsesperiode>) = ErrorJson(

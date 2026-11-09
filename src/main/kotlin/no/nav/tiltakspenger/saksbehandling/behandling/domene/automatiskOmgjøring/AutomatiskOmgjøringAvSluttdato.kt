@@ -61,6 +61,7 @@ data class AutomatiskOmgjøringAvSluttdato(
  * Er deltakelsen avsluttet i mellomtiden, er en stans eller et opphør riktig, og det overlates til saksbehandler.
  * Startdatoen og deltakelsesmengden må være uendret fra alle vedtakene i vedtaksperioden, siden omgjøringen bare avkorter innvilgelsen.
  * Gir de ferske saksopplysningene en annen innvilgelse enn den utledede, f.eks. fordi en annen deltakelse i vedtakene er endret, overlates omgjøringen også til saksbehandler.
+ * Har vedtaksperioden perioder innvilget som reversert opphør, overlates omgjøringen også til saksbehandler, siden de er innvilget uten gyldig tiltaksdeltakelse.
  *
  * Vurderingen er bevisst konservativ, og alt som ikke er entydig overlates til saksbehandler.
  *
@@ -101,6 +102,10 @@ fun Sak.utledAutomatiskOmgjøringAvSluttdato(
     val gjeldendeInnvilgelse = vedtaksperiode?.let {
         Innvilgelsesperioder(rammevedtaksliste.innvilgelsesperioder.krymp(it).perioderMedVerdi.tilIkkeTomPeriodisering())
     }
+    if (gjeldendeInnvilgelse?.harReversertOpphør == true) {
+        grunner.add(ManueltBehandlesGrunn.OMGJORING_HAR_REVERSERT_OPPHOR)
+    }
+
     val tidligereDeltakelser = gjeldendeInnvilgelse?.periodisering?.perioderMedVerdi
         ?.map { it.verdi.valgtTiltaksdeltakelse }
         ?.filter { it.internDeltakelseId == tiltaksdeltakerId }

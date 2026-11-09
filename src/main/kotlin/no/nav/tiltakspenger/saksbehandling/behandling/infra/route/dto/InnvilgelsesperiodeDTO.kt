@@ -16,12 +16,16 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 /**
  * @param ugyldigTiltaksdeltakelse Settes bare i responser, og er null dersom valgt tiltaksdeltakelse passer med perioden.
  * Ignoreres i requester.
+ * Er alltid null for reversert opphør, siden perioden da ikke valideres mot tiltaksdeltakelsene i saksopplysningene.
+ * @param erReversertOpphør Perioden innvilges uten gyldig tiltaksdeltakelse, på nytt etter å ha vært opphørt eller stanset.
+ * Se [no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.ReversertOpphør].
  */
 data class InnvilgelsesperiodeDTO(
     val periode: PeriodeDTO,
     val antallDagerPerMeldeperiode: Int,
     val internDeltakelseId: String,
     val ugyldigTiltaksdeltakelse: UgyldigTiltaksdeltakelseDTO? = null,
+    val erReversertOpphør: Boolean = false,
 )
 
 /**
@@ -51,6 +55,7 @@ fun InnvilgelsesperioderDTO.tilKommando(): IkkeTomPeriodisering<Innvilgelsesperi
                 periode = periode,
                 antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
                 internDeltakelseId = TiltaksdeltakerId.fromString(it.internDeltakelseId),
+                erReversertOpphør = it.erReversertOpphør,
             ),
         )
     }.tilIkkeTomPeriodisering()
@@ -65,7 +70,12 @@ fun Innvilgelsesperioder.tilDTO(tiltaksdeltakelser: Tiltaksdeltakelser): Innvilg
             periode = it.periode.toDTO(),
             antallDagerPerMeldeperiode = it.verdi.antallDagerPerMeldeperiode.value,
             internDeltakelseId = internDeltakelseId.toString(),
-            ugyldigTiltaksdeltakelse = tiltaksdeltakelser.validerInnvilgelsesperiode(it.periode, internDeltakelseId)?.tilDTO(),
+            ugyldigTiltaksdeltakelse = if (it.verdi.erReversertOpphør) {
+                null
+            } else {
+                tiltaksdeltakelser.validerInnvilgelsesperiode(it.periode, internDeltakelseId)?.tilDTO()
+            },
+            erReversertOpphør = it.verdi.erReversertOpphør,
         )
     }
 }

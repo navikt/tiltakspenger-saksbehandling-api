@@ -13,7 +13,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.tiltaksdeltakelserSomKanForlenges
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.innvilgbarePerioder
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.perioderForReversertOpphør
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.UtbetalingskontrollDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilUtbetalingskontrollDTO
@@ -182,6 +184,7 @@ data class RevurderingDTO(
     override val tidslinjeFørOgEtter: TidslinjeFørOgEtterDTO?,
     override val tiltakshistorikk: TiltakshistorikkForBehandlingDTO,
     override val innvilgbarePerioder: List<InnvilgbarPeriodeDTO>,
+    val perioderForReversertOpphør: List<PeriodeForReversertOpphørDTO>,
 ) : RammebehandlingDTO,
     RevurderingResultatDTO by resultatDTO {
     override val type = RammebehandlingstypeDTO.REVURDERING
@@ -218,6 +221,11 @@ fun Sak.tilRammebehandlingDTO(
                 tiltaksdeltakelserSomKanForlenges(resultat.forlenger, behandling.saksopplysninger)
                     .map { it.tiltaksdeltakelse.internDeltakelseId }
             } ?: emptyList(),
+            perioderForReversertOpphør = if (behandling.resultat is Omgjøringsresultat) {
+                rammevedtaksliste.perioderForReversertOpphør().tilPerioderForReversertOpphørDTO()
+            } else {
+                emptyList()
+            },
         )
 
         is Søknadsbehandling -> behandling.tilSøknadsbehandlingDTO(
@@ -293,6 +301,7 @@ fun Revurdering.tilRevurderingDTO(
     tidslinjeFørOgEtter: TidslinjeFørOgEtter?,
     tiltakshistorikk: TiltakshistorikkForBehandling,
     tiltaksdeltakelserSomKanForlenges: List<TiltaksdeltakerId>,
+    perioderForReversertOpphør: List<PeriodeForReversertOpphørDTO>,
 ): RevurderingDTO {
     return RevurderingDTO(
         id = this.id.toString(),
@@ -328,6 +337,7 @@ fun Revurdering.tilRevurderingDTO(
         tidslinjeFørOgEtter = tidslinjeFørOgEtter?.tilTidslinjeFørOgEtterDTO(),
         tiltakshistorikk = tiltakshistorikk.tilDTO(),
         innvilgbarePerioder = this.saksopplysninger.tiltaksdeltakelser.innvilgbarePerioder().tilDTO(),
+        perioderForReversertOpphør = perioderForReversertOpphør,
     )
 }
 

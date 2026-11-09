@@ -39,6 +39,9 @@ enum class ManueltBehandlesGrunn {
     STANS_INGEN_INNVILGEDE_DAGER_ETTER_SLUTTDATO,
     STANS_INGEN_INNVILGEDE_DAGER_ETTER_SISTE_UTBETALING,
     STANS_ANDRE_DELTAKELSER_INNVILGET_ETTER_SLUTTDATO,
+
+    /** Saken har perioder innvilget som reversert opphør fra stansdatoen, som ikke skal stanses automatisk. */
+    STANS_REVERSERT_OPPHOR_ETTER_SLUTTDATO,
     STANS_UTBETALING_SIMULERING_MANGLER,
     STANS_UTBETALING_STOTTER_IKKE_FEILUTBETALING,
     STANS_UTBETALING_STOTTER_IKKE_JUSTERING,
@@ -102,6 +105,9 @@ enum class ManueltBehandlesGrunn {
 
     /** De oppdaterte saksopplysningene endrer innvilgelsen av andre deltakelser enn den som har fått ny sluttdato. */
     OMGJORING_ANDRE_ENDRINGER_I_TILTAKSDELTAKELSENE,
+
+    /** Vedtaksperioden til omgjøringen har perioder innvilget som reversert opphør, som ikke skal omgjøres automatisk. */
+    OMGJORING_HAR_REVERSERT_OPPHOR,
     OMGJORING_UTBETALING_SIMULERING_MANGLER,
     OMGJORING_UTBETALING_STOTTER_IKKE_FEILUTBETALING,
     OMGJORING_UTBETALING_STOTTER_IKKE_JUSTERING,
