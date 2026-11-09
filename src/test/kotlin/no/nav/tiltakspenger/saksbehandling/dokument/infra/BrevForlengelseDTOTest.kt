@@ -41,6 +41,7 @@ class BrevForlengelseDTOTest {
             )
 
             JSONObject(actual).getInt("sisteKjenteSatsår") shouldBe 2026
+            JSONObject(actual).getBoolean("harBarnetillegg") shouldBe true
 
             //language=json
             JSONObject(actual).getJSONArray("perioder").toString() shouldEqualJson """

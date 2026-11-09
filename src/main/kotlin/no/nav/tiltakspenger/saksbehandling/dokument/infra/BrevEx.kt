@@ -7,17 +7,6 @@ import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.dokument.infra.BrevRammevedtakInnvilgelseBaseDTO.SatserDTO
-
-fun Satser.Companion.tilSatserDTO(periode: Periode): List<SatserDTO> {
-    return satser.filter { it.periode.overlapperMed(periode) }.map {
-        SatserDTO(
-            år = it.periode.fraOgMed.year,
-            ordinær = it.sats,
-            barnetillegg = it.satsBarnetillegg,
-        )
-    }
-}
 
 /**
  * Dagsbeløpene for hver sammenhengende innvilgelsesperiode, slik brevet viser dem i én tabell per periode.

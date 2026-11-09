@@ -17,18 +17,9 @@ sealed interface BrevRammevedtakBaseDTO {
 }
 
 sealed interface BrevRammevedtakInnvilgelseBaseDTO : BrevRammevedtakBaseDTO {
-    val harBarnetillegg: Boolean
-    val satser: List<SatserDTO>
     val innvilgelsesperioder: BrevInnvilgelsesperioderDTO
-    val barnetillegg: List<BrevBarnetilleggDTO>
     val perioder: List<PeriodeInnvilgelseDTO>
     val sisteKjenteSatsår: Int
-
-    data class SatserDTO(
-        val år: Int,
-        val ordinær: Int,
-        val barnetillegg: Int,
-    )
 }
 
 /**
@@ -36,13 +27,6 @@ sealed interface BrevRammevedtakInnvilgelseBaseDTO : BrevRammevedtakBaseDTO {
  */
 data class BrevInnvilgelsesperioderDTO(
     val antallDagerPerMeldeperiode: Int?,
-    val perioder: List<BrevPeriodeDTO>,
-)
-
-/** @param antallBarn pdfgenrs skriver antallet med bokstaver. */
-data class BrevBarnetilleggDTO(
-    val antallBarn: Int,
-    val periode: BrevPeriodeDTO,
 )
 
 data class PeriodeInnvilgelseDTO(

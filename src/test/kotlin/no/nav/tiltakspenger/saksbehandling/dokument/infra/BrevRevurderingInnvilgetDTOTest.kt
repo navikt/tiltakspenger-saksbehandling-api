@@ -53,25 +53,11 @@ class BrevRevurderingInnvilgetDTOTest {
                  "saksbehandlerNavn":"Saksbehandler Navn",
                  "beslutterNavn":"Saksbehandler Navn",
                  
-                 "harBarnetillegg":false,
-                 "satser": [
-                   {
-                     "år": 2025,
-                     "ordinær": 298,
-                     "barnetillegg": 55
-                   }
-                 ],
                  "tilleggstekst":"Dette er en vurdering",
                  "forhandsvisning":true,
                  "datoForUtsending": "2025-01-31",
                  "innvilgelsesperioder": { 
-                  "antallDagerPerMeldeperiode": 10,
-                  "perioder": [
-                    {
-                      "fraOgMed": "2025-06-01",
-                      "tilOgMed": "2025-08-31"
-                    }
-                  ]
+                  "antallDagerPerMeldeperiode": 10
                  },
                  "sisteKjenteSatsår": 2026,
                  "perioder": [
@@ -87,8 +73,7 @@ class BrevRevurderingInnvilgetDTOTest {
                        }
                      ]
                    }
-                 ],
-                 "barnetillegg": []
+                 ]
                }
             """.trimIndent()
         }
@@ -121,30 +106,11 @@ class BrevRevurderingInnvilgetDTOTest {
                   "saksbehandlerNavn":"Saksbehandler Navn",
                   "beslutterNavn":"Saksbehandler Navn",
                   
-                  "harBarnetillegg":false,
-                  "satser": [
-                  {
-                    "år": 2024,
-                    "ordinær": 285,
-                    "barnetillegg": 53
-                  },
-                  {
-                    "år": 2025,
-                    "ordinær": 298,
-                    "barnetillegg": 55
-                  }
-                  ],
                   "tilleggstekst":"Dette er en vurdering",
                   "forhandsvisning":true,
                   "datoForUtsending": "2025-01-31",
                  "innvilgelsesperioder": { 
-                  "antallDagerPerMeldeperiode": 10,
-                  "perioder": [
-                    {
-                      "fraOgMed": "2024-12-01",
-                      "tilOgMed": "2025-01-31"
-                    }
-                  ]
+                  "antallDagerPerMeldeperiode": 10
                  },
                  "sisteKjenteSatsår": 2026,
                  "perioder": [
@@ -167,8 +133,7 @@ class BrevRevurderingInnvilgetDTOTest {
                        }
                      ]
                    }
-                 ],
-                 "barnetillegg": []
+                 ]
                }
             """.trimIndent()
         }
@@ -201,25 +166,11 @@ class BrevRevurderingInnvilgetDTOTest {
                  "saksbehandlerNavn":"Saksbehandler Navn",
                  "beslutterNavn":"Saksbehandler Navn",
                  
-                 "harBarnetillegg":true,
-                 "satser": [
-                   {
-                     "år": 2025,
-                     "ordinær": 298,
-                     "barnetillegg": 55
-                   }
-                 ],
                  "tilleggstekst":"Dette er en vurdering",
                  "forhandsvisning": true,
                  "datoForUtsending": "2025-01-31",
                  "innvilgelsesperioder": { 
-                  "antallDagerPerMeldeperiode": 10,
-                  "perioder": [
-                    {
-                      "fraOgMed": "2025-06-01",
-                      "tilOgMed": "2025-08-31"
-                    }
-                  ]
+                  "antallDagerPerMeldeperiode": 10
                  },
                  "sisteKjenteSatsår": 2026,
                  "perioder": [
@@ -234,15 +185,6 @@ class BrevRevurderingInnvilgetDTOTest {
                          "total": 408
                        }
                      ]
-                   }
-                 ],
-                 "barnetillegg": [
-                   {
-                      "antallBarn": 2,
-                      "periode": {
-                       "fraOgMed": "2025-06-01",
-                       "tilOgMed": "2025-08-31"
-                      }
                    }
                  ]
                }
@@ -283,30 +225,11 @@ class BrevRevurderingInnvilgetDTOTest {
                   "saksnummer": "${saksnummer.verdi}",
                   "saksbehandlerNavn": "Saksbehandler Navn",
                   "beslutterNavn": "Saksbehandler Navn",
-                  "harBarnetillegg": true,
-                  "satser": [
-                    {
-                      "år": 2024,
-                      "ordinær": 285,
-                      "barnetillegg": 53
-                    },
-                    {
-                      "år": 2025,
-                      "ordinær": 298,
-                      "barnetillegg": 55
-                    }
-                  ],
                   "tilleggstekst": "Dette er en vurdering",
                   "forhandsvisning": true,
                   "datoForUtsending": "2025-01-31",
                  "innvilgelsesperioder": { 
-                  "antallDagerPerMeldeperiode": 10,
-                  "perioder": [
-                    {
-                      "fraOgMed": "2024-12-01",
-                      "tilOgMed": "2025-01-31"
-                    }
-                  ]
+                  "antallDagerPerMeldeperiode": 10
                  },
                  "sisteKjenteSatsår": 2026,
                  "perioder": [
@@ -329,22 +252,6 @@ class BrevRevurderingInnvilgetDTOTest {
                        }
                      ]
                    }
-                 ],
-                 "barnetillegg": [
-                    {
-                        "antallBarn": 2,
-                        "periode": {
-                          "fraOgMed": "2024-12-01",
-                          "tilOgMed": "2024-12-31"
-                        }
-                    },
-                    {
-                        "antallBarn": 3,
-                        "periode":  {
-                          "fraOgMed": "2025-01-01",
-                          "tilOgMed": "2025-01-31"
-                        }
-                    }
                  ]
                 }
             """.trimIndent()
@@ -385,30 +292,11 @@ class BrevRevurderingInnvilgetDTOTest {
                   "saksnummer": "${saksnummer.verdi}",
                   "saksbehandlerNavn": "Saksbehandler Navn",
                   "beslutterNavn": "Saksbehandler Navn",
-                  "harBarnetillegg": true,
-                  "satser": [
-                    {
-                      "år": 2024,
-                      "ordinær": 285,
-                      "barnetillegg": 53
-                    },
-                    {
-                      "år": 2025,
-                      "ordinær": 298,
-                      "barnetillegg": 55
-                    }
-                  ],
                   "tilleggstekst": "Dette er en vurdering",
                   "forhandsvisning": true,
                   "datoForUtsending": "2025-01-31",
                   "innvilgelsesperioder": {
-                    "antallDagerPerMeldeperiode": 10,
-                    "perioder": [
-                      {
-                        "fraOgMed": "2024-11-01",
-                        "tilOgMed": "2025-01-31"
-                      }
-                    ]
+                    "antallDagerPerMeldeperiode": 10
                   },
                   "sisteKjenteSatsår": 2026,
                   "perioder": [
@@ -437,29 +325,6 @@ class BrevRevurderingInnvilgetDTOTest {
                           "total": 463
                         }
                       ]
-                    }
-                  ],
-                  "barnetillegg": [
-                    {
-                      "antallBarn": 1,
-                      "periode" : {
-                        "fraOgMed": "2024-11-01",
-                        "tilOgMed": "2024-11-30"
-                      }
-                    },
-                    {
-                      "antallBarn": 2,
-                      "periode" :  {
-                        "fraOgMed": "2024-12-01",
-                        "tilOgMed": "2024-12-31"
-                      }
-                    },
-                    {
-                      "antallBarn": 3,
-                      "periode" :  {
-                        "fraOgMed": "2025-01-01",
-                        "tilOgMed": "2025-01-31"
-                      }
                     }
                   ]
                 }
@@ -505,34 +370,11 @@ class BrevRevurderingInnvilgetDTOTest {
                   "saksnummer": "${saksnummer.verdi}",
                   "saksbehandlerNavn": "Saksbehandler Navn",
                   "beslutterNavn": "Saksbehandler Navn",
-                  "harBarnetillegg": true,
-                  "satser": [
-                    {
-                      "år": 2024,
-                      "ordinær": 285,
-                      "barnetillegg": 53
-                    },
-                    {
-                      "år": 2025,
-                      "ordinær": 298,
-                      "barnetillegg": 55
-                    }
-                  ],
                   "tilleggstekst": "Dette er en vurdering",
                   "forhandsvisning": true,
                   "datoForUtsending": "2025-01-31",
                   "innvilgelsesperioder": {
-                      "antallDagerPerMeldeperiode": 10,
-                      "perioder": [
-                      {
-                          "fraOgMed": "2024-11-01",
-                          "tilOgMed": "2025-02-28"
-                      },
-                      {
-                          "fraOgMed": "2025-04-01",
-                          "tilOgMed": "2025-04-30"
-                      }
-                      ]
+                      "antallDagerPerMeldeperiode": 10
                   },
                   "sisteKjenteSatsår": 2026,
                   "perioder": [
@@ -573,29 +415,6 @@ class BrevRevurderingInnvilgetDTOTest {
                           "total": 463
                         }
                       ]
-                    }
-                  ],
-                  "barnetillegg": [
-                    {
-                      "antallBarn": 1,
-                      "periode" : {
-                        "fraOgMed": "2024-11-01",
-                        "tilOgMed": "2025-01-31"
-                      }
-                    },
-                    {
-                      "antallBarn": 2,
-                      "periode" :  {
-                        "fraOgMed": "2025-02-01",
-                        "tilOgMed": "2025-02-28"
-                      }
-                    },
-                    {
-                      "antallBarn": 3,
-                      "periode" :  {
-                        "fraOgMed": "2025-04-01",
-                        "tilOgMed": "2025-04-30"
-                      }
                     }
                   ]
                 }
@@ -642,38 +461,11 @@ class BrevRevurderingInnvilgetDTOTest {
                   "saksnummer": "${saksnummer.verdi}",
                   "saksbehandlerNavn": "Saksbehandler Navn",
                   "beslutterNavn": "Saksbehandler Navn",
-                  "harBarnetillegg": true,
-                  "satser": [
-                    {
-                      "år": 2024,
-                      "ordinær": 285,
-                      "barnetillegg": 53
-                    },
-                    {
-                      "år": 2025,
-                      "ordinær": 298,
-                      "barnetillegg": 55
-                    }
-                  ],
                   "tilleggstekst": "Dette er en vurdering",
                   "forhandsvisning": true,
                   "datoForUtsending": "2025-01-31",
                   "innvilgelsesperioder": {
-                    "antallDagerPerMeldeperiode": 10,
-                    "perioder": [
-                      {
-                          "fraOgMed": "2024-11-01",
-                          "tilOgMed": "2025-02-28"
-                      },
-                      {
-                          "fraOgMed": "2025-04-01",
-                          "tilOgMed": "2025-04-30"
-                      },
-                      {
-                          "fraOgMed": "2025-05-02",
-                          "tilOgMed": "2025-05-31"
-                      }
-                    ]
+                    "antallDagerPerMeldeperiode": 10
                   },
                   "sisteKjenteSatsår": 2026,
                   "perioder": [
@@ -720,30 +512,7 @@ class BrevRevurderingInnvilgetDTOTest {
                         }
                       ]
                     }
-                  ],
-                  "barnetillegg": [
-                    {
-                      "antallBarn": 1,
-                      "periode": {
-                        "fraOgMed": "2024-11-01",
-                        "tilOgMed": "2025-02-28"
-                      }
-                    },
-                    {
-                      "antallBarn": 2,
-                      "periode":  {
-                        "fraOgMed": "2025-04-01",
-                        "tilOgMed": "2025-04-30"
-                      }
-                    },
-                    {
-                      "antallBarn": 3,
-                      "periode":  {
-                        "fraOgMed": "2025-05-02",
-                        "tilOgMed": "2025-05-31"
-                      }
-                    }
-                 ]
+                  ]
               }
             """.trimIndent()
         }
