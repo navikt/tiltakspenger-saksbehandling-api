@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import arrow.core.toNonEmptyListOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.trekkFra
@@ -70,7 +69,7 @@ class OppdaterRammebehandlingService(
         }
 
         if (kommando is OppdaterBehandlingKommando.Innvilgelse) {
-            kommando.innvilgelsesperioder.ugyldigePerioder(behandling.saksopplysninger.tiltaksdeltakelser).toNonEmptyListOrNull()?.let {
+            kommando.innvilgelsesperioder.ugyldigePerioder(behandling.saksopplysninger.tiltaksdeltakelser)?.let {
                 log.warn { "Innvilgelsen passer ikke med tiltaksdeltakelsene på behandling ${behandling.id} i sak ${behandling.sakId}: ${it.joinToString { feil -> feil.beskrivelse() }}" }
                 return KanIkkeOppdatereBehandling.InnvilgelsenPasserIkkeMedTiltaksdeltakelsene(it).left()
             }

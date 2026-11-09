@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
@@ -150,7 +149,7 @@ private fun Rammebehandling.kanIverksette(utøvendeBeslutter: Saksbehandler): Ei
     if (ventestatus.erSattPåVent) {
         return KanIkkeIverksetteBehandling.BehandlingenErSattPåVent.left()
     }
-    innvilgelsesperioder?.ugyldigePerioder(saksopplysninger.tiltaksdeltakelser)?.toNonEmptyListOrNull()?.let {
+    innvilgelsesperioder?.ugyldigePerioder(saksopplysninger.tiltaksdeltakelser)?.let {
         return KanIkkeIverksetteBehandling.InnvilgelsenPasserIkkeMedTiltaksdeltakelsene(it).left()
     }
     return Unit.right()

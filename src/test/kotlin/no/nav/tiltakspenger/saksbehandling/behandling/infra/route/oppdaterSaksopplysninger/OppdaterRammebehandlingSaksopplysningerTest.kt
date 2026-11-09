@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSaksopplysninger
 
+import arrow.core.nonEmptyListOf
 import io.kotest.assertions.json.shouldContainJsonKeyValue
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
@@ -161,7 +162,7 @@ class OppdaterRammebehandlingSaksopplysningerTest {
             val innvilgelsesperioder = (oppdatertRevurdering.resultat as OmgjøringInnvilgelse).innvilgelsesperioder!!
             innvilgelsesperioder.totalPeriode shouldBe søknadsvedtak.periode
             innvilgelsesperioder.valgteTiltaksdeltagelser.single().verdi shouldBe forrigeTiltaksdeltakelse
-            innvilgelsesperioder.ugyldigePerioder(oppdatertRevurdering.saksopplysninger.tiltaksdeltakelser) shouldBe listOf(
+            innvilgelsesperioder.ugyldigePerioder(oppdatertRevurdering.saksopplysninger.tiltaksdeltakelser) shouldBe nonEmptyListOf(
                 UgyldigInnvilgelsesperiode.TiltaksdeltakelsenDekkerIkkePerioden(
                     periode = søknadsvedtak.periode,
                     internDeltakelseId = forrigeTiltaksdeltakelse.internDeltakelseId,
@@ -204,7 +205,7 @@ class OppdaterRammebehandlingSaksopplysningerTest {
 
             val resultat = (oppdatertBehandling as Revurdering).resultat as OmgjøringInnvilgelse
             resultat.innvilgelsesperioder!!.valgteTiltaksdeltagelser.single().verdi shouldBe forrigeTiltaksdeltakelse
-            resultat.innvilgelsesperioder.ugyldigePerioder(oppdatertBehandling.saksopplysninger.tiltaksdeltakelser) shouldBe listOf(
+            resultat.innvilgelsesperioder.ugyldigePerioder(oppdatertBehandling.saksopplysninger.tiltaksdeltakelser) shouldBe nonEmptyListOf(
                 UgyldigInnvilgelsesperiode.TiltaksdeltakelsenFinnesIkke(
                     periode = søknadsvedtak.periode,
                     internDeltakelseId = forrigeTiltaksdeltakelse.internDeltakelseId,

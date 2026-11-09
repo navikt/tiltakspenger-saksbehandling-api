@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -77,7 +76,7 @@ fun Rammebehandling.kanSendeTilBeslutning(saksbehandler: Saksbehandler): Either<
     if (ventestatus.erSattPåVent) {
         return KanIkkeSendeRammebehandlingTilBeslutter.ErPaVent.left()
     }
-    innvilgelsesperioder?.ugyldigePerioder(saksopplysninger.tiltaksdeltakelser)?.toNonEmptyListOrNull()?.let {
+    innvilgelsesperioder?.ugyldigePerioder(saksopplysninger.tiltaksdeltakelser)?.let {
         return KanIkkeSendeRammebehandlingTilBeslutter.InnvilgelsenPasserIkkeMedTiltaksdeltakelsene(it).left()
     }
     if (vedtaksperiode == null || !erFerdigutfylt()) {

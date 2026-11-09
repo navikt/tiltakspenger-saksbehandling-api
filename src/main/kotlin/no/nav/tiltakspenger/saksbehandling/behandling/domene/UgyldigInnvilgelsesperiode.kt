@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import arrow.core.NonEmptyList
+import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
@@ -65,11 +67,11 @@ fun Tiltaksdeltakelser.validerInnvilgelsesperiode(
     return null
 }
 
-/** @return innvilgelsesperiodene som ikke passer med [tiltaksdeltakelser], eller en tom liste dersom alle er gyldige */
+/** @return innvilgelsesperiodene som ikke passer med [tiltaksdeltakelser], eller null dersom alle er gyldige */
 fun IkkeTomPeriodisering<InnvilgelsesperiodeKommando>.ugyldigePerioder(
     tiltaksdeltakelser: Tiltaksdeltakelser,
-): List<UgyldigInnvilgelsesperiode> {
+): NonEmptyList<UgyldigInnvilgelsesperiode>? {
     return perioderMedVerdi.mapNotNull {
         tiltaksdeltakelser.validerInnvilgelsesperiode(it.periode, it.verdi.internDeltakelseId)
-    }
+    }.toNonEmptyListOrNull()
 }

@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
@@ -88,7 +89,7 @@ class InnvilgelsesperioderTest {
         fun `er gyldig når tiltaksdeltakelsen dekker innvilgelsesperioden`() {
             val endretDeltakelse = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.HarSluttet)
 
-            innvilgelsesperioder.ugyldigePerioder(Tiltaksdeltakelser(endretDeltakelse)) shouldBe emptyList()
+            innvilgelsesperioder.ugyldigePerioder(Tiltaksdeltakelser(endretDeltakelse)) shouldBe null
             innvilgelsesperioder.medOppdaterteTiltaksdeltakelser(Tiltaksdeltakelser(endretDeltakelse)) shouldBe
                 innvilgelsesperioder(periode = 1.januar(2026) til 31.januar(2026), valgtTiltaksdeltakelse = endretDeltakelse)
         }
@@ -103,7 +104,7 @@ class InnvilgelsesperioderTest {
             )
             val tiltaksdeltakelser = Tiltaksdeltakelser(krympetDeltakelse)
 
-            innvilgelsesperioder.ugyldigePerioder(tiltaksdeltakelser) shouldBe listOf(
+            innvilgelsesperioder.ugyldigePerioder(tiltaksdeltakelser) shouldBe nonEmptyListOf(
                 UgyldigInnvilgelsesperiode.TiltaksdeltakelsenDekkerIkkePerioden(
                     periode = 1.januar(2026) til 31.januar(2026),
                     internDeltakelseId = deltakelse.internDeltakelseId,
@@ -117,12 +118,12 @@ class InnvilgelsesperioderTest {
         fun `beholder innvilgelsesperioden når tiltaksdeltakelsen ikke kan innvilges eller er borte`() {
             val ikkeInnvilgbar = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.VenterPåOppstart)
 
-            innvilgelsesperioder.ugyldigePerioder(Tiltaksdeltakelser(ikkeInnvilgbar)) shouldBe listOf(
+            innvilgelsesperioder.ugyldigePerioder(Tiltaksdeltakelser(ikkeInnvilgbar)) shouldBe nonEmptyListOf(
                 UgyldigInnvilgelsesperiode.TiltaksdeltakelsenKanIkkeInnvilges(1.januar(2026) til 31.januar(2026), deltakelse.internDeltakelseId),
             )
             innvilgelsesperioder.medOppdaterteTiltaksdeltakelser(Tiltaksdeltakelser(ikkeInnvilgbar)) shouldBe innvilgelsesperioder
 
-            innvilgelsesperioder.ugyldigePerioder(Tiltaksdeltakelser(emptyList())) shouldBe listOf(
+            innvilgelsesperioder.ugyldigePerioder(Tiltaksdeltakelser(emptyList())) shouldBe nonEmptyListOf(
                 UgyldigInnvilgelsesperiode.TiltaksdeltakelsenFinnesIkke(1.januar(2026) til 31.januar(2026), deltakelse.internDeltakelseId),
             )
             innvilgelsesperioder.medOppdaterteTiltaksdeltakelser(Tiltaksdeltakelser(emptyList())) shouldBe innvilgelsesperioder
@@ -143,7 +144,7 @@ class InnvilgelsesperioderTest {
                 innvilgelsesperiode(1.januar(2026) til 31.januar(2026), deltakelse),
                 innvilgelsesperiode(1.februar(2026) til 28.februar(2026), endretAnnenDeltakelse),
             )
-            toPerioder.ugyldigePerioder(Tiltaksdeltakelser(listOf(endretAnnenDeltakelse))).map { it.internDeltakelseId } shouldBe
+            toPerioder.ugyldigePerioder(Tiltaksdeltakelser(listOf(endretAnnenDeltakelse)))!!.map { it.internDeltakelseId } shouldBe
                 listOf(deltakelse.internDeltakelseId)
         }
     }
