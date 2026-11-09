@@ -410,7 +410,7 @@ interface OppdaterRammebehandlingBuilder {
      */
     private fun Innvilgelsesperioder.tilDTOMedDeltakelseFra(behandling: Rammebehandling): List<InnvilgelsesperiodeDTO> {
         val kjenteDeltakelser = behandling.saksopplysninger.tiltaksdeltakelser.value
-        return tilDTO().map { dto ->
+        return tilDTO(behandling.saksopplysninger.tiltaksdeltakelser).map { dto ->
             if (kjenteDeltakelser.any { it.internDeltakelseId.toString() == dto.internDeltakelseId }) {
                 dto
             } else {
