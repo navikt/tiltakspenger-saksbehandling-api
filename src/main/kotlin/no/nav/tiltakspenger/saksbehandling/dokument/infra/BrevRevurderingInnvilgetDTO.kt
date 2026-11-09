@@ -3,13 +3,11 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.libs.periode.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.dokument.infra.BrevRammevedtakInnvilgelseBaseDTO.SatserDTO
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.LocalDate
@@ -22,12 +20,9 @@ private data class BrevRevurderingInnvilgetDTO(
     override val datoForUtsending: LocalDate,
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
-    override val harBarnetillegg: Boolean,
-    override val satser: List<SatserDTO>,
     override val perioder: List<PeriodeInnvilgelseDTO>,
     override val sisteKjenteSatsår: Int,
     override val innvilgelsesperioder: BrevInnvilgelsesperioderDTO,
-    override val barnetillegg: List<BrevBarnetilleggDTO>,
 ) : BrevRammevedtakInnvilgelseBaseDTO
 
 suspend fun Rammevedtak.tilRevurderingInnvilgetBrev(
@@ -77,42 +72,19 @@ suspend fun genererRevurderingInnvilgetBrev(
         saksnummer = saksnummer.verdi,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
-        satser = Satser.tilSatserDTO(innvilgelsesperioder.totalPeriode),
         perioder = totalDagSatsForAllePeriodene(innvilgelsesperioder, barnetillegg),
         sisteKjenteSatsår = Satser.sisteKjenteSatsår(),
         tilleggstekst = tilleggstekst?.verdi,
         forhandsvisning = forhåndsvisning,
-        harBarnetillegg = barnetillegg != null && barnetillegg.any { it.verdi.value > 0 },
         datoForUtsending = vedtaksdato,
         innvilgelsesperioder = tilBrevInnvilgelsesperioder(innvilgelsesperioder),
-        barnetillegg = tilBrevBarnetillegg(barnetillegg),
     ).let { serialize(it) }
 }
 
 fun tilBrevInnvilgelsesperioder(
     innvilgelsesperioder: Innvilgelsesperioder,
 ): BrevInnvilgelsesperioderDTO {
-    val sammenhengendeInnvilgelsesperioder = innvilgelsesperioder.perioder.leggSammen(false)
-
     return BrevInnvilgelsesperioderDTO(
         antallDagerPerMeldeperiode = innvilgelsesperioder.antallDagerPerMeldeperiode.verdier.map { it.value }.distinct().singleOrNull(),
-        perioder = sammenhengendeInnvilgelsesperioder.map {
-            BrevPeriodeDTO.fraPeriode(it)
-        },
     )
-}
-
-fun tilBrevBarnetillegg(
-    barnetillegg: Periodisering<AntallBarn>?,
-): List<BrevBarnetilleggDTO> {
-    val perioderMedBarnetillegg = barnetillegg?.perioderMedVerdi
-        ?.filter { it.verdi.value > 0 }
-        ?.let { it.ifEmpty { null } }
-
-    return perioderMedBarnetillegg?.map { periodeMedVerdi ->
-        BrevBarnetilleggDTO(
-            antallBarn = periodeMedVerdi.verdi.value,
-            periode = BrevPeriodeDTO.fraPeriode(periodeMedVerdi.periode),
-        )
-    } ?: emptyList()
 }

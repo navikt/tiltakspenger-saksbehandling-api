@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.BarnSomFyller16
-import no.nav.tiltakspenger.saksbehandling.dokument.infra.BrevRammevedtakInnvilgelseBaseDTO.SatserDTO
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.LocalDate
@@ -17,6 +16,7 @@ import java.time.LocalDate
 /**
  * Vedtaksbrevet for en forlengelse.
  * Har de samme feltene som brevet for revurdering til innvilgelse, i tillegg til barna som fyller 16 år i forlengelsen.
+ * [harBarnetillegg] er bare med i dette brevet, der innledningen sier «tiltakspenger og barnetillegg».
  *
  * @param barnSomFyller16 Null når ingen barn fyller 16 år i forlengelsen, eller saksbehandler har endret barnetillegget.
  */
@@ -28,12 +28,10 @@ private data class BrevForlengelseDTO(
     override val datoForUtsending: LocalDate,
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
-    override val harBarnetillegg: Boolean,
-    override val satser: List<SatserDTO>,
     override val perioder: List<PeriodeInnvilgelseDTO>,
     override val sisteKjenteSatsår: Int,
     override val innvilgelsesperioder: BrevInnvilgelsesperioderDTO,
-    override val barnetillegg: List<BrevBarnetilleggDTO>,
+    val harBarnetillegg: Boolean,
     val barnSomFyller16: BarnSomFyller16DTO?,
 ) : BrevRammevedtakInnvilgelseBaseDTO
 
@@ -96,7 +94,6 @@ suspend fun genererForlengelseBrev(
         saksnummer = saksnummer.verdi,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
-        satser = Satser.tilSatserDTO(innvilgelsesperioder.totalPeriode),
         perioder = totalDagSatsForAllePeriodene(innvilgelsesperioder, barnetillegg),
         sisteKjenteSatsår = Satser.sisteKjenteSatsår(),
         tilleggstekst = tilleggstekst?.verdi,
@@ -104,7 +101,6 @@ suspend fun genererForlengelseBrev(
         harBarnetillegg = barnetillegg != null && barnetillegg.any { it.verdi.value > 0 },
         datoForUtsending = vedtaksdato,
         innvilgelsesperioder = tilBrevInnvilgelsesperioder(innvilgelsesperioder),
-        barnetillegg = tilBrevBarnetillegg(barnetillegg),
         barnSomFyller16 = barnSomFyller16?.let {
             BarnSomFyller16DTO(
                 antall = it.antall,
