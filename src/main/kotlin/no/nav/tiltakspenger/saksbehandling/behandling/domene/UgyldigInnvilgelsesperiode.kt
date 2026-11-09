@@ -47,24 +47,29 @@ sealed interface UgyldigInnvilgelsesperiode {
     }
 }
 
-/** @return null dersom tiltaksdeltakelsen med [internDeltakelseId] kan innvilges for hele [periode] */
+/**
+ * Validerer mot [innvilgbarePerioder], slik at regelen for hva som kan innvilges bare finnes ett sted.
+ * @return null dersom tiltaksdeltakelsen med [internDeltakelseId] kan innvilges for hele [periode]
+ */
 fun Tiltaksdeltakelser.validerInnvilgelsesperiode(
     periode: Periode,
     internDeltakelseId: TiltaksdeltakerId,
 ): UgyldigInnvilgelsesperiode? {
+    val innvilgbarePerioder = innvilgbarePerioder().filter { it.internDeltakelseId == internDeltakelseId }
+
+    if (innvilgbarePerioder.any { it.periode.inneholderHele(periode) }) {
+        return null
+    }
+
     val tiltaksdeltakelse = getTiltaksdeltakelse(internDeltakelseId)
         ?: return UgyldigInnvilgelsesperiode.TiltaksdeltakelsenFinnesIkke(periode, internDeltakelseId)
 
     val deltakelsesperiode = tiltaksdeltakelse.lukketPeriode
-    if (!tiltaksdeltakelse.kanInnvilges || deltakelsesperiode == null) {
+    if (innvilgbarePerioder.isEmpty() || deltakelsesperiode == null) {
         return UgyldigInnvilgelsesperiode.TiltaksdeltakelsenKanIkkeInnvilges(periode, internDeltakelseId)
     }
 
-    if (!deltakelsesperiode.inneholderHele(periode)) {
-        return UgyldigInnvilgelsesperiode.TiltaksdeltakelsenDekkerIkkePerioden(periode, internDeltakelseId, deltakelsesperiode)
-    }
-
-    return null
+    return UgyldigInnvilgelsesperiode.TiltaksdeltakelsenDekkerIkkePerioden(periode, internDeltakelseId, deltakelsesperiode)
 }
 
 /** @return innvilgelsesperiodene som ikke passer med [tiltaksdeltakelser], eller null dersom alle er gyldige */

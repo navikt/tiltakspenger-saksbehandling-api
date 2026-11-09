@@ -214,6 +214,12 @@ fun String.shouldBeRevurderingDTO(
           "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())},
           "beslutterEndringer": {"skalJournalføreNotat": null},
           "tiltakshistorikk": $tiltakshistorikk,
+          "innvilgbarePerioder": [
+            {
+              "internDeltakelseId": "$internDeltakelseId",
+              "periode": {"fraOgMed": "$periodeFraOgMed", "tilOgMed": "$periodeTilOgMed"}
+            }
+          ],
           "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}${tidslinjeFørOgEtter.tilValgfrittJsonFelt()}
         }
     """
@@ -426,6 +432,12 @@ fun String.shouldBeSøknadsbehandlingDTO(
         "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())},
         "beslutterEndringer": {"skalJournalføreNotat": null},
         "tiltakshistorikk": $tiltakshistorikk,
+        "innvilgbarePerioder": [
+          {
+            "internDeltakelseId": "$internDeltakelseId",
+            "periode": {"fraOgMed": "$periodeFraOgMed", "tilOgMed": "$periodeTilOgMed"}
+          }
+        ],
         "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}${tidslinjeFørOgEtter.tilValgfrittJsonFelt()}
     }
     """

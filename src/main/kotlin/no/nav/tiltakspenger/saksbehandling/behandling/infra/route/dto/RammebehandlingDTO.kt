@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.tiltaksdeltakelserSomKanForlenges
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.innvilgbarePerioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.UtbetalingskontrollDTO
@@ -95,6 +96,12 @@ sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
 
     /** Tiltakshistorikken vi har innhentet for tiltaksdeltakelsene i behandlingen, fra den ble opprettet til den ble iverksatt eller avbrutt. */
     val tiltakshistorikk: TiltakshistorikkForBehandlingDTO
+
+    /**
+     * Periodene saksbehandler kan innvilge for, med tiltaksdeltakelsen hver periode kan innvilges for.
+     * Frontend skal bruke disse i stedet for å utlede innvilgbare perioder fra saksopplysningene selv.
+     */
+    val innvilgbarePerioder: List<InnvilgbarPeriodeDTO>
 }
 
 data class SøknadsbehandlingDTO(
@@ -132,6 +139,7 @@ data class SøknadsbehandlingDTO(
     override val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
     override val tidslinjeFørOgEtter: TidslinjeFørOgEtterDTO?,
     override val tiltakshistorikk: TiltakshistorikkForBehandlingDTO,
+    override val innvilgbarePerioder: List<InnvilgbarPeriodeDTO>,
 ) : RammebehandlingDTO,
     SøknadsbehandlingResultatDTO by resultatDTO {
     override val type = RammebehandlingstypeDTO.SØKNADSBEHANDLING
@@ -173,6 +181,7 @@ data class RevurderingDTO(
     override val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
     override val tidslinjeFørOgEtter: TidslinjeFørOgEtterDTO?,
     override val tiltakshistorikk: TiltakshistorikkForBehandlingDTO,
+    override val innvilgbarePerioder: List<InnvilgbarPeriodeDTO>,
 ) : RammebehandlingDTO,
     RevurderingResultatDTO by resultatDTO {
     override val type = RammebehandlingstypeDTO.REVURDERING
@@ -271,6 +280,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
         tidslinjeFørOgEtter = tidslinjeFørOgEtter?.tilTidslinjeFørOgEtterDTO(),
         tiltakshistorikk = tiltakshistorikk.tilDTO(),
+        innvilgbarePerioder = this.saksopplysninger.tiltaksdeltakelser.innvilgbarePerioder().tilDTO(),
     )
 }
 
@@ -317,6 +327,7 @@ fun Revurdering.tilRevurderingDTO(
         gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
         tidslinjeFørOgEtter = tidslinjeFørOgEtter?.tilTidslinjeFørOgEtterDTO(),
         tiltakshistorikk = tiltakshistorikk.tilDTO(),
+        innvilgbarePerioder = this.saksopplysninger.tiltaksdeltakelser.innvilgbarePerioder().tilDTO(),
     )
 }
 
