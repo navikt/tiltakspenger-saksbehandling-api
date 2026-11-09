@@ -60,6 +60,7 @@ fun Rammebehandling.tilBeslutning(
  *  - behandlingen kan ikke eies av en annen saksbehandler
  *  - behandlingen må være [UNDER_BEHANDLING] eller [UNDER_AUTOMATISK_BEHANDLING]
  *  - behandlingen kan ikke stå på vent
+ *  - innvilgelsesperiodene må passe med tiltaksdeltakelsene i saksopplysningene
  *  - behandlingen må ha vedtaksperiode og være ferdig utfylt
  *  - begrunnelsene som er valgt å journalføre som notat, må være utfylt
  */
@@ -74,6 +75,9 @@ fun Rammebehandling.kanSendeTilBeslutning(saksbehandler: Saksbehandler): Either<
     }
     if (ventestatus.erSattPåVent) {
         return KanIkkeSendeRammebehandlingTilBeslutter.ErPaVent.left()
+    }
+    innvilgelsesperioder?.ugyldigePerioder(saksopplysninger.tiltaksdeltakelser)?.let {
+        return KanIkkeSendeRammebehandlingTilBeslutter.InnvilgelsenPasserIkkeMedTiltaksdeltakelsene(it).left()
     }
     if (vedtaksperiode == null || !erFerdigutfylt()) {
         return KanIkkeSendeRammebehandlingTilBeslutter.ErIkkeFerdigutfylt.left()

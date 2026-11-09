@@ -33,6 +33,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
         [
             {
                 "internDeltakelseId": "${requireNotNull(internDeltakelseId) { "internDeltakelseId må settes når innvilgelsesperioder ikke overstyres" }}",
+                "ugyldigTiltaksdeltakelse": null,
                 "periode": {
                     "fraOgMed": "2023-01-01",
                     "tilOgMed": "2023-03-31"

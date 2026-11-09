@@ -242,6 +242,7 @@ class IverksettRevurderingTest {
                     [
                         {
                             "internDeltakelseId": "${tiltaksdeltakelse.internDeltakelseId}",
+                            "ugyldigTiltaksdeltakelse": null,
                             "periode": {
                                 "fraOgMed": "2025-04-01",
                                 "tilOgMed": "2025-04-10"
@@ -289,6 +290,7 @@ class IverksettRevurderingTest {
                     [
                         {
                             "internDeltakelseId": "${tiltaksdeltakelse.internDeltakelseId}",
+                            "ugyldigTiltaksdeltakelse": null,
                             "periode": {
                                 "fraOgMed": "2025-04-09",
                                 "tilOgMed": "2025-04-11"
@@ -427,6 +429,7 @@ class IverksettRevurderingTest {
                 innvilgelsesperioder = """[
                     {
                         "internDeltakelseId": "${sak.rammevedtaksliste[1].innvilgelsesperioder!!.valgteTiltaksdeltagelser.verdier.single().internDeltakelseId}",
+                        "ugyldigTiltaksdeltakelse": null,
                         "periode": {
                             "fraOgMed": "2023-01-01",
                             "tilOgMed": "2023-03-31"

@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.NonEmptyList
+import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.trekkFra
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
@@ -103,6 +104,31 @@ data class Innvilgelsesperioder(
         return Innvilgelsesperioder(
             nyeInnvilgelsesperioder.tilIkkeTomPeriodisering(),
         )
+    }
+
+    /**
+     * Oppdaterer tiltaksdeltakelsene i innvilgelsesperiodene som fortsatt passer med [tiltaksdeltakelser], uten å endre periodene.
+     * Innvilgelsesperioder som ikke lenger passer, beholder tiltaksdeltakelsen de ble innvilget for, slik at saksbehandler kan rette dem selv.
+     * Se [ugyldigePerioder].
+     */
+    fun medOppdaterteTiltaksdeltakelser(tiltaksdeltakelser: Tiltaksdeltakelser): Innvilgelsesperioder {
+        return Innvilgelsesperioder(
+            periodisering.map {
+                val internDeltakelseId = it.verdi.valgtTiltaksdeltakelse.internDeltakelseId
+                if (tiltaksdeltakelser.validerInnvilgelsesperiode(it.periode, internDeltakelseId) == null) {
+                    it.verdi.copy(valgtTiltaksdeltakelse = tiltaksdeltakelser.getTiltaksdeltakelse(internDeltakelseId)!!)
+                } else {
+                    it.verdi
+                }
+            },
+        )
+    }
+
+    /** @return innvilgelsesperiodene som ikke passer med [tiltaksdeltakelser], eller null dersom alle er gyldige */
+    fun ugyldigePerioder(tiltaksdeltakelser: Tiltaksdeltakelser): NonEmptyList<UgyldigInnvilgelsesperiode>? {
+        return periodisering.perioderMedVerdi.mapNotNull {
+            tiltaksdeltakelser.validerInnvilgelsesperiode(it.periode, it.verdi.valgtTiltaksdeltakelse.internDeltakelseId)
+        }.toNonEmptyListOrNull()
     }
 
     /** Sjekker om alle innvilgelsesperiodene er innenfor tiltaksdeltakelsesperiodene */

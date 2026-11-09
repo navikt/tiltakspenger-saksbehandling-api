@@ -100,27 +100,3 @@ enum class RevurderingsresultatType {
     FORLENGELSE,
     UBESTEMT,
 }
-
-/**
- * Kommentar jah: Håper vi kan bli kvitt en del av denne funksjonen og flytte den inn i BehandlingResultat-implementasjonene.
- * Dersom vi tillater behandlingene og være "dirty", er det eneste vi må påse at vi nullstiller ValgteTiltaksdeltakelser dersom de forvinner eller perioden krymper.
- */
-fun skalNullstilleResultatVedNyeSaksopplysninger(
-    valgteTiltaksdeltakelser: List<TiltaksdeltakelseIntern>,
-    nyeSaksopplysninger: Saksopplysninger,
-): Boolean {
-    return if (valgteTiltaksdeltakelser.size != nyeSaksopplysninger.tiltaksdeltakelser.size) {
-        true
-    } else {
-        (
-            valgteTiltaksdeltakelser.sortedBy { it.internDeltakelseId }
-                .zip(nyeSaksopplysninger.tiltaksdeltakelser.sortedBy { it.internDeltakelseId }) { forrige, nye ->
-                    // Vi nullstiller resultatet og vedtaksperioden dersom det har kommet nye tiltaksdeltakelser eller noen er fjernet.
-                    // Nullstiller også dersom periodene har endret seg.
-                    forrige.internDeltakelseId != nye.internDeltakelseId ||
-                        forrige.periode.fraOgMed != nye.periode.fraOgMed ||
-                        forrige.periode.tilOgMed != nye.periode.tilOgMed
-                }.any { it }
-            )
-    }
-}

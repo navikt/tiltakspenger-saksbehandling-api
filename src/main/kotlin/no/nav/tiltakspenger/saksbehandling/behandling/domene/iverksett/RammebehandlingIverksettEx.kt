@@ -119,6 +119,7 @@ private fun Rammebehandling.iverksettKlagebehandling(
  *  - [utøvendeBeslutter] må være beslutteren på behandlingen
  *  - behandlingen kan ikke allerede være godkjent
  *  - behandlingen kan ikke stå på vent
+ *  - innvilgelsesperiodene må passe med tiltaksdeltakelsene i saksopplysningene
  *
  * Statusen sjekkes først, fordi saksbehandleren kan ha angret sendingen til beslutning i mellomtiden.
  * Da er beslutteren fjernet fra behandlingen, og beslutteren skal få vite at behandlingen ikke lenger er under beslutning.
@@ -147,6 +148,9 @@ private fun Rammebehandling.kanIverksette(utøvendeBeslutter: Saksbehandler): Ei
     }
     if (ventestatus.erSattPåVent) {
         return KanIkkeIverksetteBehandling.BehandlingenErSattPåVent.left()
+    }
+    innvilgelsesperioder?.ugyldigePerioder(saksopplysninger.tiltaksdeltakelser)?.let {
+        return KanIkkeIverksetteBehandling.InnvilgelsenPasserIkkeMedTiltaksdeltakelsene(it).left()
     }
     return Unit.right()
 }

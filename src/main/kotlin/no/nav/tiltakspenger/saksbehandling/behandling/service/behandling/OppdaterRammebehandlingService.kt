@@ -28,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterIn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterOmgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilInnvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ugyldigePerioder
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnOpphør
@@ -65,6 +66,13 @@ class OppdaterRammebehandlingService(
         behandling.kanOppdateresMed(kommando).onLeft {
             log.warn { "Kommandoen ${kommando::class.simpleName} passer ikke med resultatet ${behandling.resultat::class.simpleName} på behandling ${behandling.id} i sak ${behandling.sakId}" }
             return it.left()
+        }
+
+        if (kommando is OppdaterBehandlingKommando.Innvilgelse) {
+            kommando.innvilgelsesperioder.ugyldigePerioder(behandling.saksopplysninger.tiltaksdeltakelser)?.let {
+                log.warn { "Innvilgelsen passer ikke med tiltaksdeltakelsene på behandling ${behandling.id} i sak ${behandling.sakId}: ${it.joinToString { feil -> feil.beskrivelse() }}" }
+                return KanIkkeOppdatereBehandling.InnvilgelsenPasserIkkeMedTiltaksdeltakelsene(it).left()
+            }
         }
 
         sak.rammevedtaksliste.validerOpphør(kommando).onLeft {

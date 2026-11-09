@@ -81,16 +81,14 @@ sealed interface Søknadsbehandlingsresultat : Rammebehandlingsresultat {
         override val valgteTiltaksdeltakelser = innvilgelsesperioder.valgteTiltaksdeltagelser
         override val antallDagerPerMeldeperiode = innvilgelsesperioder.antallDagerPerMeldeperiode
 
+        /**
+         * Innvilgelsen nullstilles ikke dersom tiltaksdeltakelsene er endret.
+         * Se [Innvilgelsesperioder.medOppdaterteTiltaksdeltakelser].
+         */
         override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Søknadsbehandlingsresultat> {
-            return if (skalNullstilleResultatVedNyeSaksopplysninger(
-                    valgteTiltaksdeltakelser.verdier,
-                    oppdaterteSaksopplysninger,
-                )
-            ) {
-                IkkeValgt
-            } else {
-                this
-            }.right()
+            return this.copy(
+                innvilgelsesperioder = innvilgelsesperioder.medOppdaterteTiltaksdeltakelser(oppdaterteSaksopplysninger.tiltaksdeltakelser),
+            ).right()
         }
     }
 }

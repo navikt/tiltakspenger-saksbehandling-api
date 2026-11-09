@@ -158,7 +158,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
 
     @Test
     fun `avkortet sluttdato gir andre endringer sammen med andre relevante endringer eller annen status enn deltar`() {
-        val opprinnelig = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.VenterPåOppstart)
+        val opprinnelig = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.HarSluttet)
         val sak = sakMedInnvilgelse(opprinnelig = opprinnelig)
         val nySluttdato = iDag.plusWeeks(1)
 

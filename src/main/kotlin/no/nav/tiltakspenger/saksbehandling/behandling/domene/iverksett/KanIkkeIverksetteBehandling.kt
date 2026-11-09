@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.iverksett
 
+import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.UgyldigInnvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
@@ -27,4 +29,7 @@ sealed interface KanIkkeIverksetteBehandling {
     data object BehandlingenErAlleredeGodkjent : KanIkkeIverksetteBehandling
 
     data object BehandlingenErSattPåVent : KanIkkeIverksetteBehandling
+
+    /** Skal ikke kunne skje, siden saksopplysningene ikke oppdateres mens behandlingen er til beslutning, og innvilgelsen valideres når den sendes til beslutning. */
+    data class InnvilgelsenPasserIkkeMedTiltaksdeltakelsene(val ugyldigePerioder: NonEmptyList<UgyldigInnvilgelsesperiode>) : KanIkkeIverksetteBehandling
 }

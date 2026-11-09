@@ -79,18 +79,14 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
         override val valgteTiltaksdeltakelser = innvilgelsesperioder?.valgteTiltaksdeltagelser
         override val antallDagerPerMeldeperiode = innvilgelsesperioder?.antallDagerPerMeldeperiode
 
-        fun nullstill() = empty
-
+        /**
+         * Innvilgelsen nullstilles ikke dersom tiltaksdeltakelsene er endret.
+         * Se [Innvilgelsesperioder.medOppdaterteTiltaksdeltakelser].
+         */
         override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Innvilgelse> {
-            return if (valgteTiltaksdeltakelser == null || skalNullstilleResultatVedNyeSaksopplysninger(
-                    valgteTiltaksdeltakelser.verdier,
-                    oppdaterteSaksopplysninger,
-                )
-            ) {
-                nullstill()
-            } else {
-                this
-            }.right()
+            return this.copy(
+                innvilgelsesperioder = innvilgelsesperioder?.medOppdaterteTiltaksdeltakelser(oppdaterteSaksopplysninger.tiltaksdeltakelser),
+            ).right()
         }
 
         companion object {
@@ -152,24 +148,14 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
             else -> forlenger.barnSomFyller16(forlengetVedtak, barnetillegg.periodisering)
         }
 
-        fun nullstill() = Forlengelse(
-            forlenger = forlenger,
-            innvilgelsesperioder = null,
-            barnetillegg = null,
-            harEndretBarnetillegg = false,
-            kanIkkeUtledeBarnetillegg = false,
-        )
-
+        /**
+         * Forlengelsen nullstilles ikke dersom tiltaksdeltakelsene er endret.
+         * Se [Innvilgelsesperioder.medOppdaterteTiltaksdeltakelser].
+         */
         override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Forlengelse> {
-            return if (valgteTiltaksdeltakelser == null || skalNullstilleResultatVedNyeSaksopplysninger(
-                    valgteTiltaksdeltakelser.verdier,
-                    oppdaterteSaksopplysninger,
-                )
-            ) {
-                nullstill()
-            } else {
-                this
-            }.right()
+            return this.copy(
+                innvilgelsesperioder = innvilgelsesperioder?.medOppdaterteTiltaksdeltakelser(oppdaterteSaksopplysninger.tiltaksdeltakelser),
+            ).right()
         }
 
         companion object {

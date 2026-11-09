@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RevurderingResultatDTO.Innvilgelse
@@ -138,14 +139,17 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
     }
 }
 
-fun Søknadsbehandlingsresultat.tilSøknadsbehandlingResultatDTO(): SøknadsbehandlingResultatDTO {
+/** @param tiltaksdeltakelser Tiltaksdeltakelsene fra saksopplysningene som innvilgelsesperiodene valideres mot. */
+fun Søknadsbehandlingsresultat.tilSøknadsbehandlingResultatDTO(
+    tiltaksdeltakelser: Tiltaksdeltakelser,
+): SøknadsbehandlingResultatDTO {
     return when (this) {
         is Søknadsbehandlingsresultat.Avslag -> SøknadsbehandlingResultatDTO.Avslag(
             avslagsgrunner = avslagsgrunner.toValgtHjemmelForAvslagDTO(),
         )
 
         is Søknadsbehandlingsresultat.Innvilgelse -> SøknadsbehandlingResultatDTO.Innvilgelse(
-            innvilgelsesperioder = innvilgelsesperioder.tilDTO(),
+            innvilgelsesperioder = innvilgelsesperioder.tilDTO(tiltaksdeltakelser),
             barnetillegg = barnetillegg.toBarnetilleggDTO(),
         )
 
@@ -154,14 +158,16 @@ fun Søknadsbehandlingsresultat.tilSøknadsbehandlingResultatDTO(): Søknadsbeha
 }
 
 /**
+ * @param tiltaksdeltakelser Tiltaksdeltakelsene fra saksopplysningene som innvilgelsesperiodene valideres mot.
  * @param tiltaksdeltakelserSomKanForlenges Brukes bare for [Revurderingsresultat.Forlengelse].
  */
 fun Revurderingsresultat.tilRevurderingResultatDTO(
+    tiltaksdeltakelser: Tiltaksdeltakelser,
     tiltaksdeltakelserSomKanForlenges: List<TiltaksdeltakerId>,
 ): RevurderingResultatDTO {
     return when (this) {
         is Revurderingsresultat.Innvilgelse -> Innvilgelse(
-            innvilgelsesperioder = innvilgelsesperioder?.tilDTO(),
+            innvilgelsesperioder = innvilgelsesperioder?.tilDTO(tiltaksdeltakelser),
             barnetillegg = barnetillegg?.toBarnetilleggDTO(),
         )
 
@@ -171,7 +177,7 @@ fun Revurderingsresultat.tilRevurderingResultatDTO(
             harEndretBarnetillegg = harEndretBarnetillegg,
             kanIkkeUtledeBarnetillegg = kanIkkeUtledeBarnetillegg,
             tiltaksdeltakelserSomKanForlenges = tiltaksdeltakelserSomKanForlenges.map { it.toString() },
-            innvilgelsesperioder = innvilgelsesperioder?.tilDTO(),
+            innvilgelsesperioder = innvilgelsesperioder?.tilDTO(tiltaksdeltakelser),
             barnetillegg = barnetillegg?.toBarnetilleggDTO(),
         )
 
@@ -181,7 +187,7 @@ fun Revurderingsresultat.tilRevurderingResultatDTO(
         )
 
         is Omgjøringsresultat.OmgjøringInnvilgelse -> OmgjøringInnvilgelse(
-            innvilgelsesperioder = innvilgelsesperioder?.tilDTO(),
+            innvilgelsesperioder = innvilgelsesperioder?.tilDTO(tiltaksdeltakelser),
             barnetillegg = barnetillegg?.toBarnetilleggDTO(),
             omgjørVedtak = omgjørRammevedtak.eldsteVedtakId(),
             omgjørRammevedtak = omgjørRammevedtak.tilOmgjørRammevedtakDTO(),

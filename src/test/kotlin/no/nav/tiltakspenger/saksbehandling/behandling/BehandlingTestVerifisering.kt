@@ -142,6 +142,7 @@ fun String.shouldBeRevurderingDTO(
                 [
             {
                 "internDeltakelseId": "$internDeltakelseId",
+                "ugyldigTiltaksdeltakelse": null,
                 "periode": {
                 "fraOgMed": "$periodeFraOgMed",
                 "tilOgMed": "$periodeTilOgMed"
@@ -365,6 +366,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
             """"innvilgelsesperioder": [
             {
                 "internDeltakelseId": "$internDeltakelseId",
+                "ugyldigTiltaksdeltakelse": null,
                 "periode": {
                 "fraOgMed": "$periodeFraOgMed",
                 "tilOgMed": "$periodeTilOgMed"

@@ -19,8 +19,8 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
  * Dersom vedtaksperioden går utenfor periodene som omgjøres, må den overskytende delen være innvilgelse.
  * Kan føre til en innvilgelse, delvis innvilgelse eller opphør.
  * Ved delvis innvilgelse vil den resterende implisitt ikke gi rett.
- * Tanken er at så lenge behandlingen er under behandling, kan innvilgelsesperioden være større enn tiltaksdeltakelsen (for å støtte at den har krympet uten å måtte resette store deler av behandlingen.
- * Tanken er at saksbehandler kan gjøre det selv).
+ * Så lenge behandlingen er under behandling, kan innvilgelsesperiodene gå utenfor tiltaksdeltakelsene, dersom de har endret seg etter at innvilgelsen ble fylt ut.
+ * Saksbehandler må da rette innvilgelsen før den kan lagres eller sendes til beslutning, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.UgyldigInnvilgelsesperiode].
  *
  * @param vedtaksperiode Tilsvarer den nye vedtaksperioden.
  * @param innvilgelsesperioder Perioder som kun inneholder dager med rett.
@@ -39,21 +39,14 @@ sealed interface Omgjøringsresultat : Revurderingsresultat {
         override val antallDagerPerMeldeperiode = innvilgelsesperioder?.antallDagerPerMeldeperiode
 
         /**
-         * Validerer [oppdaterteSaksopplysninger] opp mot resultatet.
-         * Det finnes tenkte ugyldige tilstander, som f.eks. at den [valgteTiltaksdeltakelser] ikke lenger matcher tiltaksdeltakelsen i [oppdaterteSaksopplysninger].
+         * Innvilgelsen krympes eller nullstilles ikke dersom tiltaksdeltakelsene er endret.
+         * Se [Innvilgelsesperioder.medOppdaterteTiltaksdeltakelser].
          */
         override fun oppdaterSaksopplysninger(
             oppdaterteSaksopplysninger: Saksopplysninger,
         ): Either<KunneIkkeOppdatereSaksopplysninger, OmgjøringInnvilgelse> {
-            val innvilgelsesperioder =
-                innvilgelsesperioder?.oppdaterTiltaksdeltakelser(oppdaterteSaksopplysninger.tiltaksdeltakelser)
-
-            val barnetillegg =
-                innvilgelsesperioder?.let { barnetillegg?.krympTilPerioder(innvilgelsesperioder.perioder) }
-
             return this.copy(
-                innvilgelsesperioder = innvilgelsesperioder,
-                barnetillegg = barnetillegg,
+                innvilgelsesperioder = innvilgelsesperioder?.medOppdaterteTiltaksdeltakelser(oppdaterteSaksopplysninger.tiltaksdeltakelser),
             ).right()
         }
 

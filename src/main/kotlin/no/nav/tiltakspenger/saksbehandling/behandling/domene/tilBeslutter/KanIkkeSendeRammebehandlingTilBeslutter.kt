@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter
 
+import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OmgjøringsgrunnlagEndret
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.UgyldigInnvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
@@ -15,6 +17,9 @@ sealed interface KanIkkeSendeRammebehandlingTilBeslutter {
 
     /** Resultatet mangler eller er ikke ferdig utfylt, for eksempel uten vedtaksperiode. */
     data object ErIkkeFerdigutfylt : KanIkkeSendeRammebehandlingTilBeslutter
+
+    /** Tiltaksdeltakelsene er endret etter at innvilgelsen ble fylt ut, og saksbehandler må rette innvilgelsen. */
+    data class InnvilgelsenPasserIkkeMedTiltaksdeltakelsene(val ugyldigePerioder: NonEmptyList<UgyldigInnvilgelsesperiode>) : KanIkkeSendeRammebehandlingTilBeslutter
 
     data class UtbetalingFeil(val feil: KanIkkeIverksetteUtbetaling, val sak: Sak, val behandling: Rammebehandling) : KanIkkeSendeRammebehandlingTilBeslutter
 
