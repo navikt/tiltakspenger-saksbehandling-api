@@ -111,6 +111,32 @@ class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
         }
     }
 
+    @Test
+    fun `kan forhåndsvise vedtaksbrev med barnetillegg som antall barn per periode, slik eldre frontend sender det`() {
+        withTestApplicationContext { tac ->
+            val innvilgelsesperiode = (1.januar(2025) til 31.mars(2025))
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(
+                tac,
+                tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperiode),
+            )
+            val (_, _, responseJson) = forhåndsvisVedtaksbrevForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                innvilgelsesperioder = listOf(
+                    InnvilgelsesperiodeDTO(
+                        periode = innvilgelsesperiode.toDTO(),
+                        antallDagerPerMeldeperiode = 10,
+                        internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
+                    ),
+                ),
+                barnetilleggJson = """[{"antallBarn": 1, "periode": {"fraOgMed": "2025-01-01", "tilOgMed": "2025-01-31"}}]""",
+                resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
+            )
+            responseJson shouldBe "pdf"
+        }
+    }
+
     private fun barnLagtTilAvSaksbehandler(fornavn: String, periode: PeriodeDTO?) = OppdaterBarnMedBarnetilleggDTO(
         fnr = null,
         fornavn = fornavn,

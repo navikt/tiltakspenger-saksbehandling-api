@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.lagreBarnetilleggSomV1
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.BarnSomFyller16
@@ -232,6 +233,46 @@ class ForlengelseRouteTest {
 
             barnSomFyller16IForhåndsvisning(tac, sak.id, forlengelse, barnetillegg = valgtBarnetillegg) shouldBe null
             barnSomFyller16IJournalførtBrev(tac, sak.id, forlengelse) shouldBe null
+        }
+    }
+
+    @Test
+    fun `eldre frontend kan velge barnetillegget i forlengelsen som antall barn per periode`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, vedtak) = iverksettVedtakSomKanForlenges(tac)
+            val (_, startet) = startForlengelse(tac, sak.id, vedtak.id)!!
+            val perioderJson = """[{"antallBarn": 1, "periode": {"fraOgMed": "2025-04-01", "tilOgMed": "2025-04-30"}}]"""
+
+            val (_, forlengelse) = oppdaterForlengelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = startet.id,
+                tilOgMed = 31.mai(2025),
+                barnetilleggJson = """{"begrunnelse": "Ett barn i april", "perioder": $perioderJson}""",
+            )
+            forlengelse.barnetillegg.shouldBeInstanceOf<BarnetilleggV1>()
+            forlengelse.barnetilleggsperioder() shouldBe listOf(
+                PeriodeMedVerdi(AntallBarn(1), 1.april(2025) til 30.april(2025)),
+                PeriodeMedVerdi(AntallBarn.ZERO, 1.mai(2025) til 31.mai(2025)),
+            )
+
+            forhåndsvisVedtaksbrevForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = forlengelse.id,
+                resultat = RammebehandlingResultatTypeDTO.FORLENGELSE,
+                tilOgMed = 31.mai(2025),
+                barnetilleggJson = perioderJson,
+            )
+
+            oppdaterForlengelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = startet.id,
+                tilOgMed = 31.mai(2025),
+                barnetilleggJson = """{"begrunnelse": null, "perioder": [{"antallBarn": 1, "periode": {"fraOgMed": "2025-04-01", "tilOgMed": "2025-06-30"}}]}""",
+                forventet = feil(400),
+            ).third.skalHaFeilkode("ugyldig_barnetillegg")
         }
     }
 

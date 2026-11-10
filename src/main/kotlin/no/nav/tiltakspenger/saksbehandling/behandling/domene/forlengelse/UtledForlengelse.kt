@@ -78,7 +78,7 @@ fun Sak.utledForlengelse(
     }
 
     val valgtBarnetillegg = barnetillegg?.let {
-        it.tilBarnetillegg(forlengelsesperiode).getOrElse { feil -> return KanIkkeForlenge.UgyldigBarnetillegg(feil).left() }
+        it.tilBarnetillegg(nonEmptyListOf(forlengelsesperiode)).getOrElse { feil -> return KanIkkeForlenge.UgyldigBarnetillegg(feil).left() }
     }
 
     val utledetBarnetillegg = utledBarnetilleggForForlengelse(

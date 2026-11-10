@@ -6,7 +6,10 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnMedBarnetillegg
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.UgyldigBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.UgyldigBarnetilleggException
@@ -15,27 +18,41 @@ import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import java.time.LocalDate
 
 /**
- * Barnetillegget slik frontenden sender det inn: barna saksbehandler har valgt, se [BarnetilleggV2].
+ * Barnetillegget slik frontenden sender det inn.
  * Inngående DTO-er har rå verdier, siden sladding kun gjelder det vi sender ut.
  *
- * @param barn Tom liste betyr ingen barnetillegg.
+ * Frontenden sender enten [barn] eller [perioder], ikke begge:
+ * - [barn]: barna saksbehandler har valgt, se [BarnetilleggV2].
+ *   Tom liste betyr ingen barnetillegg.
+ * - [perioder]: antall barn per periode, se [BarnetilleggV1].
+ *   Sendes av eldre versjoner av frontenden, mens den rulles ut.
+ *   Tom liste betyr ingen barnetillegg.
+ *   TODO: Fjernes når alle saksbehandlere har frontenden som sender barna.
  */
 data class OppdaterBarnetilleggDTO(
-    val barn: List<OppdaterBarnMedBarnetilleggDTO>,
+    val barn: List<OppdaterBarnMedBarnetilleggDTO>? = null,
+    val perioder: List<BarnetilleggPeriodeDTO>? = null,
     val begrunnelse: String?,
 ) {
-    /** @throws UgyldigBarnetilleggException dersom barnetillegget er ugyldig, som gir 400 til frontend. */
-    fun tilBarnetillegg(innvilgelsesperioder: NonEmptyList<Periode>): BarnetilleggV2 =
-        BarnetilleggV2.create(
-            barn = barn.map { it.tilDomene() },
-            innvilgelsesperioder = innvilgelsesperioder,
-            begrunnelse = begrunnelse?.let { Begrunnelse.create(it) },
-        ).getOrElse { throw UgyldigBarnetilleggException(it) }
+    init {
+        require((barn == null) != (perioder == null)) { "Barnetillegget må ha enten barn eller perioder" }
+    }
 
-    fun tilValgtBarnetillegg(): ValgtBarnetillegg = ValgtBarnetillegg(
-        barn = barn.map { it.tilDomene() },
-        begrunnelse = begrunnelse?.let { Begrunnelse.create(it) },
-    )
+    /** @throws UgyldigBarnetilleggException dersom barnetillegget er ugyldig, som gir 400 til frontend. */
+    fun tilBarnetillegg(innvilgelsesperioder: NonEmptyList<Periode>): Barnetillegg =
+        tilValgtBarnetillegg().tilBarnetillegg(innvilgelsesperioder).getOrElse { throw UgyldigBarnetilleggException(it) }
+
+    fun tilValgtBarnetillegg(): ValgtBarnetillegg {
+        val begrunnelse = begrunnelse?.let { Begrunnelse.create(it) }
+        return if (barn != null) {
+            ValgtBarnetillegg.Barn(barn = barn.map { it.tilDomene() }, begrunnelse = begrunnelse)
+        } else {
+            ValgtBarnetillegg.PerioderMedAntallBarn(
+                perioderMedBarn = perioder!!.map { it.periode.toDomain() to AntallBarn(it.antallBarn) },
+                begrunnelse = begrunnelse,
+            )
+        }
+    }
 }
 
 /**

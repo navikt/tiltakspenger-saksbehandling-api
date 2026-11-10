@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.UtledetForlengelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ValgtBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.utledForlengelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeOppdatereBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeOppdatereBehandling.BehandlingenEiesAvAnnenSaksbehandler
@@ -97,7 +98,7 @@ class OppdaterRammebehandlingService(
 
         val valgteBarn = when (kommando) {
             is OppdaterBehandlingKommando.Innvilgelse -> (kommando.barnetillegg as? BarnetilleggV2)?.barn
-            is OppdaterRevurderingKommando.Forlengelse -> kommando.barnetillegg?.barn
+            is OppdaterRevurderingKommando.Forlengelse -> (kommando.barnetillegg as? ValgtBarnetillegg.Barn)?.barn
             else -> null
         }.orEmpty()
         valgteBarn.validerSøknader(sak.søknader.map { it.id }.toSet()).onLeft {

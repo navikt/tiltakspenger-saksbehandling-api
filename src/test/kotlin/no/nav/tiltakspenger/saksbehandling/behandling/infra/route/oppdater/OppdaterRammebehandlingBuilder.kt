@@ -43,6 +43,8 @@ interface OppdaterRammebehandlingBuilder {
         skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+        // Overstyrer barnetillegget med rå json, f.eks. slik eldre versjoner av frontenden sender det.
+        barnetilleggJson: String = serialize(barnetillegg.tilOppdaterBarnetilleggDTO()),
         prioriteringBegrunnelse: String? = null,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
@@ -54,7 +56,7 @@ interface OppdaterRammebehandlingBuilder {
               ${
             innvilgelseJson(
                 innvilgelsesperioder.tilDTOMedDeltakelseFra(tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)),
-                barnetillegg,
+                barnetilleggJson,
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev,
@@ -164,7 +166,7 @@ interface OppdaterRammebehandlingBuilder {
               ${
             innvilgelseJson(
                 innvilgelsesperioder.tilDTOMedDeltakelseFra(tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)),
-                barnetillegg,
+                serialize(barnetillegg.tilOppdaterBarnetilleggDTO()),
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev,
@@ -208,7 +210,7 @@ interface OppdaterRammebehandlingBuilder {
               ${
             innvilgelseJson(
                 innvilgelsesperioder.tilDTOMedDeltakelseFra(tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)),
-                barnetillegg,
+                serialize(barnetillegg.tilOppdaterBarnetilleggDTO()),
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev,
@@ -308,6 +310,8 @@ interface OppdaterRammebehandlingBuilder {
         tilOgMed: LocalDate,
         tiltaksdeltakerId: TiltaksdeltakerId? = null,
         barnetillegg: Barnetillegg? = null,
+        // Overstyrer barnetillegget med rå json, f.eks. slik eldre versjoner av frontenden sender det.
+        barnetilleggJson: String? = barnetillegg?.let { serialize(it.tilOppdaterBarnetilleggDTO()) },
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
@@ -321,7 +325,7 @@ interface OppdaterRammebehandlingBuilder {
               "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
               "tilOgMed": "$tilOgMed",
               "internDeltakelseId": "${tiltaksdeltakerId ?: tac.sakContext.sakRepo.hentForSakId(sakId)!!.tiltaksdeltakelsenSomForlenges(behandlingId)}",
-              "barnetillegg": ${barnetillegg?.let { serialize(it.tilOppdaterBarnetilleggDTO()) }},
+              "barnetillegg": $barnetilleggJson,
               "skalSendeVedtaksbrev": true,
               "skalJournalføreNotat": ${serialize(SkalJournalføreNotat.INGEN.tilDTO())}
             }
@@ -425,7 +429,7 @@ interface OppdaterRammebehandlingBuilder {
 
     private fun innvilgelseJson(
         innvilgelsesperioder: List<InnvilgelsesperiodeDTO>,
-        barnetillegg: Barnetillegg,
+        barnetilleggJson: String,
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         skalSendeVedtaksbrev: Boolean = true,
@@ -447,7 +451,7 @@ interface OppdaterRammebehandlingBuilder {
                 """.trimIndent()
             }
         }],
-            "barnetillegg": ${serialize(barnetillegg.tilOppdaterBarnetilleggDTO())},
+            "barnetillegg": $barnetilleggJson,
         "skalSendeVedtaksbrev": $skalSendeVedtaksbrev,
         "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
         "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())}

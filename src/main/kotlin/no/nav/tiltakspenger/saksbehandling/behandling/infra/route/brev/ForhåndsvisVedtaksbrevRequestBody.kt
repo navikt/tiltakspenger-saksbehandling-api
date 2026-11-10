@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev.Companion.toFritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.OppdaterBarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.HjemmelForOpphørDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.HjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperioderDTO
@@ -28,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.Fo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevForSøknadsbehandlingInnvilgelseKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevKommando
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import tools.jackson.databind.annotation.JsonDeserialize
 import java.time.LocalDate
 
 /**
@@ -59,6 +61,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
 
     data class SøknadsbehandlingInnvilgelse(
         val fritekst: String?,
+        @JsonDeserialize(using = BarnetilleggIBrevDeserializer::class)
         val barnetillegg: OppdaterBarnetilleggDTO?,
         val innvilgelsesperioder: InnvilgelsesperioderDTO,
     ) : ForhåndsvisVedtaksbrevRequestBody {
@@ -103,6 +106,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
 
     data class RevurderingInnvilgelse(
         val fritekst: String?,
+        @JsonDeserialize(using = BarnetilleggIBrevDeserializer::class)
         val barnetillegg: OppdaterBarnetilleggDTO?,
         val innvilgelsesperioder: InnvilgelsesperioderDTO,
     ) : ForhåndsvisVedtaksbrevRequestBody {
@@ -151,6 +155,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
     data class OmgjøringInnvilgelse(
         val fritekst: String?,
         val innvilgelsesperioder: InnvilgelsesperioderDTO,
+        @JsonDeserialize(using = BarnetilleggIBrevDeserializer::class)
         val barnetillegg: OppdaterBarnetilleggDTO?,
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
@@ -201,6 +206,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
         val fritekst: String?,
         val tilOgMed: LocalDate,
         val internDeltakelseId: String,
+        @JsonDeserialize(using = BarnetilleggIBrevDeserializer::class)
         val barnetillegg: OppdaterBarnetilleggDTO?,
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
@@ -225,6 +231,10 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
 
 /** Null når det ikke er barnetillegg, som i brevet. */
 private fun OppdaterBarnetilleggDTO?.tilAntallBarn(innvilgelsesperioder: InnvilgelsesperioderDTO): IkkeTomPeriodisering<AntallBarn>? {
-    if (this == null || this.barn.isEmpty()) return null
+    if (this == null) return null
+    // Eldre versjoner av frontenden sender antall barn per periode, som brukes som før, uten å fylle hull med 0.
+    // TODO: Fjernes når alle saksbehandlere har frontenden som sender barna.
+    if (perioder != null) return if (perioder.isEmpty()) null else perioder.tilPeriodisering() as IkkeTomPeriodisering
+    if (barn.isNullOrEmpty()) return null
     return tilBarnetillegg(innvilgelsesperioder.tilKommando().perioder).periodisering
 }
