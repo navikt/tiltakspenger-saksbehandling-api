@@ -84,24 +84,19 @@ fun Sak.utledAutomatiskStans(
         return (grunner + ManueltBehandlesGrunn.STANS_SLUTTDATO_ER_IKKE_PASSERT).toNonEmptyListOrThrow().left()
     }
 
-    val innvilgedePerioder = rammevedtaksliste.valgteTiltaksdeltakelser.perioderMedVerdi
-    val innvilgedePerioderForDeltakelsen =
-        innvilgedePerioder.filter { it.verdi.internDeltakelseId == tiltaksdeltakerId }
     val dagenEtterSluttdato = sluttdato.plusDays(1)
-    if (innvilgedePerioderForDeltakelsen.all { it.periode.tilOgMed.isBefore(dagenEtterSluttdato) }) {
+    if (førsteInnvilgedeDagForDeltakelsen(tiltaksdeltakerId, fraOgMed = dagenEtterSluttdato) == null) {
         return (grunner + ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SLUTTDATO).toNonEmptyListOrThrow()
             .left()
     }
 
     val utbetaltEtterSluttdatoTilOgMed = sisteDagMedFeilutbetaling?.takeIf { it.isAfter(sluttdato) }
     val tidligsteStansdato = utbetaltEtterSluttdatoTilOgMed?.plusDays(1) ?: dagenEtterSluttdato
-    val stansFraOgMed = innvilgedePerioderForDeltakelsen
-        .firstOrNull { !it.periode.tilOgMed.isBefore(tidligsteStansdato) }
-        ?.let { maxOf(it.periode.fraOgMed, tidligsteStansdato) }
+    val stansFraOgMed = førsteInnvilgedeDagForDeltakelsen(tiltaksdeltakerId, fraOgMed = tidligsteStansdato)
         ?: return (grunner + ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SISTE_UTBETALING).toNonEmptyListOrThrow()
             .left()
 
-    val harAndreDeltakelserInnvilgetEtterStans = innvilgedePerioder.any {
+    val harAndreDeltakelserInnvilgetEtterStans = rammevedtaksliste.valgteTiltaksdeltakelser.perioderMedVerdi.any {
         !it.periode.tilOgMed.isBefore(stansFraOgMed) && it.verdi.internDeltakelseId != tiltaksdeltakerId
     }
     if (harAndreDeltakelserInnvilgetEtterStans) {
@@ -153,3 +148,25 @@ fun Sak.utledAutomatiskStans(
         },
     ).right()
 }
+
+/**
+ * Dagen en stans fra den passerte sluttdatoen til deltakelsen ville gjeldt fra, uten sjekkene som avgjør om stansen kan behandles automatisk.
+ * Det er første innvilgede dag for deltakelsen etter sluttdatoen, som i [utledAutomatiskStans] før stansen er simulert.
+ * Brukes til å vurdere opphør i stedet for stans også når stansen må behandles manuelt, siden heller ikke en manuell stans kan gi feilutbetaling.
+ *
+ * @return null dersom deltakelsen mangler, mangler sluttdato, sluttdatoen ikke er passert, eller ingen dager er innvilget for deltakelsen etter sluttdatoen.
+ */
+fun Sak.utledStansFraOgMedEtterSluttdato(
+    tiltaksdeltakerId: TiltaksdeltakerId,
+    nåtilstand: TiltaksdeltakelseIntern?,
+    iDag: LocalDate,
+): LocalDate? {
+    val sluttdato = nåtilstand?.periode?.tilOgMed?.takeIf { !it.isAfter(iDag) } ?: return null
+    return førsteInnvilgedeDagForDeltakelsen(tiltaksdeltakerId, fraOgMed = sluttdato.plusDays(1))
+}
+
+/** Første dag fra og med [fraOgMed] som deltakelsen er innvilget i et gjeldende vedtak, eller null dersom ingen dager er innvilget fra da. */
+private fun Sak.førsteInnvilgedeDagForDeltakelsen(tiltaksdeltakerId: TiltaksdeltakerId, fraOgMed: LocalDate): LocalDate? =
+    rammevedtaksliste.valgteTiltaksdeltakelser.perioderMedVerdi
+        .firstOrNull { it.verdi.internDeltakelseId == tiltaksdeltakerId && !it.periode.tilOgMed.isBefore(fraOgMed) }
+        ?.let { maxOf(it.periode.fraOgMed, fraOgMed) }

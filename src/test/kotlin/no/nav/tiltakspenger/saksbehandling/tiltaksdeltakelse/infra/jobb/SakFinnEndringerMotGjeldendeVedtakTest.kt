@@ -335,6 +335,77 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
     }
 
     @Test
+    fun `avbrudd samtidig med endret startdato eller deltakelsesmengde gir andre endringer og omgjøring`() {
+        val sak = sakMedInnvilgelse()
+        val vedtak = sak.rammevedtaksliste.verdi.single()
+        val sluttdato = iDag.minusWeeks(1)
+        val senereStartdato = deltakelse.periode.fraOgMed!!.plusWeeks(1)
+        val avbrutt = deltakelse.medPeriode(tilOgMed = sluttdato).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)
+
+        sak.vurder(avbrutt.copy(deltakelseProsent = 60F)) shouldBeEksakt Endret(
+            endring = AndreEndringer(
+                endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 2F),
+                endretSluttdato = EndretSluttdato(sluttdato),
+                endretStatus = EndretStatus(TiltakDeltakerstatus.Avbrutt),
+            ),
+            automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(vedtak.id),
+        )
+        sak.vurder(avbrutt.medPeriode(fraOgMed = senereStartdato)) shouldBeEksakt Endret(
+            endring = AndreEndringer(
+                endretStartdato = EndretStartdato(senereStartdato),
+                endretSluttdato = EndretSluttdato(sluttdato),
+                endretStatus = EndretStatus(TiltakDeltakerstatus.Avbrutt),
+            ),
+            automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(vedtak.id),
+        )
+        sak.vurder(deltakelse.medPeriode(tilOgMed = sluttdato).copy(deltakelseProsent = 60F)) shouldBeEksakt Endret(
+            endring = AndreEndringer(
+                endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 2F),
+                endretSluttdato = EndretSluttdato(sluttdato),
+            ),
+            automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(vedtak.id),
+        )
+    }
+
+    @Test
+    fun `avbrudd med senere sluttdato og endret deltakelsesmengde gir ikke forlengelse`() {
+        val sak = sakMedInnvilgelse()
+        val nySluttdato = deltakelse.periode.tilOgMed!!.plusMonths(1)
+        val avbrutt = deltakelse.medPeriode(tilOgMed = nySluttdato).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)
+
+        sak.vurder(avbrutt) shouldBeEksakt Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.StansEllerOpphør)
+        sak.vurder(avbrutt.copy(deltakelseProsent = 60F)) shouldBeEksakt Endret(
+            endring = AndreEndringer(
+                endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 2F),
+                endretSluttdato = EndretSluttdato(nySluttdato),
+                endretStatus = EndretStatus(TiltakDeltakerstatus.Avbrutt),
+            ),
+            automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(sak.rammevedtaksliste.verdi.single().id),
+        )
+    }
+
+    /**
+     * Uten avkortet sluttdato gjelder avbruddet fra i dag, i det andre vedtaket, mens den senere startdatoen berører det første.
+     */
+    @Test
+    fun `avbrudd og endret startdato som berører hvert sitt vedtak følges opp manuelt`() {
+        val sak = sakMedInnvilgelse().medInnvilgelse(
+            innvilgelsesperiode = iDag til deltakelse.periode.tilOgMed!!,
+            innvilgetDeltakelse = deltakelse,
+        )
+        val senereStartdato = deltakelse.periode.fraOgMed!!.plusWeeks(1)
+
+        sak.vurder(deltakelse.medPeriode(fraOgMed = senereStartdato).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)) shouldBeEksakt
+            Endret(
+                endring = AndreEndringer(
+                    endretStartdato = EndretStartdato(senereStartdato),
+                    endretStatus = EndretStatus(TiltakDeltakerstatus.Avbrutt),
+                ),
+                automatiskRevurdering = null,
+            )
+    }
+
+    @Test
     fun `avkortet sluttdato gir omgjøring av vedtaket som kan behandles automatisk`() {
         val sak = sakMedInnvilgelse()
         val vedtak = sak.rammevedtaksliste.verdi.single()

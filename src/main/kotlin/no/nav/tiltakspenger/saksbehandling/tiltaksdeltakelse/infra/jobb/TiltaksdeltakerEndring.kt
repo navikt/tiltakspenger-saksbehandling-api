@@ -16,6 +16,10 @@ sealed interface TiltaksdeltakerEndring {
         override val beskrivelser = listOf("Deltakelsen er avsluttet som forventet")
     }
 
+    /**
+     * Deltakelsen har fått status avbrutt, eller sluttdatoen er avkortet til en dato som er passert uten at deltakelsen har status deltar.
+     * Startdatoen og deltakelsesmengden er uendret, ellers er det i stedet [AndreEndringer], slik at de ikke går tapt i en stans eller et opphør.
+     */
     data object AvbruttDeltakelse : TiltaksdeltakerEndring {
         override val beskrivelser = listOf("Deltakelsen er avbrutt")
     }

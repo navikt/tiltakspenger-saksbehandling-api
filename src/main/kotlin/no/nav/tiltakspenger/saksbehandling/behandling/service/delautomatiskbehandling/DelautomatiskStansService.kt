@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
@@ -20,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.Aut
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.AutomatiskStansEllerOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.MAKS_UTBETALTE_DAGER_FOR_AUTOMATISK_STANS
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.utledAutomatiskStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.utledStansFraOgMedEtterSluttdato
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.vurderOpphørIStedenforStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando
@@ -65,6 +67,8 @@ class DelautomatiskStansService(
      * Stansen simuleres fra dagen etter sluttdatoen før den opprettes.
      * Har oppdragssystemet allerede utbetalt flere enn [MAKS_UTBETALTE_DAGER_FOR_AUTOMATISK_STANS] dager etter at deltakelsen ble avbrutt, må tiltakspengene opphøres i stedet, se [vurderOpphørIStedenforStans].
      * Da opprettes en omgjøring av vedtaket klar til behandling, uten at systemet fyller ut noe i den, og den behandles aldri automatisk.
+     * Det vurderes også når stansen ellers måtte behandles manuelt, for eksempel fordi deltakelsen fortsatt har status deltar, så lenge sluttdatoen er passert og deltakelsen er innvilget etter den.
+     * Uten passert sluttdato opprettes stansen uten simulering, og saksbehandler velger stansdato.
      *
      * @return null dersom opphøret ville omgjort flere vedtak, og må følges opp med en oppgave.
      */
@@ -83,13 +87,23 @@ class DelautomatiskStansService(
         suspend fun forberedtStans() = steg.forbered(sakMedStans, stans)
 
         val tiltaksdeltakerId = automatiskOpprettetGrunn.tiltaksdeltakerId ?: return forberedtStans()
-        // Kan ikke stansen utledes, behandles den uansett manuelt når den forsøkes behandlet.
-        val utledetFraSluttdato = sakMedStans.utledAutomatiskStans(
+        val nåtilstand = stans.getTiltaksdeltakelse(tiltaksdeltakerId)
+        val iDag = LocalDate.now(clock)
+        val (stansperiode, simulertUtbetaling) = sakMedStans.utledAutomatiskStans(
             tiltaksdeltakerId = tiltaksdeltakerId,
-            nåtilstand = stans.getTiltaksdeltakelse(tiltaksdeltakerId),
-            iDag = LocalDate.now(clock),
-        ).getOrElse { return forberedtStans() }
-        val (_, stansperiode, simulertUtbetaling) = sakMedStans.simulerStans(stans, utledetFraSluttdato, correlationId)
+            nåtilstand = nåtilstand,
+            iDag = iDag,
+        ).fold(
+            ifLeft = {
+                // Stansen behandles manuelt, men heller ikke en manuell stans kan gi feilutbetaling, så opphør vurderes likevel.
+                val stansFraOgMed = sakMedStans.utledStansFraOgMedEtterSluttdato(tiltaksdeltakerId, nåtilstand, iDag)
+                    ?: return forberedtStans()
+                // Deltakelsen er innvilget fra stansdatoen, så saken har en siste dag som gir rett.
+                val stansperiode = stansFraOgMed til sakMedStans.sisteDagSomGirRett!!
+                stansperiode to sakMedStans.simulerStansperiode(stans, stansperiode)
+            },
+            ifRight = { sakMedStans.simulerStans(stans, it, correlationId).let { (_, stansperiode, simulert) -> stansperiode to simulert } },
+        )
 
         return when (
             val vurdering = sak.vurderOpphørIStedenforStans(
@@ -241,14 +255,22 @@ class DelautomatiskStansService(
         )
         val stansperiode = kommando.utledStansperiode(førsteDagSomGirRett!!, sisteDagSomGirRett!!)
 
-        val simulertUtbetaling = beregnRevurderingStans(
+        return SimulertStans(kommando, stansperiode, simulerStansperiode(revurdering, stansperiode))
+    }
+
+    /**
+     * Simulerer utbetalingen for en stans i [stansperiode], uten å lagre noe.
+     * Er det ingenting å beregne i stansperioden, er det heller ingenting å simulere.
+     */
+    private suspend fun Sak.simulerStansperiode(
+        revurdering: Revurdering,
+        stansperiode: Periode,
+    ): SimulertUtbetaling? =
+        beregnRevurderingStans(
             behandlingId = revurdering.id,
             stansperiode = stansperiode,
             beregningstidspunkt = nå(clock),
         )?.let { steg.simuler(this, revurdering, it) }
-
-        return SimulertStans(kommando, stansperiode, simulertUtbetaling)
-    }
 
     private data class SimulertStans(
         val kommando: OppdaterRevurderingKommando.Stans,
