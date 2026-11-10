@@ -29,6 +29,16 @@ object MetricRegister {
         .register()
 
     /**
+     * Reversert opphør innvilger perioder uten gyldig tiltaksdeltakelse i saksopplysningene, så hvert tilfelle skal være synlig.
+     * Se [varsleHvisReversertOpphørErIverksatt].
+     */
+    val REVERSERT_OPPHØR_IVERKSATT: Counter = Counter.builder()
+        .name("${METRICS_NS}_reversert_opphor_iverksatt_count")
+        .help("Antall iverksatte rammevedtak med reversert opphør")
+        .withoutExemplars()
+        .register()
+
+    /**
      * Tilgangsmaskinen avviste med en avvisningskode vi ikke kjenner; koden er label.
      * Alarmen i `.nais/alerts.yml` står til koden er lagt til i `tilTilgangsvurderingAvvistÅrsak` og appen er deployet på nytt.
      */

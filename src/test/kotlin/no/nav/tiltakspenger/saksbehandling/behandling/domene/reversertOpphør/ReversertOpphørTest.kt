@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør
 
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.doubles.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.server.testing.ApplicationTestBuilder
@@ -14,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGru
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.utledAutomatiskStans
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
@@ -98,6 +100,7 @@ class ReversertOpphørTest {
             innvilgelsesperioder.hentVerdiForDag(mars.fraOgMed)!!.reversertOpphør shouldBe ReversertOpphør(søknadsvedtak.id)
             innvilgelsesperioder.hentVerdiForDag(mars.fraOgMed)!!.valgtTiltaksdeltakelse shouldBe opprinneligDeltakelse
 
+            val iverksattFør = MetricRegister.REVERSERT_OPPHØR_IVERKSATT.get()
             val (_, omgjøringsvedtak) = iverksettOmgjøringInnvilgelseForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
@@ -107,6 +110,8 @@ class ReversertOpphørTest {
                 innvilgelsesperioder = innvilgelsesperioder,
             )
             omgjøringsvedtak.innvilgelsesperioder!!.hentVerdiForDag(mars.fraOgMed)!!.reversertOpphør shouldBe ReversertOpphør(søknadsvedtak.id)
+            // Telleren er global og andre tester kan iverksette reversert opphør samtidig, så vi sjekker bare at den har økt.
+            MetricRegister.REVERSERT_OPPHØR_IVERKSATT.get() shouldBeGreaterThanOrEqual iverksattFør + 1
         }
     }
 
