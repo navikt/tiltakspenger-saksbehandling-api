@@ -82,6 +82,26 @@ Slik ser den ut i dette repoet:
 - **Rene mappinger testes som enhetstester som pinner den lagrede strengen eller json-en**, ikke bare rundturen — se «Row hører i databasetesten, ren mapping i enhetstesten» i AGENTS-backend.md i metarepoet `tiltakspenger`.
   `HjemmelForOpphørDbTest` og `TiltakDeltakerstatusDbTest` er mønsterfilene.
 
+## Utbetalingskvitteringer
+
+Kvitteringer på Kafka lagres rått og behandles per id med vedvarende backoff.
+Den rå innboksmodellen og den typede domenekvitteringen holdes atskilt.
+Infrastrukturen tolker meldingsformatet, mens én jobb orkestrerer kobling og behandling.
+V2-kvitteringer kobles gjennom linjereferansene til sak og utbetaling uten å endre utbetalingsstatus.
+UUID-formatet brukes ikke som versjonssjekk.
+Kvitteringer med manglende eller tvetydig kobling beholdes for nye forsøk og varsling, ikke som vellykket ferdigbehandling.
+Status og ferdigmarkering lagres i samme transaksjon, og en feilende kvittering blokkerer høyere offset for samme nøkkel i samme topic og partisjon.
+Samme utbetalingsnøkkel forutsettes stabilt partisjonert.
+Eksisterende utbetalingsalarmer dekker også permanente kvitteringsfeil, langvarige forbigående feil og manglende kvitteringer.
+Se [oppfølging av utbetalinger](docs/utbetaling.md) for feilhåndtering og varsling.
+
+## Simulering av utbetalinger
+
+Simulering velger klient ut fra sakens lagrede `Oppdragsversjon`, ikke miljø eller om saken har en tidligere utbetaling.
+V2 fortsetter å bruke Utsjekk sin eksisterende simulering og statusflyt.
+V3 bruker Hel Veds direkte `POST /api/simulering` med hele sakstilstanden og `dryrun = true`.
+V3-simulering har 130 sekunders timeout, og ukjente svar eller feilstatus skal aldri behandles som ingen endring eller utløse automatisk V2-fallback.
+
 ## Statistikk til datavarehuset
 
 Les [`docs/statistikk/README.md`](docs/statistikk/README.md) før du endrer statistikktabellene, DTO-ene under `statistikk/` eller hendelsene som skrives.

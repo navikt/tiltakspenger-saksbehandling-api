@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeTestClient
 import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 
 /**
  * Postgres-versjon av [TestApplicationContext].
@@ -21,4 +22,10 @@ open class TestApplicationContextMedPostgres(
     override val texasClient: TexasClient = TexasClientFake(clock),
     tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient = TilgangsmaskinFakeTestClient(),
     idGenerators: IdGenerators,
-) : TestApplicationContext(clock, idGenerators, tilgangsmaskinFakeClient)
+    oppdragsversjonForNyeSaker: Oppdragsversjon = Oppdragsversjon.V2,
+) : TestApplicationContext(
+    clock,
+    idGenerators,
+    tilgangsmaskinFakeClient,
+    oppdragsversjonForNyeSaker = oppdragsversjonForNyeSaker,
+)

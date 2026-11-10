@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetada
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.iverksett.IverksettStatus
 import org.junit.jupiter.api.Test
+import java.time.Duration
 import java.time.Instant
 
 class UtbetalingHttpKlientTest {
@@ -194,6 +195,49 @@ class UtbetalingHttpKlientTest {
         val kall = transport.mottatteKall.single()
         kall.metode shouldBe "POST"
         kall.uri.toString() shouldBe "$baseUrl/api/simulering/v2"
+    }
+
+    @Test
+    fun `V2-simulering beholder utsjekk-rute request timeout og headere`() = runTest {
+        val sakId = SakId.random()
+        val saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = fixedClock)
+        val behandlingId = MeldekortId.random()
+        val fnr = Fnr.random()
+        val saksbehandler = "Z123456"
+        val beregning = ObjectMother.lagBeregning()
+        val navkontor = ObjectMother.navkontor()
+        val forrigeUtbetalingJson = null
+        val forrigeUtbetalingId = no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId.random()
+        val transport = FakeHttpTransport().apply { leggIKøTomRespons(statusCode = 204) }
+
+        client(transport).simuler(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            behandlingId = behandlingId,
+            fnr = fnr,
+            saksbehandler = saksbehandler,
+            beregning = beregning,
+            brukersNavkontor = navkontor,
+            kanSendeInnHelgForMeldekort = false,
+            forrigeUtbetalingJson = forrigeUtbetalingJson,
+            forrigeUtbetalingId = forrigeUtbetalingId,
+            meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
+        )
+
+        val kall = transport.mottatteKall.single()
+        kall.uri.toString() shouldBe "$baseUrl/api/simulering/v2"
+        kall.bodyTekst shouldBe toSimuleringRequest(
+            saksnummer = saksnummer,
+            behandlingId = behandlingId,
+            fnr = fnr,
+            saksbehandler = saksbehandler,
+            beregning = beregning,
+            brukersNavkontor = navkontor,
+            forrigeUtbetalingJson = forrigeUtbetalingJson,
+            forrigeUtbetalingId = forrigeUtbetalingId,
+        )
+        kall.request.timeout().orElseThrow() shouldBe Duration.ofSeconds(45)
+        kall.request.headers().allValues("Transaction-ID") shouldBe emptyList()
     }
 
     @Test

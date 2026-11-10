@@ -80,6 +80,12 @@ private fun utbetalingJobber(
             TaskResultat.Ferdig
         },
     ),
+    Task(
+        navn = "saksbehandling-jobb-behandle-utbetalingskvitteringer",
+        utfør = { _ ->
+            applicationContext.utbetalingContext.behandleUtbetalingskvitteringerJobb.behandle()
+        },
+    ),
 )
 
 /**

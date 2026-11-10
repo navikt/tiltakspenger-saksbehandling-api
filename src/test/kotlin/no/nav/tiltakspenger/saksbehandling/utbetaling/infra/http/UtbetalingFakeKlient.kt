@@ -28,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHe
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.V3Simuleringsklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.Clock
 
@@ -62,7 +63,8 @@ class UtbetalingFakeKlient(
      * Simuleringen kalles synkront, som for [simulerFeil], så testen trenger ikke kjøre isolert.
      */
     var sakUtbetaltAvOppdrag: Sak? = null,
-) : Utbetalingsklient {
+) : Utbetalingsklient,
+    V3Simuleringsklient {
 
     override suspend fun iverksett(
         utbetaling: VedtattUtbetaling,
@@ -113,4 +115,28 @@ class UtbetalingFakeKlient(
             scenario = DevSimuleringsscenario.fraFnr(fnr),
         ).right()
     }
+
+    override suspend fun simuler(
+        sakId: SakId,
+        saksnummer: Saksnummer,
+        behandlingId: Ulid,
+        fnr: Fnr,
+        beregning: Beregning,
+        forrigeUtbetalingJson: String?,
+        meldeperiodeKjeder: MeldeperiodeKjeder,
+        saksbehandler: String,
+        brukersNavkontor: Navkontor,
+    ): Either<KunneIkkeSimulere, SimuleringMedMetadata> = simuler(
+        sakId = sakId,
+        saksnummer = saksnummer,
+        behandlingId = behandlingId,
+        fnr = fnr,
+        beregning = beregning,
+        forrigeUtbetalingJson = forrigeUtbetalingJson,
+        forrigeUtbetalingId = null,
+        meldeperiodeKjeder = meldeperiodeKjeder,
+        saksbehandler = saksbehandler,
+        kanSendeInnHelgForMeldekort = false,
+        brukersNavkontor = brukersNavkontor,
+    )
 }

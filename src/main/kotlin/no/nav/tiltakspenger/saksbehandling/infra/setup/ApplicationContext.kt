@@ -77,6 +77,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.T
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.TiltaksdeltakerTeamTiltakConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerHendelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.kafka.HelvedStatusConsumer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.SokosUtbetaldataClient
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataHttpClient
@@ -352,6 +353,16 @@ open class ApplicationContext(
         )
     }
 
+    open val helvedStatusConsumer by lazy {
+        HelvedStatusConsumer(
+            utbetalingskvitteringRepo = utbetalingContext.utbetalingskvitteringRepo,
+            topic = Configuration.helvedStatusTopic,
+            kafkaConfig = kafkaConfig(autoOffsetReset = "earliest"),
+            clock = clock,
+            meterRegistry = meterRegistry,
+        )
+    }
+
     open val identhendelseProducer: IdenthendelseProducer by lazy {
         IdenthendelseKafkaProducer(
             kafkaProducer = Producer(producerConfig = KafkaConfig.fraNaisEnv().producerConfig()),
@@ -420,6 +431,7 @@ open class ApplicationContext(
             personService = personContext.personService,
             environmentProfile = profile,
             clock = clock,
+            oppdragsversjonForNyeSaker = Configuration.oppdragsversjonForNyeSaker,
         )
     }
     open val utbetalingContext by lazy {

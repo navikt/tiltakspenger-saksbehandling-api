@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 
 import no.nav.tiltakspenger.libs.json.deserialize
+import no.nav.tiltakspenger.libs.json.lesTre
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
@@ -17,6 +18,8 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.iverksett.StønadsdataTiltakspengerV2Dto
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.iverksett.UtbetalingV2Dto
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.iverksett.VedtaksdetaljerV2Dto
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.kafka.HelvedUtbetalingDTO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.kafka.tilUtbetalingV2Dto
 import java.time.LocalDate
 import kotlin.collections.fold
 
@@ -65,7 +68,7 @@ fun Beregning.tilUtbetalingerDTO(
     val nyeOgOppdaterteUtbetalinger = utbetalingerStønad.plus(utbetalingerBarnetillegg)
 
     val tidligereUtbetalinger = forrigeUtbetalingJson
-        ?.let { deserialize<IverksettV2Dto>(it) }
+        ?.let { lesUtbetalingerFraRequest(it) }
         ?.hentIkkeOppdaterteUtbetalinger(this) ?: emptyList()
 
     val utbetalinger = tidligereUtbetalinger.plus(nyeOgOppdaterteUtbetalinger).sortedBy { it.fraOgMedDato }
@@ -100,9 +103,21 @@ private fun List<UtbetalingV2Dto>.valider() {
     }
 }
 
-private fun IverksettV2Dto.hentIkkeOppdaterteUtbetalinger(beregning: Beregning): List<UtbetalingV2Dto> {
+/**
+ * Leser utbetalingene fra en request vi har sendt til Hel Ved.
+ * Requesten er enten [IverksettV2Dto] (versjon 2, har feltet `vedtak`) eller [HelvedUtbetalingDTO] (versjon 3), fordi en sak kan ha byttet versjon etter forrige utbetaling.
+ */
+private fun lesUtbetalingerFraRequest(requestJson: String): List<UtbetalingV2Dto> {
+    return if (lesTre(requestJson).has("vedtak")) {
+        deserialize<IverksettV2Dto>(requestJson).vedtak.utbetalinger
+    } else {
+        deserialize<HelvedUtbetalingDTO>(requestJson).perioder.map { it.tilUtbetalingV2Dto() }
+    }
+}
+
+private fun List<UtbetalingV2Dto>.hentIkkeOppdaterteUtbetalinger(beregning: Beregning): List<UtbetalingV2Dto> {
     val oppdaterteKjeder = beregning.beregninger.map { it.kjedeId.verdi }.toSet()
-    return this.vedtak.utbetalinger.filterNot { tidligereUtbetaling ->
+    return this.filterNot { tidligereUtbetaling ->
         val stønadsdata = tidligereUtbetaling.stønadsdata
         oppdaterteKjeder.contains(stønadsdata.meldekortId)
     }

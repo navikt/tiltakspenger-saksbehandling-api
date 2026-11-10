@@ -78,6 +78,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.Tilbakekre
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt.UtbetalingsoversiktFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
@@ -273,6 +274,7 @@ class LocalApplicationContext(
             fellesSkjermingsklient = personContext.fellesSkjermingsklient,
             environmentProfile = environmentProfile,
             clock = clock,
+            oppdragsversjonForNyeSaker = Oppdragsversjon.V2,
         ) {}
     }
 
@@ -372,6 +374,7 @@ class LocalApplicationContext(
             erDev = false,
         ) {
             override val utbetalingsklient = utbetalingFakeKlient
+            override val v3Simuleringsklient = utbetalingFakeKlient
             override val utbetalingsoversiktklient = utbetalingsoversiktFakeKlient
         }
     }

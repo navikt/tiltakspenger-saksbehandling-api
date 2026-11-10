@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.TestDatabaseManager
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ktorSetup
 import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import java.time.Clock
 
 // Lat, slik at rene in-memory-tester aldri betaler containerstart og Flyway-migreringer.
@@ -42,6 +43,7 @@ fun withTestApplicationContextAndPostgres(
     tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient = TilgangsmaskinFakeTestClient(),
     runIsolated: Boolean = false,
     readiness: Readiness = Readiness(),
+    oppdragsversjonForNyeSaker: Oppdragsversjon = Oppdragsversjon.V2,
     testBlock: suspend ApplicationTestBuilder.(TestApplicationContextMedPostgres) -> Unit,
 ) {
     dbManager.withMigratedDb(
@@ -55,6 +57,7 @@ fun withTestApplicationContextAndPostgres(
                 sessionFactory = sessionFactory as PostgresSessionFactory,
                 tilgangsmaskinFakeClient = tilgangsmaskinFakeClient,
                 idGenerators = idGenerators,
+                oppdragsversjonForNyeSaker = oppdragsversjonForNyeSaker,
             ),
         ) {
             val tac = this

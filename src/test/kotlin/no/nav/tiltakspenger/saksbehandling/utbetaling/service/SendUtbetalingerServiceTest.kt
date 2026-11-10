@@ -19,7 +19,9 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelse
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SendtUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingProducer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsklient
 import org.junit.jupiter.api.Test
@@ -28,6 +30,7 @@ class SendUtbetalingerServiceTest {
     private val tx = TestSessionFactory.transactionContext
     private val utbetalingRepo = mockk<UtbetalingRepo>()
     private val utbetalingsklient = mockk<Utbetalingsklient>()
+    private val utbetalingProducer = mockk<UtbetalingProducer>()
     private val statistikkService = mockk<StatistikkService>()
     private val statistikk = mockk<StatistikkDTO>()
     private val utbetaling = ObjectMother.utbetaling(
@@ -37,6 +40,7 @@ class SendUtbetalingerServiceTest {
         utbetalingRepo = utbetalingRepo,
         meldekortvedtakRepo = mockk<MeldekortvedtakRepo>(),
         utbetalingsklient = utbetalingsklient,
+        utbetalingProducer = utbetalingProducer,
         statistikkService = statistikkService,
         sessionFactory = TestSessionFactory(),
         clock = fixedClock,
@@ -45,6 +49,7 @@ class SendUtbetalingerServiceTest {
 
     init {
         every { utbetalingRepo.hentForUtsjekk() } returns listOf(utbetaling)
+        every { utbetalingRepo.hentOppdragsversjon(utbetaling.sakId) } returns Oppdragsversjon.V2
         coEvery { statistikkService.generer(*anyVararg<Statistikkhendelse>()) } returns statistikk
         justRun { statistikkService.lagre(statistikk, tx) }
         justRun { utbetalingRepo.markerSendtTilUtbetaling(utbetaling.id, any(), tx) }

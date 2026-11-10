@@ -4,7 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val kotlinxCoroutinesVersion = "1.11.0"
 val kotestVersion = "6.2.4"
-val felleslibVersion = "0.0.20261103143719"
+val felleslibVersion = "0.0.20261106120823"
 val mockkVersion = "1.14.11"
 val ktorVersion = "3.6.0"
 val testContainersVersion = "2.0.5"
@@ -369,6 +369,7 @@ val httpklientKlasserMedDekningskrav =
         "no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostHttpClient",
         "no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient",
         "no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpKlient",
+        "no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.SimuleringV3HttpKlient",
         "no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt.UtbetalingsoversiktHttpKlient",
         "no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltakshistorikkHttpKlient",
     )

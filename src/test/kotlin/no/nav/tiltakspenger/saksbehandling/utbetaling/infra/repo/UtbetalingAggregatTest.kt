@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import org.junit.jupiter.api.Test
 
@@ -86,6 +87,27 @@ class UtbetalingAggregatTest {
             tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
 
             // En utbetaling med endelig status forlater køen, så jobben ikke spør om den igjen.
+            repo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = 10).shouldBeEmpty()
+        }
+    }
+
+    /**
+     * Saker på [Oppdragsversjon.V3] får status fra Hel Ved på Kafka, så statusjobben mot utsjekk skal aldri spørre om dem.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `statuskøen utelater sendte utbetalinger på saker som bruker oppdragsversjon 3`() {
+        withTestApplicationContextAndPostgres(
+            runIsolated = true,
+            oppdragsversjonForNyeSaker = Oppdragsversjon.V3,
+        ) { tac ->
+            sakMedUtbetaling(tac)
+            val repo = tac.utbetalingContext.utbetalingRepo
+
+            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
+
+            tac.utbetalingFakeProducer.produserteUtbetalinger.size shouldBe 1
+            repo.hentForUtsjekk(limit = 10).shouldBeEmpty()
             repo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = 10).shouldBeEmpty()
         }
     }

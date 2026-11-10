@@ -72,3 +72,17 @@ data class SendtUtbetaling(
     override val responseStatus: Int,
     val alleredeMottattTidligere: Boolean,
 ) : UtbetalingResponse
+
+/**
+ * Utbetalingen er produsert på Kafka til Hel Ved ([Oppdragsversjon.V3]).
+ * Hel Ved svarer ikke synkront, så status kommer senere på et eget topic.
+ * @param request Meldingen vi produserte, som persisteres for notoritet og som grunnlag for neste utbetaling i saken.
+ */
+data class ProdusertUtbetaling(
+    override val request: String,
+) : UtbetalingResponse {
+    override val response: String? = null
+    override val responseStatus: Int? = null
+
+    override fun toString(): String = "ProdusertUtbetaling(request=*****)"
+}

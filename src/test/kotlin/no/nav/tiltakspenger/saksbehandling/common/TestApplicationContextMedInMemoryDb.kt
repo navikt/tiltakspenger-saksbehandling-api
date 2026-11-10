@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.Tiltaksd
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakshistorikkFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingFakeRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingskvitteringFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.utbetalingsoversikt.UtbetalingsoversiktFakeRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakFakeRepo
 
@@ -96,6 +97,7 @@ open class TestApplicationContextMedInMemoryDb(
     override val klagevedtakRepoOverride = klagevedtakFakeRepo
     override val meldekortvedtakRepoOverride = meldekortvedtakFakeRepo
     override val utbetalingRepoOverride = utbetalingFakeRepo
+    override val utbetalingskvitteringRepoOverride = UtbetalingskvitteringFakeRepo()
     override val utbetalingsoversiktRepoOverride = utbetalingsoversiktFakeRepo
     override val tilbakekrevingHendelseRepoOverride = tilbakekrevingHendelseFakeRepo
     override val tilbakekrevingBehandlingRepoOverride = tilbakekrevingBehandlingFakeRepo

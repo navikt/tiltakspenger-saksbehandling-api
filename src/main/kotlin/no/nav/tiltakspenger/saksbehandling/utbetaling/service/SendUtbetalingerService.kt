@@ -13,25 +13,33 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.felles.Korrelasjon
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.tilStatistikk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.ProdusertUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingProducer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.kafka.tilHelvedUtbetalingJson
 import java.time.Clock
 
 /**
  * Har ansvar for å sende klare utbetalinger til helved utsjekk.
  *
- * Statistikken og markeringen som sendt skrives i samme transaksjon som kallet til helved, og transaksjonen rulles tilbake dersom kallet feiler.
- * Dermed kan vi ikke ende opp med en utbetaling som er markert som sendt uten statistikk, eller med statistikk for en utbetaling som ikke er sendt.
- * Lykkes kallet, men committen feiler, prøves utbetalingen på nytt, og helved svarer da at den er mottatt fra før ([no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SendtUtbetaling.alleredeMottattTidligere]).
+ * For V2 lagres statistikken og markeringen som sendt i samme transaksjon som HTTP-kallet til Hel Ved.
+ * Feiler kallet, rulles transaksjonen tilbake, og et vellykket kall som ikke ble registrert i databasen prøves igjen med Hel Veds deduplisering.
+ * For V3 lagres request-strengen først i en egen fullført transaksjon, før statistikk, sendt-markering og Kafka-produksjon skjer i en ny transaksjon.
+ * Hvis Kafka bekrefter meldingen, men sendetransaksjonen feiler, bruker neste forsøk samme lagrede JSON byte for byte og samme utbetalingId som Kafka-nøkkel.
  */
 class SendUtbetalingerService(
     private val utbetalingRepo: UtbetalingRepo,
     private val meldekortvedtakRepo: MeldekortvedtakRepo,
     private val utbetalingsklient: Utbetalingsklient,
+    private val utbetalingProducer: UtbetalingProducer,
     private val statistikkService: StatistikkService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
@@ -65,6 +73,11 @@ class SendUtbetalingerService(
         val forrigeUtbetalingJson = utbetaling.forrigeUtbetalingId?.let { utbetalingRepo.hentUtbetalingJson(it) }
         val statistikk = statistikkService.generer(utbetaling.tilStatistikk(hentRammevedtakIder(utbetaling), clock))
 
+        if (utbetalingRepo.hentOppdragsversjon(utbetaling.sakId) == Oppdragsversjon.V3) {
+            produserUtbetaling(utbetaling, forrigeUtbetalingJson, statistikk, kontekst)
+            return
+        }
+
         val sendtUtbetaling = try {
             sessionFactory.withTransactionContext { tx ->
                 statistikkService.lagre(statistikk, tx)
@@ -93,6 +106,33 @@ class SendUtbetalingerService(
         }
         logger.info { "Iverksetting av utbetaling mot helved OK, markert som sendt til utbetaling. $kontekst" }
         Sikkerlogg.info { "Iverksetting av utbetaling mot helved OK. $kontekst. Response: ${sendtUtbetaling.response}. Request: ${sendtUtbetaling.request}" }
+    }
+
+    /**
+     * Et unntak ruller tilbake transaksjonen, og utbetalingen prøves på nytt ved neste kjøring.
+     * Requesten er allerede lagret i en egen transaksjon, så et nytt forsøk bruker samme JSON byte for byte og samme [UtbetalingId] som Kafka-nøkkel.
+     */
+    private fun produserUtbetaling(
+        utbetaling: VedtattUtbetaling,
+        forrigeUtbetalingJson: String?,
+        statistikk: StatistikkDTO,
+        kontekst: String,
+    ) {
+        val helvedUtbetalingJson = utbetalingRepo.hentUtbetalingJson(utbetaling.id)
+            ?: utbetaling.tilHelvedUtbetalingJson(forrigeUtbetalingJson).let { kandidat ->
+                sessionFactory.withTransactionContext { tx ->
+                    utbetalingRepo.lagreUtbetalingJsonHvisMangler(utbetaling.id, kandidat, tx)
+                } ?: error("Fant ikke utbetaling ${utbetaling.id} da V3-requesten skulle lagres")
+            }
+
+        sessionFactory.withTransactionContext { tx ->
+            statistikkService.lagre(statistikk, tx)
+            utbetalingRepo.markerSendtTilUtbetaling(utbetaling.id, nå(clock), tx)
+            utbetalingRepo.lagreUtbetalingsrespons(utbetaling.id, ProdusertUtbetaling(helvedUtbetalingJson), tx)
+            utbetalingProducer.produser(utbetaling.id, helvedUtbetalingJson)
+        }
+        logger.info { "Produserte utbetaling til Hel Ved på Kafka, markert som sendt til utbetaling. $kontekst. Se sikkerlogg for detaljer." }
+        Sikkerlogg.info { "Produserte utbetaling til Hel Ved på Kafka. $kontekst. Request: $helvedUtbetalingJson" }
     }
 
     // Foreign key-en utbetaling_meldekortvedtak_id_fkey garanterer at meldekortvedtaket finnes.

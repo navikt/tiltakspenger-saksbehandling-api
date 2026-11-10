@@ -28,7 +28,9 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakshistorikkPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.tilDb
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import org.intellij.lang.annotations.Language
@@ -40,6 +42,8 @@ class SakPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val saksnummerGenerator: SaksnummerGenerator,
     private val clock: Clock,
+    /** Hvilken versjon av Hel Veds API nye saker sender utbetalinger med. */
+    private val oppdragsversjonForNyeSaker: Oppdragsversjon,
 ) : SakRepo {
     val logger = KotlinLogging.logger { }
 
@@ -151,7 +155,8 @@ class SakPostgresRepo(
                             opprettet,
                             skal_sendes_til_meldekort_api,
                             skal_sende_meldeperioder_til_datadeling,
-                            sendt_til_datadeling
+                            sendt_til_datadeling,
+                            oppdragsversjon
                         ) values (
                             :id,
                             :fnr,
@@ -160,7 +165,8 @@ class SakPostgresRepo(
                             :opprettet,
                             :skal_sendes_til_meldekort_api,
                             :skal_sende_meldeperioder_til_datadeling,
-                            :sendt_til_datadeling
+                            :sendt_til_datadeling,
+                            :oppdragsversjon
                         )
                         """,
                         "id" to sak.id.toString(),
@@ -171,6 +177,7 @@ class SakPostgresRepo(
                         "skal_sendes_til_meldekort_api" to false,
                         "skal_sende_meldeperioder_til_datadeling" to false,
                         "sendt_til_datadeling" to null,
+                        "oppdragsversjon" to oppdragsversjonForNyeSaker.tilDb(),
                     ).asUpdate,
                 )
             }

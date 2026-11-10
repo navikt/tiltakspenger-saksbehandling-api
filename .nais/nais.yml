@@ -89,6 +89,8 @@ spec:
         - application: tiltakspenger-soknad-api
         - application: utsjekk
           namespace: helved
+        - application: simulering
+          namespace: helved
         - application: ao-oppfolgingskontor
           namespace: dab
         - application: logging

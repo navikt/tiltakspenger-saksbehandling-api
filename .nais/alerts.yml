@@ -12,10 +12,9 @@ spec:
         - alert: Utbetaling har feilet!
           expr: sum(increase(tpts_saksbehandlingapi_utbetaling_feilet_count_total{namespace="tpts", app="tiltakspenger-saksbehandling-api"}[10m])) > 0
           annotations:
-            action: "Sjekk loggene til saksbehandling-api for å se hva som har skjedd"
-            # Samme format som alarmen for ukjent avvisningskode, se referanse/grafana-loggenker.md i arbeidsboka.
-            # var-fields treffer logglinja i OppdaterUtbetalingsstatusService. Regexen er ankret, så teksten trenger .* i begge ender.
-            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service_name/tiltakspenger-saksbehandling-api/logs?var-ds=PEA2100DC89AE9FE2&from=now-3h&to=now&var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&var-levels=detected_level%7C%3D%7Cerror&patterns=%5B%5D&var-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22.%2Afeilet%20mot%20oppdrag%20med%20status.%2A%22%7D,.%2Afeilet%20mot%20oppdrag%20med%20status.%2A&var-metadata=&var-patterns=&var-lineFilterV2=&var-lineFilters=&timezone=browser&var-lineFormat=&var-jsonFields=&var-all-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22.%2Afeilet%20mot%20oppdrag%20med%20status.%2A%22%7D,.%2Afeilet%20mot%20oppdrag%20med%20status.%2A&urlColumns=%5B%5D&visualizationType=%22logs%22&displayedFields=%5B%5D&userDisplayedFields=false&sortOrder=%22Descending%22&wrapLogMessage=false&prettifyLogMessage=false'
+            action: "Følg opp feilede utbetalinger og permanente feil i utbetalingskvitteringene. Se docs/utbetaling.md."
+            # Ingen meldingsfilter: alarmen omfatter både REST-status og kvitteringer på Kafka.
+            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service_name/tiltakspenger-saksbehandling-api/logs?var-ds=PEA2100DC89AE9FE2&from=now-3d&to=now&var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&var-levels=detected_level%7C%3D%7Cerror'
           labels:
             namespace: tpts
             severity: critical
@@ -24,10 +23,8 @@ spec:
         - alert: Utbetaling har ikke gått ok etter 3 dager!
           expr: sum(increase(tpts_saksbehandlingapi_utbetaling_ikke_ok_count_total{namespace="tpts", app="tiltakspenger-saksbehandling-api"}[10m])) > 0
           annotations:
-            action: "Sjekk loggene til saksbehandling-api for å se hva som har skjedd"
-            # Samme format som alarmen for ukjent avvisningskode, se referanse/grafana-loggenker.md i arbeidsboka.
-            # var-fields treffer logglinja i OppdaterUtbetalingsstatusService. Regexen er ankret, så teksten trenger .* i begge ender.
-            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service_name/tiltakspenger-saksbehandling-api/logs?var-ds=PEA2100DC89AE9FE2&from=now-3h&to=now&var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&var-levels=detected_level%7C%3D%7Cerror&patterns=%5B%5D&var-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22.%2Ahar%20ikke%20f%C3%A5tt%20OK-status.%2A%22%7D,.%2Ahar%20ikke%20f%C3%A5tt%20OK-status.%2A&var-metadata=&var-patterns=&var-lineFilterV2=&var-lineFilters=&timezone=browser&var-lineFormat=&var-jsonFields=&var-all-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22.%2Ahar%20ikke%20f%C3%A5tt%20OK-status.%2A%22%7D,.%2Ahar%20ikke%20f%C3%A5tt%20OK-status.%2A&urlColumns=%5B%5D&visualizationType=%22logs%22&displayedFields=%5B%5D&userDisplayedFields=false&sortOrder=%22Descending%22&wrapLogMessage=false&prettifyLogMessage=false'
+            action: "Følg opp utbetalinger uten OK og kvitteringer med forbigående feil etter tre dager, også manglende kvitteringer. Se docs/utbetaling.md."
+            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service_name/tiltakspenger-saksbehandling-api/logs?var-ds=PEA2100DC89AE9FE2&from=now-3d&to=now&var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts'
           labels:
             namespace: tpts
             severity: critical

@@ -57,5 +57,12 @@ fun kafkaConsumers(
                 stopp = {},
             ),
         )
+        add(
+            KafkaConsumerOppsett(
+                navn = "helved-status-consumer",
+                start = { applicationContext.helvedStatusConsumer.run() },
+                stopp = {},
+            ),
+        )
     }
 }

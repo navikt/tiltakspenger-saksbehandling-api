@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import arrow.core.Either
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.coEvery
 import io.mockk.coJustRun
 import io.mockk.coVerify
@@ -10,6 +11,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
+import no.nav.tiltakspenger.saksbehandling.infra.metrikker.Utbetalingsmålinger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsklient
@@ -22,7 +24,7 @@ class OppdaterUtbetalingsstatusServiceTest {
         val utbetalingRepo = mockk<UtbetalingRepo>()
         val utbetalingsklient = mockk<Utbetalingsklient>()
         val sendUtbetalingerService =
-            OppdaterUtbetalingsstatusService(utbetalingRepo, utbetalingsklient, fixedClock)
+            OppdaterUtbetalingsstatusService(utbetalingRepo, utbetalingsklient, fixedClock, Utbetalingsmålinger(SimpleMeterRegistry()))
         val utbetaling = ObjectMother.utbetalingDetSkalHentesStatusFor(
             forsøkshistorikk = Forsøkshistorikk.opprett(
                 antallForsøk = 10,

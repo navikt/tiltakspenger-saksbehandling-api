@@ -83,10 +83,13 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshisto
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeTestKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingskvitteringRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt.UtbetalingsoversiktFakeKlient
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.kafka.UtbetalingFakeProducer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFakeClient
@@ -131,6 +134,7 @@ sealed class TestApplicationContext(
      * Prod-registeret i [no.nav.tiltakspenger.saksbehandling.prometheusMeterRegistry] er bundet til det globale Prometheus-registeret og skal aldri brukes her.
      */
     meterRegistry: PrometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
+    private val oppdragsversjonForNyeSaker: Oppdragsversjon = Oppdragsversjon.V2,
 ) : ApplicationContext(
     gitHash = "fake-git-hash",
     clock = clock,
@@ -267,6 +271,7 @@ sealed class TestApplicationContext(
     protected open val klagevedtakRepoOverride: KlagevedtakRepo? = null
     protected open val meldekortvedtakRepoOverride: MeldekortvedtakRepo? = null
     protected open val utbetalingRepoOverride: UtbetalingRepo? = null
+    protected open val utbetalingskvitteringRepoOverride: UtbetalingskvitteringRepo? = null
     protected open val utbetalingsoversiktRepoOverride: UtbetalingsoversiktRepo? = null
     protected open val tilbakekrevingHendelseRepoOverride: TilbakekrevingHendelseRepo? = null
     protected open val tilbakekrevingBehandlingRepoOverride: TilbakekrevingBehandlingRepo? = null
@@ -334,6 +339,7 @@ sealed class TestApplicationContext(
             fellesSkjermingsklient = personContext.fellesSkjermingsklient,
             environmentProfile = EnvironmentProfile.LOCAL,
             clock = clock,
+            oppdragsversjonForNyeSaker = oppdragsversjonForNyeSaker,
         ) {
             // Dato-baserte saksnummer (SaksnummerGenerator.Local) kolliderer under parallellkjøring, siden alle tester med samme klokkedato får samme startnummer og hentNesteSaksnummer gjør select-max-pluss-én uten lås.
             // Den delte, atomiske generatoren gir globalt unike saksnummer, og dato-prefiks-spørringen i hentNesteSaksnummer treffer da aldri.
@@ -454,6 +460,8 @@ sealed class TestApplicationContext(
         }
     }
 
+    val utbetalingFakeProducer by lazy { UtbetalingFakeProducer() }
+
     override val utbetalingContext by lazy {
 
         object : UtbetalingContext(
@@ -471,11 +479,15 @@ sealed class TestApplicationContext(
             erDev = false,
         ) {
             override val utbetalingsklient = utbetalingFakeKlient
+            override val v3Simuleringsklient = utbetalingFakeKlient
+            override val utbetalingProducer = utbetalingFakeProducer
             override val utbetalingsoversiktklient = utbetalingsoversiktFakeKlient
             override val meldekortvedtakRepo: MeldekortvedtakRepo
                 get() = meldekortvedtakRepoOverride ?: super.meldekortvedtakRepo
             override val utbetalingRepo: UtbetalingRepo
                 get() = utbetalingRepoOverride ?: super.utbetalingRepo
+            override val utbetalingskvitteringRepo: UtbetalingskvitteringRepo
+                get() = utbetalingskvitteringRepoOverride ?: super.utbetalingskvitteringRepo
             override val utbetalingsoversiktRepo: UtbetalingsoversiktRepo
                 get() = utbetalingsoversiktRepoOverride ?: super.utbetalingsoversiktRepo
         }

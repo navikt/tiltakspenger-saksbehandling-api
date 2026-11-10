@@ -4,7 +4,7 @@ import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
-import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
+import no.nav.tiltakspenger.saksbehandling.infra.metrikker.Utbetalingsmålinger
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsklient
@@ -20,6 +20,7 @@ class OppdaterUtbetalingsstatusService(
     private val utbetalingRepo: UtbetalingRepo,
     private val utbetalingsklient: Utbetalingsklient,
     private val clock: Clock,
+    private val målinger: Utbetalingsmålinger,
 ) {
     private val logger = KotlinLogging.logger { }
 
@@ -49,7 +50,7 @@ class OppdaterUtbetalingsstatusService(
 
                 if (it == Utbetalingsstatus.FeiletMotOppdrag) {
                     logger.error { "Utbetaling $utbetaling feilet mot oppdrag med status $it. Dette må følges opp manuelt. Denne blir ikke prøvd på nytt." }
-                    MetricRegister.UTBETALING_FEILET.inc()
+                    målinger.feilet.increment()
                 } else if (!it.erOK() &&
                     ChronoUnit.DAYS.between(
                         utbetaling.sendtTilUtbetalingstidspunkt,
@@ -58,7 +59,7 @@ class OppdaterUtbetalingsstatusService(
                 ) {
                     // Vi gir en varsling til utviklerne hvis vi ikke har fått OK ila. 3 dager.
                     logger.error { "Utbetaling $utbetaling har ikke fått OK-status ila. 3 dager. Dette burde følges opp manuelt. Denne blir prøvd på nytt." }
-                    MetricRegister.UTBETALING_IKKE_OK.inc()
+                    målinger.ikkeOk.increment()
                 }
             }.onLeft {
                 it.loggFeil(logger, "henting av utbetalingsstatus fra helved", "Kontekst: $utbetaling. Denne vil bli prøvd på nytt.")

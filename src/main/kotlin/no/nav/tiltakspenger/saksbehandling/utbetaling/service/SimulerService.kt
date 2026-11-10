@@ -13,14 +13,17 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldepe
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsklient
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.V3Simuleringsklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.logg
 
 class SimulerService(
     private val utbetalingsklient: Utbetalingsklient,
+    private val v3Simuleringsklient: V3Simuleringsklient,
     private val navkontorService: NavkontorService,
     private val utbetalingRepo: UtbetalingRepo,
 ) {
@@ -98,28 +101,46 @@ class SimulerService(
         kanSendeInnHelgForMeldekort: Boolean,
         brukersNavkontor: (suspend () -> Navkontor)?,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
-        return utbetalingsklient.simuler(
-            sakId = sakId,
-            saksnummer = saksnummer,
-            behandlingId = behandlingId,
-            fnr = fnr,
-            saksbehandler = saksbehandler,
-            beregning = beregning,
-            brukersNavkontor = if (brukersNavkontor != null) {
-                brukersNavkontor()
-            } else {
-                navkontorService.hentNavkontor(
-                    fnr = fnr,
-                    loggkontekst = "sakId: $sakId, saksnummer: ${saksnummer.verdi}, behandlingId: $behandlingId",
-                )
-            },
-            forrigeUtbetalingJson = forrigeUtbetaling?.let {
-                utbetalingRepo.hentUtbetalingJson(it.id)
-            },
-            forrigeUtbetalingId = forrigeUtbetaling?.id,
-            meldeperiodeKjeder = meldeperiodeKjeder,
-            kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
-        ).onLeft {
+        val oppdragsversjon = utbetalingRepo.hentOppdragsversjon(sakId)
+        val forrigeUtbetalingJson = forrigeUtbetaling?.let {
+            utbetalingRepo.hentUtbetalingJson(it.id)
+        }
+        val navkontor = if (brukersNavkontor != null) {
+            brukersNavkontor()
+        } else {
+            navkontorService.hentNavkontor(
+                fnr = fnr,
+                loggkontekst = "sakId: $sakId, saksnummer: ${saksnummer.verdi}, behandlingId: $behandlingId",
+            )
+        }
+        val simulering = when (oppdragsversjon) {
+            Oppdragsversjon.V2 -> utbetalingsklient.simuler(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                behandlingId = behandlingId,
+                fnr = fnr,
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+                brukersNavkontor = navkontor,
+                forrigeUtbetalingJson = forrigeUtbetalingJson,
+                forrigeUtbetalingId = forrigeUtbetaling?.id,
+                meldeperiodeKjeder = meldeperiodeKjeder,
+                kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
+            )
+
+            Oppdragsversjon.V3 -> v3Simuleringsklient.simuler(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                behandlingId = behandlingId,
+                fnr = fnr,
+                beregning = beregning,
+                forrigeUtbetalingJson = forrigeUtbetalingJson,
+                meldeperiodeKjeder = meldeperiodeKjeder,
+                saksbehandler = saksbehandler,
+                brukersNavkontor = navkontor,
+            )
+        }
+        return simulering.onLeft {
             it.logg(logger, kontekst = "sakId: $sakId, saksnummer: ${saksnummer.verdi}, behandlingId: $behandlingId")
         }
     }

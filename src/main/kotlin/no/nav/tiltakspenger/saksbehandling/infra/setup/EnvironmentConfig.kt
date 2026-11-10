@@ -1,10 +1,26 @@
 package no.nav.tiltakspenger.saksbehandling.infra.setup
 
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
+
 enum class EnvironmentProfile {
     LOCAL,
     DEV,
     PROD,
 }
+
+private const val WIREMOCK_URL = "http://host.docker.internal:8091"
+
+data class HelvedSimuleringKonfigurasjon(
+    val url: String,
+    val scope: String,
+)
+
+fun helvedSimuleringKonfigurasjonFor(environmentProfile: EnvironmentProfile): HelvedSimuleringKonfigurasjon =
+    when (environmentProfile) {
+        EnvironmentProfile.LOCAL -> HelvedSimuleringKonfigurasjon(WIREMOCK_URL, "localhost")
+        EnvironmentProfile.DEV -> HelvedSimuleringKonfigurasjon("http://simulering.helved", "dev-gcp:helved:simulering")
+        EnvironmentProfile.PROD -> HelvedSimuleringKonfigurasjon("http://simulering.helved", "prod-gcp:helved:simulering")
+    }
 
 sealed interface EnvironmentConfig {
     val environmentProfile: EnvironmentProfile
@@ -36,6 +52,9 @@ sealed interface EnvironmentConfig {
 
     val utbetalingScope: String
     val utbetalingUrl: String
+
+    val helvedSimuleringScope: String
+    val helvedSimuleringUrl: String
 
     val dokarkivScope: String
     val dokarkivUrl: String
@@ -85,6 +104,11 @@ sealed interface EnvironmentConfig {
     val aktorV2Topic: String
     val identhendelseTopic: String
     val tilbakekrevingTopic: String
+    val utbetalingTopic: String
+    val helvedStatusTopic: String
+
+    /** Hvilken versjon av Hel Veds API nye saker sender utbetalinger med. */
+    val oppdragsversjonForNyeSaker: Oppdragsversjon
 
     val leesahAvroSerializablePackage: String
     val aktorV2AvroSerializablePackage: String
@@ -99,8 +123,6 @@ data object LocalConfig : EnvironmentConfig {
      *
      *  Wiremock kan kjøres opp via docker-compose i meta-repoet
      * */
-    private const val WIREMOCK_URL = "http://host.docker.internal:8091"
-
     override val environmentProfile = EnvironmentProfile.LOCAL
     override val httpPort = 8080
     override val logbackConfigurationFile = "logback.local.xml"
@@ -133,6 +155,10 @@ data object LocalConfig : EnvironmentConfig {
 
     override val utbetalingScope = "localhost"
     override val utbetalingUrl = WIREMOCK_URL
+
+    private val helvedSimuleringKonfigurasjon = helvedSimuleringKonfigurasjonFor(environmentProfile)
+    override val helvedSimuleringScope = helvedSimuleringKonfigurasjon.scope
+    override val helvedSimuleringUrl = helvedSimuleringKonfigurasjon.url
 
     override val dokarkivScope = "localhost"
     override val dokarkivUrl = WIREMOCK_URL
@@ -182,6 +208,9 @@ data object LocalConfig : EnvironmentConfig {
     override val aktorV2Topic = "pdl.aktor"
     override val identhendelseTopic = "tpts.identhendelse"
     override val tilbakekrevingTopic = "tilbake.privat-tilbakekreving-tiltakspenger"
+    override val utbetalingTopic = "tpts.utbetaling-v1"
+    override val helvedStatusTopic = "helved.status.v1"
+    override val oppdragsversjonForNyeSaker = Oppdragsversjon.V2
 
     override val leesahAvroSerializablePackage = "no.nav.person.pdl.leesah"
     override val aktorV2AvroSerializablePackage = "no.nav.person.pdl.aktor.v2"
@@ -222,6 +251,10 @@ data object DevConfig : EnvironmentConfig {
 
     override val utbetalingScope = "dev-gcp:helved:utsjekk"
     override val utbetalingUrl = "http://utsjekk.helved"
+
+    private val helvedSimuleringKonfigurasjon = helvedSimuleringKonfigurasjonFor(environmentProfile)
+    override val helvedSimuleringScope = helvedSimuleringKonfigurasjon.scope
+    override val helvedSimuleringUrl = helvedSimuleringKonfigurasjon.url
 
     override val dokarkivScope = "dev-fss:teamdokumenthandtering:dokarkiv"
     override val dokarkivUrl = "https://dokarkiv-q2.dev-fss-pub.nais.io"
@@ -268,6 +301,9 @@ data object DevConfig : EnvironmentConfig {
     override val aktorV2Topic = "pdl.aktor-v2"
     override val identhendelseTopic = "tpts.identhendelse-v1"
     override val tilbakekrevingTopic = "tilbake.privat-tilbakekreving-tiltakspenger"
+    override val utbetalingTopic = "tpts.utbetaling-v1"
+    override val helvedStatusTopic = "helved.status.v1"
+    override val oppdragsversjonForNyeSaker = Oppdragsversjon.V3
 
     override val leesahAvroSerializablePackage = "no.nav.person.pdl.leesah"
     override val aktorV2AvroSerializablePackage = "no.nav.person.pdl.aktor.v2"
@@ -308,6 +344,10 @@ data object ProdConfig : EnvironmentConfig {
 
     override val utbetalingScope = "prod-gcp:helved:utsjekk"
     override val utbetalingUrl = "http://utsjekk.helved"
+
+    private val helvedSimuleringKonfigurasjon = helvedSimuleringKonfigurasjonFor(environmentProfile)
+    override val helvedSimuleringScope = helvedSimuleringKonfigurasjon.scope
+    override val helvedSimuleringUrl = helvedSimuleringKonfigurasjon.url
 
     override val dokarkivScope = "prod-fss:teamdokumenthandtering:dokarkiv"
     override val dokarkivUrl = "https://dokarkiv.prod-fss-pub.nais.io"
@@ -354,6 +394,9 @@ data object ProdConfig : EnvironmentConfig {
     override val aktorV2Topic = "pdl.aktor-v2"
     override val identhendelseTopic = "tpts.identhendelse-v1"
     override val tilbakekrevingTopic = "tilbake.privat-tilbakekreving-tiltakspenger"
+    override val utbetalingTopic = "tpts.utbetaling-v1"
+    override val helvedStatusTopic = "helved.status.v1"
+    override val oppdragsversjonForNyeSaker = Oppdragsversjon.V2
 
     override val leesahAvroSerializablePackage = "no.nav.person.pdl.leesah"
     override val aktorV2AvroSerializablePackage = "no.nav.person.pdl.aktor.v2"

@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonServi
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.EnvironmentProfile
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import java.time.Clock
 
 open class SakContext(
@@ -17,6 +18,7 @@ open class SakContext(
     personService: PersonService,
     environmentProfile: EnvironmentProfile,
     clock: Clock,
+    oppdragsversjonForNyeSaker: Oppdragsversjon,
 ) {
     val sakService: SakService by lazy {
         SakService(
@@ -38,6 +40,7 @@ open class SakContext(
             sessionFactory = sessionFactory as PostgresSessionFactory,
             saksnummerGenerator = saksnummerGenerator,
             clock = clock,
+            oppdragsversjonForNyeSaker = oppdragsversjonForNyeSaker,
         )
     }
 }

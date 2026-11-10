@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
+import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
@@ -19,10 +20,16 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toForsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KvitteringsstatusLagring
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.ProdusertUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingResponse
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingskobling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsreferanse
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingsreferanseTreff
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDateTime
@@ -30,6 +37,80 @@ import java.time.LocalDateTime
 class UtbetalingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : UtbetalingRepo {
+    override fun hent(utbetalingId: UtbetalingId, context: TransactionContext): VedtattUtbetaling? =
+        sessionFactory.withSession(context) { session ->
+            hent(utbetalingId, session)
+        }
+
+    override fun finnUtbetalingerForKvitteringsreferanser(
+        referanser: Set<Utbetalingsreferanse>,
+        context: TransactionContext,
+    ): List<UtbetalingsreferanseTreff> {
+        if (referanser.isEmpty()) return emptyList()
+        val sorterteReferanser = referanser.sortedBy { it.verdi }
+        val betingelser = sorterteReferanser.indices.joinToString(", ") { ":referanse$it" }
+        val parametere = sorterteReferanser.mapIndexed { index, referanse ->
+            "referanse$index" to (referanse.verdi as Any?)
+        }.toTypedArray()
+        return sessionFactory.withSession(context) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select right(u.id, 15) as referanse, u.id as utbetaling_id, u.sak_id
+                    from utbetaling u
+                    where right(u.id, 15) in ($betingelser)
+                    order by right(u.id, 15), u.id
+                    for update
+                    """,
+                    *parametere,
+                ).map { row ->
+                    UtbetalingsreferanseTreff(
+                        referanse = Utbetalingsreferanse(row.string("referanse")),
+                        kobling = Utbetalingskobling(
+                            utbetalingId = UtbetalingId.fromString(row.string("utbetaling_id")),
+                            sakId = SakId.fromString(row.string("sak_id")),
+                        ),
+                    )
+                }.asList,
+            )
+        }
+    }
+
+    override fun antallFeiledeUtbetalingerPåVersjon3(): Long =
+        sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select count(*) as antall
+                    from utbetaling u
+                    join sak s on s.id = u.sak_id
+                    where s.oppdragsversjon = 3
+                      and u.status = 'FEILET_MOT_OPPDRAG'
+                    """,
+                ).map { it.long("antall") }.asList,
+            ).single()
+        }
+
+    override fun antallUtbetalingerUtenOkPåVersjon3(eldreEnn: LocalDateTime): Long =
+        sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select count(*) as antall
+                    from utbetaling u
+                    join sak s on s.id = u.sak_id
+                    where s.oppdragsversjon = 3
+                      and u.opprettet <= :eldre_enn
+                      and (
+                        u.status is null
+                        or u.status in ('IKKE_PÅBEGYNT', 'SENDT_TIL_OPPDRAG')
+                      )
+                    """,
+                    "eldre_enn" to eldreEnn,
+                ).map { it.long("antall") }.asList,
+            ).single()
+        }
+
     override fun markerSendtTilUtbetaling(
         utbetalingId: UtbetalingId,
         tidspunkt: LocalDateTime,
@@ -56,17 +137,42 @@ class UtbetalingPostgresRepo(
         context: TransactionContext?,
     ) {
         sessionFactory.withSession(context) { session ->
-            session.run(
-                sqlQuery(
-                    """
-                    update utbetaling
-                    set utbetaling_metadata = :metadata::jsonb
-                    where id = :id
-                    """,
-                    "id" to utbetalingId.toString(),
-                    "metadata" to utbetalingsrespons.toJson(),
-                ).asUpdate,
-            )
+            if (utbetalingsrespons is ProdusertUtbetaling) {
+                val serialisertRequest = serialize(utbetalingsrespons.request)
+                val antallOppdatert = session.run(
+                    sqlQuery(
+                        """
+                        UPDATE utbetaling
+                        SET utbetaling_metadata = jsonb_set(
+                            COALESCE(utbetaling_metadata, '{}'::jsonb),
+                            '{request}',
+                            :request_json::jsonb,
+                            true
+                        )
+                        WHERE id = :id
+                          AND utbetaling_metadata->>'request' = :request
+                        """,
+                        "id" to utbetalingId.toString(),
+                        "request" to utbetalingsrespons.request,
+                        "request_json" to serialisertRequest,
+                    ).asUpdate,
+                )
+                check(antallOppdatert == 1) {
+                    "Fant ikke den lagrede V3-requesten for utbetaling $utbetalingId"
+                }
+            } else {
+                session.run(
+                    sqlQuery(
+                        """
+                        update utbetaling
+                        set utbetaling_metadata = :metadata::jsonb
+                        where id = :id
+                        """,
+                        "id" to utbetalingId.toString(),
+                        "metadata" to utbetalingsrespons.toJson(),
+                    ).asUpdate,
+                )
+            }
         }
     }
 
@@ -83,6 +189,42 @@ class UtbetalingPostgresRepo(
                 ).map { it.stringOrNull("req") }.asSingle,
             )
         }
+    }
+
+    override fun lagreUtbetalingJsonHvisMangler(
+        utbetalingId: UtbetalingId,
+        request: String,
+        context: TransactionContext,
+    ): String? = sessionFactory.withSession(context) { session ->
+        val serialisertRequest = serialize(request)
+        session.run(
+            sqlQuery(
+                """
+                UPDATE utbetaling
+                SET utbetaling_metadata = jsonb_set(
+                    COALESCE(utbetaling_metadata, '{}'::jsonb),
+                    '{request}',
+                    :request_json::jsonb,
+                    true
+                )
+                WHERE id = :id
+                  AND utbetaling_metadata->>'request' IS NULL
+                """,
+                "id" to utbetalingId.toString(),
+                "request_json" to serialisertRequest,
+            ).asUpdate,
+        )
+
+        session.run(
+            sqlQuery(
+                """
+                SELECT utbetaling_metadata->>'request' AS request
+                FROM utbetaling
+                WHERE id = :id
+                """,
+                "id" to utbetalingId.toString(),
+            ).map { it.stringOrNull("request") }.asList,
+        ).firstOrNull()
     }
 
     override fun hentForUtsjekk(limit: Int): List<VedtattUtbetaling> {
@@ -133,8 +275,10 @@ class UtbetalingPostgresRepo(
                 sqlQuery(
                     """
                     select * from utbetaling_full
-                    where (status is null or status IN ('IKKE_PÅBEGYNT', 'SENDT_TIL_OPPDRAG', 'FEILET_MOT_OPPDRAG')) and sendt_til_utbetaling_tidspunkt is not null
+                    where (status is null or status IN ('IKKE_PÅBEGYNT', 'SENDT_TIL_OPPDRAG', 'FEILET_MOT_OPPDRAG'))
+                        and sendt_til_utbetaling_tidspunkt is not null
                         and (status_metadata->>'nesteForsøk')::timestamptz <= now()
+                        and oppdragsversjon = 2
                     order by (status_metadata->>'antall_forsøk')::int, opprettet
                     limit :limit
                     """,
@@ -150,6 +294,79 @@ class UtbetalingPostgresRepo(
                     )
                 }.asList,
             )
+        }
+    }
+
+    override fun hentOppdragsversjon(sakId: SakId): Oppdragsversjon = sessionFactory.withSession { session ->
+        session.run(
+            sqlQuery(
+                "select oppdragsversjon from sak where id = :id",
+                "id" to sakId.toString(),
+            ).map { it.int("oppdragsversjon").tilOppdragsversjon() }.asSingle,
+        )
+    } ?: throw IllegalStateException("Fant ikke sak $sakId")
+
+    override fun lagreKvitteringsstatus(
+        utbetalingId: UtbetalingId,
+        status: Utbetalingsstatus,
+        context: TransactionContext?,
+    ): KvitteringsstatusLagring = sessionFactory.withSession(context) { session ->
+        val oppdatert = session.run(
+            sqlQuery(
+                """
+                update utbetaling u
+                set status = :status
+                from sak s
+                where u.id = :id
+                  and s.id = u.sak_id
+                  and s.oppdragsversjon = 3
+                  and not (
+                    coalesce(u.status, '') in (
+                      'OK',
+                      'OK_UTEN_UTBETALING',
+                      'FEILET_MOT_OPPDRAG',
+                      'AVBRUTT'
+                    )
+                    and :status not in (
+                      'OK',
+                      'OK_UTEN_UTBETALING',
+                      'FEILET_MOT_OPPDRAG',
+                      'AVBRUTT'
+                    )
+                  )
+                """,
+                "id" to utbetalingId.toString(),
+                "status" to status.toDbType(),
+            ).asUpdate,
+        )
+        if (oppdatert > 0) {
+            KvitteringsstatusLagring.Lagret
+        } else {
+            val terminal = session.run(
+                sqlQuery(
+                    """
+                    select coalesce(
+                        u.status in (
+                            'OK',
+                            'OK_UTEN_UTBETALING',
+                            'FEILET_MOT_OPPDRAG',
+                            'AVBRUTT'
+                        ),
+                        false
+                    ) as terminal
+                    from utbetaling u
+                    join sak s on s.id = u.sak_id
+                    where u.id = :id
+                      and s.oppdragsversjon = 3
+                    """,
+                    "id" to utbetalingId.toString(),
+                ).map { it.boolean("terminal") }.asSingle,
+            )
+            if (terminal == true) {
+                KvitteringsstatusLagring.IgnorertFordiUtbetalingenErTerminal
+            } else {
+                KvitteringsstatusLagring.FantIkkeUtbetaling
+            }
         }
     }
 
