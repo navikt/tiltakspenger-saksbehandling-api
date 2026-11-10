@@ -66,7 +66,10 @@ interface UtbetalingRepo {
     /** Gjelder bare saker på [Oppdragsversjon.V2], siden status for [Oppdragsversjon.V3] kommer på Kafka. */
     fun hentDeSomSkalHentesUtbetalingsstatusFor(limit: Int = 10): List<UtbetalingDetSkalHentesStatusFor>
 
-    fun hentOppdragsversjon(sakId: SakId): Oppdragsversjon
+    fun hentOppdragsversjon(
+        sakId: SakId,
+        context: TransactionContext? = null,
+    ): Oppdragsversjon
 
     /**
      * Lagrer status fra en kvittering på Kafka.

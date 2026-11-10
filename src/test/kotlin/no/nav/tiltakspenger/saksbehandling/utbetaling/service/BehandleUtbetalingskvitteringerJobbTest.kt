@@ -56,7 +56,7 @@ class BehandleUtbetalingskvitteringerJobbTest {
 
         init {
             every { repo.hent(utbetaling.id, any()) } returns utbetaling
-            every { repo.hentOppdragsversjon(utbetaling.sakId) } returns Oppdragsversjon.V3
+            every { repo.hentOppdragsversjon(utbetaling.sakId, TestSessionFactory.transactionContext) } returns Oppdragsversjon.V3
             every { repo.lagreKvitteringsstatus(any(), any(), any()) } returns KvitteringsstatusLagring.Lagret
         }
 
@@ -223,7 +223,7 @@ class BehandleUtbetalingskvitteringerJobbTest {
         every {
             oppsett.repo.finnUtbetalingerForKvitteringsreferanser(setOf(referanse), TestSessionFactory.transactionContext)
         } returns listOf(UtbetalingsreferanseTreff(referanse, Utbetalingskobling(oppsett.utbetaling.id, oppsett.utbetaling.sakId)))
-        every { oppsett.repo.hentOppdragsversjon(oppsett.utbetaling.sakId) } returns Oppdragsversjon.V2
+        every { oppsett.repo.hentOppdragsversjon(oppsett.utbetaling.sakId, TestSessionFactory.transactionContext) } returns Oppdragsversjon.V2
 
         oppsett.jobb.behandle(oppsett.kvitteringId).getOrFail()
 
@@ -389,7 +389,7 @@ class BehandleUtbetalingskvitteringerJobbTest {
         every {
             versjon2.repo.finnUtbetalingerForKvitteringsreferanser(setOf(referanse), any())
         } returns listOf(UtbetalingsreferanseTreff(referanse, Utbetalingskobling(versjon2.utbetaling.id, versjon2.utbetaling.sakId)))
-        every { versjon2.repo.hentOppdragsversjon(any()) } returns Oppdragsversjon.V2
+        every { versjon2.repo.hentOppdragsversjon(any(), TestSessionFactory.transactionContext) } returns Oppdragsversjon.V2
         versjon2.jobb.behandle(versjon2.kvitteringId).getOrFail()
         verify(exactly = 0) { versjon2.repo.lagreKvitteringsstatus(any(), any(), any()) }
         verify {

@@ -112,7 +112,7 @@ class BehandleUtbetalingskvitteringerJobb(
                                 val funnetUtbetaling = ensureNotNull(utbetaling) {
                                     KunneIkkeBehandleUtbetalingskvittering.ManglerUtbetalingskobling
                                 }
-                                if (utbetalingRepo.hentOppdragsversjon(funnetUtbetaling.sakId) == Oppdragsversjon.V3) {
+                                if (utbetalingRepo.hentOppdragsversjon(funnetUtbetaling.sakId, context) == Oppdragsversjon.V3) {
                                     when (
                                         utbetalingRepo.lagreKvitteringsstatus(
                                             funnetUtbetaling.id,

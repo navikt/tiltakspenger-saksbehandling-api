@@ -140,7 +140,10 @@ class UtbetalingFakeRepo : UtbetalingRepo {
         }
     }
 
-    override fun hentOppdragsversjon(sakId: SakId): Oppdragsversjon {
+    override fun hentOppdragsversjon(
+        sakId: SakId,
+        context: TransactionContext?,
+    ): Oppdragsversjon {
         return oppdragsversjoner.get()[sakId] ?: Oppdragsversjon.V2
     }
 

@@ -297,7 +297,10 @@ class UtbetalingPostgresRepo(
         }
     }
 
-    override fun hentOppdragsversjon(sakId: SakId): Oppdragsversjon = sessionFactory.withSession { session ->
+    override fun hentOppdragsversjon(
+        sakId: SakId,
+        context: TransactionContext?,
+    ): Oppdragsversjon = sessionFactory.withSession(context) { session ->
         session.run(
             sqlQuery(
                 "select oppdragsversjon from sak where id = :id",
