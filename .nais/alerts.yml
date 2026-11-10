@@ -14,22 +14,20 @@ spec:
           annotations:
             action: "Følg opp feilede utbetalinger og permanente feil i utbetalingskvitteringene. Se docs/utbetaling.md."
             # Ingen meldingsfilter: alarmen omfatter både REST-status og kvitteringer på Kafka.
-            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service_name/tiltakspenger-saksbehandling-api/logs?var-ds=PEA2100DC89AE9FE2&from=now-3d&to=now&var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&var-levels=detected_level%7C%3D%7Cerror'
+            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service_name/tiltakspenger-saksbehandling-api/logs?from=now-3d&to=now&var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&var-filters=k8s_cluster_name%7C%3D%7C{{k8s_cluster_name}}&var-levels=detected_level%7C%3D%7Cerror'
           labels:
             namespace: tpts
             severity: critical
             send_resolved: "false"
-            datasource: {{datasource}}
         - alert: Utbetaling har ikke gått ok etter 3 dager!
           expr: sum(increase(tpts_saksbehandlingapi_utbetaling_ikke_ok_count_total{namespace="tpts", app="tiltakspenger-saksbehandling-api"}[10m])) > 0
           annotations:
             action: "Følg opp utbetalinger uten OK og kvitteringer med forbigående feil etter tre dager, også manglende kvitteringer. Se docs/utbetaling.md."
-            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service_name/tiltakspenger-saksbehandling-api/logs?var-ds=PEA2100DC89AE9FE2&from=now-3d&to=now&var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts'
+            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service_name/tiltakspenger-saksbehandling-api/logs?from=now-3d&to=now&var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&var-filters=k8s_cluster_name%7C%3D%7C{{k8s_cluster_name}}'
           labels:
             namespace: tpts
             severity: critical
             send_resolved: "false"
-            datasource: {{datasource}}
         - alert: Ukjent avvisningskode fra Tilgangsmaskinen
           # max_over_time, ikke increase: tidsserien opprettes først når koden dukker opp, og increase overser det første hoppet.
           # Telleren nullstilles ved deploy, så alarmen står til koden er lagt til og appen er rullet ut på nytt.
@@ -41,12 +39,11 @@ spec:
             # Gjentatt var-levels OR-er, så warn og error står som hvert sitt filter.
             # var-fields treffer selve logglinja alarmen handler om. Regexen er ankret, så teksten må ende på .* for å matche resten av meldingen.
             # Vinduet er 24 timer fordi linja bare skrives første gang koden dukker opp i en pod; telleren er det som står.
-            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service_name/tiltakspenger-saksbehandling-api/logs?var-ds=PEA2100DC89AE9FE2&from=now-24h&to=now&var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&var-levels=detected_level%7C%3D%7Cwarn&var-levels=detected_level%7C%3D%7Cerror&patterns=%5B%5D&var-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22Ukjent%20avvisningskode%20fra%20Tilgangsmaskinen.%2A%22%7D,Ukjent%20avvisningskode%20fra%20Tilgangsmaskinen.%2A&var-metadata=&var-patterns=&var-lineFilterV2=&var-lineFilters=&timezone=browser&var-lineFormat=&var-jsonFields=&var-all-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22Ukjent%20avvisningskode%20fra%20Tilgangsmaskinen.%2A%22%7D,Ukjent%20avvisningskode%20fra%20Tilgangsmaskinen.%2A&urlColumns=%5B%5D&visualizationType=%22logs%22&displayedFields=%5B%5D&userDisplayedFields=false&sortOrder=%22Descending%22&wrapLogMessage=false&prettifyLogMessage=false'
+            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service_name/tiltakspenger-saksbehandling-api/logs?from=now-24h&to=now&var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&var-filters=k8s_cluster_name%7C%3D%7C{{k8s_cluster_name}}&var-levels=detected_level%7C%3D%7Cwarn&var-levels=detected_level%7C%3D%7Cerror&patterns=%5B%5D&var-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22Ukjent%20avvisningskode%20fra%20Tilgangsmaskinen.%2A%22%7D,Ukjent%20avvisningskode%20fra%20Tilgangsmaskinen.%2A&var-metadata=&var-patterns=&var-lineFilterV2=&var-lineFilters=&timezone=browser&var-lineFormat=&var-jsonFields=&var-all-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22Ukjent%20avvisningskode%20fra%20Tilgangsmaskinen.%2A%22%7D,Ukjent%20avvisningskode%20fra%20Tilgangsmaskinen.%2A&urlColumns=%5B%5D&visualizationType=%22logs%22&displayedFields=%5B%5D&userDisplayedFields=false&sortOrder=%22Descending%22&wrapLogMessage=false&prettifyLogMessage=false'
           labels:
             namespace: tpts
             severity: warning
             send_resolved: "false"
-            datasource: {{datasource}}
         - alert: Reversert opphør er iverksatt
           # Telleren opprettes først ved første økning i en pod, og increase overser det første hoppet.
           # Leddet med unless fanger derfor tidsserier som er nye i vinduet, mens increase fanger senere økninger.
@@ -55,9 +52,8 @@ spec:
             action: "Et vedtak har innvilget perioder på nytt uten gyldig tiltaksdeltakelse i saksopplysningene. Sjekk loggene til saksbehandling-api for hvilket vedtak det gjelder, og følg opp at det er riktig."
             # Samme format som alarmen for ukjent avvisningskode, se referanse/grafana-loggenker.md i arbeidsboka.
             # var-fields treffer logglinja i varsleHvisReversertOpphørErIverksatt. Regexen er ankret, så teksten må ende på .* for å matche resten av meldingen.
-            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service_name/tiltakspenger-saksbehandling-api/logs?var-ds=PEA2100DC89AE9FE2&from=now-3h&to=now&var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&var-levels=detected_level%7C%3D%7Cwarn&patterns=%5B%5D&var-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22Reversert%20opph%C3%B8r%20er%20iverksatt.%2A%22%7D,Reversert%20opph%C3%B8r%20er%20iverksatt.%2A&var-metadata=&var-patterns=&var-lineFilterV2=&var-lineFilters=&timezone=browser&var-lineFormat=&var-jsonFields=&var-all-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22Reversert%20opph%C3%B8r%20er%20iverksatt.%2A%22%7D,Reversert%20opph%C3%B8r%20er%20iverksatt.%2A&urlColumns=%5B%5D&visualizationType=%22logs%22&displayedFields=%5B%5D&userDisplayedFields=false&sortOrder=%22Descending%22&wrapLogMessage=false&prettifyLogMessage=false'
+            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service_name/tiltakspenger-saksbehandling-api/logs?from=now-3h&to=now&var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&var-filters=k8s_cluster_name%7C%3D%7C{{k8s_cluster_name}}&var-levels=detected_level%7C%3D%7Cwarn&patterns=%5B%5D&var-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22Reversert%20opph%C3%B8r%20er%20iverksatt.%2A%22%7D,Reversert%20opph%C3%B8r%20er%20iverksatt.%2A&var-metadata=&var-patterns=&var-lineFilterV2=&var-lineFilters=&timezone=browser&var-lineFormat=&var-jsonFields=&var-all-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22Reversert%20opph%C3%B8r%20er%20iverksatt.%2A%22%7D,Reversert%20opph%C3%B8r%20er%20iverksatt.%2A&urlColumns=%5B%5D&visualizationType=%22logs%22&displayedFields=%5B%5D&userDisplayedFields=false&sortOrder=%22Descending%22&wrapLogMessage=false&prettifyLogMessage=false'
           labels:
             namespace: tpts
             severity: warning
             send_resolved: "false"
-            datasource: {{datasource}}

@@ -81,6 +81,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.Tiltaksdeltak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt.UtbetalingsoversiktFakeKlient
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.kafka.UtbetalingFakeProducer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFakeClient
 import java.time.Clock
@@ -375,6 +376,7 @@ class LocalApplicationContext(
         ) {
             override val utbetalingsklient = utbetalingFakeKlient
             override val v3Simuleringsklient = utbetalingFakeKlient
+            override val utbetalingProducer = UtbetalingFakeProducer()
             override val utbetalingsoversiktklient = utbetalingsoversiktFakeKlient
         }
     }
