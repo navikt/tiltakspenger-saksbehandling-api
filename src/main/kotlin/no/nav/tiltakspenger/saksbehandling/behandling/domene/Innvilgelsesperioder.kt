@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.periode.trekkFra
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.ReversertOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
@@ -33,6 +34,11 @@ data class Innvilgelsesperioder(
 
     val antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode> by lazy {
         periodisering.map { it.verdi.antallDagerPerMeldeperiode }
+    }
+
+    /** Om noen av periodene er innvilget som [ReversertOpphør], altså uten gyldig tiltaksdeltakelse i saksopplysningene. */
+    val harReversertOpphør: Boolean by lazy {
+        periodisering.verdier.any { it.erReversertOpphør }
     }
 
     init {
@@ -75,9 +81,14 @@ data class Innvilgelsesperioder(
 
     /**
      * @return [Innvilgelsesperioder] med oppdaterte tiltaksdeltakelser, for innvilgelsesperioder som overlapper med perioder fra [tiltaksdeltakelser] eller null dersom ingen overlapper
+     * Perioder som er innvilget som [ReversertOpphør] beholdes uendret, siden de ikke skal ha gyldig tiltaksdeltakelse.
      * */
     fun oppdaterTiltaksdeltakelser(tiltaksdeltakelser: Tiltaksdeltakelser): Innvilgelsesperioder? {
         val nyeInnvilgelsesperioder = periodisering.perioderMedVerdi.mapNotNull {
+            if (it.verdi.erReversertOpphør) {
+                return@mapNotNull it
+            }
+
             val oppdatertTiltaksdeltakelse =
                 tiltaksdeltakelser.getTiltaksdeltakelse(it.verdi.valgtTiltaksdeltakelse.internDeltakelseId)
 
@@ -109,13 +120,16 @@ data class Innvilgelsesperioder(
     /**
      * Oppdaterer tiltaksdeltakelsene i innvilgelsesperiodene som fortsatt passer med [tiltaksdeltakelser], uten å endre periodene.
      * Innvilgelsesperioder som ikke lenger passer, beholder tiltaksdeltakelsen de ble innvilget for, slik at saksbehandler kan rette dem selv.
+     * Perioder som er innvilget som [ReversertOpphør] beholder alltid tiltaksdeltakelsen fra det opprinnelige vedtaket.
      * Se [ugyldigePerioder].
      */
     fun medOppdaterteTiltaksdeltakelser(tiltaksdeltakelser: Tiltaksdeltakelser): Innvilgelsesperioder {
         return Innvilgelsesperioder(
             periodisering.map {
                 val internDeltakelseId = it.verdi.valgtTiltaksdeltakelse.internDeltakelseId
-                if (tiltaksdeltakelser.validerInnvilgelsesperiode(it.periode, internDeltakelseId) == null) {
+                if (it.verdi.erReversertOpphør) {
+                    it.verdi
+                } else if (tiltaksdeltakelser.validerInnvilgelsesperiode(it.periode, internDeltakelseId) == null) {
                     it.verdi.copy(valgtTiltaksdeltakelse = tiltaksdeltakelser.getTiltaksdeltakelse(internDeltakelseId)!!)
                 } else {
                     it.verdi
@@ -124,16 +138,23 @@ data class Innvilgelsesperioder(
         )
     }
 
-    /** @return innvilgelsesperiodene som ikke passer med [tiltaksdeltakelser], eller null dersom alle er gyldige */
+    /**
+     * Perioder som er innvilget som [ReversertOpphør] valideres ikke mot [tiltaksdeltakelser], siden de innvilges uten gyldig tiltaksdeltakelse.
+     * @return innvilgelsesperiodene som ikke passer med [tiltaksdeltakelser], eller null dersom alle er gyldige
+     */
     fun ugyldigePerioder(tiltaksdeltakelser: Tiltaksdeltakelser): NonEmptyList<UgyldigInnvilgelsesperiode>? {
-        return periodisering.perioderMedVerdi.mapNotNull {
+        return periodisering.perioderMedVerdi.filterNot { it.verdi.erReversertOpphør }.mapNotNull {
             tiltaksdeltakelser.validerInnvilgelsesperiode(it.periode, it.verdi.valgtTiltaksdeltakelse.internDeltakelseId)
         }.toNonEmptyListOrNull()
     }
 
-    /** Sjekker om alle innvilgelsesperiodene er innenfor tiltaksdeltakelsesperiodene */
+    /** Sjekker om alle innvilgelsesperiodene, bortsett fra de som er innvilget som [ReversertOpphør], er innenfor tiltaksdeltakelsesperiodene */
     fun erInnenforTiltaksperiodene(saksopplysninger: Saksopplysninger): Boolean {
-        return this.perioder.trekkFra(saksopplysninger.tiltaksdeltakelser.perioder).isEmpty()
+        return periodisering.perioderMedVerdi
+            .filterNot { it.verdi.erReversertOpphør }
+            .map { it.periode }
+            .trekkFra(saksopplysninger.tiltaksdeltakelser.perioder)
+            .isEmpty()
     }
 
     fun hentVerdiForDag(dato: LocalDate): InnvilgelsesperiodeVerdi? {
@@ -141,10 +162,18 @@ data class Innvilgelsesperioder(
     }
 }
 
+/**
+ * @param valgtTiltaksdeltakelse Tiltaksdeltakelsen det innvilges for, slik den var registrert da perioden ble innvilget.
+ * @param reversertOpphør Er satt dersom perioden er innvilget som [ReversertOpphør], altså på nytt etter å ha vært opphørt eller stanset, uten gyldig tiltaksdeltakelse i saksopplysningene.
+ * Da er [valgtTiltaksdeltakelse] tiltaksdeltakelsen fra det opprinnelige vedtaket.
+ */
 data class InnvilgelsesperiodeVerdi(
     val valgtTiltaksdeltakelse: TiltaksdeltakelseIntern,
     val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
+    val reversertOpphør: ReversertOpphør?,
 ) {
+    val erReversertOpphør: Boolean get() = reversertOpphør != null
+
     init {
         require(valgtTiltaksdeltakelse.periode is Periode) {
             "Kan ikke innvilge for tiltaksdeltakelse med id ${valgtTiltaksdeltakelse.internDeltakelseId} som mangler start- eller sluttdato"

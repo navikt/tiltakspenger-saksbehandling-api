@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskOmgjøring.finnOmgjøringsperiodeVedAvkortetSluttdato
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.ReversertOpphør
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
@@ -113,6 +114,9 @@ private data class VedtakForDeltakelse(
  * Gjeldende vedtak hentes fra vedtakstidslinjen, som ikke inkluderer avslag.
  * Periodene deles opp slik at hver periode enten er innvilget for deltakelsen i det gjeldende vedtaket, eller ikke.
  * Gir en tom periodisering dersom deltakelsen aldri har vært innvilget.
+ *
+ * Perioder som er innvilget som [ReversertOpphør] regnes som ikke innvilget, siden de ikke er innvilget med gyldig tiltaksdeltakelse.
+ * En endring i deltakelsen gir derfor aldri en automatisk revurdering av et reversert opphør.
  */
 private fun Sak.gjeldendeVedtakForDeltakelse(tiltaksdeltakerId: TiltaksdeltakerId): Periodisering<VedtakForDeltakelse> {
     // Vedtakslisten er sortert på opprettet, så den sist innvilgede tilstanden vinner der periodene overlapper.
@@ -120,7 +124,7 @@ private fun Sak.gjeldendeVedtakForDeltakelse(tiltaksdeltakerId: TiltaksdeltakerI
         rammevedtaksliste
             .filter { it.rammebehandlingsresultat is Rammebehandlingsresultat.Innvilgelse }
             .flatMap { vedtak ->
-                vedtak.valgteTiltaksdeltakelser!!.perioderMedVerdi.filter {
+                vedtak.innvilgetMedGyldigTiltaksdeltakelse().perioderMedVerdi.filter {
                     it.verdi.internDeltakelseId == tiltaksdeltakerId
                 }
             }
@@ -130,11 +134,10 @@ private fun Sak.gjeldendeVedtakForDeltakelse(tiltaksdeltakerId: TiltaksdeltakerI
 
     return sistInnvilgetDeltakelse.flatMap { (deltakelse, periode) ->
         rammevedtaksliste.tidslinje.krymp(periode).perioderMedVerdi.flatMap { (gjeldendeVedtak, vedtaksperiode) ->
-            val innvilgetForDeltakelse = gjeldendeVedtak.valgteTiltaksdeltakelser
-                ?.krymp(vedtaksperiode)
-                ?.filter { it.verdi.internDeltakelseId == tiltaksdeltakerId }
-                ?.perioder
-                .orEmpty()
+            val innvilgetForDeltakelse = gjeldendeVedtak.innvilgetMedGyldigTiltaksdeltakelse()
+                .krymp(vedtaksperiode)
+                .filter { it.verdi.internDeltakelseId == tiltaksdeltakerId }
+                .perioder
             val ikkeInnvilgetForDeltakelse = vedtaksperiode.trekkFra(innvilgetForDeltakelse)
 
             fun vedtakForDeltakelse(erInnvilget: Boolean) = VedtakForDeltakelse(
@@ -151,6 +154,14 @@ private fun Sak.gjeldendeVedtakForDeltakelse(tiltaksdeltakerId: TiltaksdeltakerI
         }
     }
 }
+
+/** Tiltaksdeltakelsene vedtaket innvilger, uten periodene som er innvilget som [ReversertOpphør]. */
+private fun Rammevedtak.innvilgetMedGyldigTiltaksdeltakelse(): Periodisering<TiltaksdeltakelseIntern> =
+    innvilgelsesperioder
+        ?.periodisering
+        ?.filterNot { verdi, _ -> verdi.erReversertOpphør }
+        ?.map { verdi, _ -> verdi.valgtTiltaksdeltakelse }
+        ?: Periodisering.empty()
 
 /**
  * Det endringene i deltakelsen sammenlignes med, utledet fra periodene der deltakelsen er innvilget i gjeldende vedtak.

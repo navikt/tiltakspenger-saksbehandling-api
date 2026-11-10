@@ -27,6 +27,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterFo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterOmgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.perioderForReversertOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.tilInnvilgelsesperioderMedReversertOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.validerReversertOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilInnvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ugyldigePerioder
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
@@ -72,6 +75,10 @@ class OppdaterRammebehandlingService(
             kommando.innvilgelsesperioder.ugyldigePerioder(behandling.saksopplysninger.tiltaksdeltakelser)?.let {
                 log.warn { "Innvilgelsen passer ikke med tiltaksdeltakelsene på behandling ${behandling.id} i sak ${behandling.sakId}: ${it.joinToString { feil -> feil.beskrivelse() }}" }
                 return KanIkkeOppdatereBehandling.InnvilgelsenPasserIkkeMedTiltaksdeltakelsene(it).left()
+            }
+            kommando.validerReversertOpphør(sak.rammevedtaksliste.perioderForReversertOpphør())?.let {
+                log.warn { "Kan ikke innvilge reversert opphør på behandling ${behandling.id} i sak ${behandling.sakId}: $it" }
+                return it.left()
             }
         }
 
@@ -137,7 +144,10 @@ class OppdaterRammebehandlingService(
                 this.beregnInnvilgelse(
                     behandlingId = kommando.behandlingId,
                     vedtaksperiode = kommando.vedtaksperiode,
-                    innvilgelsesperioder = kommando.tilInnvilgelseperioder(rammebehandling),
+                    innvilgelsesperioder = kommando.innvilgelsesperioder.tilInnvilgelsesperioderMedReversertOpphør(
+                        behandling = rammebehandling,
+                        perioderForReversertOpphør = rammevedtaksliste.perioderForReversertOpphør(),
+                    ),
                     barnetilleggsperioder = kommando.barnetillegg.periodisering,
                     beregningstidspunkt = beregningstidspunkt,
                 )

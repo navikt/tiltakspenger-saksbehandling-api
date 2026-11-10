@@ -50,3 +50,17 @@ spec:
             severity: warning
             send_resolved: "false"
             datasource: {{datasource}}
+        - alert: Reversert opphør er iverksatt
+          # Telleren opprettes først ved første økning i en pod, og increase overser det første hoppet.
+          # Leddet med unless fanger derfor tidsserier som er nye i vinduet, mens increase fanger senere økninger.
+          expr: sum(increase(tpts_saksbehandlingapi_reversert_opphor_iverksatt_count_total{namespace="tpts", app="tiltakspenger-saksbehandling-api"}[15m])) > 0 or sum(tpts_saksbehandlingapi_reversert_opphor_iverksatt_count_total{namespace="tpts", app="tiltakspenger-saksbehandling-api"} unless tpts_saksbehandlingapi_reversert_opphor_iverksatt_count_total{namespace="tpts", app="tiltakspenger-saksbehandling-api"} offset 15m) > 0
+          annotations:
+            action: "Et vedtak har innvilget perioder på nytt uten gyldig tiltaksdeltakelse i saksopplysningene. Sjekk loggene til saksbehandling-api for hvilket vedtak det gjelder, og følg opp at det er riktig."
+            # Samme format som alarmen for ukjent avvisningskode, se referanse/grafana-loggenker.md i arbeidsboka.
+            # var-fields treffer logglinja i varsleHvisReversertOpphørErIverksatt. Regexen er ankret, så teksten må ende på .* for å matche resten av meldingen.
+            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service_name/tiltakspenger-saksbehandling-api/logs?var-ds=PEA2100DC89AE9FE2&from=now-3h&to=now&var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&var-levels=detected_level%7C%3D%7Cwarn&patterns=%5B%5D&var-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22Reversert%20opph%C3%B8r%20er%20iverksatt.%2A%22%7D,Reversert%20opph%C3%B8r%20er%20iverksatt.%2A&var-metadata=&var-patterns=&var-lineFilterV2=&var-lineFilters=&timezone=browser&var-lineFormat=&var-jsonFields=&var-all-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22Reversert%20opph%C3%B8r%20er%20iverksatt.%2A%22%7D,Reversert%20opph%C3%B8r%20er%20iverksatt.%2A&urlColumns=%5B%5D&visualizationType=%22logs%22&displayedFields=%5B%5D&userDisplayedFields=false&sortOrder=%22Descending%22&wrapLogMessage=false&prettifyLogMessage=false'
+          labels:
+            namespace: tpts
+            severity: warning
+            send_resolved: "false"
+            datasource: {{datasource}}

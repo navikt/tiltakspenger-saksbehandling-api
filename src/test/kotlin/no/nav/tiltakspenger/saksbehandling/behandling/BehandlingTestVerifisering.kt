@@ -124,6 +124,7 @@ fun String.shouldBeRevurderingDTO(
           "fritekstTilVedtaksbrev": ${ikkeSladdetTekst(fritekstTilVedtaksbrev)},
           "resultat": "$resultat",
           "automatiskOpprettetGrunn": ${automatiskOpprettetGrunn?.let { "\"$it\"" }},
+          "perioderForReversertOpphør": [],
           "manueltBehandlesGrunner": [${manueltBehandlesGrunner.joinToString(",") { "\"$it\"" }}],
           "type": "REVURDERING",
           "beslutter": ${beslutter?.let { "\"$it\"" }},
@@ -143,6 +144,7 @@ fun String.shouldBeRevurderingDTO(
             {
                 "internDeltakelseId": "$internDeltakelseId",
                 "ugyldigTiltaksdeltakelse": null,
+                "erReversertOpphør": false,
                 "periode": {
                 "fraOgMed": "$periodeFraOgMed",
                 "tilOgMed": "$periodeTilOgMed"
@@ -373,6 +375,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
             {
                 "internDeltakelseId": "$internDeltakelseId",
                 "ugyldigTiltaksdeltakelse": null,
+                "erReversertOpphør": false,
                 "periode": {
                 "fraOgMed": "$periodeFraOgMed",
                 "tilOgMed": "$periodeTilOgMed"

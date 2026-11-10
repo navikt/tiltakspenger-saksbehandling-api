@@ -324,6 +324,7 @@ class RammebehandlingDTOTest {
                 tidslinjeFørOgEtter = null,
                 tiltakshistorikk = TiltakshistorikkForBehandling(innslag = emptyList(), utløsendeInnslag = null, harEndringEtterSistEndret = false),
                 tiltaksdeltakelserSomKanForlenges = emptyList(),
+                perioderForReversertOpphør = emptyList(),
             ),
         )
 
@@ -387,6 +388,7 @@ class RammebehandlingDTOTest {
                 tidslinjeFørOgEtter = null,
                 tiltakshistorikk = TiltakshistorikkForBehandling(innslag = emptyList(), utløsendeInnslag = null, harEndringEtterSistEndret = false),
                 tiltaksdeltakelserSomKanForlenges = emptyList(),
+                perioderForReversertOpphør = emptyList(),
             ),
         )
 
@@ -498,6 +500,7 @@ class RammebehandlingDTOTest {
                 tidslinjeFørOgEtter = null,
                 tiltakshistorikk = TiltakshistorikkForBehandling(innslag = emptyList(), utløsendeInnslag = null, harEndringEtterSistEndret = false),
                 tiltaksdeltakelserSomKanForlenges = emptyList(),
+                perioderForReversertOpphør = emptyList(),
             ),
         )
 

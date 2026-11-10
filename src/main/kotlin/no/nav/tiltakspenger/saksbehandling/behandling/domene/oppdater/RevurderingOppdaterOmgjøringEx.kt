@@ -9,6 +9,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetalin
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.ReversertOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.perioderForReversertOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.tilInnvilgelsesperioderMedReversertOpphør
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import java.time.Clock
@@ -29,6 +32,7 @@ fun Revurdering.oppdaterOmgjøring(
             kommando = kommando,
             utbetaling = utbetaling,
             finnRammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres,
+            rammevedtaksliste = rammevedtaksliste,
             clock = clock,
         )
 
@@ -52,11 +56,14 @@ fun Revurdering.oppdaterOmgjøring(
  * Vedtaket omgjøringen ble startet fra er kun et utgangspunkt; det er vedtaksperioden som avgjør hvilke vedtak som omgjøres.
  * Delene av vedtaksperioden som ikke innvilges, opphøres, og kan som ved opphør ikke gå over perioder uten tidligere vedtak.
  * Hull i vedtakene kan derimot innvilges.
+ * Perioder som er markert som reversert opphør, innvilges med tiltaksdeltakelsen fra den opprinnelige innvilgelsen, se [ReversertOpphør].
+ * De er validert av [no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.validerReversertOpphør] før oppdateringen.
  */
 private fun Revurdering.oppdaterOmgjøringInnvilgelse(
     kommando: OppdaterOmgjøringKommando.OmgjøringInnvilgelse,
     utbetaling: BehandlingUtbetaling?,
     finnRammevedtakSomOmgjøres: (vedtaksperiode: Periode) -> OmgjørRammevedtak,
+    rammevedtaksliste: Rammevedtaksliste,
     clock: Clock,
 ): Either<KanIkkeOppdatereBehandling, Revurdering> {
     val nyVedtaksperiode = kommando.vedtaksperiode
@@ -79,8 +86,10 @@ private fun Revurdering.oppdaterOmgjøringInnvilgelse(
         ).left()
     }
 
-    val oppdaterteInnvilgelsesperioder = kommando
-        .tilInnvilgelseperioder(this)
+    val perioderForReversertOpphør = rammevedtaksliste.perioderForReversertOpphør()
+
+    val oppdaterteInnvilgelsesperioder = kommando.innvilgelsesperioder
+        .tilInnvilgelsesperioderMedReversertOpphør(this, perioderForReversertOpphør)
         .oppdaterTiltaksdeltakelser(saksopplysninger.tiltaksdeltakelser)
 
     if (oppdaterteInnvilgelsesperioder == null) {

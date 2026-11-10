@@ -21,6 +21,8 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
  * Ved delvis innvilgelse vil den resterende implisitt ikke gi rett.
  * Så lenge behandlingen er under behandling, kan innvilgelsesperiodene gå utenfor tiltaksdeltakelsene, dersom de har endret seg etter at innvilgelsen ble fylt ut.
  * Saksbehandler må da rette innvilgelsen før den kan lagres eller sendes til beslutning, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.UgyldigInnvilgelsesperiode].
+ * En omgjøring er den eneste behandlingen som kan innvilge perioder uten gyldig tiltaksdeltakelse, som reversert opphør.
+ * Se [no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.ReversertOpphør].
  *
  * @param vedtaksperiode Tilsvarer den nye vedtaksperioden.
  * @param innvilgelsesperioder Perioder som kun inneholder dager med rett.

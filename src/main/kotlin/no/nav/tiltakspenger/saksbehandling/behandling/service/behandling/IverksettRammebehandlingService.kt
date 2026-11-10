@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
+import no.nav.tiltakspenger.saksbehandling.infra.metrikker.varsleHvisReversertOpphørErIverksatt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.meldeperioderErGyldigeForHelg
@@ -290,6 +291,9 @@ class IverksettRammebehandlingService(
             onSuccess = {
                 if (rammevedtak.rammebehandling.utbetaling?.harFeilutbetaling() == true) {
                     logger.warn { "Rammebehandling med feilutbetaling har blitt iverksatt - vedtakId: ${rammevedtak.id}, ${rammevedtak.rammebehandling.loggkontekst(correlationId)}" }
+                }
+                varsleHvisReversertOpphørErIverksatt(logger, rammevedtak) {
+                    "vedtakId: ${rammevedtak.id}, ${rammevedtak.rammebehandling.loggkontekst(correlationId)}"
                 }
             },
         )

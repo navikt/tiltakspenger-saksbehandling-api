@@ -81,6 +81,10 @@ sealed interface Søknadsbehandlingsresultat : Rammebehandlingsresultat {
         override val valgteTiltaksdeltakelser = innvilgelsesperioder.valgteTiltaksdeltagelser
         override val antallDagerPerMeldeperiode = innvilgelsesperioder.antallDagerPerMeldeperiode
 
+        init {
+            require(!innvilgelsesperioder.harReversertOpphør) { "Reversert opphør kan bare innvilges ved omgjøring" }
+        }
+
         /**
          * Innvilgelsen nullstilles ikke dersom tiltaksdeltakelsene er endret.
          * Se [Innvilgelsesperioder.medOppdaterteTiltaksdeltakelser].
