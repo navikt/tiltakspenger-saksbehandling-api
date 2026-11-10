@@ -123,6 +123,15 @@ spec:
           permissions:
             roles:
               - "hent_eller_opprett_sak"
+      {{#if tokengeneratorer}}
+        - application: azure-token-generator
+          namespace: nais
+          permissions:
+            roles:
+              - "hent_eller_opprett_sak"
+              - "lagre_soknad"
+              - "lagre_meldekort"
+      {{/if}}
   env:
   {{#each azure.groups}}
     - name: {{this.name}}

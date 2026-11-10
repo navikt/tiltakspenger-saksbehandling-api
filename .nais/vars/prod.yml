@@ -29,3 +29,5 @@ azure:
       id: 651186df-f798-4537-84ab-3da8bd0a7a4a
 replicas: 2
 kafka-pool: "nav-prod"
+# Token-generatorene i nais finnes bare i dev; regelen skal aldri slås på i prod.
+tokengeneratorer: false

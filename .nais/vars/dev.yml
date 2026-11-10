@@ -29,3 +29,5 @@ azure:
       id: bdfbab87-3016-4341-97ca-8053ff1e3962
 replicas: 1
 kafka-pool: "nav-dev"
+# Slipper inn token-generatorene i nais, så vi kan teste mot API-ene i dev. Skal aldri inn i prod.yml.
+tokengeneratorer: true
