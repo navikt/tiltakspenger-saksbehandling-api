@@ -7,6 +7,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
+import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
@@ -102,6 +103,21 @@ class BarnetilleggV2Test {
     }
 
     @Test
+    fun `krymping klipper valgte perioder og fjerner barn uten barnetillegg, slik at resultatet fortsatt er gyldig`() {
+        val helePerioden = barn(fornavn = "Hele")
+        val valgtPeriode = barn(fornavn = "Valgt", periode = 1.januar(2026) til 15.mars(2026))
+        val bareIMars = barn(fornavn = "Mars", periode = 1 til 31.mars(2026))
+        val fødtIMars = barn(fornavn = "Født", fødselsdato = 10.mars(2026))
+        val barnetillegg = create(helePerioden, valgtPeriode, bareIMars, fødtIMars).getOrFail()
+
+        val krympet = barnetillegg.krympTilPerioder(listOf(1.januar(2026) til 28.februar(2026)))!!
+
+        krympet.barn shouldBe listOf(helePerioden, valgtPeriode.copy(periode = 1.januar(2026) til 28.februar(2026)))
+        krympet.antallPerPeriode() shouldBe listOf((1.januar(2026) til 28.februar(2026)) to 2)
+        BarnetilleggV2.create(krympet.barn, krympet.innvilgelsesperioder, null).getOrFail() shouldBe krympet
+    }
+
+    @Test
     fun `barn lagt til av saksbehandler må ha fornavn og etternavn`() {
         create(barn(etternavn = " ")).leftOrNull().shouldBeInstanceOf<UgyldigBarnetillegg.ManglerNavn>()
         create(barn(fornavn = null, kilde = BarnMedBarnetillegg.Kilde.Søknad(SøknadId.random()))).getOrFail()
@@ -114,7 +130,32 @@ class BarnetilleggV2Test {
             .leftOrNull().shouldBeInstanceOf<UgyldigBarnetillegg.SammeBarnFlereGanger>()
         create(barn(fornavn = "Ola"), barn(fornavn = " ola "))
             .leftOrNull().shouldBeInstanceOf<UgyldigBarnetillegg.SammeBarnFlereGanger>()
+        create(barn(fnr = fnr), barn(fnr = Fnr.random()))
+            .leftOrNull().shouldBeInstanceOf<UgyldigBarnetillegg.SammeBarnFlereGanger>()
         create(barn(fornavn = "Ola"), barn(fornavn = "Kari")).getOrFail()
+    }
+
+    @Test
+    fun `barn er samme barn når fnr er likt, eller når fødselsdato og navn er like`() {
+        val fnr = ObjectMother.gyldigFnr()
+        val ola = barn(fnr = fnr, fornavn = "Ola")
+
+        ola.erSammeBarn(barn(fnr = fnr, fornavn = "Kari", fødselsdato = 2.januar(2020))) shouldBe true
+        ola.erSammeBarn(barn(fornavn = " ola ")) shouldBe true
+        ola.erSammeBarn(barn(fnr = Fnr.random(), fornavn = "OLA")) shouldBe true
+        barn(fornavn = "Ola  Petter").erSammeBarn(barn(fornavn = "ola petter")) shouldBe true
+
+        ola.erSammeBarn(barn(fnr = Fnr.random(), fornavn = "Kari")) shouldBe false
+        ola.erSammeBarn(barn(fnr = Fnr.random(), fornavn = "Ola", fødselsdato = 2.januar(2020))) shouldBe false
+        ola.erSammeBarn(barn(fornavn = "Ola", fødselsdato = 2.januar(2020))) shouldBe false
+    }
+
+    @Test
+    fun `barn uten navn og med ulikt fnr er ikke samme barn`() {
+        val utenNavn = barn(fnr = Fnr.random(), fornavn = null, etternavn = null, kilde = BarnMedBarnetillegg.Kilde.Søknad(SøknadId.random()))
+
+        utenNavn.erSammeBarn(utenNavn.copy(fnr = Fnr.random())) shouldBe false
+        utenNavn.erSammeBarn(utenNavn.copy(fnr = null)) shouldBe true
     }
 
     @Test
@@ -131,6 +172,23 @@ class BarnetilleggV2Test {
             .leftOrNull().shouldBeInstanceOf<UgyldigBarnetillegg.IngenDagerMedBarnetillegg>()
         create(barn(fødselsdato = 1.januar(2010)))
             .leftOrNull().shouldBeInstanceOf<UgyldigBarnetillegg.IngenDagerMedBarnetillegg>()
+    }
+
+    @Test
+    fun `valgt periode mellom innvilgelsesperiodene gir ikke barnetillegg`() {
+        val januar = 1 til 31.januar(2026)
+        val mars = 1 til 31.mars(2026)
+
+        create(barn(periode = 1 til 28.februar(2026)), innvilgelsesperioder = listOf(januar, mars))
+            .leftOrNull().shouldBeInstanceOf<UgyldigBarnetillegg.IngenDagerMedBarnetillegg>()
+
+        create(barn(periode = 15.januar(2026) til 15.mars(2026)), innvilgelsesperioder = listOf(januar, mars))
+            .getOrFail().antallPerPeriode() shouldBe listOf(
+            (1 til 14.januar(2026)) to 0,
+            (15 til 31.januar(2026)) to 1,
+            (1 til 15.mars(2026)) to 1,
+            (16 til 31.mars(2026)) to 0,
+        )
     }
 
     @Test

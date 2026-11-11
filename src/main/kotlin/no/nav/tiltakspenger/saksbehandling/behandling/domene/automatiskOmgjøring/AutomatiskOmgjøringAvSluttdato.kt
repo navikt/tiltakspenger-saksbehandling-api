@@ -186,6 +186,7 @@ private fun Rammevedtaksliste.gjeldendeBarnetillegg(vedtaksperiode: Periode): Ba
  * Slår sammen barnetillegget i periodene til ett [BarnetilleggV2], slik at det fortsatt er kjent hvilke barn det gjelder.
  * Gjelder ett barnetillegg i alle periodene, brukes det som det er.
  * Ellers får hvert barn en valgt periode som dekker dagene barnet har barnetillegg i periodene.
+ * Har barnet barnetillegg alle de innvilgede dagene det har rett, får det i stedet barnetillegg for hele perioden.
  *
  * Gir null dersom et av barnetilleggene ikke er V2, eller om resultatet ville gitt et annet antall barn enn [antallBarn].
  * Det siste kan skje når et barn har barnetillegg i flere perioder med opphold mellom.
@@ -197,10 +198,11 @@ private fun slåSammenBarnetilleggV2(
 ): BarnetilleggV2? {
     val barnetilleggV2 = barnetilleggIPerioder.map { (barnetillegg, periode) -> (barnetillegg as? BarnetilleggV2 ?: return null) to periode }
     val innvilgelsesperioder = antallBarn.perioder.leggSammen().toNonEmptyListOrNull()!!
+    val utenBarn = BarnetilleggV2(barn = emptyList(), innvilgelsesperioder = innvilgelsesperioder, begrunnelse = begrunnelse)
 
     val sammenslått = barnetilleggV2.map { it.first }.distinct().singleOrNull()
         ?.copy(begrunnelse = begrunnelse)
-        ?: BarnetilleggV2(
+        ?: utenBarn.copy(
             barn = barnetilleggV2
                 .flatMap { (barnetillegg, periode) ->
                     barnetillegg.barn.map { barn -> barn to barnetillegg.perioderMedBarnetillegg(barn).mapNotNull { it.overlappendePeriode(periode) } }
@@ -215,10 +217,13 @@ private fun slåSammenBarnetilleggV2(
                 }
                 .mapNotNull { (barn, perioder) ->
                     val sortert = perioder.sortedBy { it.fraOgMed }.ifEmpty { return@mapNotNull null }
-                    barn.copy(periode = sortert.first().fraOgMed til sortert.maxOf { it.tilOgMed })
+                    val helePerioden = barn.copy(periode = null)
+                    if (utenBarn.perioderMedBarnetillegg(helePerioden) == sortert.leggSammen()) {
+                        helePerioden
+                    } else {
+                        barn.copy(periode = sortert.first().fraOgMed til sortert.maxOf { it.tilOgMed })
+                    }
                 },
-            innvilgelsesperioder = innvilgelsesperioder,
-            begrunnelse = begrunnelse,
         )
 
     return sammenslått.takeIf {

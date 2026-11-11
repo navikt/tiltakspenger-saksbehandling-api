@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -16,6 +17,12 @@ import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.lagreBarnetilleggSomV1
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.tilBarnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
@@ -24,9 +31,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.DevSimuleringsscenario
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnMedBarnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetilleggForBarnISøknaden
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetilleggMedIdent
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
@@ -436,6 +448,128 @@ class DelautomatiskOmgjøringServiceTest {
 
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
                 .resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>()
+        }
+    }
+
+    /**
+     * Søknadsbehandlingen innvilger januar–mars og revurderingen april–juni, begge med barnetillegg for barnet i søknaden.
+     * Barnet beholdes med barnetillegg for hele den avkortede innvilgelsen, slik at barnetillegget er gyldig og kan lagres uendret av saksbehandler.
+     * Begrunnelsen hentes fra det siste vedtaket.
+     */
+    @Test
+    fun `barnetillegg for samme barn i to vedtak - barnet beholdes for hele den avkortede innvilgelsen`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 30.juni(2025))
+            val (sak, søknad, søknadsvedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(5.januar(2025) til 31.mars(2025), deltakelse),
+                barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015))),
+                barnetilleggForSøknad = barnetilleggForBarnISøknaden(nonEmptyListOf(5.januar(2025) til 31.mars(2025))),
+            )
+            val barnet = søknad.barnetillegg.single().tilBarnMedBarnetillegg(søknad.id)
+            iverksettRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 30.juni(2025), deltakelse),
+                barnetilleggRevurdering = barnetilleggV2(
+                    begrunnelse = Begrunnelse.create("Barnetillegg fra revurderingen"),
+                    innvilgelsesperioder = nonEmptyListOf(1.april(2025) til 30.juni(2025)),
+                    barn = listOf(barnet),
+                ),
+            )
+            val revurdering = tac.opprettAutomatiskOmgjøring(sak, søknadsvedtak, deltakelse, deltakelse.medPeriode(tilOgMed = 15.mars(2025)))
+
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+
+            val omgjøring = tac.hentRevurdering(sak, revurdering)
+            omgjøring.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+            omgjøring.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().also {
+                it.barn shouldBe listOf(barnet)
+                it.innvilgelsesperioder shouldBe nonEmptyListOf(5.januar(2025) til 15.mars(2025))
+                it.begrunnelse.shouldNotBeNull().verdi shouldBe "Barnetillegg fra revurderingen"
+                BarnetilleggV2.create(it.barn, it.innvilgelsesperioder, it.begrunnelse).getOrFail() shouldBe it
+            }
+
+            taRammebehandlinger(tac, listOf(sak.id to revurdering.id), saksbehandler = ObjectMother.beslutter()).shouldNotBeNull()
+            iverksettForBehandlingId(tac, sak.id, revurdering.id).shouldNotBeNull()
+
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammevedtaksliste.also {
+                it.barnetilleggsperioder.perioderMedVerdi.toList() shouldBe listOf(PeriodeMedVerdi(AntallBarn(1), 5.januar(2025) til 15.mars(2025)))
+                it.last().barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().barn shouldBe listOf(barnet)
+            }
+        }
+    }
+
+    /**
+     * Saksbehandler har valgt barnetillegg for Kari fra 1. mai og for Per fra 1. juni, og ny sluttdato er 15. mai.
+     * Karis periode avkortes til ny sluttdato, og Per, som ikke har barnetillegg før ny sluttdato, fjernes.
+     */
+    @Test
+    fun `barn med valgt periode etter ny sluttdato - perioden avkortes, og barn uten barnetillegg før ny sluttdato fjernes`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 30.juni(2025))
+            val kari = barnMedBarnetillegg(fornavn = "Kari", fødselsdato = 1.januar(2018), periode = 1.mai(2025) til 30.juni(2025))
+            val per = barnMedBarnetillegg(fornavn = "Per", fødselsdato = 1.januar(2019), periode = 1.juni(2025) til 30.juni(2025))
+            val (sak, søknad, vedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
+                barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015))),
+                barnetilleggForSøknad = barnetilleggForBarnISøknaden(nonEmptyListOf(deltakelse.lukketPeriode!!), andreBarn = listOf(kari, per)),
+            )
+            val revurdering = tac.opprettAutomatiskOmgjøring(sak, vedtak, deltakelse, deltakelse.medPeriode(tilOgMed = 15.mai(2025)))
+
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+
+            tac.hentRevurdering(sak, revurdering).barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().also {
+                it.barn shouldBe listOf(
+                    søknad.barnetillegg.single().tilBarnMedBarnetillegg(søknad.id),
+                    kari.copy(periode = 1.mai(2025) til 15.mai(2025)),
+                )
+                it.periodisering.perioderMedVerdi.toList() shouldBe listOf(
+                    PeriodeMedVerdi(AntallBarn(1), 5.januar(2025) til 30.april(2025)),
+                    PeriodeMedVerdi(AntallBarn(2), 1.mai(2025) til 15.mai(2025)),
+                )
+                BarnetilleggV2.create(it.barn, it.innvilgelsesperioder, it.begrunnelse).getOrFail() shouldBe it
+            }
+        }
+    }
+
+    /**
+     * Søknadsbehandlingen er fra før barna ble lagret, og har bare antall barn, mens revurderingen har barnet.
+     * Det er da ikke kjent hvilke barn hele perioden gjelder, så omgjøringen får antall barn.
+     */
+    @Test
+    fun `eldre vedtak med antall barn og nyere vedtak med barn - omgjøringen får antall barn`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 30.juni(2025))
+            val (sak, søknad, søknadsvedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(5.januar(2025) til 31.mars(2025), deltakelse),
+                barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015))),
+                barnetilleggForSøknad = barnetilleggForBarnISøknaden(nonEmptyListOf(5.januar(2025) til 31.mars(2025))),
+            )
+            tac.lagreBarnetilleggSomV1(søknadsvedtak.rammebehandling.id)
+            iverksettRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 30.juni(2025), deltakelse),
+                barnetilleggRevurdering = barnetilleggV2(
+                    innvilgelsesperioder = nonEmptyListOf(1.april(2025) til 30.juni(2025)),
+                    barn = listOf(søknad.barnetillegg.single().tilBarnMedBarnetillegg(søknad.id)),
+                ),
+            )
+            val revurdering = tac.opprettAutomatiskOmgjøring(sak, søknadsvedtak, deltakelse, deltakelse.medPeriode(tilOgMed = 15.mars(2025)))
+
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+
+            tac.hentRevurdering(sak, revurdering).also {
+                it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+                it.barnetillegg.shouldBeInstanceOf<BarnetilleggV1>().periodisering.perioderMedVerdi.toList() shouldBe
+                    listOf(PeriodeMedVerdi(AntallBarn(1), 5.januar(2025) til 15.mars(2025)))
+            }
         }
     }
 }

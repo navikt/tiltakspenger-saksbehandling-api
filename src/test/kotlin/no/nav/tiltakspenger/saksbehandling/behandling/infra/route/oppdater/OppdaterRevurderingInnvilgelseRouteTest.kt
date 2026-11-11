@@ -5,7 +5,10 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
@@ -23,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
+import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 class OppdaterRevurderingInnvilgelseRouteTest {
@@ -110,6 +114,38 @@ class OppdaterRevurderingInnvilgelseRouteTest {
             oppdatertBehandling.antallDagerPerMeldeperiode shouldBe antallDager
             oppdatertBehandling.skalSendeVedtaksbrev shouldBe false
             oppdatertBehandling.prioritering shouldBe Prioritering.create("Haster")
+        }
+    }
+
+    @Test
+    fun `barn fra en søknad i saken kan velges, men ikke barn fra en søknad som ikke finnes i saken`() {
+        withTestApplicationContext { tac ->
+            val (sak, søknad, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(tac)
+            val innvilgelsesperiode = revurdering.saksopplysninger.tiltaksdeltakelser.first().lukketPeriode!!
+
+            fun barnetilleggFraSøknad(søknadId: SøknadId) = barnetilleggV2(
+                innvilgelsesperioder = nonEmptyListOf(innvilgelsesperiode),
+                barn = listOf(barnMedBarnetillegg(kilde = BarnMedBarnetillegg.Kilde.Søknad(søknadId))),
+            )
+
+            val (_, _, feilJson) = oppdaterRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
+                barnetillegg = barnetilleggFraSøknad(SøknadId.random()),
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+            )
+            JSONObject(feilJson).getString("kode") shouldBe "ugyldig_barnetillegg"
+
+            oppdaterRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
+                barnetillegg = barnetilleggFraSøknad(søknad.id),
+            )
+            tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id).barnetillegg shouldBe barnetilleggFraSøknad(søknad.id)
         }
     }
 

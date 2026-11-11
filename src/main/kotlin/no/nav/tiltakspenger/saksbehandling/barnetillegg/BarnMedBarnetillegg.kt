@@ -29,14 +29,18 @@ data class BarnMedBarnetillegg(
     val erHelePerioden: Boolean = periode == null
 
     /**
-     * Barna har ingen egen id, så de identifiseres med fnr når begge har det, og ellers med navn og fødselsdato.
+     * Barna har ingen egen id, så de er samme barn når fnr er likt, eller når fødselsdato og navn er like.
+     * Det siste gjelder også når barna har ulikt fnr, f.eks. når saksbehandler har lagt til barnet med et nytt fnr.
+     * Barn med ulikt fnr må da ha fornavn og etternavn, siden f.eks. tvillinger uten navn ellers ville blitt regnet som samme barn.
      */
     fun erSammeBarn(other: BarnMedBarnetillegg): Boolean {
-        if (fnr != null && other.fnr != null) return fnr == other.fnr
-        return fødselsdato == other.fødselsdato &&
+        if (fnr != null && fnr == other.fnr) return true
+        val harSammeNavnOgFødselsdato = fødselsdato == other.fødselsdato &&
             fornavn.normaliser() == other.fornavn.normaliser() &&
             mellomnavn.normaliser() == other.mellomnavn.normaliser() &&
             etternavn.normaliser() == other.etternavn.normaliser()
+        if (!harSammeNavnOgFødselsdato) return false
+        return fnr == null || other.fnr == null || (fornavn.normaliser() != null && etternavn.normaliser() != null)
     }
 
     sealed interface Kilde {
@@ -46,7 +50,7 @@ data class BarnMedBarnetillegg(
     }
 }
 
-private fun String?.normaliser(): String? = this?.trim()?.lowercase()?.ifBlank { null }
+private fun String?.normaliser(): String? = this?.trim()?.lowercase()?.replace(Regex("\\s+"), " ")?.ifBlank { null }
 
 /** Barnet fra søknaden [søknadId], med barnetillegg for hele innvilgelsesperioden. */
 fun BarnetilleggFraSøknad.tilBarnMedBarnetillegg(søknadId: SøknadId): BarnMedBarnetillegg = BarnMedBarnetillegg(

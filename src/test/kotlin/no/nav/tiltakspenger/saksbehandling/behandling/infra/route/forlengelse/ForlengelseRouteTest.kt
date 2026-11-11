@@ -18,8 +18,10 @@ import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.lagreBarnetilleggSomV1
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.BarnSomFyller16
@@ -233,6 +235,29 @@ class ForlengelseRouteTest {
 
             barnSomFyller16IForhåndsvisning(tac, sak.id, forlengelse, barnetillegg = valgtBarnetillegg) shouldBe null
             barnSomFyller16IJournalførtBrev(tac, sak.id, forlengelse) shouldBe null
+        }
+    }
+
+    @Test
+    fun `barna i vedtaket videreføres med samme identitet og kilde til forlengelsesvedtaket`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, vedtak) = iverksettVedtakSomKanForlenges(
+                tac = tac,
+                barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015))),
+                barnetilleggForSøknad = barnetilleggForBarnISøknaden(nonEmptyListOf(vedtaksperiode)),
+            )
+            val barnIVedtaket = vedtak.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().barn
+            barnIVedtaket.single().also {
+                it.kilde.shouldBeInstanceOf<BarnMedBarnetillegg.Kilde.Søknad>()
+                it.periode.shouldBeNull()
+            }
+
+            val forlengelse = startOgOppdaterForlengelse(tac, sak, vedtak)
+
+            forlengelse.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().barn shouldBe barnIVedtaket
+            sendTilBeslutningOgTa(tac, sak.id, forlengelse)
+            val (_, forlengelsesvedtak) = iverksettForBehandlingId(tac, sak.id, forlengelse.id)!!
+            forlengelsesvedtak.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().barn shouldBe barnIVedtaket
         }
     }
 

@@ -22,7 +22,7 @@ import java.time.LocalDate
  * (hele innvilgelsesperioden når den ikke er valgt) og barnets rett, se [perioderMedBarnetillegg].
  * Slik avkortes barnetillegget automatisk for barn som blir født eller fyller 16 år i innvilgelsesperioden.
  *
- * Valideringen ligger i [create], og ikke i init, siden barnetillegget skal kunne krympes og leses fra databasen selv om et barn da ikke lenger har rett i perioden.
+ * Valideringen ligger i [create], og ikke i init, siden barnetillegget skal kunne leses fra databasen selv om et barn da ikke lenger har rett i perioden.
  *
  * @param barn Tom liste betyr at det ikke er gitt barnetillegg.
  * @param innvilgelsesperioder Sortert og uten overlapp.
@@ -56,14 +56,26 @@ data class BarnetilleggV2(
         return valgtPeriode.overlappendePerioder(innvilgelsesperioder)
     }
 
-    /** Beholder barna, men snevrer inn innvilgelsesperiodene. */
+    /**
+     * Snevrer inn innvilgelsesperiodene, og klipper barnas valgte perioder til dem, slik at resultatet fortsatt er gyldig etter [create].
+     * Barn som da ikke gir barnetillegg noen dag, fjernes.
+     */
     override fun krympTilPerioder(perioder: List<Periode>): BarnetilleggV2? {
         val krympedePerioder = innvilgelsesperioder.toList()
             .flatMap { it.overlappendePerioder(perioder) }
             .sortedBy { it.fraOgMed }
             .toNonEmptyListOrNull()
             ?: return null
-        return copy(innvilgelsesperioder = krympedePerioder)
+        val krympet = copy(innvilgelsesperioder = krympedePerioder)
+        return krympet.copy(
+            barn = barn.mapNotNull { barn ->
+                val klippet = when (barn.periode) {
+                    null -> barn
+                    else -> barn.copy(periode = barn.periode.overlappendePeriode(krympet.totalPeriode) ?: return@mapNotNull null)
+                }
+                klippet.takeIf { krympet.perioderMedBarnetillegg(it).isNotEmpty() }
+            },
+        )
     }
 
     companion object {
