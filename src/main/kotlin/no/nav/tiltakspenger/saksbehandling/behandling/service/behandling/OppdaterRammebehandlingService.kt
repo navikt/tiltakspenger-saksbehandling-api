@@ -92,7 +92,7 @@ class OppdaterRammebehandlingService(
         }
 
         sak.rammevedtaksliste.validerOpphør(kommando).onLeft {
-            log.error { "Ugyldig opphør ved forsøk på oppdatering av behandling - $kommando" }
+            log.error { "Ugyldig opphør ved forsøk på oppdatering av behandling ${behandling.id} i sak ${behandling.sakId}: $it" }
             return it.left()
         }
 

@@ -154,6 +154,11 @@ sealed interface UgyldigBarnetillegg {
         override val melding = "Barnet født ${fødselsdato.format(norskDatoFormatter)} har ugyldig fødselsnummer."
     }
 
+    /** Barn fra søknaden må ha en gyldig søknadId, og barn lagt til av saksbehandler kan ikke ha det. */
+    data class UgyldigKilde(val fødselsdato: LocalDate) : UgyldigBarnetillegg {
+        override val melding = "Barnet født ${fødselsdato.format(norskDatoFormatter)} har ugyldig kilde eller søknad."
+    }
+
     data class UkjentSøknad(val barn: BarnMedBarnetillegg) : UgyldigBarnetillegg {
         override val melding = "Barnet født ${barn.fødselsdato.format(norskDatoFormatter)} er fra en søknad som ikke finnes i saken."
     }

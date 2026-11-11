@@ -166,6 +166,39 @@ class OppdaterSøknadsbehandlingRouteTest {
     }
 
     @Test
+    fun `barn med søknad som ikke passer med kilden avvises`() {
+        withTestApplicationContext { tac ->
+            val (sak, søknad, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+            val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.first()
+            val innvilgelsesperiode = tiltaksdeltakelse.lukketPeriode!!
+
+            listOf(
+                "SØKNAD" to null,
+                "SØKNAD" to "\"ugyldig\"",
+                "SAKSBEHANDLER" to "\"${søknad.id}\"",
+            ).forEach { (kilde, søknadId) ->
+                val (_, _, responseJson) = oppdaterSøknadsbehandlingInnvilgelse(
+                    tac = tac,
+                    sakId = sak.id,
+                    behandlingId = behandling.id,
+                    innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode, tiltaksdeltakelse),
+                    barnetilleggJson = """
+                        {
+                          "begrunnelse": null,
+                          "barn": [{"fnr": null, "fornavn": "Ola", "mellomnavn": null, "etternavn": "Nordmann", "fødselsdato": "2020-01-01", "kilde": "$kilde", "søknadId": $søknadId, "perioder": null}]
+                        }
+                    """.trimIndent(),
+                    forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+                )
+
+                JSONObject(responseJson).getString("kode") shouldBe "ugyldig_barnetillegg"
+                JSONObject(responseJson).getString("melding") shouldBe "Barnet født 1. januar 2020 har ugyldig kilde eller søknad."
+            }
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).barnetillegg.shouldBeNull()
+        }
+    }
+
+    @Test
     fun `valgte perioder som tilstøter hverandre lagres sammenslått`() {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)

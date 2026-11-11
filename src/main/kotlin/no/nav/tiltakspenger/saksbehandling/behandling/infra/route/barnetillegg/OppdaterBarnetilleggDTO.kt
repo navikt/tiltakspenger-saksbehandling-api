@@ -80,15 +80,13 @@ data class OppdaterBarnMedBarnetilleggDTO(
         etternavn = etternavn?.trim()?.ifBlank { null },
         fødselsdato = fødselsdato,
         kilde = when (kilde) {
-            BarnKildeDTO.SØKNAD -> BarnMedBarnetillegg.Kilde.Søknad(
-                SøknadId.fromString(requireNotNull(søknadId) { "søknadId er påkrevd for barn fra søknaden" }),
-            )
+            BarnKildeDTO.SØKNAD ->
+                søknadId
+                    ?.let { runCatching { SøknadId.fromString(it) }.getOrNull() }
+                    ?.let { BarnMedBarnetillegg.Kilde.Søknad(it) }
 
-            BarnKildeDTO.SAKSBEHANDLER -> {
-                require(søknadId == null) { "søknadId skal ikke være satt for barn lagt til av saksbehandler" }
-                BarnMedBarnetillegg.Kilde.Saksbehandler
-            }
-        },
+            BarnKildeDTO.SAKSBEHANDLER -> BarnMedBarnetillegg.Kilde.Saksbehandler.takeIf { søknadId == null }
+        } ?: throw UgyldigBarnetilleggException(UgyldigBarnetillegg.UgyldigKilde(fødselsdato)),
         perioder = perioder?.map { it.toDomain() }?.toNonEmptyListOrNull(),
     ).also {
         if (perioder?.isEmpty() == true) throw UgyldigBarnetilleggException(UgyldigBarnetillegg.ManglerPerioder(it))
