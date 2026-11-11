@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg
 
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
+import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -57,7 +58,8 @@ data class OppdaterBarnetilleggDTO(
 
 /**
  * @param søknadId Påkrevd når [kilde] er [BarnKildeDTO.SØKNAD], og skal ellers være null.
- * @param periode Null betyr hele innvilgelsesperioden.
+ * @param perioder Null betyr hele innvilgelsesperioden.
+ * Er periodene valgt, må det være minst én.
  */
 data class OppdaterBarnMedBarnetilleggDTO(
     val fnr: String?,
@@ -67,7 +69,7 @@ data class OppdaterBarnMedBarnetilleggDTO(
     val fødselsdato: LocalDate,
     val kilde: BarnKildeDTO,
     val søknadId: String?,
-    val periode: PeriodeDTO?,
+    val perioder: List<PeriodeDTO>?,
 ) {
     fun tilDomene(): BarnMedBarnetillegg = BarnMedBarnetillegg(
         fnr = fnr?.takeIf { it.isNotBlank() }?.let {
@@ -87,6 +89,8 @@ data class OppdaterBarnMedBarnetilleggDTO(
                 BarnMedBarnetillegg.Kilde.Saksbehandler
             }
         },
-        periode = periode?.toDomain(),
-    )
+        perioder = perioder?.map { it.toDomain() }?.toNonEmptyListOrNull(),
+    ).also {
+        if (perioder?.isEmpty() == true) throw UgyldigBarnetilleggException(UgyldigBarnetillegg.ManglerPerioder(it))
+    }
 }

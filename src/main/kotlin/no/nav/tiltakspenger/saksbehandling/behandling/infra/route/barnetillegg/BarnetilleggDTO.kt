@@ -34,7 +34,7 @@ data class BarnetilleggDTO(
 enum class BarnetilleggVersjonDTO { V1, V2 }
 
 /**
- * @param periode Perioden saksbehandler har valgt for barnet, eller null for hele innvilgelsesperioden.
+ * @param perioder Periodene saksbehandler har valgt for barnet, eller null for hele innvilgelsesperioden.
  * @param perioderMedBarnetillegg Dagene barnet faktisk gir barnetillegg, etter avkorting for fødsel, 16 år og innvilgelsesperiodene.
  */
 data class BarnMedBarnetilleggDTO(
@@ -45,7 +45,7 @@ data class BarnMedBarnetilleggDTO(
     val fødselsdato: SladdbarVerdi<LocalDate>,
     val kilde: BarnKildeDTO,
     val søknadId: String?,
-    val periode: PeriodeDTO?,
+    val perioder: List<PeriodeDTO>?,
     val perioderMedBarnetillegg: List<PeriodeDTO>,
 )
 
@@ -80,7 +80,7 @@ private fun BarnMedBarnetillegg.toDTO(perioderMedBarnetillegg: List<Periode>): B
         BarnMedBarnetillegg.Kilde.Saksbehandler -> BarnKildeDTO.SAKSBEHANDLER
     },
     søknadId = (kilde as? BarnMedBarnetillegg.Kilde.Søknad)?.søknadId?.toString(),
-    periode = periode?.toDTO(),
+    perioder = perioder?.map { it.toDTO() },
     perioderMedBarnetillegg = perioderMedBarnetillegg.map { it.toDTO() },
 )
 

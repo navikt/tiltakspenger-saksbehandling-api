@@ -80,7 +80,7 @@ class OppdaterSøknadsbehandlingRouteTest {
             val barnetillegg = barnetilleggV2(
                 begrunnelse = Begrunnelse.create("barnetillegg begrunnelse"),
                 innvilgelsesperioder = nonEmptyListOf(nyInnvilgelsesperiode),
-                barn = listOf(barnMedBarnetillegg(fornavn = "Ola"), barnMedBarnetillegg(fornavn = "Kari", periode = nyInnvilgelsesperiode.minusTilOgMed(7))),
+                barn = listOf(barnMedBarnetillegg(fornavn = "Ola"), barnMedBarnetillegg(fornavn = "Kari", perioder = listOf(nyInnvilgelsesperiode.minusTilOgMed(7)))),
             )
 
             val antallDager = SammenhengendePeriodisering(
@@ -133,6 +133,33 @@ class OppdaterSøknadsbehandlingRouteTest {
             )
 
             JSONObject(responseJson).getString("kode") shouldBe "ugyldig_barnetillegg"
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).barnetillegg.shouldBeNull()
+        }
+    }
+
+    @Test
+    fun `barn med valgt periode uten perioder avvises`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+            val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.first()
+            val innvilgelsesperiode = tiltaksdeltakelse.lukketPeriode!!
+
+            val (_, _, responseJson) = oppdaterSøknadsbehandlingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode, tiltaksdeltakelse),
+                barnetilleggJson = """
+                    {
+                      "begrunnelse": null,
+                      "barn": [{"fnr": null, "fornavn": "Ola", "mellomnavn": null, "etternavn": "Nordmann", "fødselsdato": "2020-01-01", "kilde": "SAKSBEHANDLER", "søknadId": null, "perioder": []}]
+                    }
+                """.trimIndent(),
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+            )
+
+            JSONObject(responseJson).getString("kode") shouldBe "ugyldig_barnetillegg"
+            JSONObject(responseJson).getString("melding") shouldBe "Det må velges minst én periode for barnet født 1. januar 2020."
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).barnetillegg.shouldBeNull()
         }
     }
@@ -225,7 +252,7 @@ class OppdaterSøknadsbehandlingRouteTest {
             val barnetillegg = barnetilleggV2(
                 begrunnelse = Begrunnelse.create("barnetillegg begrunnelse"),
                 innvilgelsesperioder = nonEmptyListOf(nyInnvilgelsesperiode),
-                barn = listOf(barnMedBarnetillegg(fornavn = "Ola"), barnMedBarnetillegg(fornavn = "Kari", periode = nyInnvilgelsesperiode.minusTilOgMed(7))),
+                barn = listOf(barnMedBarnetillegg(fornavn = "Ola"), barnMedBarnetillegg(fornavn = "Kari", perioder = listOf(nyInnvilgelsesperiode.minusTilOgMed(7)))),
             )
 
             val antallDager = SammenhengendePeriodisering(

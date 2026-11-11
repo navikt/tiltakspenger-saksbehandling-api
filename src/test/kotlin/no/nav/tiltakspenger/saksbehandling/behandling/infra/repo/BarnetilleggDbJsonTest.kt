@@ -92,7 +92,7 @@ class BarnetilleggDbJsonTest {
                     etternavn = "Nordmann",
                     fødselsdato = 1.januar(2020),
                     kilde = BarnMedBarnetillegg.Kilde.Søknad(søknadId),
-                    periode = null,
+                    perioder = null,
                 ),
                 BarnMedBarnetillegg(
                     fnr = null,
@@ -101,7 +101,7 @@ class BarnetilleggDbJsonTest {
                     etternavn = "Nordmann",
                     fødselsdato = 1.januar(2021),
                     kilde = BarnMedBarnetillegg.Kilde.Saksbehandler,
-                    periode = 6 til 10.januar(2025),
+                    perioder = nonEmptyListOf(6 til 10.januar(2025), 13 til 17.januar(2025)),
                 ),
             ),
             innvilgelsesperioder = nonEmptyListOf(periode),
@@ -112,9 +112,19 @@ class BarnetilleggDbJsonTest {
 
         json shouldBe
             """{"innvilgelsesperioder":[{"fraOgMed":"2025-01-06","tilOgMed":"2025-01-19"}],""" +
-            """"barn":[{"fnr":"${fnr.verdi}","fornavn":"Ola","mellomnavn":null,"etternavn":"Nordmann","fødselsdato":"2020-01-01","kilde":"SØKNAD","søknadId":"soknad_01KAAAAAAAAAAAAAAAAAAAAAAA","periode":null},""" +
-            """{"fnr":null,"fornavn":"Kari","mellomnavn":"Mellom","etternavn":"Nordmann","fødselsdato":"2021-01-01","kilde":"SAKSBEHANDLER","søknadId":null,"periode":{"fraOgMed":"2025-01-06","tilOgMed":"2025-01-10"}}],""" +
+            """"barn":[{"fnr":"${fnr.verdi}","fornavn":"Ola","mellomnavn":null,"etternavn":"Nordmann","fødselsdato":"2020-01-01","kilde":"SØKNAD","søknadId":"soknad_01KAAAAAAAAAAAAAAAAAAAAAAA","perioder":null},""" +
+            """{"fnr":null,"fornavn":"Kari","mellomnavn":"Mellom","etternavn":"Nordmann","fødselsdato":"2021-01-01","kilde":"SAKSBEHANDLER","søknadId":null,"perioder":[{"fraOgMed":"2025-01-06","tilOgMed":"2025-01-10"},{"fraOgMed":"2025-01-13","tilOgMed":"2025-01-17"}]}],""" +
             """"begrunnelse":"To barn","versjon":"V2"}"""
         json.toBarnetillegg().shouldBeInstanceOf<BarnetilleggV2>() shouldBe barnetillegg
+    }
+
+    @Test
+    fun `barn lagret med én periode før det kunne velges flere, leses med den perioden`() {
+        val json = """{"innvilgelsesperioder":[{"fraOgMed":"2025-01-06","tilOgMed":"2025-01-19"}],""" +
+            """"barn":[{"fnr":null,"fornavn":"Kari","mellomnavn":null,"etternavn":"Nordmann","fødselsdato":"2021-01-01","kilde":"SAKSBEHANDLER","søknadId":null,"periode":{"fraOgMed":"2025-01-06","tilOgMed":"2025-01-10"}},""" +
+            """{"fnr":null,"fornavn":"Ola","mellomnavn":null,"etternavn":"Nordmann","fødselsdato":"2020-01-01","kilde":"SAKSBEHANDLER","søknadId":null,"periode":null}],""" +
+            """"begrunnelse":null,"versjon":"V2"}"""
+
+        json.toBarnetillegg().shouldBeInstanceOf<BarnetilleggV2>().barn.map { it.perioder } shouldBe listOf(nonEmptyListOf(6 til 10.januar(2025)), null)
     }
 }

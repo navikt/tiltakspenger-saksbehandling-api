@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg
 
+import arrow.core.nonEmptyListOf
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
@@ -34,7 +35,7 @@ fun BarnMedBarnetillegg.tilOppdaterDTO(): OppdaterBarnMedBarnetilleggDTO {
             BarnMedBarnetillegg.Kilde.Saksbehandler -> BarnKildeDTO.SAKSBEHANDLER
         },
         søknadId = (kilde as? BarnMedBarnetillegg.Kilde.Søknad)?.søknadId?.toString(),
-        periode = periode?.toDTO(),
+        perioder = perioder?.map { it.toDTO() },
     )
 }
 
@@ -63,7 +64,7 @@ fun IkkeTomPeriodisering<AntallBarn>.tilSyntetiskeBarn(): List<BarnMedBarnetille
                 etternavn = "Nummer$nivå-$index",
                 fødselsdato = periode.fraOgMed.minusYears(1),
                 kilde = BarnMedBarnetillegg.Kilde.Saksbehandler,
-                periode = periode,
+                perioder = nonEmptyListOf(periode),
             )
         }
     }

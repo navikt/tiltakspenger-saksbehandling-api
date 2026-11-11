@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.barnetillegg
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
+import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.januar
@@ -36,7 +37,7 @@ interface BarnetilleggMother {
         etternavn: String? = "Nordmann",
         fødselsdato: LocalDate = 1.januar(2020),
         kilde: BarnMedBarnetillegg.Kilde = BarnMedBarnetillegg.Kilde.Saksbehandler,
-        periode: Periode? = null,
+        perioder: List<Periode>? = null,
     ): BarnMedBarnetillegg = BarnMedBarnetillegg(
         fnr = fnr,
         fornavn = fornavn,
@@ -44,7 +45,7 @@ interface BarnetilleggMother {
         etternavn = etternavn,
         fødselsdato = fødselsdato,
         kilde = kilde,
-        periode = periode,
+        perioder = perioder?.toNonEmptyListOrNull(),
     )
 
     fun barnetilleggV2(

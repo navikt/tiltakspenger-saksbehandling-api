@@ -18,8 +18,8 @@ import java.time.LocalDate
  * Barnetillegg for barna saksbehandler har valgt.
  * Antall barn per dag ([periodisering]) utledes fra barna, slik at det alltid er sporbart hvilke barn det er gitt barnetillegg for.
  *
- * Et barn gir barnetillegg de dagene i [innvilgelsesperioder] som både er innenfor barnets valgte periode
- * (hele innvilgelsesperioden når den ikke er valgt) og barnets rett, se [perioderMedBarnetillegg].
+ * Et barn gir barnetillegg de dagene i [innvilgelsesperioder] som både er innenfor barnets valgte perioder
+ * (hele innvilgelsesperioden når de ikke er valgt) og barnets rett, se [perioderMedBarnetillegg].
  * Slik avkortes barnetillegget automatisk for barn som blir født eller fyller 16 år i innvilgelsesperioden.
  *
  * Valideringen ligger i [create], og ikke i init, siden barnetillegget skal kunne leses fra databasen selv om et barn da ikke lenger har rett i perioden.
@@ -52,8 +52,10 @@ data class BarnetilleggV2(
 
     /** Dagene i [innvilgelsesperioder] der [barn] gir barnetillegg. */
     fun perioderMedBarnetillegg(barn: BarnMedBarnetillegg): List<Periode> {
-        val valgtPeriode = (barn.periode ?: totalPeriode).overlappendePeriode(barn.periodeMedRett) ?: return emptyList()
-        return valgtPeriode.overlappendePerioder(innvilgelsesperioder)
+        return (barn.perioder ?: listOf(totalPeriode))
+            .mapNotNull { it.overlappendePeriode(barn.periodeMedRett) }
+            .flatMap { it.overlappendePerioder(innvilgelsesperioder) }
+            .sortedBy { it.fraOgMed }
     }
 
     /**
@@ -69,9 +71,15 @@ data class BarnetilleggV2(
         val krympet = copy(innvilgelsesperioder = krympedePerioder)
         return krympet.copy(
             barn = barn.mapNotNull { barn ->
-                val klippet = when (barn.periode) {
+                val klippet = when (barn.perioder) {
                     null -> barn
-                    else -> barn.copy(periode = barn.periode.overlappendePeriode(krympet.totalPeriode) ?: return@mapNotNull null)
+
+                    else -> barn.copy(
+                        perioder = barn.perioder
+                            .mapNotNull { it.overlappendePeriode(krympet.totalPeriode) }
+                            .toNonEmptyListOrNull()
+                            ?: return@mapNotNull null,
+                    )
                 }
                 klippet.takeIf { krympet.perioderMedBarnetillegg(it).isNotEmpty() }
             },
@@ -89,14 +97,17 @@ data class BarnetilleggV2(
          * Lager barnetillegget saksbehandler har valgt, og validerer at:
          * - barn lagt til av saksbehandler har fornavn og etternavn
          * - samme barn ikke er valgt flere ganger
-         * - en valgt periode er innenfor innvilgelsesperioden og barnets rett
+         * - valgte perioder ikke overlapper hverandre, og er innenfor innvilgelsesperioden og barnets rett
          * - hvert barn gir barnetillegg minst én dag
+         *
+         * Barnas valgte perioder sorteres.
          */
         fun create(
             barn: List<BarnMedBarnetillegg>,
             innvilgelsesperioder: NonEmptyList<Periode>,
             begrunnelse: Begrunnelse?,
         ): Either<UgyldigBarnetillegg, BarnetilleggV2> {
+            val barn = barn.map { it.copy(perioder = it.perioder?.sortedBy { periode -> periode.fraOgMed }?.toNonEmptyListOrNull()) }
             val barnetillegg = BarnetilleggV2(
                 barn = barn,
                 innvilgelsesperioder = innvilgelsesperioder.sortedBy { it.fraOgMed }.toNonEmptyListOrNull()!!,
@@ -110,10 +121,14 @@ data class BarnetilleggV2(
                 if (barn.take(index).any { tidligere -> tidligere.erSammeBarn(it) }) {
                     return UgyldigBarnetillegg.SammeBarnFlereGanger(it).left()
                 }
-                if (it.periode != null && !barnetillegg.totalPeriode.inneholderHele(it.periode)) {
+                val perioder = it.perioder.orEmpty()
+                if (perioder.zipWithNext().any { (a, b) -> a.overlapperMed(b) }) {
+                    return UgyldigBarnetillegg.OverlappendePerioder(it).left()
+                }
+                if (perioder.any { periode -> !barnetillegg.totalPeriode.inneholderHele(periode) }) {
                     return UgyldigBarnetillegg.PeriodeUtenforInnvilgelsen(it, barnetillegg.totalPeriode).left()
                 }
-                if (it.periode != null && !it.periodeMedRett.inneholderHele(it.periode)) {
+                if (perioder.any { periode -> !it.periodeMedRett.inneholderHele(periode) }) {
                     return UgyldigBarnetillegg.PeriodeUtenforBarnetsRett(it).left()
                 }
                 if (barnetillegg.perioderMedBarnetillegg(it).isEmpty()) {
@@ -148,13 +163,21 @@ sealed interface UgyldigBarnetillegg {
         override val melding = "Barnet født ${barn.fødselsdato.format(norskDatoFormatter)} er valgt flere ganger."
     }
 
+    data class ManglerPerioder(val barn: BarnMedBarnetillegg) : UgyldigBarnetillegg {
+        override val melding = "Det må velges minst én periode for barnet født ${barn.fødselsdato.format(norskDatoFormatter)}."
+    }
+
+    data class OverlappendePerioder(val barn: BarnMedBarnetillegg) : UgyldigBarnetillegg {
+        override val melding = "Periodene for barnet født ${barn.fødselsdato.format(norskDatoFormatter)} overlapper hverandre."
+    }
+
     data class PeriodeUtenforInnvilgelsen(val barn: BarnMedBarnetillegg, val innvilgelsesperiode: Periode) : UgyldigBarnetillegg {
-        override val melding = "Perioden for barnet født ${barn.fødselsdato.format(norskDatoFormatter)} må være innenfor innvilgelsesperioden " +
+        override val melding = "Periodene for barnet født ${barn.fødselsdato.format(norskDatoFormatter)} må være innenfor innvilgelsesperioden " +
             "${innvilgelsesperiode.fraOgMed.format(norskDatoFormatter)} - ${innvilgelsesperiode.tilOgMed.format(norskDatoFormatter)}."
     }
 
     data class PeriodeUtenforBarnetsRett(val barn: BarnMedBarnetillegg) : UgyldigBarnetillegg {
-        override val melding = "Perioden for barnet født ${barn.fødselsdato.format(norskDatoFormatter)} må være fra fødselsdatoen " +
+        override val melding = "Periodene for barnet født ${barn.fødselsdato.format(norskDatoFormatter)} må være fra fødselsdatoen " +
             "til og med dagen før barnet fyller 16 år (${barn.periodeMedRett.tilOgMed.format(norskDatoFormatter)})."
     }
 

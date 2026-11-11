@@ -602,7 +602,7 @@ class DelautomatiskForlengelseServiceTest {
                 barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015)), barnetilleggUtenIdent(fødselsdato = 1.januar(2018))),
             ).also {
                 it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10, antallBarn = AntallBarn(2))
-                it.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().barn.map { barn -> barn.fødselsdato to barn.periode } shouldBe listOf(
+                it.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().barn.map { barn -> barn.fødselsdato to barn.perioder } shouldBe listOf(
                     1.januar(2015) to null,
                     1.januar(2018) to null,
                 )
@@ -829,7 +829,7 @@ class DelautomatiskForlengelseServiceTest {
             forlengOgBehandleAutomatisk(
                 tac,
                 barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015))),
-                andreBarn = listOf(barnMedBarnetillegg(fornavn = "Kari", fødselsdato = 1.januar(2018), periode = 5.januar(2025) til 30.april(2025))),
+                andreBarn = listOf(barnMedBarnetillegg(fornavn = "Kari", fødselsdato = 1.januar(2018), perioder = listOf(5.januar(2025) til 30.april(2025)))),
             ).also {
                 it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10, antallBarn = AntallBarn(1))
                 it.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().barn.map { barn -> barn.fødselsdato } shouldBe listOf(1.januar(2015))
@@ -851,7 +851,7 @@ class DelautomatiskForlengelseServiceTest {
                 it.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().barn.single().also { barn ->
                     barn.fødselsdato shouldBe 1.januar(2015)
                     barn.kilde.shouldBeInstanceOf<BarnMedBarnetillegg.Kilde.Søknad>()
-                    barn.periode.shouldBeNull()
+                    barn.perioder.shouldBeNull()
                 }
             }
         }
@@ -863,10 +863,10 @@ class DelautomatiskForlengelseServiceTest {
             forlengOgBehandleAutomatisk(
                 tac,
                 barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015))),
-                andreBarn = listOf(barnMedBarnetillegg(fornavn = "Kari", fødselsdato = 1.januar(2018), periode = 1.mars(2025) til 5.mai(2025))),
+                andreBarn = listOf(barnMedBarnetillegg(fornavn = "Kari", fødselsdato = 1.januar(2018), perioder = listOf(1.mars(2025) til 5.mai(2025)))),
             ).also {
                 it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10, antallBarn = AntallBarn(2))
-                it.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().barn.single { barn -> barn.fornavn == "Kari" }.periode.shouldBeNull()
+                it.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().barn.single { barn -> barn.fornavn == "Kari" }.perioder.shouldBeNull()
             }
         }
     }

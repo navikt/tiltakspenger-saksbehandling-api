@@ -59,7 +59,7 @@ fun Sak.utledBarnetilleggForForlengelse(
         val barn = gjeldendeBarnetillegg.barn
             .filter { barn -> gjeldendeBarnetillegg.perioderMedBarnetillegg(barn).any { it.inneholder(sisteInnvilgedeDag) } }
             .filter { it.periodeMedRett.overlapperMed(innvilgelsesperiode) }
-            .map { it.copy(periode = null) }
+            .map { it.copy(perioder = null) }
         val barnetillegg = BarnetilleggV2(
             barn = barn,
             innvilgelsesperioder = nonEmptyListOf(innvilgelsesperiode),

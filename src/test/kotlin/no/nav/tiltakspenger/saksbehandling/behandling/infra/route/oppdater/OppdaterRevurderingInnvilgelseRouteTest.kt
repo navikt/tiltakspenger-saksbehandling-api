@@ -42,7 +42,7 @@ class OppdaterRevurderingInnvilgelseRouteTest {
             val barnetillegg = barnetilleggV2(
                 begrunnelse = Begrunnelse.create("barnetillegg begrunnelse"),
                 innvilgelsesperioder = nonEmptyListOf(nyInnvilgelsesperiode),
-                barn = listOf(barnMedBarnetillegg(fornavn = "Ola"), barnMedBarnetillegg(fornavn = "Kari", periode = nyInnvilgelsesperiode.minusTilOgMed(7))),
+                barn = listOf(barnMedBarnetillegg(fornavn = "Ola"), barnMedBarnetillegg(fornavn = "Kari", perioder = listOf(nyInnvilgelsesperiode.minusTilOgMed(7)))),
             )
 
             val antallDager = SammenhengendePeriodisering(
@@ -84,7 +84,7 @@ class OppdaterRevurderingInnvilgelseRouteTest {
             val barnetillegg = barnetilleggV2(
                 begrunnelse = Begrunnelse.create("barnetillegg begrunnelse"),
                 innvilgelsesperioder = nonEmptyListOf(nyInnvilgelsesperiode),
-                barn = listOf(barnMedBarnetillegg(fornavn = "Ola"), barnMedBarnetillegg(fornavn = "Kari", periode = nyInnvilgelsesperiode.minusTilOgMed(7))),
+                barn = listOf(barnMedBarnetillegg(fornavn = "Ola"), barnMedBarnetillegg(fornavn = "Kari", perioder = listOf(nyInnvilgelsesperiode.minusTilOgMed(7)))),
             )
 
             val antallDager = SammenhengendePeriodisering(

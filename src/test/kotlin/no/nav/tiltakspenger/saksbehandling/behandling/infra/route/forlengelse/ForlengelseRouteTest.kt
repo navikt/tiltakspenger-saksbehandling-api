@@ -249,7 +249,7 @@ class ForlengelseRouteTest {
             val barnIVedtaket = vedtak.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().barn
             barnIVedtaket.single().also {
                 it.kilde.shouldBeInstanceOf<BarnMedBarnetillegg.Kilde.Søknad>()
-                it.periode.shouldBeNull()
+                it.perioder.shouldBeNull()
             }
 
             val forlengelse = startOgOppdaterForlengelse(tac, sak, vedtak)

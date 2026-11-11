@@ -509,8 +509,8 @@ class DelautomatiskOmgjøringServiceTest {
     fun `barn med valgt periode etter ny sluttdato - perioden avkortes, og barn uten barnetillegg før ny sluttdato fjernes`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 30.juni(2025))
-            val kari = barnMedBarnetillegg(fornavn = "Kari", fødselsdato = 1.januar(2018), periode = 1.mai(2025) til 30.juni(2025))
-            val per = barnMedBarnetillegg(fornavn = "Per", fødselsdato = 1.januar(2019), periode = 1.juni(2025) til 30.juni(2025))
+            val kari = barnMedBarnetillegg(fornavn = "Kari", fødselsdato = 1.januar(2018), perioder = listOf(1.mai(2025) til 30.juni(2025)))
+            val per = barnMedBarnetillegg(fornavn = "Per", fødselsdato = 1.januar(2019), perioder = listOf(1.juni(2025) til 30.juni(2025)))
             val (sak, søknad, vedtak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
@@ -525,11 +525,49 @@ class DelautomatiskOmgjøringServiceTest {
             tac.hentRevurdering(sak, revurdering).barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().also {
                 it.barn shouldBe listOf(
                     søknad.barnetillegg.single().tilBarnMedBarnetillegg(søknad.id),
-                    kari.copy(periode = 1.mai(2025) til 15.mai(2025)),
+                    kari.copy(perioder = nonEmptyListOf(1.mai(2025) til 15.mai(2025))),
                 )
                 it.periodisering.perioderMedVerdi.toList() shouldBe listOf(
                     PeriodeMedVerdi(AntallBarn(1), 5.januar(2025) til 30.april(2025)),
                     PeriodeMedVerdi(AntallBarn(2), 1.mai(2025) til 15.mai(2025)),
+                )
+                BarnetilleggV2.create(it.barn, it.innvilgelsesperioder, it.begrunnelse).getOrFail() shouldBe it
+            }
+        }
+    }
+
+    /**
+     * Søknadsbehandlingen innvilger januar–juni med barnetillegg for Kari, og en revurdering innvilger februar–mars uten barnetillegg.
+     * Ny sluttdato er 15. juni, og Kari får periodene fra søknadsbehandlingen før og etter revurderingen, med opphold mellom.
+     * Omgjøringen får da fortsatt barna, og ikke bare antall barn.
+     */
+    @Test
+    fun `barn med opphold mellom vedtakene - barnet får flere perioder`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 30.juni(2025))
+            val kari = barnMedBarnetillegg(fornavn = "Kari", fødselsdato = 1.januar(2018))
+            val (sak, _, søknadsvedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
+                barnetilleggForSøknad = barnetilleggForBarnISøknaden(nonEmptyListOf(deltakelse.lukketPeriode!!), andreBarn = listOf(kari)),
+            )
+            iverksettRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                innvilgelsesperioder = innvilgelsesperioder(1.februar(2025) til 31.mars(2025), deltakelse),
+                barnetilleggRevurdering = barnetilleggV2(innvilgelsesperioder = nonEmptyListOf(1.februar(2025) til 31.mars(2025)), barn = emptyList()),
+            )
+            val revurdering = tac.opprettAutomatiskOmgjøring(sak, søknadsvedtak, deltakelse, deltakelse.medPeriode(tilOgMed = 15.juni(2025)))
+
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+
+            tac.hentRevurdering(sak, revurdering).barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().also {
+                it.barn shouldBe listOf(kari.copy(perioder = nonEmptyListOf(5.januar(2025) til 31.januar(2025), 1.april(2025) til 15.juni(2025))))
+                it.periodisering.perioderMedVerdi.toList() shouldBe listOf(
+                    PeriodeMedVerdi(AntallBarn(1), 5.januar(2025) til 31.januar(2025)),
+                    PeriodeMedVerdi(AntallBarn(0), 1.februar(2025) til 31.mars(2025)),
+                    PeriodeMedVerdi(AntallBarn(1), 1.april(2025) til 15.juni(2025)),
                 )
                 BarnetilleggV2.create(it.barn, it.innvilgelsesperioder, it.begrunnelse).getOrFail() shouldBe it
             }

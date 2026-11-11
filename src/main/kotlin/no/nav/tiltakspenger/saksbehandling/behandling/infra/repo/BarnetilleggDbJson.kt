@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
+import arrow.core.toNonEmptyListOrNull
 import arrow.core.toNonEmptyListOrThrow
+import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.json.deserialize
@@ -50,6 +52,10 @@ private data class BarnetilleggPeriodeMedVerdi(
     val verdi: Int,
 )
 
+/**
+ * @param perioder Null betyr hele innvilgelsesperioden.
+ * @param periode Kun for å lese barn lagret før det kunne velges flere perioder, og skrives ikke.
+ */
 private data class BarnDbJson(
     val fnr: String?,
     val fornavn: String?,
@@ -58,7 +64,9 @@ private data class BarnDbJson(
     val fødselsdato: LocalDate,
     val kilde: KildeDbJson,
     val søknadId: String?,
-    val periode: PeriodeDbJson?,
+    val perioder: List<PeriodeDbJson>?,
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    val periode: PeriodeDbJson? = null,
 ) {
     enum class KildeDbJson { SØKNAD, SAKSBEHANDLER }
 
@@ -72,7 +80,7 @@ private data class BarnDbJson(
             KildeDbJson.SØKNAD -> BarnMedBarnetillegg.Kilde.Søknad(SøknadId.fromString(søknadId!!))
             KildeDbJson.SAKSBEHANDLER -> BarnMedBarnetillegg.Kilde.Saksbehandler
         },
-        periode = periode?.toDomain(),
+        perioder = (perioder ?: listOfNotNull(periode)).map { it.toDomain() }.toNonEmptyListOrNull(),
     )
 }
 
@@ -131,5 +139,5 @@ private fun BarnMedBarnetillegg.toDbJson(): BarnDbJson = BarnDbJson(
         BarnMedBarnetillegg.Kilde.Saksbehandler -> BarnDbJson.KildeDbJson.SAKSBEHANDLER
     },
     søknadId = (kilde as? BarnMedBarnetillegg.Kilde.Søknad)?.let { it.søknadId.toString() },
-    periode = periode?.toDbJson(),
+    perioder = perioder?.map { it.toDbJson() },
 )

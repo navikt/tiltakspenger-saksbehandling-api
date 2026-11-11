@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.barnetillegg
 
+import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -11,7 +12,8 @@ import java.time.LocalDate
  *
  * @param fnr Kan mangle for barn som er lagt til av saksbehandler, eller som er oppgitt uten fnr i søknaden.
  * @param kilde Hvor saksbehandler fant barnet.
- * @param periode Perioden saksbehandler har valgt å gi barnetillegg for barnet, eller null for hele innvilgelsesperioden.
+ * @param perioder Periodene saksbehandler har valgt å gi barnetillegg for barnet, eller null for hele innvilgelsesperioden.
+ * Sortert og uten overlapp, se [BarnetilleggV2.create].
  * Uansett gis det bare barnetillegg mens barnet har rett, se [periodeMedRett].
  */
 data class BarnMedBarnetillegg(
@@ -21,12 +23,12 @@ data class BarnMedBarnetillegg(
     val etternavn: String?,
     val fødselsdato: LocalDate,
     val kilde: Kilde,
-    val periode: Periode?,
+    val perioder: NonEmptyList<Periode>?,
 ) {
     /** Fra og med fødselsdatoen til og med dagen før barnet fyller 16 år. */
     val periodeMedRett: Periode = periodeMedRettPåBarnetillegg(fødselsdato)
 
-    val erHelePerioden: Boolean = periode == null
+    val erHelePerioden: Boolean = perioder == null
 
     /**
      * Barna har ingen egen id, så de er samme barn når fnr er likt, eller når fødselsdato og navn er like.
@@ -60,5 +62,5 @@ fun BarnetilleggFraSøknad.tilBarnMedBarnetillegg(søknadId: SøknadId): BarnMed
     etternavn = etternavn,
     fødselsdato = fødselsdato,
     kilde = BarnMedBarnetillegg.Kilde.Søknad(søknadId),
-    periode = null,
+    perioder = null,
 )

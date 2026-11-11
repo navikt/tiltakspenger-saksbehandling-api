@@ -66,7 +66,7 @@ class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                     ),
                 ),
                 barnetillegg = OppdaterBarnetilleggDTO(
-                    barn = listOf(barnLagtTilAvSaksbehandler(fornavn = "Ola", periode = null)),
+                    barn = listOf(barnLagtTilAvSaksbehandler(fornavn = "Ola", perioder = null)),
                     begrunnelse = null,
                 ),
                 resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
@@ -100,8 +100,8 @@ class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                 ),
                 barnetillegg = OppdaterBarnetilleggDTO(
                     barn = listOf(
-                        barnLagtTilAvSaksbehandler(fornavn = "Ola", periode = (1 til 31.januar(2025)).toDTO()),
-                        barnLagtTilAvSaksbehandler(fornavn = "Kari", periode = null),
+                        barnLagtTilAvSaksbehandler(fornavn = "Ola", perioder = listOf((1 til 31.januar(2025)).toDTO())),
+                        barnLagtTilAvSaksbehandler(fornavn = "Kari", perioder = null),
                     ),
                     begrunnelse = null,
                 ),
@@ -137,7 +137,7 @@ class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
         }
     }
 
-    private fun barnLagtTilAvSaksbehandler(fornavn: String, periode: PeriodeDTO?) = OppdaterBarnMedBarnetilleggDTO(
+    private fun barnLagtTilAvSaksbehandler(fornavn: String, perioder: List<PeriodeDTO>?) = OppdaterBarnMedBarnetilleggDTO(
         fnr = null,
         fornavn = fornavn,
         mellomnavn = null,
@@ -145,6 +145,6 @@ class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
         fødselsdato = 1.januar(2020),
         kilde = BarnKildeDTO.SAKSBEHANDLER,
         søknadId = null,
-        periode = periode,
+        perioder = perioder,
     )
 }
