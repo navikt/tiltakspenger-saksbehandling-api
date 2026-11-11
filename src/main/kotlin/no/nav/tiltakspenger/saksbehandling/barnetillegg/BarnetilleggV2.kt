@@ -172,5 +172,6 @@ fun List<BarnMedBarnetillegg>.validerSøknader(søknadIder: Set<SøknadId>): Eit
 /**
  * Kastes når barnetillegget saksbehandler sender inn, er ugyldig.
  * Gir 400 til frontend.
+ * [UgyldigBarnetillegg.melding] kan inneholde barnets fødselsdato, så exception-meldingen inneholder bare feiltypen og kan logges vanlig.
  */
-class UgyldigBarnetilleggException(val feil: UgyldigBarnetillegg) : RuntimeException(feil.melding)
+class UgyldigBarnetilleggException(val feil: UgyldigBarnetillegg) : RuntimeException("Ugyldig barnetillegg: ${feil::class.simpleName}")

@@ -48,7 +48,8 @@ fun Route.oppdaterRammebehandlingRoute(
                     oppdaterBehandlingService.oppdater(kommando).fold(
                         ifLeft = {
                             val (status, message) = it.tilStatusOgErrorJson()
-                            logger.warn { "Kunne ikke oppdatere behandling: ${message.melding}, statuskode ${status.value}" }
+                            // Meldingen til saksbehandler kan inneholde personopplysninger, som barnets fødselsdato, så bare koden logges.
+                            logger.warn { "Kunne ikke oppdatere behandling $behandlingId på sak $sakId: ${message.kode}, statuskode ${status.value}" }
                             call.respondJson(status = status, value = message)
                         },
                         ifRight = { (sak) ->

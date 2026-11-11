@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.barnetillegg
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.getOrFail
@@ -139,5 +140,13 @@ class BarnetilleggV2Test {
 
         barn.validerSøknader(setOf(søknadId)).getOrFail()
         barn.validerSøknader(setOf(SøknadId.random())).leftOrNull().shouldBeInstanceOf<UgyldigBarnetillegg.UkjentSøknad>()
+    }
+
+    @Test
+    fun `exception-meldingen inneholder ikke barnets fødselsdato, som bare er i meldingen til saksbehandler`() {
+        val feil = UgyldigBarnetillegg.ManglerNavn(barn(fødselsdato = 14.februar(2016)))
+
+        feil.melding shouldContain "14. februar 2016"
+        UgyldigBarnetilleggException(feil).message shouldBe "Ugyldig barnetillegg: ManglerNavn"
     }
 }

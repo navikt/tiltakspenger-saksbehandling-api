@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.libs.ktor.common.respond404NotFound
 import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.UgyldigBarnetilleggException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
@@ -51,6 +52,7 @@ object ExceptionHandler {
 
             is UgyldigBarnetilleggException -> {
                 logger.warn(cause) { loggmelding }
+                Sikkerlogg.warn { "Ugyldig barnetillegg: ${cause.feil.melding}. Uri: $uri" }
                 call.run { respond400BadRequest(errorJson = ugyldigBarnetillegg(cause.feil.melding)) }
             }
 
