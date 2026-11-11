@@ -8,6 +8,7 @@ import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periode.leggSammen
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
@@ -100,7 +101,7 @@ data class BarnetilleggV2(
          * - valgte perioder ikke overlapper hverandre, og er innenfor innvilgelsesperioden og barnets rett
          * - hvert barn gir barnetillegg minst én dag
          *
-         * Barnas valgte perioder sorteres.
+         * Barnas valgte perioder sorteres, og perioder som tilstøter hverandre slås sammen.
          */
         fun create(
             barn: List<BarnMedBarnetillegg>,
@@ -135,7 +136,9 @@ data class BarnetilleggV2(
                     return UgyldigBarnetillegg.IngenDagerMedBarnetillegg(it).left()
                 }
             }
-            return barnetillegg.right()
+            return barnetillegg.copy(
+                barn = barn.map { it.copy(perioder = it.perioder?.leggSammen()?.toNonEmptyListOrNull()) },
+            ).right()
         }
     }
 }

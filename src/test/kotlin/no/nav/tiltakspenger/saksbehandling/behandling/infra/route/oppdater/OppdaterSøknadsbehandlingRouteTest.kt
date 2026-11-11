@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.utenBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
@@ -161,6 +162,37 @@ class OppdaterSøknadsbehandlingRouteTest {
             JSONObject(responseJson).getString("kode") shouldBe "ugyldig_barnetillegg"
             JSONObject(responseJson).getString("melding") shouldBe "Det må velges minst én periode for barnet født 1. januar 2020."
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).barnetillegg.shouldBeNull()
+        }
+    }
+
+    @Test
+    fun `valgte perioder som tilstøter hverandre lagres sammenslått`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+            val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.first()
+            val innvilgelsesperiode = tiltaksdeltakelse.lukketPeriode!!
+            val første = innvilgelsesperiode.fraOgMed til innvilgelsesperiode.fraOgMed.plusDays(4)
+            val andre = første.tilOgMed.plusDays(1) til første.tilOgMed.plusDays(5)
+
+            oppdaterSøknadsbehandlingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode, tiltaksdeltakelse),
+                barnetilleggJson = """
+                    {
+                      "begrunnelse": null,
+                      "barn": [{"fnr": null, "fornavn": "Ola", "mellomnavn": null, "etternavn": "Nordmann", "fødselsdato": "2020-01-01", "kilde": "SAKSBEHANDLER", "søknadId": null, "perioder": [
+                        {"fraOgMed": "${andre.fraOgMed}", "tilOgMed": "${andre.tilOgMed}"},
+                        {"fraOgMed": "${første.fraOgMed}", "tilOgMed": "${første.tilOgMed}"}
+                      ]}]
+                    }
+                """.trimIndent(),
+            )
+
+            val barnetillegg = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).barnetillegg
+                .shouldBeInstanceOf<BarnetilleggV2>()
+            barnetillegg.barn.single().perioder shouldBe nonEmptyListOf(første.fraOgMed til andre.tilOgMed)
         }
     }
 

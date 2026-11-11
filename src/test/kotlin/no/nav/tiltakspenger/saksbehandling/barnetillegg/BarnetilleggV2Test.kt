@@ -95,10 +95,22 @@ class BarnetilleggV2Test {
     fun `valgte perioder for et barn kan ikke overlappe`() {
         create(barn(perioder = listOf(1.januar(2026) til 28.februar(2026), 1 til 31.januar(2026))))
             .leftOrNull().shouldBeInstanceOf<UgyldigBarnetillegg.OverlappendePerioder>()
-        create(barn(perioder = listOf(1 til 31.januar(2026), 1 til 28.februar(2026))))
-            .getOrFail().antallPerPeriode() shouldBe listOf(
+    }
+
+    @Test
+    fun `valgte perioder som tilstøter hverandre slås sammen`() {
+        val barnetillegg = create(
+            barn(perioder = listOf(1 til 28.februar(2026), 1 til 31.januar(2026), 15 til 31.mars(2026))),
+        ).getOrFail()
+
+        barnetillegg.barn.single().perioder shouldBe nonEmptyListOf(
+            1.januar(2026) til 28.februar(2026),
+            15 til 31.mars(2026),
+        )
+        barnetillegg.antallPerPeriode() shouldBe listOf(
             (1.januar(2026) til 28.februar(2026)) to 1,
-            (1 til 31.mars(2026)) to 0,
+            (1 til 14.mars(2026)) to 0,
+            (15 til 31.mars(2026)) to 1,
         )
     }
 
