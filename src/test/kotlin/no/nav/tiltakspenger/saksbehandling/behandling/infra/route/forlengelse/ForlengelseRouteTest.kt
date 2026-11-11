@@ -162,7 +162,7 @@ class ForlengelseRouteTest {
             val (_, oppdatert, oppdatertJson) = oppdaterForlengelse(tac, sak.id, startet.id, tilOgMed = 31.mai(2025))
             JSONObject(oppdatertJson).getBoolean("harEndretBarnetillegg") shouldBe false
             JSONObject(oppdatertJson).getJSONArray("tiltaksdeltakelserSomKanForlenges").toString() shouldBe
-                """["${vedtak.valgteTiltaksdeltakelser!!.verdier.single().internDeltakelseId}"]"""
+                """["${vedtak.valgteTiltaksdeltakelser!!.verdier.single().single().internDeltakelseId}"]"""
             oppdatert.innvilgelsesperioder.shouldNotBeNull().totalPeriode shouldBe (1.april(2025) til 31.mai(2025))
             oppdatert.barnetilleggsperioder() shouldBe listOf(PeriodeMedVerdi(AntallBarn.ZERO, 1.april(2025) til 31.mai(2025)))
 
@@ -427,7 +427,7 @@ class ForlengelseRouteTest {
             iverksettRevurderingInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
-                innvilgelsesperioder = innvilgelsesperioder(1.mai(2025) til 31.mai(2025), vedtak.valgteTiltaksdeltakelser!!.verdier.single()),
+                innvilgelsesperioder = innvilgelsesperioder(1.mai(2025) til 31.mai(2025), vedtak.valgteTiltaksdeltakelser!!.verdier.single().single()),
             )
 
             sendRevurderingTilBeslutningForBehandlingId(tac, sak.id, underBehandling.id, forventet = feil(409))

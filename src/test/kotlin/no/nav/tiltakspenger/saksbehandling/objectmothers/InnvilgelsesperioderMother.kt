@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
+import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
@@ -7,6 +9,7 @@ import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeVerdi
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgetTiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.ReversertOpphør
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.vedtaksperiode
@@ -20,13 +23,34 @@ interface InnvilgelsesperioderMother {
         antallDagerPerMeldeperiode: AntallDagerForMeldeperiode = AntallDagerForMeldeperiode.default,
         reversertOpphør: ReversertOpphør? = null,
     ): PeriodeMedVerdi<InnvilgelsesperiodeVerdi> {
+        return innvilgelsesperiode(
+            periode = periode,
+            tiltaksdeltakelser = nonEmptyListOf(innvilgetTiltaksdeltakelse(valgtTiltaksdeltakelse, antallDagerPerMeldeperiode)),
+            reversertOpphør = reversertOpphør,
+        )
+    }
+
+    fun innvilgelsesperiode(
+        periode: Periode,
+        tiltaksdeltakelser: NonEmptyList<InnvilgetTiltaksdeltakelse>,
+        reversertOpphør: ReversertOpphør? = null,
+    ): PeriodeMedVerdi<InnvilgelsesperiodeVerdi> {
         return PeriodeMedVerdi(
             verdi = InnvilgelsesperiodeVerdi(
-                valgtTiltaksdeltakelse = valgtTiltaksdeltakelse,
-                antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                tiltaksdeltakelser = tiltaksdeltakelser,
                 reversertOpphør = reversertOpphør,
             ),
             periode = periode,
+        )
+    }
+
+    fun innvilgetTiltaksdeltakelse(
+        tiltaksdeltakelse: TiltaksdeltakelseIntern,
+        antallDagerPerMeldeperiode: AntallDagerForMeldeperiode = AntallDagerForMeldeperiode.default,
+    ): InnvilgetTiltaksdeltakelse {
+        return InnvilgetTiltaksdeltakelse(
+            tiltaksdeltakelse = tiltaksdeltakelse,
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         )
     }
 

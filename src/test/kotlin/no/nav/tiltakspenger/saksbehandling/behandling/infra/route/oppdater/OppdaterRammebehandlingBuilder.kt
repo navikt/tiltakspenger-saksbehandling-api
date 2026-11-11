@@ -412,16 +412,27 @@ interface OppdaterRammebehandlingBuilder {
     private fun Innvilgelsesperioder.tilDTOMedDeltakelseFra(behandling: Rammebehandling): List<InnvilgelsesperiodeDTO> {
         val kjenteDeltakelser = behandling.saksopplysninger.tiltaksdeltakelser.value
         return tilDTO(behandling.saksopplysninger.tiltaksdeltakelser).map { dto ->
-            if (dto.erReversertOpphør || kjenteDeltakelser.any { it.internDeltakelseId.toString() == dto.internDeltakelseId }) {
-                dto
-            } else {
-                val dekkende = kjenteDeltakelser.firstOrNull { deltakelse ->
-                    deltakelse.lukketPeriode?.inneholderHele(dto.periode.toDomain()) == true
-                }
-                val erstatning = dekkende ?: kjenteDeltakelser.firstOrNull()
-                // Uten kjente deltakelser lar vi dto-en stå, slik at serveren svarer med sin egen feil.
-                if (erstatning == null) dto else dto.copy(internDeltakelseId = erstatning.internDeltakelseId.toString())
+            if (dto.erReversertOpphør) {
+                return@map dto
             }
+            dto.copy(
+                tiltaksdeltakelser = dto.tiltaksdeltakelser.map { tiltaksdeltakelse ->
+                    if (kjenteDeltakelser.any { it.internDeltakelseId.toString() == tiltaksdeltakelse.internDeltakelseId }) {
+                        tiltaksdeltakelse
+                    } else {
+                        val dekkende = kjenteDeltakelser.firstOrNull { deltakelse ->
+                            deltakelse.lukketPeriode?.inneholderHele(dto.periode.toDomain()) == true
+                        }
+                        val erstatning = dekkende ?: kjenteDeltakelser.firstOrNull()
+                        // Uten kjente deltakelser lar vi dto-en stå, slik at serveren svarer med sin egen feil.
+                        if (erstatning == null) {
+                            tiltaksdeltakelse
+                        } else {
+                            tiltaksdeltakelse.copy(internDeltakelseId = erstatning.internDeltakelseId.toString())
+                        }
+                    }
+                },
+            )
         }
     }
 
@@ -442,8 +453,7 @@ interface OppdaterRammebehandlingBuilder {
                 """
                             {
                                 "periode": ${serialize(it.periode)},
-                                "antallDagerPerMeldeperiode": ${it.antallDagerPerMeldeperiode},
-                                "internDeltakelseId": ${it.internDeltakelseId.medQuotes()},
+                                "tiltaksdeltakelser": ${serialize(it.tiltaksdeltakelser)},
                                 "erReversertOpphør": ${it.erReversertOpphør}
                             }                  
                 """.trimIndent()

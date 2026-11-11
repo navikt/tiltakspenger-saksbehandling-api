@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskOmgjøring.finnOmgjøringsperiodeVedAvkortetSluttdato
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forTiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.ReversertOpphør
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -124,9 +125,7 @@ private fun Sak.gjeldendeVedtakForDeltakelse(tiltaksdeltakerId: TiltaksdeltakerI
         rammevedtaksliste
             .filter { it.rammebehandlingsresultat is Rammebehandlingsresultat.Innvilgelse }
             .flatMap { vedtak ->
-                vedtak.innvilgetMedGyldigTiltaksdeltakelse().perioderMedVerdi.filter {
-                    it.verdi.internDeltakelseId == tiltaksdeltakerId
-                }
+                vedtak.innvilgetMedGyldigTiltaksdeltakelse(tiltaksdeltakerId).perioderMedVerdi
             }
             .fold(Periodisering.empty<TiltaksdeltakelseIntern>() as Periodisering<TiltaksdeltakelseIntern>) { tidslinje, (deltakelse, periode) ->
                 tidslinje.setVerdiForDelperiode(deltakelse, periode)
@@ -134,9 +133,8 @@ private fun Sak.gjeldendeVedtakForDeltakelse(tiltaksdeltakerId: TiltaksdeltakerI
 
     return sistInnvilgetDeltakelse.flatMap { (deltakelse, periode) ->
         rammevedtaksliste.tidslinje.krymp(periode).perioderMedVerdi.flatMap { (gjeldendeVedtak, vedtaksperiode) ->
-            val innvilgetForDeltakelse = gjeldendeVedtak.innvilgetMedGyldigTiltaksdeltakelse()
+            val innvilgetForDeltakelse = gjeldendeVedtak.innvilgetMedGyldigTiltaksdeltakelse(tiltaksdeltakerId)
                 .krymp(vedtaksperiode)
-                .filter { it.verdi.internDeltakelseId == tiltaksdeltakerId }
                 .perioder
             val ikkeInnvilgetForDeltakelse = vedtaksperiode.trekkFra(innvilgetForDeltakelse)
 
@@ -155,12 +153,13 @@ private fun Sak.gjeldendeVedtakForDeltakelse(tiltaksdeltakerId: TiltaksdeltakerI
     }
 }
 
-/** Tiltaksdeltakelsene vedtaket innvilger, uten periodene som er innvilget som [ReversertOpphør]. */
-private fun Rammevedtak.innvilgetMedGyldigTiltaksdeltakelse(): Periodisering<TiltaksdeltakelseIntern> =
+/** Periodene vedtaket innvilger for tiltaksdeltakelsen med [tiltaksdeltakerId], uten periodene som er innvilget som [ReversertOpphør]. */
+private fun Rammevedtak.innvilgetMedGyldigTiltaksdeltakelse(tiltaksdeltakerId: TiltaksdeltakerId): Periodisering<TiltaksdeltakelseIntern> =
     innvilgelsesperioder
         ?.periodisering
         ?.filterNot { verdi, _ -> verdi.erReversertOpphør }
-        ?.map { verdi, _ -> verdi.valgtTiltaksdeltakelse }
+        ?.forTiltaksdeltakelse(tiltaksdeltakerId)
+        ?.map { innvilget, _ -> innvilget.tiltaksdeltakelse }
         ?: Periodisering.empty()
 
 /**
@@ -393,7 +392,7 @@ private fun Sak.vurderRevurderingForAvbrudd(
     }
 
     val harAndreDeltakelserInnvilgetEtterAvbruddet = rammevedtaksliste.valgteTiltaksdeltakelser.perioderMedVerdi.any {
-        !it.periode.tilOgMed.isBefore(avbruttFraOgMed) && it.verdi.internDeltakelseId != tiltaksdeltakerId
+        !it.periode.tilOgMed.isBefore(avbruttFraOgMed) && it.verdi.any { tiltaksdeltakelse -> tiltaksdeltakelse.internDeltakelseId != tiltaksdeltakerId }
     }
 
     if (harAndreDeltakelserInnvilgetEtterAvbruddet) {

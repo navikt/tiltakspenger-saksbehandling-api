@@ -241,14 +241,18 @@ class IverksettRevurderingTest {
                 innvilgelsesperioder = """
                     [
                         {
-                            "internDeltakelseId": "${tiltaksdeltakelse.internDeltakelseId}",
-                            "ugyldigTiltaksdeltakelse": null,
+                            "tiltaksdeltakelser": [
+                                {
+                                    "internDeltakelseId": "${tiltaksdeltakelse.internDeltakelseId}",
+                                    "antallDagerPerMeldeperiode": 10,
+                                    "ugyldigTiltaksdeltakelse": null
+                                }
+                            ],
                             "erReversertOpphør": false,
                             "periode": {
                                 "fraOgMed": "2025-04-01",
                                 "tilOgMed": "2025-04-10"
-                            },
-                            "antallDagerPerMeldeperiode": 10
+                            }
                         }
                     ]
                 """.trimIndent(),
@@ -290,14 +294,18 @@ class IverksettRevurderingTest {
                 innvilgelsesperioder = """
                     [
                         {
-                            "internDeltakelseId": "${tiltaksdeltakelse.internDeltakelseId}",
-                            "ugyldigTiltaksdeltakelse": null,
+                            "tiltaksdeltakelser": [
+                                {
+                                    "internDeltakelseId": "${tiltaksdeltakelse.internDeltakelseId}",
+                                    "antallDagerPerMeldeperiode": 10,
+                                    "ugyldigTiltaksdeltakelse": null
+                                }
+                            ],
                             "erReversertOpphør": false,
                             "periode": {
                                 "fraOgMed": "2025-04-09",
                                 "tilOgMed": "2025-04-11"
-                            },
-                            "antallDagerPerMeldeperiode": 10
+                            }
                         }
                     ]
                 """.trimIndent(),
@@ -341,7 +349,7 @@ class IverksettRevurderingTest {
                 gjeldendeVedtaksperioder = listOf(1.til(4.januar(2023))),
                 gjeldendeInnvilgetPerioder = listOf(1.til(4.januar(2023))),
                 omgjortGrad = "DELVIS",
-                internDeltakelseId = rammevedtakSøknadsbehandling.innvilgelsesperioder!!.valgteTiltaksdeltagelser.verdier.single().internDeltakelseId,
+                internDeltakelseId = rammevedtakSøknadsbehandling.innvilgelsesperioder!!.valgteTiltaksdeltagelser.verdier.single().single().internDeltakelseId,
                 opprettet = "2025-01-01T01:02:20.456789",
                 gjeldendeBarnetilleggPerioder = """
                     [
@@ -411,7 +419,7 @@ class IverksettRevurderingTest {
                 gjeldendeInnvilgetPerioder = emptyList(),
                 erGjeldende = false,
                 omgjortGrad = "HELT",
-                internDeltakelseId = sak.rammevedtaksliste[0].innvilgelsesperioder!!.valgteTiltaksdeltagelser.verdier.single().internDeltakelseId,
+                internDeltakelseId = sak.rammevedtaksliste[0].innvilgelsesperioder!!.valgteTiltaksdeltagelser.verdier.single().single().internDeltakelseId,
                 opprettet = "2025-01-01T01:02:20.456789",
                 gjeldendeBarnetilleggPerioder = "[]",
             )
@@ -430,14 +438,18 @@ class IverksettRevurderingTest {
                 vedtaksdato = null,
                 innvilgelsesperioder = """[
                     {
-                        "internDeltakelseId": "${sak.rammevedtaksliste[1].innvilgelsesperioder!!.valgteTiltaksdeltagelser.verdier.single().internDeltakelseId}",
-                        "ugyldigTiltaksdeltakelse": null,
+                        "tiltaksdeltakelser": [
+                            {
+                                "internDeltakelseId": "${sak.rammevedtaksliste[1].innvilgelsesperioder!!.valgteTiltaksdeltagelser.verdier.single().single().internDeltakelseId}",
+                                "antallDagerPerMeldeperiode": 10,
+                                "ugyldigTiltaksdeltakelse": null
+                            }
+                        ],
                         "erReversertOpphør": false,
                         "periode": {
                             "fraOgMed": "2023-01-01",
                             "tilOgMed": "2023-03-31"
-                        },
-                        "antallDagerPerMeldeperiode": 10
+                        }
                     }
                 ]""",
                 barnetillegg = """

@@ -28,13 +28,17 @@ import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgetTiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSaksopplysningerForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingAvslag
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingIkkeValgt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
@@ -448,6 +452,43 @@ class OppdaterSøknadsbehandlingRouteTest {
                 response harKode "feil_resultattype"
                 oppdatertBehandling shouldBe behandling
             }
+        }
+    }
+
+    @Test
+    fun `kan innvilge flere overlappende tiltaksdeltakelser i samme innvilgelsesperiode`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+            // En ny søknad for et annet, overlappende tiltak gjør at søknadsbehandlingen får med begge tiltaksdeltakelsene.
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac, sakId = sak.id, fnr = sak.fnr)
+            val (_, medToDeltakelser) = oppdaterSaksopplysningerForBehandlingId(tac, sak.id, behandling.id)
+            val (første, andre) = medToDeltakelser.saksopplysninger.tiltaksdeltakelser.value.also { it.size shouldBe 2 }
+            val periode = første.lukketPeriode!!
+
+            val (_, oppdatert, body) = oppdaterSøknadsbehandlingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                innvilgelsesperioder = innvilgelsesperioder(
+                    innvilgelsesperiode(
+                        periode = periode,
+                        tiltaksdeltakelser = nonEmptyListOf(
+                            innvilgetTiltaksdeltakelse(andre, AntallDagerForMeldeperiode(6)),
+                            innvilgetTiltaksdeltakelse(første, AntallDagerForMeldeperiode(4)),
+                        ),
+                    ),
+                ),
+            )
+
+            val innvilgelsesperiode = oppdatert.innvilgelsesperioder!!.periodisering.verdier.single()
+            innvilgelsesperiode.valgteTiltaksdeltakelser shouldBe nonEmptyListOf(andre, første)
+            innvilgelsesperiode.antallDagerPerMeldeperiode shouldBe AntallDagerForMeldeperiode(10)
+            body.shouldContainJsonKeyValue("$.innvilgelsesperioder.length()", 1)
+            body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].tiltaksdeltakelser.length()", 2)
+            body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].tiltaksdeltakelser[0].internDeltakelseId", andre.internDeltakelseId.toString())
+            body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].tiltaksdeltakelser[0].antallDagerPerMeldeperiode", 6)
+            body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].tiltaksdeltakelser[1].internDeltakelseId", første.internDeltakelseId.toString())
+            body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].tiltaksdeltakelser[1].antallDagerPerMeldeperiode", 4)
         }
     }
 }

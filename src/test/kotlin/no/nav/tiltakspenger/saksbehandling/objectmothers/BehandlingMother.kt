@@ -672,7 +672,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
     val (sakMedSøknadsbehandling) = startSøknadsbehandling(
         periode = periode,
         fnr = fnr,
-        internTiltaksdeltakelseId = innvilgelsesperioder.first().internDeltakelseId,
+        internTiltaksdeltakelseId = innvilgelsesperioder.first().internDeltakelseIder.first(),
     )
     val behandling = sakMedSøknadsbehandling.rammebehandlinger.singleOrNullOrThrow()!! as Søknadsbehandling
 
@@ -998,18 +998,22 @@ fun Rammebehandling.tilBeslutning(
 /**
  * Binder innvilgelseskommandoene til saksopplysningenes faktiske tiltaksdeltakelse.
  * Kallstedene uttrykker hvilke perioder som innvilges; deltakelsen eies av saksopplysningene og har unik id per test.
- * Kommandoer som allerede peker på en deltakelse i saksopplysningene røres ikke.
+ * Tiltaksdeltakelser som allerede peker på en deltakelse i saksopplysningene røres ikke.
  */
 fun List<InnvilgelsesperiodeKommando>.medDeltakelseFra(saksopplysninger: Saksopplysninger): List<InnvilgelsesperiodeKommando> {
     return map { kommando ->
-        if (saksopplysninger.tiltaksdeltakelser.any { it.internDeltakelseId == kommando.internDeltakelseId }) {
-            kommando
-        } else {
-            val dekkende = saksopplysninger.tiltaksdeltakelser.firstOrNull { deltakelse ->
-                deltakelse.lukketPeriode?.inneholderHele(kommando.periode) == true
-            }
-            val erstatning = dekkende ?: saksopplysninger.tiltaksdeltakelser.firstOrNull()
-            if (erstatning == null) kommando else kommando.copy(internDeltakelseId = erstatning.internDeltakelseId)
-        }
+        kommando.copy(
+            tiltaksdeltakelser = kommando.tiltaksdeltakelser.map { tiltaksdeltakelse ->
+                if (saksopplysninger.tiltaksdeltakelser.any { it.internDeltakelseId == tiltaksdeltakelse.internDeltakelseId }) {
+                    tiltaksdeltakelse
+                } else {
+                    val dekkende = saksopplysninger.tiltaksdeltakelser.firstOrNull { deltakelse ->
+                        deltakelse.lukketPeriode?.inneholderHele(kommando.periode) == true
+                    }
+                    val erstatning = dekkende ?: saksopplysninger.tiltaksdeltakelser.firstOrNull()
+                    if (erstatning == null) tiltaksdeltakelse else tiltaksdeltakelse.copy(internDeltakelseId = erstatning.internDeltakelseId)
+                }
+            },
+        )
     }
 }

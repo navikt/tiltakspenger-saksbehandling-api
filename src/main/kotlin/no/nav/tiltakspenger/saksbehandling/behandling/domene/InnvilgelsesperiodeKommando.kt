@@ -1,18 +1,36 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 /**
+ * @param tiltaksdeltakelser Tiltaksdeltakelsene det innvilges for i perioden.
+ * Den første bestemmer tiltakstypen for perioden, se [InnvilgelsesperiodeVerdi.tiltakstype].
  * @param erReversertOpphør Saksbehandler har valgt å innvilge perioden som et reversert opphør, uten gyldig tiltaksdeltakelse.
  * Slike perioder konverteres med [no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.tilInnvilgelsesperioderMedReversertOpphør], og aldri med [tilInnvilgelsesperioder].
  */
 data class InnvilgelsesperiodeKommando(
     val periode: Periode,
-    val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
-    val internDeltakelseId: TiltaksdeltakerId,
+    val tiltaksdeltakelser: NonEmptyList<InnvilgetTiltaksdeltakelseKommando>,
     val erReversertOpphør: Boolean = false,
+) {
+    val internDeltakelseIder: NonEmptyList<TiltaksdeltakerId> get() = tiltaksdeltakelser.map { it.internDeltakelseId }
+
+    /** Summen av antall dager per meldeperiode for tiltaksdeltakelsene, se [summer]. */
+    val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode get() = tiltaksdeltakelser.map { it.antallDagerPerMeldeperiode }.summer()
+
+    init {
+        require(internDeltakelseIder.distinct().size == internDeltakelseIder.size) {
+            "En innvilgelsesperiode kan ikke ha samme tiltaksdeltakelse flere ganger: $internDeltakelseIder"
+        }
+    }
+}
+
+data class InnvilgetTiltaksdeltakelseKommando(
+    val internDeltakelseId: TiltaksdeltakerId,
+    val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
 )
 
 /** Om noen av periodene er markert som reversert opphør. */
@@ -32,21 +50,25 @@ fun IkkeTomPeriodisering<InnvilgelsesperiodeKommando>.tilInnvilgelsesperioder(be
     )
 }
 
-/** Slår opp tiltaksdeltakelsen i saksopplysningene til [behandling], for en periode som ikke er reversert opphør. */
+/** Slår opp tiltaksdeltakelsene i saksopplysningene til [behandling], for en periode som ikke er reversert opphør. */
 fun InnvilgelsesperiodeKommando.tilInnvilgelsesperiodeVerdi(behandling: Rammebehandling): InnvilgelsesperiodeVerdi {
     require(!erReversertOpphør) {
         "Innvilgelsesperioden $periode er reversert opphør, og har ikke tiltaksdeltakelsen fra saksopplysningene for ${behandling.id}"
     }
 
-    val tiltaksdeltakelse = behandling.getTiltaksdeltakelse(internDeltakelseId)
-
-    requireNotNull(tiltaksdeltakelse) {
-        "Fant ikke tiltaket $internDeltakelseId i saksopplysningene for ${behandling.id}"
-    }
-
     return InnvilgelsesperiodeVerdi(
-        valgtTiltaksdeltakelse = tiltaksdeltakelse,
-        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+        tiltaksdeltakelser = tiltaksdeltakelser.map {
+            val tiltaksdeltakelse = behandling.getTiltaksdeltakelse(it.internDeltakelseId)
+
+            requireNotNull(tiltaksdeltakelse) {
+                "Fant ikke tiltaket ${it.internDeltakelseId} i saksopplysningene for ${behandling.id}"
+            }
+
+            InnvilgetTiltaksdeltakelse(
+                tiltaksdeltakelse = tiltaksdeltakelse,
+                antallDagerPerMeldeperiode = it.antallDagerPerMeldeperiode,
+            )
+        },
         reversertOpphør = null,
     )
 }

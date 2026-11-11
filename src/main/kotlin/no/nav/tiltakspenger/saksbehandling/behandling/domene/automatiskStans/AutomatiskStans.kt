@@ -97,7 +97,7 @@ fun Sak.utledAutomatiskStans(
             .left()
 
     val harAndreDeltakelserInnvilgetEtterStans = rammevedtaksliste.valgteTiltaksdeltakelser.perioderMedVerdi.any {
-        !it.periode.tilOgMed.isBefore(stansFraOgMed) && it.verdi.internDeltakelseId != tiltaksdeltakerId
+        !it.periode.tilOgMed.isBefore(stansFraOgMed) && it.verdi.any { tiltaksdeltakelse -> tiltaksdeltakelse.internDeltakelseId != tiltaksdeltakerId }
     }
     if (harAndreDeltakelserInnvilgetEtterStans) {
         grunner.add(ManueltBehandlesGrunn.STANS_ANDRE_DELTAKELSER_INNVILGET_ETTER_SLUTTDATO)
@@ -168,5 +168,5 @@ fun Sak.utledStansFraOgMedEtterSluttdato(
 /** Første dag fra og med [fraOgMed] som deltakelsen er innvilget i et gjeldende vedtak, eller null dersom ingen dager er innvilget fra da. */
 private fun Sak.førsteInnvilgedeDagForDeltakelsen(tiltaksdeltakerId: TiltaksdeltakerId, fraOgMed: LocalDate): LocalDate? =
     rammevedtaksliste.valgteTiltaksdeltakelser.perioderMedVerdi
-        .firstOrNull { it.verdi.internDeltakelseId == tiltaksdeltakerId && !it.periode.tilOgMed.isBefore(fraOgMed) }
+        .firstOrNull { it.verdi.any { tiltaksdeltakelse -> tiltaksdeltakelse.internDeltakelseId == tiltaksdeltakerId } && !it.periode.tilOgMed.isBefore(fraOgMed) }
         ?.let { maxOf(it.periode.fraOgMed, fraOgMed) }

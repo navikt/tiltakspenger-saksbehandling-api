@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak
 
+import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -125,7 +126,7 @@ data class Rammevedtaksliste(
         innvilgetTidslinje.flatMapPeriodisering { it.verdi.antallDagerPerMeldeperiode!! }
     }
 
-    val valgteTiltaksdeltakelser: Periodisering<TiltaksdeltakelseIntern> by lazy {
+    val valgteTiltaksdeltakelser: Periodisering<NonEmptyList<TiltaksdeltakelseIntern>> by lazy {
         innvilgetTidslinje.flatMapPeriodisering { it.verdi.valgteTiltaksdeltakelser!! }
     }
 
@@ -140,7 +141,7 @@ data class Rammevedtaksliste(
         return tidslinje.map { verdi, _ -> verdi.id }.krymp(periode)
     }
 
-    fun valgteTiltaksdeltakelserForPeriode(periode: Periode): Periodisering<TiltaksdeltakelseIntern> {
+    fun valgteTiltaksdeltakelserForPeriode(periode: Periode): Periodisering<NonEmptyList<TiltaksdeltakelseIntern>> {
         return valgteTiltaksdeltakelser.overlappendePeriode(periode)
     }
 

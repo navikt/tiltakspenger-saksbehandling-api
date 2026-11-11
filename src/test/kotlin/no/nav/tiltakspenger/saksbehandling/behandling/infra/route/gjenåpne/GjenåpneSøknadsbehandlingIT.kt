@@ -38,7 +38,7 @@ class GjenåpneSøknadsbehandlingIT {
             val saksbehandler = ObjectMother.saksbehandler()
             val beslutter = ObjectMother.beslutter()
             val innvilgelsesperioder = innvilgelsesperioder()
-            val tiltaksdeltakelse = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single()
+            val tiltaksdeltakelse = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.flatten().distinct().single()
 
             // 1. Søknaden sendes inn, og saksbehandler tar behandlingen.
             val (sak, søknad, førsteBehandling) = opprettSøknadsbehandlingUnderBehandling(

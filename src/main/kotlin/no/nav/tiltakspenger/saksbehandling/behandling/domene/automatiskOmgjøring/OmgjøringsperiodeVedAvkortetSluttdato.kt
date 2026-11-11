@@ -42,7 +42,7 @@ fun Rammevedtaksliste.finnOmgjøringsperiodeVedAvkortetSluttdato(
     nySluttdato: LocalDate,
 ): Either<ManueltBehandlesGrunn, OmgjøringsperiodeVedAvkortetSluttdato> {
     val innvilgetForDeltakelse: List<Periode> = innvilgelsesperioder.perioderMedVerdi
-        .filter { it.verdi.valgtTiltaksdeltakelse.internDeltakelseId == tiltaksdeltakerId }
+        .filter { it.verdi.innvilgerTiltaksdeltakelse(tiltaksdeltakerId) }
         .map { it.periode }
 
     val sisteInnvilgedeDag = innvilgetForDeltakelse.lastOrNull()?.tilOgMed

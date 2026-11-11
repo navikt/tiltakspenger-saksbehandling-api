@@ -1,15 +1,18 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.nonEmptyListOf
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgetTiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import org.junit.jupiter.api.Nested
@@ -146,6 +149,99 @@ class InnvilgelsesperioderTest {
             )
             toPerioder.ugyldigePerioder(Tiltaksdeltakelser(listOf(endretAnnenDeltakelse)))!!.map { it.internDeltakelseId } shouldBe
                 listOf(deltakelse.internDeltakelseId)
+        }
+    }
+
+    @Nested
+    inner class FlereTiltaksdeltakelser {
+        private val januar = 1.januar(2026) til 31.januar(2026)
+        private val amo = tiltaksdeltakelse(periode = januar, tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO)
+        private val arbeidstrening = tiltaksdeltakelse(periode = januar, tiltakstype = TiltakstypeSomGirRett.ARBEIDSTRENING)
+
+        private val innvilgelsesperioder = innvilgelsesperioder(
+            innvilgelsesperiode(
+                periode = januar,
+                tiltaksdeltakelser = nonEmptyListOf(
+                    innvilgetTiltaksdeltakelse(arbeidstrening, AntallDagerForMeldeperiode(6)),
+                    innvilgetTiltaksdeltakelse(amo, AntallDagerForMeldeperiode(4)),
+                ),
+            ),
+        )
+
+        @Test
+        fun `summerer antall dager og bruker tiltakstypen til den første tiltaksdeltakelsen`() {
+            val verdi = innvilgelsesperioder.periodisering.verdier.single()
+
+            verdi.antallDagerPerMeldeperiode shouldBe AntallDagerForMeldeperiode(10)
+            verdi.tiltakstype shouldBe TiltakstypeSomGirRett.ARBEIDSTRENING
+            innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.single() shouldBe nonEmptyListOf(arbeidstrening, amo)
+        }
+
+        @Test
+        fun `summen av antall dager begrenses til dagene i en meldeperiode`() {
+            val verdi = InnvilgelsesperiodeVerdi(
+                tiltaksdeltakelser = nonEmptyListOf(
+                    innvilgetTiltaksdeltakelse(amo, AntallDagerForMeldeperiode(10)),
+                    innvilgetTiltaksdeltakelse(arbeidstrening, AntallDagerForMeldeperiode(10)),
+                ),
+                reversertOpphør = null,
+            )
+
+            verdi.antallDagerPerMeldeperiode shouldBe AntallDagerForMeldeperiode(MAKS_DAGER_FOR_MELDEPERIODE)
+        }
+
+        @Test
+        fun `kan ikke innvilge for samme tiltaksdeltakelse flere ganger i samme periode`() {
+            shouldThrow<IllegalArgumentException> {
+                InnvilgelsesperiodeVerdi(
+                    tiltaksdeltakelser = nonEmptyListOf(innvilgetTiltaksdeltakelse(amo), innvilgetTiltaksdeltakelse(amo)),
+                    reversertOpphør = null,
+                )
+            }
+        }
+
+        @Test
+        fun `deler opp perioden der en av tiltaksdeltakelsene har krympet`() {
+            val krympetAmo = tiltaksdeltakelse(
+                periode = 1.januar(2026) til 15.januar(2026),
+                eksternTiltaksdeltakelseId = amo.eksternDeltakelseId,
+                internDeltakelseId = amo.internDeltakelseId,
+            )
+
+            innvilgelsesperioder.oppdaterTiltaksdeltakelser(Tiltaksdeltakelser(listOf(arbeidstrening, krympetAmo))) shouldBe innvilgelsesperioder(
+                innvilgelsesperiode(
+                    periode = 1.januar(2026) til 15.januar(2026),
+                    tiltaksdeltakelser = nonEmptyListOf(
+                        innvilgetTiltaksdeltakelse(arbeidstrening, AntallDagerForMeldeperiode(6)),
+                        innvilgetTiltaksdeltakelse(krympetAmo, AntallDagerForMeldeperiode(4)),
+                    ),
+                ),
+                innvilgelsesperiode(
+                    periode = 16.januar(2026) til 31.januar(2026),
+                    tiltaksdeltakelser = nonEmptyListOf(innvilgetTiltaksdeltakelse(arbeidstrening, AntallDagerForMeldeperiode(6))),
+                ),
+            )
+        }
+
+        @Test
+        fun `fjerner tiltaksdeltakelsen som ikke lenger kan innvilges, og beholder de andre`() {
+            val ikkeInnvilgbarAmo = amo.copy(deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell)
+            val tiltaksdeltakelser = Tiltaksdeltakelser(listOf(arbeidstrening, ikkeInnvilgbarAmo))
+
+            innvilgelsesperioder.oppdaterTiltaksdeltakelser(tiltaksdeltakelser) shouldBe innvilgelsesperioder(
+                innvilgelsesperiode(
+                    periode = januar,
+                    tiltaksdeltakelser = nonEmptyListOf(innvilgetTiltaksdeltakelse(arbeidstrening, AntallDagerForMeldeperiode(6))),
+                ),
+            )
+            innvilgelsesperioder.ugyldigePerioder(tiltaksdeltakelser) shouldBe nonEmptyListOf(
+                UgyldigInnvilgelsesperiode.TiltaksdeltakelsenKanIkkeInnvilges(januar, amo.internDeltakelseId),
+            )
+        }
+
+        @Test
+        fun `gir null når ingen av tiltaksdeltakelsene kan innvilges`() {
+            innvilgelsesperioder.oppdaterTiltaksdeltakelser(Tiltaksdeltakelser(emptyList())) shouldBe null
         }
     }
 }

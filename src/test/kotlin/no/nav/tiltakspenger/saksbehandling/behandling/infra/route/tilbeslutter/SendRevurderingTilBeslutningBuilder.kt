@@ -74,7 +74,7 @@ interface SendRevurderingTilBeslutningBuilder {
         revurderingInnvilgelsesperioder: Innvilgelsesperioder = søknadsbehandlingInnvilgelsesperioder,
         // Default: revurderingen gjelder samme deltakelse som innvilgelsen.
         // Send inn en kopi med endret periode for å teste endret deltakelse.
-        oppdatertTiltaksdeltakelse: TiltaksdeltakelseIntern? = revurderingInnvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
+        oppdatertTiltaksdeltakelse: TiltaksdeltakelseIntern? = revurderingInnvilgelsesperioder.valgteTiltaksdeltagelser.verdier.flatten().distinct().single(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, Rammevedtak, String> {
         val (sak, søknad, rammevedtakSøknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(

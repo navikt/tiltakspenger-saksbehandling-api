@@ -90,7 +90,7 @@ private fun Sak.tilMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clo
         periode = meldeperiodeKjede.periode.toDTO(),
         tiltaksnavn = this.rammevedtaksliste
             .valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode)
-            .perioderMedVerdi.toList().map { it.verdi.typeNavn }
+            .perioderMedVerdi.toList().flatMap { it.verdi.map { tiltaksdeltakelse -> tiltaksdeltakelse.typeNavn } }
             .distinct(),
         sisteMeldeperiode = sisteMeldeperiode.toMeldeperiodeDTO(),
         meldekortbehandlingIder = ikkeAvbrutteBehandlinger.map { it.id.toString() },

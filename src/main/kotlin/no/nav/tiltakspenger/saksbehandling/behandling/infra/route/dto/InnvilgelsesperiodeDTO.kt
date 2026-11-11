@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
+import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
@@ -8,24 +9,33 @@ import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgetTiltaksdeltakelseKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.UgyldigInnvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.validerInnvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 /**
- * @param ugyldigTiltaksdeltakelse Settes bare i responser, og er null dersom valgt tiltaksdeltakelse passer med perioden.
- * Ignoreres i requester.
- * Er alltid null for reversert opphør, siden perioden da ikke valideres mot tiltaksdeltakelsene i saksopplysningene.
+ * @param tiltaksdeltakelser Tiltaksdeltakelsene det innvilges for i perioden, minst én.
+ * Den første bestemmer tiltakstypen for perioden.
  * @param erReversertOpphør Perioden innvilges uten gyldig tiltaksdeltakelse, på nytt etter å ha vært opphørt eller stanset.
  * Se [no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.ReversertOpphør].
  */
 data class InnvilgelsesperiodeDTO(
     val periode: PeriodeDTO,
-    val antallDagerPerMeldeperiode: Int,
-    val internDeltakelseId: String,
-    val ugyldigTiltaksdeltakelse: UgyldigTiltaksdeltakelseDTO? = null,
+    val tiltaksdeltakelser: List<InnvilgetTiltaksdeltakelseDTO>,
     val erReversertOpphør: Boolean = false,
+)
+
+/**
+ * @param ugyldigTiltaksdeltakelse Settes bare i responser, og er null dersom tiltaksdeltakelsen passer med perioden.
+ * Ignoreres i requester.
+ * Er alltid null for reversert opphør, siden perioden da ikke valideres mot tiltaksdeltakelsene i saksopplysningene.
+ */
+data class InnvilgetTiltaksdeltakelseDTO(
+    val internDeltakelseId: String,
+    val antallDagerPerMeldeperiode: Int,
+    val ugyldigTiltaksdeltakelse: UgyldigTiltaksdeltakelseDTO? = null,
 )
 
 /**
@@ -53,8 +63,12 @@ fun InnvilgelsesperioderDTO.tilKommando(): IkkeTomPeriodisering<Innvilgelsesperi
             periode = periode,
             verdi = InnvilgelsesperiodeKommando(
                 periode = periode,
-                antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
-                internDeltakelseId = TiltaksdeltakerId.fromString(it.internDeltakelseId),
+                tiltaksdeltakelser = it.tiltaksdeltakelser.map { tiltaksdeltakelse ->
+                    InnvilgetTiltaksdeltakelseKommando(
+                        internDeltakelseId = TiltaksdeltakerId.fromString(tiltaksdeltakelse.internDeltakelseId),
+                        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(tiltaksdeltakelse.antallDagerPerMeldeperiode),
+                    )
+                }.toNonEmptyListOrThrow(),
                 erReversertOpphør = it.erReversertOpphør,
             ),
         )
@@ -63,19 +77,21 @@ fun InnvilgelsesperioderDTO.tilKommando(): IkkeTomPeriodisering<Innvilgelsesperi
 
 /** @param tiltaksdeltakelser Tiltaksdeltakelsene fra saksopplysningene som innvilgelsesperiodene valideres mot. */
 fun Innvilgelsesperioder.tilDTO(tiltaksdeltakelser: Tiltaksdeltakelser): InnvilgelsesperioderDTO {
-    return this.periodisering.perioderMedVerdi.map {
-        val internDeltakelseId = it.verdi.valgtTiltaksdeltakelse.internDeltakelseId
-
+    return this.periodisering.perioderMedVerdi.map { (verdi, periode) ->
         InnvilgelsesperiodeDTO(
-            periode = it.periode.toDTO(),
-            antallDagerPerMeldeperiode = it.verdi.antallDagerPerMeldeperiode.value,
-            internDeltakelseId = internDeltakelseId.toString(),
-            ugyldigTiltaksdeltakelse = if (it.verdi.erReversertOpphør) {
-                null
-            } else {
-                tiltaksdeltakelser.validerInnvilgelsesperiode(it.periode, internDeltakelseId)?.tilDTO()
+            periode = periode.toDTO(),
+            tiltaksdeltakelser = verdi.tiltaksdeltakelser.map {
+                InnvilgetTiltaksdeltakelseDTO(
+                    internDeltakelseId = it.internDeltakelseId.toString(),
+                    antallDagerPerMeldeperiode = it.antallDagerPerMeldeperiode.value,
+                    ugyldigTiltaksdeltakelse = if (verdi.erReversertOpphør) {
+                        null
+                    } else {
+                        tiltaksdeltakelser.validerInnvilgelsesperiode(periode, it.internDeltakelseId)?.tilDTO()
+                    },
+                )
             },
-            erReversertOpphør = it.verdi.erReversertOpphør,
+            erReversertOpphør = verdi.erReversertOpphør,
         )
     }
 }

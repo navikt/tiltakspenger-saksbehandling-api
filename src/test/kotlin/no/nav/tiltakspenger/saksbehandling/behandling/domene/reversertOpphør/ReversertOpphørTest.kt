@@ -98,7 +98,7 @@ class ReversertOpphørTest {
             innvilgelsesperioder.perioder shouldBe listOf(januarTilFebruar, mars)
             innvilgelsesperioder.hentVerdiForDag(januarTilFebruar.fraOgMed)!!.reversertOpphør shouldBe null
             innvilgelsesperioder.hentVerdiForDag(mars.fraOgMed)!!.reversertOpphør shouldBe ReversertOpphør(søknadsvedtak.id)
-            innvilgelsesperioder.hentVerdiForDag(mars.fraOgMed)!!.valgtTiltaksdeltakelse shouldBe opprinneligDeltakelse
+            innvilgelsesperioder.hentVerdiForDag(mars.fraOgMed)!!.valgteTiltaksdeltakelser.single() shouldBe opprinneligDeltakelse
 
             val iverksattFør = MetricRegister.REVERSERT_OPPHØR_IVERKSATT.get()
             val (_, omgjøringsvedtak) = iverksettOmgjøringInnvilgelseForBehandlingId(

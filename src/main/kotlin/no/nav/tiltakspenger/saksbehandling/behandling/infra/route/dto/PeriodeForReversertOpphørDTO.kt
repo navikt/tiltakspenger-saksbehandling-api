@@ -23,22 +23,30 @@ private data class Deltakelse(
     val typeNavn: String,
 )
 
-/** Tilstøtende perioder for samme tiltaksdeltakelse slås sammen, selv om de er opprinnelig innvilget i ulike vedtak. */
+/**
+ * Gir én periode per tiltaksdeltakelse, så periodene for ulike tiltaksdeltakelser kan overlappe.
+ * Tilstøtende perioder for samme tiltaksdeltakelse slås sammen, selv om de er opprinnelig innvilget i ulike vedtak.
+ */
 fun Periodisering<OpprinneligInnvilgelse>.tilPerioderForReversertOpphørDTO(): List<PeriodeForReversertOpphørDTO> {
-    return this
-        .map { opprinnelig, _ ->
-            Deltakelse(
-                internDeltakelseId = opprinnelig.internDeltakelseId.toString(),
-                typeNavn = opprinnelig.tiltaksdeltakelse.typeNavn,
-            )
-        }
-        .slåSammenTilstøtendePerioder()
-        .perioderMedVerdi
-        .map {
-            PeriodeForReversertOpphørDTO(
-                internDeltakelseId = it.verdi.internDeltakelseId,
-                periode = it.periode.toDTO(),
-                typeNavn = it.verdi.typeNavn,
-            )
-        }
+    val internDeltakelseIder = this.verdier.flatMap { opprinnelig -> opprinnelig.tiltaksdeltakelser.map { it.internDeltakelseId } }.distinct()
+
+    return internDeltakelseIder.flatMap { internDeltakelseId ->
+        this
+            .filter { opprinnelig, _ -> opprinnelig.innvilgerTiltaksdeltakelse(internDeltakelseId) }
+            .map { opprinnelig, _ ->
+                Deltakelse(
+                    internDeltakelseId = internDeltakelseId.toString(),
+                    typeNavn = opprinnelig.hentTiltaksdeltakelse(internDeltakelseId)!!.typeNavn,
+                )
+            }
+            .slåSammenTilstøtendePerioder()
+            .perioderMedVerdi
+            .map {
+                PeriodeForReversertOpphørDTO(
+                    internDeltakelseId = it.verdi.internDeltakelseId,
+                    periode = it.periode.toDTO(),
+                    typeNavn = it.verdi.typeNavn,
+                )
+            }
+    }.sortedBy { it.periode.fraOgMed }
 }

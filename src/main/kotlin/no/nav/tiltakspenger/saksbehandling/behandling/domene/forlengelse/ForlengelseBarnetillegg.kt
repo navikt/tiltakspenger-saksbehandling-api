@@ -43,7 +43,7 @@ fun Sak.utledAntallBarn(
 
     val barnFraSøknaden = rammevedtaksliste
         .filter { it.rammebehandling is Søknadsbehandling && it.rammebehandlingsresultat is Søknadsbehandlingsresultat.Innvilgelse }
-        .filter { vedtak -> vedtak.valgteTiltaksdeltakelser!!.verdier.any { it.internDeltakelseId == tiltaksdeltakerId } }
+        .filter { vedtak -> vedtak.valgteTiltaksdeltakelser!!.verdier.flatten().any { it.internDeltakelseId == tiltaksdeltakerId } }
         .maxByOrNull { it.opprettet }
         ?.let { (it.rammebehandling as Søknadsbehandling).søknad.barnetillegg }
         ?: return ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG.left()

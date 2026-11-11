@@ -49,7 +49,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
                 it.beslutter shouldBe null
                 it.valgteTiltaksdeltakelser?.perioderMedVerdi?.size shouldBe 1
                 søknad.shouldBeInstanceOf<InnvilgbarSøknad>()
-                it.valgteTiltaksdeltakelser?.perioderMedVerdi?.firstOrNull()?.verdi?.internDeltakelseId shouldBe søknad.tiltak.tiltaksdeltakerId
+                it.valgteTiltaksdeltakelser?.perioderMedVerdi?.firstOrNull()?.verdi?.single()?.internDeltakelseId shouldBe søknad.tiltak.tiltaksdeltakerId
                 it.valgteTiltaksdeltakelser?.totalPeriode shouldBe søknad.tiltaksdeltakelseperiodeDetErSøktOm()
             }
         }

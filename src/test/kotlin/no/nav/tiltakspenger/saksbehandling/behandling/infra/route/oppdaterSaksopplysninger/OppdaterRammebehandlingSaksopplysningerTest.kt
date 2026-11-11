@@ -118,11 +118,11 @@ class OppdaterRammebehandlingSaksopplysningerTest {
                 revurdering.id,
             )
 
-            body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].ugyldigTiltaksdeltakelse", null)
+            body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].tiltaksdeltakelser[0].ugyldigTiltaksdeltakelse", null)
             (oppdatertRevurdering as Revurdering).saksopplysninger.tiltaksdeltakelser.single() shouldBe endretTiltaksdeltakelse
             val innvilgelsesperioder = (oppdatertRevurdering.resultat as OmgjøringInnvilgelse).innvilgelsesperioder!!
             innvilgelsesperioder.totalPeriode shouldBe søknadsvedtak.periode
-            innvilgelsesperioder.valgteTiltaksdeltagelser.single().verdi shouldBe endretTiltaksdeltakelse
+            innvilgelsesperioder.valgteTiltaksdeltagelser.single().verdi.single() shouldBe endretTiltaksdeltakelse
             oppdatertRevurdering.erFerdigutfylt() shouldBe true
             // Forsikrer oss om at vi ikke har brutt noen init-regler i Sak.kt.
             tac.sakContext.sakService.hentForSakId(sakId = revurdering.sakId).rammebehandlinger[1] shouldBe oppdatertRevurdering
@@ -153,15 +153,15 @@ class OppdaterRammebehandlingSaksopplysningerTest {
                 revurdering.id,
             )
 
-            body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].ugyldigTiltaksdeltakelse.type", "DEKKER_IKKE_PERIODEN")
+            body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].tiltaksdeltakelser[0].ugyldigTiltaksdeltakelse.type", "DEKKER_IKKE_PERIODEN")
             body.shouldContainJsonKeyValue(
-                "$.innvilgelsesperioder[0].ugyldigTiltaksdeltakelse.deltakelsesperiode.tilOgMed",
+                "$.innvilgelsesperioder[0].tiltaksdeltakelser[0].ugyldigTiltaksdeltakelse.deltakelsesperiode.tilOgMed",
                 avbruttTiltaksdeltakelse.periode.tilOgMed.toString(),
             )
             (oppdatertRevurdering as Revurdering).saksopplysninger.tiltaksdeltakelser.single() shouldBe avbruttTiltaksdeltakelse
             val innvilgelsesperioder = (oppdatertRevurdering.resultat as OmgjøringInnvilgelse).innvilgelsesperioder!!
             innvilgelsesperioder.totalPeriode shouldBe søknadsvedtak.periode
-            innvilgelsesperioder.valgteTiltaksdeltagelser.single().verdi shouldBe forrigeTiltaksdeltakelse
+            innvilgelsesperioder.valgteTiltaksdeltagelser.single().verdi.single() shouldBe forrigeTiltaksdeltakelse
             innvilgelsesperioder.ugyldigePerioder(oppdatertRevurdering.saksopplysninger.tiltaksdeltakelser) shouldBe nonEmptyListOf(
                 UgyldigInnvilgelsesperiode.TiltaksdeltakelsenDekkerIkkePerioden(
                     periode = søknadsvedtak.periode,
@@ -200,11 +200,11 @@ class OppdaterRammebehandlingSaksopplysningerTest {
                 behandlingId = revurdering.id,
             )
 
-            body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].ugyldigTiltaksdeltakelse.type", "FINNES_IKKE")
-            body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].ugyldigTiltaksdeltakelse.deltakelsesperiode", null)
+            body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].tiltaksdeltakelser[0].ugyldigTiltaksdeltakelse.type", "FINNES_IKKE")
+            body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].tiltaksdeltakelser[0].ugyldigTiltaksdeltakelse.deltakelsesperiode", null)
 
             val resultat = (oppdatertBehandling as Revurdering).resultat as OmgjøringInnvilgelse
-            resultat.innvilgelsesperioder!!.valgteTiltaksdeltagelser.single().verdi shouldBe forrigeTiltaksdeltakelse
+            resultat.innvilgelsesperioder!!.valgteTiltaksdeltagelser.single().verdi.single() shouldBe forrigeTiltaksdeltakelse
             resultat.innvilgelsesperioder.ugyldigePerioder(oppdatertBehandling.saksopplysninger.tiltaksdeltakelser) shouldBe nonEmptyListOf(
                 UgyldigInnvilgelsesperiode.TiltaksdeltakelsenFinnesIkke(
                     periode = søknadsvedtak.periode,

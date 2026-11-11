@@ -85,13 +85,16 @@ fun Sak.utledAutomatiskForlengelse(
 
     val gjeldende = rammevedtaksliste.innvilgetTidslinje.perioderMedVerdi
         .filter { (vedtak, periode) ->
-            vedtak.valgteTiltaksdeltakelser?.hentVerdiForDag(periode.tilOgMed)?.internDeltakelseId == tiltaksdeltakerId
+            vedtak.innvilgelsesperioder?.periodisering?.hentVerdiForDag(periode.tilOgMed)?.innvilgerTiltaksdeltakelse(tiltaksdeltakerId) == true
         }
         .maxByOrNull { it.periode.tilOgMed }
     if (gjeldende == null) {
         grunner.add(ManueltBehandlesGrunn.FORLENGELSE_FANT_IKKE_GJELDENDE_VEDTAK)
     }
-    val tidligereDeltakelse = gjeldende?.let { (vedtak, periode) -> vedtak.valgteTiltaksdeltakelser!!.hentVerdiForDag(periode.tilOgMed)!! }
+    val tidligereInnvilget = gjeldende?.let { (vedtak, periode) ->
+        vedtak.innvilgelsesperioder!!.periodisering.hentVerdiForDag(periode.tilOgMed)!!.hentTiltaksdeltakelse(tiltaksdeltakerId)!!
+    }
+    val tidligereDeltakelse = tidligereInnvilget?.tiltaksdeltakelse
 
     // Er slutten av innvilgelsen erstattet av et senere vedtak, er vedtaket stanset, opphørt eller omgjort.
     val erStansetEllerOpphørt = gjeldende != null && gjeldende.periode.tilOgMed != gjeldende.verdi.innvilgelsesperioder!!.tilOgMed
@@ -175,7 +178,7 @@ fun Sak.utledAutomatiskForlengelse(
     // Uten grunner til manuell behandling er alle verdiene utledet.
     return AutomatiskForlengelse(
         innvilgelsesperiode = innvilgelsesperiode!!,
-        antallDagerPerMeldeperiode = gjeldende!!.verdi.antallDagerPerMeldeperiode!!.hentVerdiForDag(sisteInnvilgedeDag!!)!!,
+        antallDagerPerMeldeperiode = tidligereInnvilget!!.antallDagerPerMeldeperiode,
         antallBarn = antallBarn!!,
         tiltaksdeltakerId = tiltaksdeltakerId,
         begrunnelse = lagBegrunnelse(
@@ -188,7 +191,7 @@ fun Sak.utledAutomatiskForlengelse(
             antallBarn = antallBarn,
         ),
         fritekstTilVedtaksbrev = lagFritekstTilVedtaksbrev(
-            sisteInnvilgedeDag = sisteInnvilgedeDag,
+            sisteInnvilgedeDag = sisteInnvilgedeDag!!,
             antallBarnIVedtaket = antallBarnIVedtaket,
             antallBarn = antallBarn,
         ),

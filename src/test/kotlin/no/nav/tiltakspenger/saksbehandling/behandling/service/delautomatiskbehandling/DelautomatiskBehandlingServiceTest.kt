@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -78,7 +79,7 @@ class DelautomatiskBehandlingServiceTest {
             oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg(expectedVedtaksperiode)
             oppdatertBehandling.valgteTiltaksdeltakelser shouldBe listOf(
                 PeriodeMedVerdi(
-                    tiltaksdeltakelse,
+                    nonEmptyListOf(tiltaksdeltakelse),
                     expectedVedtaksperiode,
                 ),
             ).tilIkkeTomPeriodisering()
@@ -403,7 +404,7 @@ class DelautomatiskBehandlingServiceTest {
             oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg(tiltaksdeltakelsesperiode)
             oppdatertBehandling.valgteTiltaksdeltakelser shouldBe listOf(
                 PeriodeMedVerdi(
-                    tiltaksdeltakelse,
+                    nonEmptyListOf(tiltaksdeltakelse),
                     tiltaksdeltakelsesperiode,
                 ),
             ).tilIkkeTomPeriodisering()

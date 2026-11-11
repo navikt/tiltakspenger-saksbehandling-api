@@ -262,7 +262,7 @@ data class Sak(
         rammevedtakIder
             .map { this.hentRammevedtakForId(it) }
             .mapNotNull { vedtak -> vedtak.valgteTiltaksdeltakelser?.let { vedtak.opprettet to it } }
-            .flatMap { (opprettet, deltakelser) -> deltakelser.verdier.map { opprettet to it } }
+            .flatMap { (opprettet, deltakelser) -> deltakelser.verdier.flatten().map { opprettet to it } }
             .groupBy { it.second.internDeltakelseId }
             .map { (_, verdi) -> verdi.maxBy { it.first }.second }
             .let { Tiltaksdeltakelser(it) }

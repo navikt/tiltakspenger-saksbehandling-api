@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -140,7 +141,7 @@ class StartRevurderingTest {
             )
             oppdatertOmgjøring.valgteTiltaksdeltakelser shouldBe listOf(
                 PeriodeMedVerdi(
-                    oppdatertOmgjøring.saksopplysninger.tiltaksdeltakelser.single(),
+                    nonEmptyListOf(oppdatertOmgjøring.saksopplysninger.tiltaksdeltakelser.single()),
                     (2 til 9.april(2025)),
                 ),
             ).tilIkkeTomPeriodisering()
@@ -196,7 +197,7 @@ class StartRevurderingTest {
             )
             oppdatertOmgjøring.valgteTiltaksdeltakelser shouldBe listOf(
                 PeriodeMedVerdi(
-                    oppdatertOmgjøring.saksopplysninger.tiltaksdeltakelser.single(),
+                    nonEmptyListOf(oppdatertOmgjøring.saksopplysninger.tiltaksdeltakelser.single()),
                     (2 til 9.april(2025)),
                 ),
             ).tilIkkeTomPeriodisering()

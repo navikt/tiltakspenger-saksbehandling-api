@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør
 
+import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -13,13 +14,19 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
  * Den opprinnelige innvilgelsen av en periode som kan innvilges som [ReversertOpphør].
  *
  * @param vedtakId Det siste vedtaket som innvilget perioden med gyldig tiltaksdeltakelse.
- * @param tiltaksdeltakelse Tiltaksdeltakelsen slik den var registrert i [vedtakId].
+ * @param tiltaksdeltakelser Tiltaksdeltakelsene som var innvilget for perioden, slik de var registrert i [vedtakId].
  */
 data class OpprinneligInnvilgelse(
     val vedtakId: VedtakId,
-    val tiltaksdeltakelse: TiltaksdeltakelseIntern,
+    val tiltaksdeltakelser: NonEmptyList<TiltaksdeltakelseIntern>,
 ) {
-    val internDeltakelseId: TiltaksdeltakerId get() = tiltaksdeltakelse.internDeltakelseId
+    fun hentTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): TiltaksdeltakelseIntern? {
+        return tiltaksdeltakelser.singleOrNull { it.internDeltakelseId == internDeltakelseId }
+    }
+
+    fun innvilgerTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): Boolean {
+        return hentTiltaksdeltakelse(internDeltakelseId) != null
+    }
 }
 
 /**
@@ -38,7 +45,7 @@ fun Rammevedtaksliste.perioderForReversertOpphør(): Periodisering<OpprinneligIn
         .flatMap { vedtak ->
             vedtak.innvilgelsesperioder!!.periodisering.perioderMedVerdi
                 .filterNot { it.verdi.erReversertOpphør }
-                .map { PeriodeMedVerdi(OpprinneligInnvilgelse(vedtak.id, it.verdi.valgtTiltaksdeltakelse), it.periode) }
+                .map { PeriodeMedVerdi(OpprinneligInnvilgelse(vedtak.id, it.verdi.valgteTiltaksdeltakelser), it.periode) }
         }
         // Vedtakslisten er sortert på opprettet, så det sist opprettede vedtaket vinner der periodene overlapper.
         .fold(Periodisering.empty<OpprinneligInnvilgelse>() as Periodisering<OpprinneligInnvilgelse>) { tidslinje, (opprinnelig, periode) ->
