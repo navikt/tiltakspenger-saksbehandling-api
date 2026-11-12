@@ -83,6 +83,7 @@ sealed interface Søknadsbehandlingsresultat : Rammebehandlingsresultat {
 
         init {
             require(!innvilgelsesperioder.harReversertOpphør) { "Reversert opphør kan bare innvilges ved omgjøring" }
+            kreverAtBarnetilleggetGjelderInnvilgelsesperiodene(innvilgelsesperioder, barnetillegg)
         }
 
         /**

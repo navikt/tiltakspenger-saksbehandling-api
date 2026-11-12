@@ -26,8 +26,9 @@ import java.time.LocalDate
  * Valideringen ligger i [create], og ikke i init, siden barnetillegget skal kunne leses fra databasen selv om et barn da ikke lenger har rett i perioden.
  *
  * @param barn Tom liste betyr at det ikke er gitt barnetillegg.
- * @param innvilgelsesperioder Sortert og uten overlapp.
+ * @param innvilgelsesperioder De samme dagene som behandlingens innvilgelsesperioder, sortert, uten overlapp og med tilstøtende perioder slått sammen.
  * Dager mellom periodene er ikke innvilget, og har ikke barnetillegg.
+ * Bruk [slåSammenInnvilgelsesperioder] for å lage dem fra behandlingens innvilgelsesperioder.
  */
 data class BarnetilleggV2(
     val barn: List<BarnMedBarnetillegg>,
@@ -36,8 +37,8 @@ data class BarnetilleggV2(
 ) : Barnetillegg {
     init {
         innvilgelsesperioder.zipWithNext { a, b ->
-            require(a.tilOgMed.isBefore(b.fraOgMed)) {
-                "Innvilgelsesperiodene til barnetillegget må være sortert og uten overlapp, men var $innvilgelsesperioder"
+            require(a.tilOgMed.plusDays(1).isBefore(b.fraOgMed)) {
+                "Innvilgelsesperiodene til barnetillegget må være sortert, uten overlapp og med tilstøtende perioder slått sammen, men var $innvilgelsesperioder"
             }
         }
     }
@@ -66,8 +67,8 @@ data class BarnetilleggV2(
     override fun krympTilPerioder(perioder: List<Periode>): BarnetilleggV2? {
         val krympedePerioder = innvilgelsesperioder.toList()
             .flatMap { it.overlappendePerioder(perioder) }
-            .sortedBy { it.fraOgMed }
             .toNonEmptyListOrNull()
+            ?.slåSammenInnvilgelsesperioder()
             ?: return null
         val krympet = copy(innvilgelsesperioder = krympedePerioder)
         return krympet.copy(
@@ -90,7 +91,7 @@ data class BarnetilleggV2(
     companion object {
         fun utenBarnetillegg(innvilgelsesperioder: NonEmptyList<Periode>): BarnetilleggV2 = BarnetilleggV2(
             barn = emptyList(),
-            innvilgelsesperioder = innvilgelsesperioder.sortedBy { it.fraOgMed }.toNonEmptyListOrNull()!!,
+            innvilgelsesperioder = innvilgelsesperioder.slåSammenInnvilgelsesperioder(),
             begrunnelse = null,
         )
 
@@ -111,7 +112,7 @@ data class BarnetilleggV2(
             val barn = barn.map { it.copy(perioder = it.perioder?.sortedBy { periode -> periode.fraOgMed }?.toNonEmptyListOrNull()) }
             val barnetillegg = BarnetilleggV2(
                 barn = barn,
-                innvilgelsesperioder = innvilgelsesperioder.sortedBy { it.fraOgMed }.toNonEmptyListOrNull()!!,
+                innvilgelsesperioder = innvilgelsesperioder.slåSammenInnvilgelsesperioder(),
                 begrunnelse = begrunnelse,
             )
 
@@ -142,6 +143,13 @@ data class BarnetilleggV2(
         }
     }
 }
+
+/**
+ * Sorterer [this] og slår sammen tilstøtende perioder, slik [BarnetilleggV2.innvilgelsesperioder] krever.
+ * Behandlingens innvilgelsesperioder er ofte delt opp per tiltaksdeltakelse og antall dager, men det har ingen betydning for barnetillegget.
+ */
+fun NonEmptyList<Periode>.slåSammenInnvilgelsesperioder(): NonEmptyList<Periode> =
+    this.leggSammen(godtaOverlapp = false).toNonEmptyListOrNull()!!
 
 /**
  * Grunner til at barnetillegget saksbehandler har valgt, ikke kan lagres.

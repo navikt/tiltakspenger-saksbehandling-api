@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.barnetillegg
 
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -126,6 +127,20 @@ class BarnetilleggV2Test {
             PeriodeMedVerdi(AntallBarn(1), januar),
             PeriodeMedVerdi(AntallBarn(1), mars),
         )
+    }
+
+    @Test
+    fun `tilstøtende innvilgelsesperioder slås sammen`() {
+        val januar = 1 til 31.januar(2026)
+        val februar = 1 til 28.februar(2026)
+        val april = 1 til 30.april(2026)
+
+        val barnetillegg = create(barn(), innvilgelsesperioder = listOf(april, februar, januar)).getOrFail()
+
+        barnetillegg.innvilgelsesperioder shouldBe nonEmptyListOf(1.januar(2026) til 28.februar(2026), april)
+        shouldThrow<IllegalArgumentException> {
+            BarnetilleggV2(barn = emptyList(), innvilgelsesperioder = nonEmptyListOf(januar, februar), begrunnelse = null)
+        }
     }
 
     @Test

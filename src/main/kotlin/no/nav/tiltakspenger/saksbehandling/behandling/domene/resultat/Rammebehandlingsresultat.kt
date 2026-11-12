@@ -6,6 +6,8 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.trekkFra
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.slåSammenInnvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KunneIkkeOppdatereSaksopplysninger
@@ -83,6 +85,18 @@ sealed interface Rammebehandlingsresultat {
 
     sealed interface IkkeValgt : Rammebehandlingsresultat {
         fun vedtakError(): Nothing
+    }
+}
+
+/**
+ * Krever at [BarnetilleggV2] gjelder nøyaktig de samme dagene som [innvilgelsesperioder].
+ * [no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1] har ikke egne innvilgelsesperioder, og sjekkes bare i [Rammebehandlingsresultat.erFerdigutfylt].
+ */
+fun kreverAtBarnetilleggetGjelderInnvilgelsesperiodene(innvilgelsesperioder: Innvilgelsesperioder?, barnetillegg: Barnetillegg?) {
+    if (innvilgelsesperioder == null || barnetillegg !is BarnetilleggV2) return
+    require(barnetillegg.innvilgelsesperioder == innvilgelsesperioder.perioder.slåSammenInnvilgelsesperioder()) {
+        "Barnetillegget må gjelde de samme dagene som innvilgelsesperiodene. " +
+            "Barnetillegget gjelder ${barnetillegg.innvilgelsesperioder}, men innvilgelsesperiodene er ${innvilgelsesperioder.perioder}"
     }
 }
 

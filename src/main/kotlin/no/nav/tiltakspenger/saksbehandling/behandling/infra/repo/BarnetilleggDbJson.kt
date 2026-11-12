@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.slåSammenInnvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
@@ -102,7 +103,7 @@ fun String.toBarnetillegg(): Barnetillegg {
 
         V2 -> BarnetilleggV2(
             barn = json.barn!!.map { it.toDomain() },
-            innvilgelsesperioder = json.innvilgelsesperioder!!.map { it.toDomain() }.toNonEmptyListOrThrow(),
+            innvilgelsesperioder = json.innvilgelsesperioder!!.map { it.toDomain() }.toNonEmptyListOrThrow().slåSammenInnvilgelsesperioder(),
             begrunnelse = begrunnelse,
         )
 
