@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import org.junit.jupiter.api.Test
 
-/** API-et støtter foreløpig bare én tiltaksdeltakelse per innvilgelsesperiode, så flere tiltaksdeltakelser testes mot servicen. */
 class OppdaterRammebehandlingServiceTest {
 
     @Test

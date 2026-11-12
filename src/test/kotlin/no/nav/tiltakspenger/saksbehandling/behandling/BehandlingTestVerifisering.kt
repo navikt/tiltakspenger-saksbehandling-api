@@ -149,13 +149,17 @@ fun String.shouldBeRevurderingDTO(
                 [
             {
                 "internDeltakelseId": "$internDeltakelseId",
-                "ugyldigTiltaksdeltakelse": null,
                 "erReversertOpphør": false,
-                "periode": {
-                "fraOgMed": "$periodeFraOgMed",
-                "tilOgMed": "$periodeTilOgMed"
-                },
-                "antallDagerPerMeldeperiode": $antallDagerPerMeldeperiode
+                "perioder": [
+                    {
+                        "periode": {
+                            "fraOgMed": "$periodeFraOgMed",
+                            "tilOgMed": "$periodeTilOgMed"
+                        },
+                        "antallDagerPerMeldeperiode": $antallDagerPerMeldeperiode,
+                        "ugyldigTiltaksdeltakelse": null
+                    }
+                ]
             }
             ]
                     """.trimIndent()
@@ -388,13 +392,17 @@ fun String.shouldBeSøknadsbehandlingDTO(
             """"innvilgelsesperioder": [
             {
                 "internDeltakelseId": "$internDeltakelseId",
-                "ugyldigTiltaksdeltakelse": null,
                 "erReversertOpphør": false,
-                "periode": {
-                "fraOgMed": "$periodeFraOgMed",
-                "tilOgMed": "$periodeTilOgMed"
-                },
-                "antallDagerPerMeldeperiode": $antallDagerPerMeldeperiode
+                "perioder": [
+                    {
+                        "periode": {
+                            "fraOgMed": "$periodeFraOgMed",
+                            "tilOgMed": "$periodeTilOgMed"
+                        },
+                        "antallDagerPerMeldeperiode": $antallDagerPerMeldeperiode,
+                        "ugyldigTiltaksdeltakelse": null
+                    }
+                ]
             }
             ],"""
         } else {

@@ -133,6 +133,7 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
         val omgjøringsgrad: OmgjøringsgradDTO,
     )
 
+    /** @property innvilgelsesperioder Én innvilgelse per tiltaksdeltakelse, der periodene for ulike tiltaksdeltakelser kan overlappe, se [InnvilgelseForTiltakDTO]. */
     sealed interface RammebehandlingInnvilgelseResultatDTO {
         val innvilgelsesperioder: InnvilgelsesperioderDTO?
         val barnetillegg: BarnetilleggDTO?

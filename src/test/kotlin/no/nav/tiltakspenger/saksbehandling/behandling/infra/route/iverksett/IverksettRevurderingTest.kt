@@ -242,13 +242,17 @@ class IverksettRevurderingTest {
                     [
                         {
                             "internDeltakelseId": "${tiltaksdeltakelse.internDeltakelseId}",
-                            "ugyldigTiltaksdeltakelse": null,
                             "erReversertOpphør": false,
-                            "periode": {
-                                "fraOgMed": "2025-04-01",
-                                "tilOgMed": "2025-04-10"
-                            },
-                            "antallDagerPerMeldeperiode": 10
+                            "perioder": [
+                                {
+                                    "periode": {
+                                        "fraOgMed": "2025-04-01",
+                                        "tilOgMed": "2025-04-10"
+                                    },
+                                    "antallDagerPerMeldeperiode": 10,
+                                    "ugyldigTiltaksdeltakelse": null
+                                }
+                            ]
                         }
                     ]
                 """.trimIndent(),
@@ -293,13 +297,17 @@ class IverksettRevurderingTest {
                     [
                         {
                             "internDeltakelseId": "${tiltaksdeltakelse.internDeltakelseId}",
-                            "ugyldigTiltaksdeltakelse": null,
                             "erReversertOpphør": false,
-                            "periode": {
-                                "fraOgMed": "2025-04-09",
-                                "tilOgMed": "2025-04-11"
-                            },
-                            "antallDagerPerMeldeperiode": 10
+                            "perioder": [
+                                {
+                                    "periode": {
+                                        "fraOgMed": "2025-04-09",
+                                        "tilOgMed": "2025-04-11"
+                                    },
+                                    "antallDagerPerMeldeperiode": 10,
+                                    "ugyldigTiltaksdeltakelse": null
+                                }
+                            ]
                         }
                     ]
                 """.trimIndent(),
@@ -435,13 +443,17 @@ class IverksettRevurderingTest {
                 innvilgelsesperioder = """[
                     {
                         "internDeltakelseId": "${sak.rammevedtaksliste[1].innvilgelsesperioder!!.valgteTiltaksdeltagelser.verdier.single().single().internDeltakelseId}",
-                        "ugyldigTiltaksdeltakelse": null,
                         "erReversertOpphør": false,
-                        "periode": {
-                            "fraOgMed": "2023-01-01",
-                            "tilOgMed": "2023-03-31"
-                        },
-                        "antallDagerPerMeldeperiode": 10
+                        "perioder": [
+                            {
+                                "periode": {
+                                    "fraOgMed": "2023-01-01",
+                                    "tilOgMed": "2023-03-31"
+                                },
+                                "antallDagerPerMeldeperiode": 10,
+                                "ugyldigTiltaksdeltakelse": null
+                            }
+                        ]
                     }
                 ]""",
                 barnetillegg = """

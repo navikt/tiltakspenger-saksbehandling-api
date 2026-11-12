@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.tiltaksdeltakelsenSomForlenges
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilOppdaterBarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperioderDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilHjemmelForOpphørDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -409,24 +409,29 @@ interface OppdaterRammebehandlingBuilder {
      * Jobber på DTO-nivå slik at serverens validering av periodene fortsatt nås av tester som tester den.
      * Perioder som er reversert opphør beholder deltakelsen sin, siden den ikke skal finnes i saksopplysningene.
      */
-    private fun Innvilgelsesperioder.tilDTOMedDeltakelseFra(behandling: Rammebehandling): List<InnvilgelsesperiodeDTO> {
+    private fun Innvilgelsesperioder.tilDTOMedDeltakelseFra(behandling: Rammebehandling): InnvilgelsesperioderDTO {
         val kjenteDeltakelser = behandling.saksopplysninger.tiltaksdeltakelser.value
-        return tilDTO(behandling.saksopplysninger.tiltaksdeltakelser).map { dto ->
+        return tilDTO(behandling.saksopplysninger.tiltaksdeltakelser).flatMap { dto ->
             if (dto.erReversertOpphør || kjenteDeltakelser.any { it.internDeltakelseId.toString() == dto.internDeltakelseId }) {
-                dto
+                listOf(dto)
             } else {
-                val dekkende = kjenteDeltakelser.firstOrNull { deltakelse ->
-                    deltakelse.lukketPeriode?.inneholderHele(dto.periode.toDomain()) == true
+                dto.perioder.map { periode ->
+                    val dekkende = kjenteDeltakelser.firstOrNull { deltakelse ->
+                        deltakelse.lukketPeriode?.inneholderHele(periode.periode.toDomain()) == true
+                    }
+                    val erstatning = dekkende ?: kjenteDeltakelser.firstOrNull()
+                    // Uten kjente deltakelser lar vi dto-en stå, slik at serveren svarer med sin egen feil.
+                    dto.copy(
+                        internDeltakelseId = erstatning?.internDeltakelseId?.toString() ?: dto.internDeltakelseId,
+                        perioder = listOf(periode),
+                    )
                 }
-                val erstatning = dekkende ?: kjenteDeltakelser.firstOrNull()
-                // Uten kjente deltakelser lar vi dto-en stå, slik at serveren svarer med sin egen feil.
-                if (erstatning == null) dto else dto.copy(internDeltakelseId = erstatning.internDeltakelseId.toString())
             }
         }
     }
 
     private fun innvilgelseJson(
-        innvilgelsesperioder: List<InnvilgelsesperiodeDTO>,
+        innvilgelsesperioder: InnvilgelsesperioderDTO,
         barnetilleggJson: String,
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
@@ -437,18 +442,7 @@ interface OppdaterRammebehandlingBuilder {
         return """            
             "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
             "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
-            "innvilgelsesperioder": [${
-            innvilgelsesperioder.joinToString(",") {
-                """
-                            {
-                                "periode": ${serialize(it.periode)},
-                                "antallDagerPerMeldeperiode": ${it.antallDagerPerMeldeperiode},
-                                "internDeltakelseId": ${it.internDeltakelseId.medQuotes()},
-                                "erReversertOpphør": ${it.erReversertOpphør}
-                            }                  
-                """.trimIndent()
-            }
-        }],
+            "innvilgelsesperioder": ${serialize(innvilgelsesperioder)},
             "barnetillegg": $barnetilleggJson,
         "skalSendeVedtaksbrev": $skalSendeVedtaksbrev,
         "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
