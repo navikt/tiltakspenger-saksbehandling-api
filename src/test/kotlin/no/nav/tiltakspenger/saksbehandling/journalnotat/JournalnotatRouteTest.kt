@@ -111,7 +111,7 @@ class JournalnotatRouteTest {
                 begrunnelseVilkårsvurdering = Begrunnelse.createOrThrow(begrunnelse),
                 skalJournalføreNotat = SkalJournalføreNotat(vilkårsvurdering = true, barnetillegg = true),
                 innvilgelsesperioder = innvilgelsesperioder,
-                barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder)
+                barnetillegg = Barnetillegg.utenBarnetillegg()
                     .copy(begrunnelse = Begrunnelse.createOrThrow(barnetilleggBegrunnelse)),
             )
             behandling.skalJournalføreNotat shouldBe SkalJournalføreNotat(vilkårsvurdering = true, barnetillegg = true)

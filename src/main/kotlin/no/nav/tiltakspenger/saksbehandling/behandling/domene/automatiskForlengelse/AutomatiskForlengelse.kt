@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskForlenge
 import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
@@ -43,13 +44,12 @@ data class AutomatiskForlengelse(
     val begrunnelse: Begrunnelse,
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev,
 ) {
-    init {
-        require(barnetillegg.periodisering is SammenhengendePeriodisering && barnetillegg.periodisering.totalPeriode == innvilgelsesperiode) {
-            "Barnetillegget må dekke hele innvilgelsesperioden $innvilgelsesperiode, men dekket ${barnetillegg.periodisering.perioder}"
+    val antallBarn: SammenhengendePeriodisering<AntallBarn> = barnetillegg.periodisering(nonEmptyListOf(innvilgelsesperiode)).let {
+        require(it is SammenhengendePeriodisering && it.totalPeriode == innvilgelsesperiode) {
+            "Barnetillegget må dekke hele innvilgelsesperioden $innvilgelsesperiode, men dekket ${it.perioder}"
         }
+        it
     }
-
-    val antallBarn: SammenhengendePeriodisering<AntallBarn> = barnetillegg.periodisering as SammenhengendePeriodisering
 }
 
 /**
@@ -173,7 +173,7 @@ fun Sak.utledAutomatiskForlengelse(
     grunner.toNonEmptyListOrNull()?.let { return it.left() }
 
     // Uten grunner til manuell behandling er alle verdiene utledet.
-    val antallBarn = barnetillegg!!.periodisering as SammenhengendePeriodisering
+    val antallBarn = barnetillegg!!.periodisering(nonEmptyListOf(innvilgelsesperiode!!)) as SammenhengendePeriodisering
     return AutomatiskForlengelse(
         innvilgelsesperiode = innvilgelsesperiode!!,
         antallDagerPerMeldeperiode = tidligereInnvilget!!.antallDagerPerMeldeperiode,

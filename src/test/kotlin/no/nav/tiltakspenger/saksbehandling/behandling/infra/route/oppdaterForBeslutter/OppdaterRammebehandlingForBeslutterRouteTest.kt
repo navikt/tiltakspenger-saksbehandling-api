@@ -299,7 +299,7 @@ class OppdaterRammebehandlingForBeslutterRouteTest {
             begrunnelseVilkårsvurdering = Begrunnelse.createOrThrow(begrunnelse),
             skalJournalføreNotat = skalJournalføreNotat,
             innvilgelsesperioder = innvilgelsesperioder,
-            barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder)
+            barnetillegg = Barnetillegg.utenBarnetillegg()
                 .copy(begrunnelse = barnetilleggBegrunnelse?.let { Begrunnelse.createOrThrow(it) }),
         )
         sendSøknadsbehandlingTilBeslutningForBehandlingId(tac, sak.id, behandling.id, saksbehandler)

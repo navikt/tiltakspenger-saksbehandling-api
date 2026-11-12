@@ -165,7 +165,7 @@ class DelautomatiskForlengelseServiceTest {
                 it.antallDagerPerMeldeperiode.shouldNotBeNull().verdier.distinct() shouldBe
                     vedtak.antallDagerPerMeldeperiode.shouldNotBeNull().verdier.distinct()
                 it.barnetillegg.shouldNotBeNull().also { barnetillegg ->
-                    barnetillegg.periodisering.verdier.distinct() shouldBe listOf(AntallBarn.ZERO)
+                    it.barnetilleggsperioder.shouldNotBeNull().verdier.distinct() shouldBe listOf(AntallBarn.ZERO)
                     barnetillegg.begrunnelse.shouldBeNull()
                 }
             }
@@ -232,7 +232,7 @@ class DelautomatiskForlengelseServiceTest {
         manueltBehandlesGrunner.shouldBeEmpty()
         innvilgelsesperioder.shouldNotBeNull().totalPeriode shouldBe (6.mai(2025) til 30.juni(2025))
         this.antallDagerPerMeldeperiode.shouldNotBeNull().verdier.distinct() shouldBe listOf(AntallDagerForMeldeperiode(antallDagerPerMeldeperiode))
-        barnetillegg.shouldNotBeNull().periodisering.also {
+        barnetilleggsperioder.shouldNotBeNull().also {
             it.totalPeriode shouldBe (6.mai(2025) til 30.juni(2025))
             it.verdier.distinct() shouldBe listOf(antallBarn)
         }
@@ -643,7 +643,7 @@ class DelautomatiskForlengelseServiceTest {
             ).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
                 it.manueltBehandlesGrunner.shouldBeEmpty()
-                it.barnetillegg.shouldNotBeNull().periodisering.perioderMedVerdi.toList() shouldBe listOf(
+                it.barnetilleggsperioder.shouldNotBeNull().perioderMedVerdi.toList() shouldBe listOf(
                     PeriodeMedVerdi(AntallBarn(2), 6.mai(2025) til 31.mai(2025)),
                     PeriodeMedVerdi(AntallBarn(1), 1.juni(2025) til 30.juni(2025)),
                 )
@@ -674,7 +674,7 @@ class DelautomatiskForlengelseServiceTest {
                 ),
             ).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
-                it.barnetillegg.shouldNotBeNull().periodisering.perioderMedVerdi.toList() shouldBe listOf(
+                it.barnetilleggsperioder.shouldNotBeNull().perioderMedVerdi.toList() shouldBe listOf(
                     PeriodeMedVerdi(AntallBarn(3), 6.mai(2025) til 31.mai(2025)),
                     PeriodeMedVerdi(AntallBarn(2), 1.juni(2025) til 14.juni(2025)),
                     PeriodeMedVerdi(AntallBarn(1), 15.juni(2025) til 30.juni(2025)),
@@ -694,7 +694,7 @@ class DelautomatiskForlengelseServiceTest {
         withTestApplicationContextAndPostgres { tac ->
             forlengOgBehandleAutomatisk(tac, barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.juni(2009)))).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
-                it.barnetillegg.shouldNotBeNull().periodisering.perioderMedVerdi.toList() shouldBe listOf(
+                it.barnetilleggsperioder.shouldNotBeNull().perioderMedVerdi.toList() shouldBe listOf(
                     PeriodeMedVerdi(AntallBarn(1), 6.mai(2025) til 31.mai(2025)),
                     PeriodeMedVerdi(AntallBarn.ZERO, 1.juni(2025) til 30.juni(2025)),
                 )

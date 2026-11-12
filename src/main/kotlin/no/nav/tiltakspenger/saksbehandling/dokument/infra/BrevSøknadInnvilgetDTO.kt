@@ -42,7 +42,7 @@ suspend fun Rammevedtak.tilInnvilgetSøknadsbrev(
         saksnummer = saksnummer,
         forhåndsvisning = false,
         innvilgelsesperioder = this.rammebehandling.innvilgelsesperioder!!,
-        barnetillegg = this.rammebehandling.barnetillegg!!.periodisering,
+        barnetillegg = this.rammebehandling.barnetilleggsperioder!!,
     )
 }
 

@@ -81,7 +81,6 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
 
         init {
             require(innvilgelsesperioder?.harReversertOpphør != true) { "Reversert opphør kan bare innvilges ved omgjøring" }
-            kreverAtBarnetilleggetGjelderInnvilgelsesperiodene(innvilgelsesperioder, barnetillegg)
         }
 
         /**
@@ -143,7 +142,6 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
             if (kanIkkeUtledeBarnetillegg) {
                 require(harEndretBarnetillegg) { "Barnetillegget kan ikke utledes, så saksbehandler må ha valgt det" }
             }
-            kreverAtBarnetilleggetGjelderInnvilgelsesperiodene(innvilgelsesperioder, barnetillegg)
         }
 
         /**
@@ -151,8 +149,8 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
          * Er null når saksbehandler har endret barnetillegget, eller forlengelsen ikke har fått en periode ennå.
          */
         fun barnSomFyller16(forlengetVedtak: Rammevedtak): BarnSomFyller16? = when {
-            harEndretBarnetillegg || barnetillegg == null -> null
-            else -> forlenger.barnSomFyller16(forlengetVedtak, barnetillegg.periodisering)
+            harEndretBarnetillegg -> null
+            else -> barnetilleggsperioder?.let { forlenger.barnSomFyller16(forlengetVedtak, it) }
         }
 
         /**

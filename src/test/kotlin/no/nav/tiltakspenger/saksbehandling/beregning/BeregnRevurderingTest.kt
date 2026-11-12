@@ -21,7 +21,6 @@ import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.utenBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -71,7 +70,7 @@ class BeregnRevurderingTest {
                     antallBarn = AntallBarn(antallBarnFraSøknad),
                 )
             } else {
-                Barnetillegg.utenBarnetillegg(periodeForSøknadsbehandling)
+                Barnetillegg.utenBarnetillegg()
             },
         ).first.genererMeldeperioder(clock)
 
@@ -103,7 +102,7 @@ class BeregnRevurderingTest {
         revurdering: Revurdering,
         innvilgelsesperiode: Periode = vedtaksperiodeRevurdering,
         antallDagerPerMeldeperiode: Int = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperiode),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
     ): OppdaterRevurderingKommando.Innvilgelse {
         return oppdaterRevurderingInnvilgelseKommando(
             sakId = revurdering.sakId,
@@ -145,7 +144,7 @@ class BeregnRevurderingTest {
             behandlingId = kommando.behandlingId,
             vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
-            barnetilleggsperioder = kommando.barnetillegg.periodisering,
+            barnetilleggsperioder = kommando.barnetilleggsperioder,
             beregningstidspunkt = nå(fixedClock),
         )
 
@@ -187,7 +186,7 @@ class BeregnRevurderingTest {
             behandlingId = kommando.behandlingId,
             vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
-            barnetilleggsperioder = kommando.barnetillegg.periodisering,
+            barnetilleggsperioder = kommando.barnetilleggsperioder,
             beregningstidspunkt = nå(fixedClock),
         )
 
@@ -213,7 +212,7 @@ class BeregnRevurderingTest {
             behandlingId = kommando.behandlingId,
             vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
-            barnetilleggsperioder = kommando.barnetillegg.periodisering,
+            barnetilleggsperioder = kommando.barnetilleggsperioder,
             beregningstidspunkt = nå(fixedClock),
         ).shouldBeNull()
     }
@@ -236,7 +235,7 @@ class BeregnRevurderingTest {
             behandlingId = kommando.behandlingId,
             vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
-            barnetilleggsperioder = kommando.barnetillegg.periodisering,
+            barnetilleggsperioder = kommando.barnetilleggsperioder,
             beregningstidspunkt = nå(fixedClock),
         )!!.size shouldBe 1
     }
@@ -277,7 +276,7 @@ class BeregnRevurderingTest {
             behandlingId = kommando.behandlingId,
             vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
-            barnetilleggsperioder = kommando.barnetillegg.periodisering,
+            barnetilleggsperioder = kommando.barnetilleggsperioder,
             beregningstidspunkt = nå(fixedClock),
         )
 
@@ -332,7 +331,7 @@ class BeregnRevurderingTest {
             behandlingId = kommando.behandlingId,
             vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
-            barnetilleggsperioder = kommando.barnetillegg.periodisering,
+            barnetilleggsperioder = kommando.barnetilleggsperioder,
             beregningstidspunkt = nå(fixedClock),
         )
 

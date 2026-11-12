@@ -65,7 +65,7 @@ class ForlengelseRouteTest {
 
     private suspend fun ApplicationTestBuilder.iverksettVedtakSomKanForlenges(
         tac: TestApplicationContext,
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(nonEmptyListOf(vedtaksperiode)),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
         barnFraSøknad: List<BarnetilleggFraSøknad> = emptyList(),
         barnetilleggForSøknad: ((Søknad) -> Barnetillegg)? = null,
     ): Pair<Sak, Rammevedtak> {
@@ -148,7 +148,7 @@ class ForlengelseRouteTest {
     }
 
     private fun Rammebehandling.barnetilleggsperioder(): List<PeriodeMedVerdi<AntallBarn>> =
-        barnetillegg.shouldNotBeNull().periodisering.perioderMedVerdi.toList()
+        barnetilleggsperioder.shouldNotBeNull().perioderMedVerdi.toList()
 
     private fun feil(status: Int) = ForventetRespons(status, contentType = "application/json; charset=UTF-8")
 

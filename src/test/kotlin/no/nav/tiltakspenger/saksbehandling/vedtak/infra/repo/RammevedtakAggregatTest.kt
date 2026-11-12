@@ -201,7 +201,7 @@ class RammevedtakAggregatTest {
             begrunnelseVilkårsvurdering = Begrunnelse.createOrThrow("Begrunnelse for vilkårsvurderingen"),
             skalJournalføreNotat = skalJournalføreNotat,
             innvilgelsesperioder = innvilgelsesperioder,
-            barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder)
+            barnetillegg = Barnetillegg.utenBarnetillegg()
                 .copy(begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for barnetillegg")),
         )
         sendSøknadsbehandlingTilBeslutningForBehandlingId(tac, sak.id, behandling.id)

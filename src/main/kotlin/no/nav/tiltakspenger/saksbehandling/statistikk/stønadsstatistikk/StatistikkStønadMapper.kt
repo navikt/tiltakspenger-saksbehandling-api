@@ -27,7 +27,7 @@ fun genererStønadsstatistikkForRammevedtak(
             )
         }
 
-        val barnetillegg = vedtak.barnetillegg?.periodisering?.mapNotNull { bt ->
+        val barnetillegg = vedtak.barnetilleggsperioder?.mapNotNull { bt ->
             if (bt.verdi.value > 0) {
                 StatistikkStønadDTO.BarnetilleggStatistikk(
                     fraOgMed = bt.periode.fraOgMed,

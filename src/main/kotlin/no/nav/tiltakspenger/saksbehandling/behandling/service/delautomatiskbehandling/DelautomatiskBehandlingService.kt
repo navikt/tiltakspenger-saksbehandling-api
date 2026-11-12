@@ -193,7 +193,7 @@ class DelautomatiskBehandlingService(
             behandlingId = behandling.id,
             vedtaksperiode = innvilgelsesperiode,
             innvilgelsesperioder = oppdaterKommando.tilInnvilgelseperioder(behandling),
-            barnetilleggsperioder = barnetillegg.periodisering,
+            barnetilleggsperioder = oppdaterKommando.barnetilleggsperioder,
             beregningstidspunkt = nå,
         )?.let {
             val navkontor = navkontorService.hentNavkontor(
@@ -414,7 +414,6 @@ class DelautomatiskBehandlingService(
         // Søknaden er allerede vurdert til å kunne behandles automatisk, så alle barna har rett i hele perioden.
         return BarnetilleggV2(
             barn = behandling.søknad.barnetillegg.map { it.tilBarnMedBarnetillegg(behandling.søknad.id) },
-            innvilgelsesperioder = nonEmptyListOf(periode),
             begrunnelse = null,
         )
     }

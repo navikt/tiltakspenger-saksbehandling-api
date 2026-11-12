@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.barnetillegg
 
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -49,7 +48,8 @@ class BarnetilleggV2Test {
             begrunnelse = null,
         )
 
-    private fun BarnetilleggV2.antallPerPeriode() = periodisering.perioderMedVerdi.toList().map { it.periode to it.verdi.value }
+    private fun BarnetilleggV2.antallPerPeriode(innvilgelsesperioder: List<Periode> = listOf(innvilgelsesperiode)) =
+        periodisering(innvilgelsesperioder.toNonEmptyListOrNull()!!).perioderMedVerdi.toList().map { it.periode to it.verdi.value }
 
     @Test
     fun `uten barn gir 0 barn i hele innvilgelsesperioden`() {
@@ -84,7 +84,7 @@ class BarnetilleggV2Test {
         val barnetillegg = create(barn(perioder = listOf(1 til 31.mars(2026), 1 til 15.januar(2026)))).getOrFail()
 
         barnetillegg.barn.single().perioder shouldBe nonEmptyListOf(1 til 15.januar(2026), 1 til 31.mars(2026))
-        barnetillegg.perioderMedBarnetillegg(barnetillegg.barn.single()) shouldBe listOf(1 til 15.januar(2026), 1 til 31.mars(2026))
+        barnetillegg.perioderMedBarnetillegg(barnetillegg.barn.single(), nonEmptyListOf(innvilgelsesperiode)) shouldBe listOf(1 til 15.januar(2026), 1 til 31.mars(2026))
         barnetillegg.antallPerPeriode() shouldBe listOf(
             (1 til 15.januar(2026)) to 1,
             (16.januar(2026) til 28.februar(2026)) to 0,
@@ -122,8 +122,7 @@ class BarnetilleggV2Test {
 
         val barnetillegg = create(barn(), innvilgelsesperioder = listOf(mars, januar)).getOrFail()
 
-        barnetillegg.innvilgelsesperioder shouldBe nonEmptyListOf(januar, mars)
-        barnetillegg.periodisering.perioderMedVerdi.toList() shouldBe listOf(
+        barnetillegg.periodisering(nonEmptyListOf(mars, januar)).perioderMedVerdi.toList() shouldBe listOf(
             PeriodeMedVerdi(AntallBarn(1), januar),
             PeriodeMedVerdi(AntallBarn(1), mars),
         )
@@ -135,23 +134,40 @@ class BarnetilleggV2Test {
         val februar = 1 til 28.februar(2026)
         val april = 1 til 30.april(2026)
 
-        val barnetillegg = create(barn(), innvilgelsesperioder = listOf(april, februar, januar)).getOrFail()
+        val innvilgelsesperioder = listOf(april, februar, januar)
+        val barnetillegg = create(barn(perioder = listOf(15.januar(2026) til 15.februar(2026))), innvilgelsesperioder = innvilgelsesperioder).getOrFail()
 
-        barnetillegg.innvilgelsesperioder shouldBe nonEmptyListOf(1.januar(2026) til 28.februar(2026), april)
-        shouldThrow<IllegalArgumentException> {
-            BarnetilleggV2(barn = emptyList(), innvilgelsesperioder = nonEmptyListOf(januar, februar), begrunnelse = null)
-        }
+        barnetillegg.antallPerPeriode(innvilgelsesperioder) shouldBe listOf(
+            (1 til 14.januar(2026)) to 0,
+            (15.januar(2026) til 15.februar(2026)) to 1,
+            (16 til 28.februar(2026)) to 0,
+            april to 0,
+        )
+        barnetillegg.perioderMedBarnetillegg(barnetillegg.barn.single(), innvilgelsesperioder.toNonEmptyListOrNull()!!) shouldBe
+            listOf(15.januar(2026) til 15.februar(2026))
+    }
+
+    @Test
+    fun `barnetillegget utledes fra innvilgelsesperiodene det brukes med`() {
+        val barnetillegg = create(barn(fødselsdato = 1.mars(2010))).getOrFail()
+
+        barnetillegg.antallPerPeriode(listOf(1 til 28.februar(2026))) shouldBe listOf((1 til 28.februar(2026)) to 1)
+        barnetillegg.antallPerPeriode(listOf(1.februar(2026) til 30.april(2026))) shouldBe listOf(
+            (1 til 28.februar(2026)) to 1,
+            (1.mars(2026) til 30.april(2026)) to 0,
+        )
     }
 
     @Test
     fun `krymping beholder barna`() {
         val barnetillegg = create(barn()).getOrFail()
+        val februarOgMars = listOf(1.februar(2026) til 31.mars(2026))
 
-        val krympet = barnetillegg.krympTilPerioder(listOf(1.februar(2026) til 30.april(2026)))!!
+        val krympet = barnetillegg.krympTilPerioder(februarOgMars)!!
 
         krympet.barn shouldBe barnetillegg.barn
-        krympet.antallPerPeriode() shouldBe listOf((1.februar(2026) til 31.mars(2026)) to 1)
-        barnetillegg.krympTilPerioder(listOf(1 til 30.april(2026))) shouldBe null
+        krympet.antallPerPeriode(februarOgMars) shouldBe listOf((1.februar(2026) til 31.mars(2026)) to 1)
+        barnetillegg.krympTilPerioder(emptyList()) shouldBe null
     }
 
     @Test
@@ -163,14 +179,15 @@ class BarnetilleggV2Test {
         val flerePerioder = barn(fornavn = "Flere", perioder = listOf(1 til 15.januar(2026), 15.februar(2026) til 31.mars(2026)))
         val barnetillegg = create(helePerioden, valgtPeriode, bareIMars, fødtIMars, flerePerioder).getOrFail()
 
-        val krympet = barnetillegg.krympTilPerioder(listOf(1.januar(2026) til 28.februar(2026)))!!
+        val januarOgFebruar = listOf(1.januar(2026) til 28.februar(2026))
+        val krympet = barnetillegg.krympTilPerioder(januarOgFebruar)!!
 
         krympet.barn shouldBe listOf(
             helePerioden,
             valgtPeriode.copy(perioder = nonEmptyListOf(1.januar(2026) til 28.februar(2026))),
             flerePerioder.copy(perioder = nonEmptyListOf(1 til 15.januar(2026), 15 til 28.februar(2026))),
         )
-        krympet.antallPerPeriode() shouldBe listOf(
+        krympet.antallPerPeriode(januarOgFebruar) shouldBe listOf(
             (1 til 15.januar(2026)) to 3,
             (16.januar(2026) til 14.februar(2026)) to 2,
             (15 til 28.februar(2026)) to 3,
@@ -179,7 +196,7 @@ class BarnetilleggV2Test {
             helePerioden,
             valgtPeriode.copy(perioder = nonEmptyListOf(16.januar(2026) til 14.februar(2026))),
         )
-        BarnetilleggV2.create(krympet.barn, krympet.innvilgelsesperioder, null).getOrFail() shouldBe krympet
+        BarnetilleggV2.create(krympet.barn, januarOgFebruar.toNonEmptyListOrNull()!!, null).getOrFail() shouldBe krympet
     }
 
     @Test
@@ -250,7 +267,7 @@ class BarnetilleggV2Test {
             .leftOrNull().shouldBeInstanceOf<UgyldigBarnetillegg.IngenDagerMedBarnetillegg>()
 
         create(barn(perioder = listOf(15.januar(2026) til 15.mars(2026))), innvilgelsesperioder = listOf(januar, mars))
-            .getOrFail().antallPerPeriode() shouldBe listOf(
+            .getOrFail().antallPerPeriode(listOf(januar, mars)) shouldBe listOf(
             (1 til 14.januar(2026)) to 0,
             (15 til 31.januar(2026)) to 1,
             (1 til 15.mars(2026)) to 1,

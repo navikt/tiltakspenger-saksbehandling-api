@@ -162,7 +162,7 @@ interface StartSøknadsbehandlingBuilder {
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         // Utledes fra innvilgelsesperiodene slik at flyten registrerer samme deltakelse som innvilges; en frisk deltakelse ville fått ny id.
         tiltaksdeltakelse: TiltaksdeltakelseIntern = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.flatten().distinct().single(),
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
         clock: Clock = fixedClock,
         prioriteringBegrunnelse: String? = null,
         barnFraSøknad: List<BarnetilleggFraSøknad> = emptyList(),

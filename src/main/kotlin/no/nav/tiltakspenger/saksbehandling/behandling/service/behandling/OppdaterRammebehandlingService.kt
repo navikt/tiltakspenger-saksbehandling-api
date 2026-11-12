@@ -153,7 +153,7 @@ class OppdaterRammebehandlingService(
                 behandlingId = kommando.behandlingId,
                 vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
                 innvilgelsesperioder = kommando.tilInnvilgelseperioder(rammebehandling),
-                barnetilleggsperioder = kommando.barnetillegg.periodisering,
+                barnetilleggsperioder = kommando.barnetilleggsperioder,
                 beregningstidspunkt = beregningstidspunkt,
             )
 
@@ -166,7 +166,7 @@ class OppdaterRammebehandlingService(
                         behandling = rammebehandling,
                         perioderForReversertOpphør = rammevedtaksliste.perioderForReversertOpphør(),
                     ),
-                    barnetilleggsperioder = kommando.barnetillegg.periodisering,
+                    barnetilleggsperioder = kommando.barnetilleggsperioder,
                     beregningstidspunkt = beregningstidspunkt,
                 )
             }
@@ -175,7 +175,7 @@ class OppdaterRammebehandlingService(
                 behandlingId = kommando.behandlingId,
                 vedtaksperiode = utledetForlengelse!!.forlengelsesperiode,
                 innvilgelsesperioder = utledetForlengelse.innvilgelsesperioder.tilInnvilgelsesperioder(rammebehandling),
-                barnetilleggsperioder = utledetForlengelse.barnetillegg.periodisering,
+                barnetilleggsperioder = utledetForlengelse.barnetilleggsperioder,
                 beregningstidspunkt = beregningstidspunkt,
             )
 

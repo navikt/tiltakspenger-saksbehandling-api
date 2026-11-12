@@ -104,18 +104,23 @@ class BarnetilleggDbJsonTest {
                     perioder = nonEmptyListOf(6 til 10.januar(2025), 13 til 17.januar(2025)),
                 ),
             ),
-            innvilgelsesperioder = nonEmptyListOf(periode),
             begrunnelse = Begrunnelse.createOrThrow("To barn"),
         )
 
         val json = barnetillegg.toDbJson()
 
         json shouldBe
-            """{"innvilgelsesperioder":[{"fraOgMed":"2025-01-06","tilOgMed":"2025-01-19"}],""" +
-            """"barn":[{"fnr":"${fnr.verdi}","fornavn":"Ola","mellomnavn":null,"etternavn":"Nordmann","fødselsdato":"2020-01-01","kilde":"SØKNAD","søknadId":"soknad_01KAAAAAAAAAAAAAAAAAAAAAAA","perioder":null},""" +
+            """{"barn":[{"fnr":"${fnr.verdi}","fornavn":"Ola","mellomnavn":null,"etternavn":"Nordmann","fødselsdato":"2020-01-01","kilde":"SØKNAD","søknadId":"soknad_01KAAAAAAAAAAAAAAAAAAAAAAA","perioder":null},""" +
             """{"fnr":null,"fornavn":"Kari","mellomnavn":"Mellom","etternavn":"Nordmann","fødselsdato":"2021-01-01","kilde":"SAKSBEHANDLER","søknadId":null,"perioder":[{"fraOgMed":"2025-01-06","tilOgMed":"2025-01-10"},{"fraOgMed":"2025-01-13","tilOgMed":"2025-01-17"}]}],""" +
             """"begrunnelse":"To barn","versjon":"V2"}"""
         json.toBarnetillegg().shouldBeInstanceOf<BarnetilleggV2>() shouldBe barnetillegg
+    }
+
+    @Test
+    fun `V2 lagret med innvilgelsesperioder før de ble utledet fra behandlingen, leses uten dem`() {
+        val json = """{"innvilgelsesperioder":[{"fraOgMed":"2025-01-06","tilOgMed":"2025-01-19"}],"barn":[],"begrunnelse":null,"versjon":"V2"}"""
+
+        json.toBarnetillegg() shouldBe BarnetilleggV2(barn = emptyList(), begrunnelse = null)
     }
 
     @Test

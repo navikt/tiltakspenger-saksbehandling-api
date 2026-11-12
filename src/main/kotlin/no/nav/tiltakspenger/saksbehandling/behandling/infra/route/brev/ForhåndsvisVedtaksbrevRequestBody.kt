@@ -236,5 +236,6 @@ private fun OppdaterBarnetilleggDTO?.tilAntallBarn(innvilgelsesperioder: Innvilg
     // TODO: Fjernes når alle saksbehandlere har frontenden som sender barna.
     if (perioder != null) return if (perioder.isEmpty()) null else perioder.tilPeriodisering() as IkkeTomPeriodisering
     if (barn.isNullOrEmpty()) return null
-    return tilBarnetillegg(innvilgelsesperioder.tilKommando().perioder).periodisering
+    val perioder = innvilgelsesperioder.tilKommando().perioder
+    return tilBarnetillegg(perioder).periodisering(perioder)
 }

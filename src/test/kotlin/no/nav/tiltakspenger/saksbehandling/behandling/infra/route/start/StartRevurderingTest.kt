@@ -131,8 +131,8 @@ class StartRevurderingTest {
             oppdatertOmgjøring.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
             oppdatertOmgjøring.vedtaksperiode shouldBe (1 til 10.april(2025))
             oppdatertOmgjøring.innvilgelsesperioder!!.totalPeriode shouldBe (2 til 9.april(2025))
-            oppdatertOmgjøring.barnetillegg!!.periodisering shouldBe SammenhengendePeriodisering(
-                rammevedtakSøknadsbehandling.barnetillegg!!.periodisering.verdier.single(),
+            oppdatertOmgjøring.barnetilleggsperioder!! shouldBe SammenhengendePeriodisering(
+                rammevedtakSøknadsbehandling.barnetilleggsperioder!!.verdier.single(),
                 (2 til 9.april(2025)),
             )
             oppdatertOmgjøring.barnetillegg!!.begrunnelse shouldBe rammevedtakSøknadsbehandling.rammebehandling.barnetillegg!!.begrunnelse
@@ -185,8 +185,8 @@ class StartRevurderingTest {
             oppdatertOmgjøring.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
             oppdatertOmgjøring.vedtaksperiode shouldBe (2 til 9.april(2025))
             oppdatertOmgjøring.innvilgelsesperioder!!.totalPeriode shouldBe (2 til 9.april(2025))
-            oppdatertOmgjøring.barnetillegg!!.periodisering shouldBe SammenhengendePeriodisering(
-                rammevedtakSøknadsbehandling.barnetillegg!!.periodisering.verdier.single(),
+            oppdatertOmgjøring.barnetilleggsperioder!! shouldBe SammenhengendePeriodisering(
+                rammevedtakSøknadsbehandling.barnetilleggsperioder!!.verdier.single(),
                 (2 til 9.april(2025)),
             )
             oppdatertOmgjøring.barnetillegg!!.begrunnelse shouldBe rammevedtakSøknadsbehandling.rammebehandling.barnetillegg!!.begrunnelse

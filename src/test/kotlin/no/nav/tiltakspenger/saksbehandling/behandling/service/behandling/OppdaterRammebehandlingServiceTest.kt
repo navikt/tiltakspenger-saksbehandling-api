@@ -41,7 +41,7 @@ class OppdaterRammebehandlingServiceTest {
                             ),
                         ),
                     ),
-                    barnetillegg = Barnetillegg.utenBarnetillegg(nonEmptyListOf(periode)),
+                    barnetillegg = Barnetillegg.utenBarnetillegg(),
                 ),
             ).getOrFail()
 
@@ -73,7 +73,7 @@ class OppdaterRammebehandlingServiceTest {
                             ),
                         ),
                     ),
-                    barnetillegg = Barnetillegg.utenBarnetillegg(nonEmptyListOf(periode)),
+                    barnetillegg = Barnetillegg.utenBarnetillegg(),
                 ),
             ).leftOrNull() shouldBe KanIkkeOppdatereBehandling.ForMangeDagerPerMeldeperiode(nonEmptyListOf(periode))
 

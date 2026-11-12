@@ -61,8 +61,6 @@ sealed interface Omgjøringsresultat : Revurderingsresultat {
                 "En omgjøring må omgjøre minst ett vedtak"
             }
 
-            kreverAtBarnetilleggetGjelderInnvilgelsesperiodene(innvilgelsesperioder, barnetillegg)
-
             if (innvilgelsesperioder != null) {
                 require(vedtaksperiode.inneholderHele(innvilgelsesperioder.totalPeriode)) {
                     "Vedtaksperioden ($vedtaksperiode) må inneholde alle innvilgelsesperiodene ($innvilgelsesperioder)"

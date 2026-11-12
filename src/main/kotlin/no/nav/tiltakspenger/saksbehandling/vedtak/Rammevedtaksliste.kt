@@ -161,7 +161,7 @@ data class Rammevedtaksliste(
      */
     val barnetilleggsperioder: Periodisering<AntallBarn> by lazy {
         innvilgetTidslinje.flatMapPeriodisering {
-            it.verdi.barnetillegg?.periodisering ?: Periodisering(
+            it.verdi.barnetilleggsperioder ?: Periodisering(
                 AntallBarn(0),
                 it.periode,
             )

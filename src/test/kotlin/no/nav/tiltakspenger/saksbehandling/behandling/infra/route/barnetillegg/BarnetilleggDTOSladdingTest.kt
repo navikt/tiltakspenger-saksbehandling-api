@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
@@ -46,7 +47,8 @@ class BarnetilleggDTOSladdingTest {
 
     @Test
     fun `V1 har ingen barn å sladde, og får bare begrunnelsen sladdet`() {
-        val barnetilleggDTO = ObjectMother.barnetillegg(begrunnelse = Begrunnelse.createOrThrow("Begrunnelse")).toBarnetilleggDTO()
+        val barnetilleggDTO = ObjectMother.barnetillegg(begrunnelse = Begrunnelse.createOrThrow("Begrunnelse"))
+            .toBarnetilleggDTO(nonEmptyListOf(ObjectMother.vedtaksperiode()))
 
         barnetilleggDTO.sladdet() shouldBe barnetilleggDTO.copy(begrunnelse = SladdetVerdi)
     }
@@ -61,5 +63,5 @@ class BarnetilleggDTOSladdingTest {
             ),
             ObjectMother.barnMedBarnetillegg(fnr = null, fornavn = "Manuelt", fødselsdato = 1.januar(2020)),
         ),
-    ).toBarnetilleggDTO()
+    ).toBarnetilleggDTO(nonEmptyListOf(ObjectMother.vedtaksperiode()))
 }

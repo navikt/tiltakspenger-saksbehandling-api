@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.utenBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
@@ -55,7 +54,7 @@ interface IverksettRevurderingBuilder {
         oppdatertTiltaksdeltakelse: TiltaksdeltakelseIntern = revurderingInnvilgelsesperioder.valgteTiltaksdeltagelser.verdier.flatten().distinct().single(),
         saksbehandler: Saksbehandler = saksbehandler(),
         beslutter: Saksbehandler = beslutter(),
-        barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(revurderingInnvilgelsesperioder.perioder),
+        barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(),
         fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
         begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
     ): Tuple5<Sak, Søknad, Rammevedtak, Rammevedtak, RammebehandlingDTOJson> {
@@ -181,7 +180,7 @@ interface IverksettRevurderingBuilder {
         søknadsbehandlingInnvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         omgjøringInnvilgelsesperioder: Innvilgelsesperioder = søknadsbehandlingInnvilgelsesperioder,
         omgjøringVedtaksperiode: Periode? = null,
-        barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(omgjøringInnvilgelsesperioder.totalPeriode),
+        barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(),
         fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
         begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
     ): Tuple5<Sak, Søknad, Rammevedtak, Rammevedtak, RammebehandlingDTOJson>? {
@@ -241,7 +240,7 @@ interface IverksettRevurderingBuilder {
         saksbehandler: Saksbehandler = saksbehandler(),
         beslutter: Saksbehandler = beslutter(),
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
-        barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+        barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(),
         vedtaksperiode: Periode = tac.behandlingContext.rammevedtakRepo.hentForVedtakId(
             rammevedtakIdSomOmgjøres,
         )!!.gjeldendeTotalPeriode!!,
@@ -297,7 +296,7 @@ interface IverksettRevurderingBuilder {
         saksbehandler: Saksbehandler = saksbehandler(),
         beslutter: Saksbehandler = beslutter(),
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
-        barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+        barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(),
         vedtaksperiode: Periode = tac.behandlingContext.rammevedtakRepo.hentForVedtakId(
             rammevedtakIdSomOmgjøres,
         )!!.gjeldendeTotalPeriode!!,
@@ -460,7 +459,7 @@ interface IverksettRevurderingBuilder {
         saksbehandler: Saksbehandler = saksbehandler(),
         beslutter: Saksbehandler = beslutter(),
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
-        barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+        barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(),
         fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
         begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
     ): Triple<Sak, Rammevedtak, RammebehandlingDTOJson> {

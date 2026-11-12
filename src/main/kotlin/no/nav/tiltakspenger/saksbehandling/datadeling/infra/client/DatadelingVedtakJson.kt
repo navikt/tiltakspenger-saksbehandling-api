@@ -3,7 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -108,7 +109,7 @@ fun Rammevedtak.toDatadelingJson(): String {
         omgjortAvRammevedtakId = if (this.omgjortAvRammevedtak.size == 1 && this.omgjortAvRammevedtak.first().omgjøringsgrad == Omgjøringsgrad.HELT) this.omgjortAvRammevedtak.first().rammevedtakId.toString() else null,
         rettighet = when (this.rammebehandlingsresultat) {
             is Rammebehandlingsresultat.Innvilgelse -> {
-                if (barnetillegg?.harBarnetillegg == true) {
+                if (barnetilleggsperioder?.harBarnetillegg() == true) {
                     DatadelingRettighet.TILTAKSPENGER_OG_BARNETILLEGG
                 } else {
                     DatadelingRettighet.TILTAKSPENGER
@@ -124,7 +125,7 @@ fun Rammevedtak.toDatadelingJson(): String {
             is Rammebehandlingsresultat.IkkeValgt -> this.rammebehandlingsresultat.vedtakError()
         },
         opprettet = opprettet.toString(),
-        barnetillegg = barnetillegg?.toDatadelingBarnetillegg(),
+        barnetillegg = barnetilleggsperioder?.toDatadelingBarnetillegg(),
         valgteHjemlerHarIkkeRettighet = this.toValgteHjemlerHarIkkeRettighetListe(),
         omgjørRammevedtak = this.omgjørRammevedtak.map { it.toDatadelingOmgjøringsperiode() },
         omgjortAvRammevedtak = this.omgjortAvRammevedtak.map { it.toDatadelingOmgjøringsperiode() },
@@ -140,9 +141,11 @@ private fun Omgjøringsperiode.toDatadelingOmgjøringsperiode() = DatadelingVedt
     },
 )
 
-private fun Barnetillegg.toDatadelingBarnetillegg(): DatadelingVedtakJson.Barnetillegg? = if (harBarnetillegg) {
+private fun IkkeTomPeriodisering<AntallBarn>.harBarnetillegg(): Boolean = any { it.verdi != AntallBarn.ZERO }
+
+private fun IkkeTomPeriodisering<AntallBarn>.toDatadelingBarnetillegg(): DatadelingVedtakJson.Barnetillegg? = if (harBarnetillegg()) {
     DatadelingVedtakJson.Barnetillegg(
-        perioder = this.periodisering.perioderMedVerdi.toList().map {
+        perioder = this.perioderMedVerdi.toList().map {
             DatadelingVedtakJson.BarnetilleggPeriode(
                 antallBarn = it.verdi.value,
                 periode = DatadelingVedtakJson.BarnetilleggPeriode.Periode(

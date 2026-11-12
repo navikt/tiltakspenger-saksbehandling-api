@@ -151,7 +151,7 @@ class DelautomatiskOmgjøringServiceTest {
                 omgjøring.innvilgelsesperioder.shouldNotBeNull().totalPeriode shouldBe (5.januar(2025) til 15.mai(2025))
                 it.antallDagerPerMeldeperiode.shouldNotBeNull().verdier.distinct() shouldBe
                     vedtak.antallDagerPerMeldeperiode.shouldNotBeNull().verdier.distinct()
-                it.barnetillegg.shouldNotBeNull().periodisering.totalPeriode shouldBe (5.januar(2025) til 15.mai(2025))
+                it.barnetilleggsperioder.shouldNotBeNull().totalPeriode shouldBe (5.januar(2025) til 15.mai(2025))
             }
 
             taRammebehandlinger(tac, listOf(sak.id to revurdering.id), saksbehandler = ObjectMother.beslutter()).shouldNotBeNull()
@@ -417,7 +417,7 @@ class DelautomatiskOmgjøringServiceTest {
                 omgjøring.omgjørRammevedtak.rammevedtakIDer shouldBe listOf(søknadsvedtak.id, revurderingsvedtak.id)
                 omgjøring.vedtaksperiode shouldBe (5.januar(2025) til 30.juni(2025))
                 omgjøring.innvilgelsesperioder.shouldNotBeNull().perioder shouldBe listOf(5.januar(2025) til 15.mars(2025))
-                it.barnetillegg.shouldNotBeNull().periodisering.totalPeriode shouldBe (5.januar(2025) til 15.mars(2025))
+                it.barnetilleggsperioder.shouldNotBeNull().totalPeriode shouldBe (5.januar(2025) til 15.mars(2025))
             }
 
             taRammebehandlinger(tac, listOf(sak.id to revurdering.id), saksbehandler = ObjectMother.beslutter()).shouldNotBeNull()
@@ -486,9 +486,9 @@ class DelautomatiskOmgjøringServiceTest {
             omgjøring.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
             omgjøring.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().also {
                 it.barn shouldBe listOf(barnet)
-                it.innvilgelsesperioder shouldBe nonEmptyListOf(5.januar(2025) til 15.mars(2025))
+                omgjøring.innvilgelsesperioder!!.totalPeriode shouldBe (5.januar(2025) til 15.mars(2025))
                 it.begrunnelse.shouldNotBeNull().verdi shouldBe "Barnetillegg fra revurderingen"
-                BarnetilleggV2.create(it.barn, it.innvilgelsesperioder, it.begrunnelse).getOrFail() shouldBe it
+                BarnetilleggV2.create(it.barn, omgjøring.innvilgelsesperioder!!.perioder, it.begrunnelse).getOrFail() shouldBe it
             }
 
             taRammebehandlinger(tac, listOf(sak.id to revurdering.id), saksbehandler = ObjectMother.beslutter()).shouldNotBeNull()
@@ -522,16 +522,17 @@ class DelautomatiskOmgjøringServiceTest {
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
-            tac.hentRevurdering(sak, revurdering).barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().also {
+            val omgjøring = tac.hentRevurdering(sak, revurdering)
+            omgjøring.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().also {
                 it.barn shouldBe listOf(
                     søknad.barnetillegg.single().tilBarnMedBarnetillegg(søknad.id),
                     kari.copy(perioder = nonEmptyListOf(1.mai(2025) til 15.mai(2025))),
                 )
-                it.periodisering.perioderMedVerdi.toList() shouldBe listOf(
+                omgjøring.barnetilleggsperioder!!.perioderMedVerdi.toList() shouldBe listOf(
                     PeriodeMedVerdi(AntallBarn(1), 5.januar(2025) til 30.april(2025)),
                     PeriodeMedVerdi(AntallBarn(2), 1.mai(2025) til 15.mai(2025)),
                 )
-                BarnetilleggV2.create(it.barn, it.innvilgelsesperioder, it.begrunnelse).getOrFail() shouldBe it
+                BarnetilleggV2.create(it.barn, omgjøring.innvilgelsesperioder!!.perioder, it.begrunnelse).getOrFail() shouldBe it
             }
         }
     }
@@ -562,14 +563,15 @@ class DelautomatiskOmgjøringServiceTest {
 
             tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
-            tac.hentRevurdering(sak, revurdering).barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().also {
+            val omgjøring = tac.hentRevurdering(sak, revurdering)
+            omgjøring.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().also {
                 it.barn shouldBe listOf(kari.copy(perioder = nonEmptyListOf(5.januar(2025) til 31.januar(2025), 1.april(2025) til 15.juni(2025))))
-                it.periodisering.perioderMedVerdi.toList() shouldBe listOf(
+                omgjøring.barnetilleggsperioder!!.perioderMedVerdi.toList() shouldBe listOf(
                     PeriodeMedVerdi(AntallBarn(1), 5.januar(2025) til 31.januar(2025)),
                     PeriodeMedVerdi(AntallBarn(0), 1.februar(2025) til 31.mars(2025)),
                     PeriodeMedVerdi(AntallBarn(1), 1.april(2025) til 15.juni(2025)),
                 )
-                BarnetilleggV2.create(it.barn, it.innvilgelsesperioder, it.begrunnelse).getOrFail() shouldBe it
+                BarnetilleggV2.create(it.barn, omgjøring.innvilgelsesperioder!!.perioder, it.begrunnelse).getOrFail() shouldBe it
             }
         }
     }

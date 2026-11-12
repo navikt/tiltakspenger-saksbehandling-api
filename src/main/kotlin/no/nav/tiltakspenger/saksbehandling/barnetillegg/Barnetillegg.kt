@@ -10,23 +10,28 @@ import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
  * Uansett versjon gir [periodisering] antall barn med barnetillegg per dag i innvilgelsesperiodene, og det er den beregning, brev og statistikk bygger på.
  *
  * - [BarnetilleggV1]: antall barn per periode, uten å vite hvilke barn, og kun for eldre data.
- * - [BarnetilleggV2]: de valgte barna, som antall barn utledes fra.
+ * - [BarnetilleggV2]: de valgte barna, som antall barn utledes fra sammen med innvilgelsesperiodene.
  */
 sealed interface Barnetillegg {
-    val periodisering: IkkeTomPeriodisering<AntallBarn>
     val begrunnelse: Begrunnelse?
 
-    val harBarnetillegg: Boolean
-        get() = periodisering.any { it.verdi != AntallBarn.ZERO }
+    /**
+     * Antall barn med barnetillegg per dag i [innvilgelsesperioder], som må være behandlingens innvilgelsesperioder.
+     * [BarnetilleggV1] har lagret antallet per periode, og gir det uendret.
+     */
+    fun periodisering(innvilgelsesperioder: NonEmptyList<Periode>): IkkeTomPeriodisering<AntallBarn>
 
-    fun harBarnetilleggIPeriode(periode: Periode): Boolean {
-        return periodisering.overlappendePeriode(periode).any { it.verdi != AntallBarn.ZERO }
+    fun harBarnetillegg(innvilgelsesperioder: NonEmptyList<Periode>): Boolean {
+        return periodisering(innvilgelsesperioder).any { it.verdi != AntallBarn.ZERO }
     }
 
-    /** Gir null dersom ingen av dagene i barnetillegget er innenfor [perioder]. */
+    /**
+     * Tilpasser barnetillegget til [perioder], som er nye innvilgelsesperioder innenfor de tidligere.
+     * Gir null dersom ingen av dagene i barnetillegget er innenfor [perioder].
+     */
     fun krympTilPerioder(perioder: List<Periode>): Barnetillegg?
 
     companion object {
-        fun utenBarnetillegg(perioder: NonEmptyList<Periode>): BarnetilleggV2 = BarnetilleggV2.utenBarnetillegg(perioder)
+        fun utenBarnetillegg(): BarnetilleggV2 = BarnetilleggV2.utenBarnetillegg()
     }
 }

@@ -106,7 +106,7 @@ interface StartRevurderingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
         // Utledes fra innvilgelsesperiodene slik at flyten registrerer samme deltakelse som innvilges; en frisk deltakelse ville fått ny id.
         tiltaksdeltakelse: TiltaksdeltakelseIntern = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.flatten().distinct().single(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),

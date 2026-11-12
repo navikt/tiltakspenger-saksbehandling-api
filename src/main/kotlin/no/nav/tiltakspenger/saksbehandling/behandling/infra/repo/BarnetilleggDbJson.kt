@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
 import arrow.core.toNonEmptyListOrNull
-import arrow.core.toNonEmptyListOrThrow
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
@@ -14,7 +13,6 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.slåSammenInnvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
@@ -23,12 +21,15 @@ import java.time.LocalDate
 /**
  * Barnetillegget lagres som json i samme kolonne for begge versjoner, og leses med denne klassen.
  * Json uten [versjon] er [BarnetilleggV1], der [value] er antall barn per periode, se [BarnetilleggV1DbJson].
- * [BarnetilleggV2] har versjon "V2", og lagrer barna og innvilgelsesperiodene, se [BarnetilleggV2DbJson].
- * Antall barn utledes fra dem.
+ * [BarnetilleggV2] har versjon "V2", og lagrer barna, se [BarnetilleggV2DbJson].
+ * Antall barn utledes fra dem og behandlingens innvilgelsesperioder.
+ *
+ * @param innvilgelsesperioder Ble lagret for V2 før de ble utledet fra behandlingen, og leses ikke.
  */
 private data class BarnetilleggDbJson(
     val versjon: String? = null,
     val value: List<BarnetilleggPeriodeMedVerdi>? = null,
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     val innvilgelsesperioder: List<PeriodeDbJson>? = null,
     val barn: List<BarnDbJson>? = null,
     val begrunnelse: String?,
@@ -41,7 +42,6 @@ private data class BarnetilleggV1DbJson(
 )
 
 private data class BarnetilleggV2DbJson(
-    val innvilgelsesperioder: List<PeriodeDbJson>,
     val barn: List<BarnDbJson>,
     val begrunnelse: String?,
 ) {
@@ -103,7 +103,6 @@ fun String.toBarnetillegg(): Barnetillegg {
 
         V2 -> BarnetilleggV2(
             barn = json.barn!!.map { it.toDomain() },
-            innvilgelsesperioder = json.innvilgelsesperioder!!.map { it.toDomain() }.toNonEmptyListOrThrow().slåSammenInnvilgelsesperioder(),
             begrunnelse = begrunnelse,
         )
 
@@ -123,7 +122,6 @@ fun Barnetillegg.toDbJson(): String = when (this) {
     )
 
     is BarnetilleggV2 -> BarnetilleggV2DbJson(
-        innvilgelsesperioder = this.innvilgelsesperioder.map { it.toDbJson() },
         barn = this.barn.map { it.toDbJson() },
         begrunnelse = this.begrunnelse?.verdi,
     )

@@ -17,86 +17,69 @@ import java.time.LocalDate
 
 /**
  * Barnetillegg for barna saksbehandler har valgt.
- * Antall barn per dag ([periodisering]) utledes fra barna, slik at det alltid er sporbart hvilke barn det er gitt barnetillegg for.
+ * Antall barn per dag ([periodisering]) utledes fra barna og behandlingens innvilgelsesperioder, slik at det alltid er sporbart hvilke barn det er gitt barnetillegg for.
+ * Innvilgelsesperiodene lagres ikke i barnetillegget, så de kan ikke komme ut av synk med behandlingens.
  *
- * Et barn gir barnetillegg de dagene i [innvilgelsesperioder] som både er innenfor barnets valgte perioder
+ * Et barn gir barnetillegg de dagene i innvilgelsesperiodene som både er innenfor barnets valgte perioder
  * (hele innvilgelsesperioden når de ikke er valgt) og barnets rett, se [perioderMedBarnetillegg].
  * Slik avkortes barnetillegget automatisk for barn som blir født eller fyller 16 år i innvilgelsesperioden.
  *
  * Valideringen ligger i [create], og ikke i init, siden barnetillegget skal kunne leses fra databasen selv om et barn da ikke lenger har rett i perioden.
  *
  * @param barn Tom liste betyr at det ikke er gitt barnetillegg.
- * @param innvilgelsesperioder De samme dagene som behandlingens innvilgelsesperioder, sortert, uten overlapp og med tilstøtende perioder slått sammen.
- * Dager mellom periodene er ikke innvilget, og har ikke barnetillegg.
- * Bruk [slåSammenInnvilgelsesperioder] for å lage dem fra behandlingens innvilgelsesperioder.
  */
 data class BarnetilleggV2(
     val barn: List<BarnMedBarnetillegg>,
-    val innvilgelsesperioder: NonEmptyList<Periode>,
     override val begrunnelse: Begrunnelse?,
 ) : Barnetillegg {
-    init {
-        innvilgelsesperioder.zipWithNext { a, b ->
-            require(a.tilOgMed.plusDays(1).isBefore(b.fraOgMed)) {
-                "Innvilgelsesperiodene til barnetillegget må være sortert, uten overlapp og med tilstøtende perioder slått sammen, men var $innvilgelsesperioder"
-            }
-        }
-    }
 
-    val totalPeriode: Periode = innvilgelsesperioder.first().fraOgMed til innvilgelsesperioder.last().tilOgMed
-
-    override val periodisering: IkkeTomPeriodisering<AntallBarn> by lazy {
-        val perioderMedBarn = barn.flatMap { perioderMedBarnetillegg(it) }
-        innvilgelsesperioder
+    /** Dager mellom [innvilgelsesperioder] er ikke innvilget, og har ikke barnetillegg. */
+    override fun periodisering(innvilgelsesperioder: NonEmptyList<Periode>): IkkeTomPeriodisering<AntallBarn> {
+        val sammenslåtte = innvilgelsesperioder.slåSammenInnvilgelsesperioder()
+        val perioderMedBarn = barn.flatMap { perioderMedBarnetillegg(it, sammenslåtte) }
+        return sammenslåtte
             .flatMap { perioderMedBarn.periodiserAntall(it).perioderMedVerdi }
             .tilIkkeTomPeriodisering()
     }
 
-    /** Dagene i [innvilgelsesperioder] der [barn] gir barnetillegg. */
-    fun perioderMedBarnetillegg(barn: BarnMedBarnetillegg): List<Periode> {
-        return (barn.perioder ?: listOf(totalPeriode))
+    /** Dagene i [innvilgelsesperioder] der [barn] gir barnetillegg, sortert og med tilstøtende perioder slått sammen. */
+    fun perioderMedBarnetillegg(barn: BarnMedBarnetillegg, innvilgelsesperioder: NonEmptyList<Periode>): List<Periode> {
+        val sammenslåtte = innvilgelsesperioder.slåSammenInnvilgelsesperioder()
+        return (barn.perioder ?: sammenslåtte)
             .mapNotNull { it.overlappendePeriode(barn.periodeMedRett) }
-            .flatMap { it.overlappendePerioder(innvilgelsesperioder) }
-            .sortedBy { it.fraOgMed }
+            .flatMap { it.overlappendePerioder(sammenslåtte) }
+            .leggSammen()
     }
 
     /**
-     * Snevrer inn innvilgelsesperiodene, og klipper barnas valgte perioder til dem, slik at resultatet fortsatt er gyldig etter [create].
+     * Klipper barnas valgte perioder til de nye innvilgelsesperiodene [perioder], slik at resultatet fortsatt er gyldig etter [create].
      * Barn som da ikke gir barnetillegg noen dag, fjernes.
      */
     override fun krympTilPerioder(perioder: List<Periode>): BarnetilleggV2? {
-        val krympedePerioder = innvilgelsesperioder.toList()
-            .flatMap { it.overlappendePerioder(perioder) }
-            .toNonEmptyListOrNull()
-            ?.slåSammenInnvilgelsesperioder()
-            ?: return null
-        val krympet = copy(innvilgelsesperioder = krympedePerioder)
-        return krympet.copy(
+        val innvilgelsesperioder = perioder.toNonEmptyListOrNull()?.slåSammenInnvilgelsesperioder() ?: return null
+        val totalPeriode = innvilgelsesperioder.totalPeriode()
+        return copy(
             barn = barn.mapNotNull { barn ->
                 val klippet = when (barn.perioder) {
                     null -> barn
 
                     else -> barn.copy(
                         perioder = barn.perioder
-                            .mapNotNull { it.overlappendePeriode(krympet.totalPeriode) }
+                            .mapNotNull { it.overlappendePeriode(totalPeriode) }
                             .toNonEmptyListOrNull()
                             ?: return@mapNotNull null,
                     )
                 }
-                klippet.takeIf { krympet.perioderMedBarnetillegg(it).isNotEmpty() }
+                klippet.takeIf { perioderMedBarnetillegg(it, innvilgelsesperioder).isNotEmpty() }
             },
         )
     }
 
     companion object {
-        fun utenBarnetillegg(innvilgelsesperioder: NonEmptyList<Periode>): BarnetilleggV2 = BarnetilleggV2(
-            barn = emptyList(),
-            innvilgelsesperioder = innvilgelsesperioder.slåSammenInnvilgelsesperioder(),
-            begrunnelse = null,
-        )
+        fun utenBarnetillegg(): BarnetilleggV2 = BarnetilleggV2(barn = emptyList(), begrunnelse = null)
 
         /**
-         * Lager barnetillegget saksbehandler har valgt, og validerer at:
+         * Lager barnetillegget saksbehandler har valgt for behandlingens [innvilgelsesperioder], og validerer at:
          * - barn lagt til av saksbehandler har fornavn og etternavn
          * - samme barn ikke er valgt flere ganger
          * - valgte perioder ikke overlapper hverandre, og er innenfor innvilgelsesperioden og barnets rett
@@ -110,11 +93,8 @@ data class BarnetilleggV2(
             begrunnelse: Begrunnelse?,
         ): Either<UgyldigBarnetillegg, BarnetilleggV2> {
             val barn = barn.map { it.copy(perioder = it.perioder?.sortedBy { periode -> periode.fraOgMed }?.toNonEmptyListOrNull()) }
-            val barnetillegg = BarnetilleggV2(
-                barn = barn,
-                innvilgelsesperioder = innvilgelsesperioder.slåSammenInnvilgelsesperioder(),
-                begrunnelse = begrunnelse,
-            )
+            val barnetillegg = BarnetilleggV2(barn = barn, begrunnelse = begrunnelse)
+            val totalPeriode = innvilgelsesperioder.totalPeriode()
 
             barn.forEachIndexed { index, it ->
                 if (it.kilde is BarnMedBarnetillegg.Kilde.Saksbehandler && (it.fornavn.isNullOrBlank() || it.etternavn.isNullOrBlank())) {
@@ -127,13 +107,13 @@ data class BarnetilleggV2(
                 if (perioder.zipWithNext().any { (a, b) -> a.overlapperMed(b) }) {
                     return UgyldigBarnetillegg.OverlappendePerioder(it).left()
                 }
-                if (perioder.any { periode -> !barnetillegg.totalPeriode.inneholderHele(periode) }) {
-                    return UgyldigBarnetillegg.PeriodeUtenforInnvilgelsen(it, barnetillegg.totalPeriode).left()
+                if (perioder.any { periode -> !totalPeriode.inneholderHele(periode) }) {
+                    return UgyldigBarnetillegg.PeriodeUtenforInnvilgelsen(it, totalPeriode).left()
                 }
                 if (perioder.any { periode -> !it.periodeMedRett.inneholderHele(periode) }) {
                     return UgyldigBarnetillegg.PeriodeUtenforBarnetsRett(it).left()
                 }
-                if (barnetillegg.perioderMedBarnetillegg(it).isEmpty()) {
+                if (barnetillegg.perioderMedBarnetillegg(it, innvilgelsesperioder).isEmpty()) {
                     return UgyldigBarnetillegg.IngenDagerMedBarnetillegg(it).left()
                 }
             }
@@ -145,11 +125,13 @@ data class BarnetilleggV2(
 }
 
 /**
- * Sorterer [this] og slår sammen tilstøtende perioder, slik [BarnetilleggV2.innvilgelsesperioder] krever.
+ * Sorterer [this] og slår sammen tilstøtende perioder.
  * Behandlingens innvilgelsesperioder er ofte delt opp per tiltaksdeltakelse og antall dager, men det har ingen betydning for barnetillegget.
  */
-fun NonEmptyList<Periode>.slåSammenInnvilgelsesperioder(): NonEmptyList<Periode> =
+private fun NonEmptyList<Periode>.slåSammenInnvilgelsesperioder(): NonEmptyList<Periode> =
     this.leggSammen(godtaOverlapp = false).toNonEmptyListOrNull()!!
+
+private fun NonEmptyList<Periode>.totalPeriode(): Periode = minOf { it.fraOgMed } til maxOf { it.tilOgMed }
 
 /**
  * Grunner til at barnetillegget saksbehandler har valgt, ikke kan lagres.

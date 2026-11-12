@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.utenBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
@@ -113,7 +112,7 @@ interface SakMother : MotherOfAllMothers {
             ),
             oppslagstidspunkt = iDag.atStartOfDay(),
         ),
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(vedtaksperiode),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
             innvilgelsesperiodeKommando(
@@ -278,7 +277,7 @@ interface SakMother : MotherOfAllMothers {
         saksbehandler: Saksbehandler = saksbehandler(),
         vedtaksperiode: Periode = vedtaksperiode(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(vedtaksperiode),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
         kanSendeInnHelgForMeldekort: Boolean = false,
         correlationId: CorrelationId = CorrelationId.generate(),
     ): Triple<Sak, Vedtak, Rammebehandling> {

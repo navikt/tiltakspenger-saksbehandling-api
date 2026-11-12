@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
@@ -31,6 +32,10 @@ sealed interface OppdaterBehandlingKommando {
     sealed interface Innvilgelse {
         val innvilgelsesperioder: IkkeTomPeriodisering<InnvilgelsesperiodeKommando>
         val barnetillegg: Barnetillegg
+
+        /** Antall barn med barnetillegg per dag i [innvilgelsesperioder], utledet fra [barnetillegg]. */
+        val barnetilleggsperioder: IkkeTomPeriodisering<AntallBarn>
+            get() = barnetillegg.periodisering(innvilgelsesperioder.perioder)
 
         fun tilInnvilgelseperioder(behandling: Rammebehandling): Innvilgelsesperioder {
             return innvilgelsesperioder.tilInnvilgelsesperioder(behandling)

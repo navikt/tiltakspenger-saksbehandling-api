@@ -62,7 +62,7 @@ suspend fun Rammevedtak.tilForlengelseBrev(
         saksnummer = saksnummer,
         forhåndsvisning = false,
         innvilgelsesperioder = innvilgelsesperioder!!,
-        barnetillegg = barnetillegg?.periodisering,
+        barnetillegg = barnetilleggsperioder,
         barnSomFyller16 = barnSomFyller16,
     )
 }

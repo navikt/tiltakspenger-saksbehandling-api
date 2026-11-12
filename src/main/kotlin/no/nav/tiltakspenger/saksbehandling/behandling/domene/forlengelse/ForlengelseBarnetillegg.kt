@@ -44,7 +44,7 @@ fun Sak.utledBarnetilleggForForlengelse(
 ): Either<ManueltBehandlesGrunn, Barnetillegg> {
     val antallBarnIVedtaket = rammevedtaksliste.barnetilleggsperioder.hentVerdiForDag(sisteInnvilgedeDag) ?: AntallBarn.ZERO
     if (antallBarnIVedtaket == AntallBarn.ZERO) {
-        return BarnetilleggV2.utenBarnetillegg(nonEmptyListOf(innvilgelsesperiode)).right()
+        return BarnetilleggV2.utenBarnetillegg().right()
     }
 
     val gjeldendeBarnetillegg = rammevedtaksliste.innvilgetTidslinje.hentVerdiForDag(sisteInnvilgedeDag)?.barnetillegg
@@ -57,18 +57,16 @@ fun Sak.utledBarnetilleggForForlengelse(
         }
 
         val barn = gjeldendeBarnetillegg.barn
-            .filter { barn -> gjeldendeBarnetillegg.perioderMedBarnetillegg(barn).any { it.inneholder(sisteInnvilgedeDag) } }
+            .filter { barn ->
+                gjeldendeBarnetillegg.perioderMedBarnetillegg(barn, nonEmptyListOf(sisteInnvilgedeDag til sisteInnvilgedeDag)).isNotEmpty()
+            }
             .filter { it.periodeMedRett.overlapperMed(innvilgelsesperiode) }
             .map { it.copy(perioder = null) }
-        val barnetillegg = BarnetilleggV2(
-            barn = barn,
-            innvilgelsesperioder = nonEmptyListOf(innvilgelsesperiode),
-            begrunnelse = null,
-        )
+        val barnetillegg = BarnetilleggV2(barn = barn, begrunnelse = null)
         return barnetillegg.copy(
             begrunnelse = lagBegrunnelseBarnetillegg(
                 antallBarnIVedtaket = antallBarnIVedtaket,
-                antallBarn = barnetillegg.periodisering as SammenhengendePeriodisering,
+                antallBarn = barnetillegg.periodisering(nonEmptyListOf(innvilgelsesperiode)) as SammenhengendePeriodisering,
             ),
         ).right()
     }

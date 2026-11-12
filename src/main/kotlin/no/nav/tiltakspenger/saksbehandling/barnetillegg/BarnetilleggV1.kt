@@ -19,9 +19,12 @@ import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
  * Kan ikke migreres til [BarnetilleggV2], siden vi ikke vet hvilke barn antallet gjelder.
  */
 data class BarnetilleggV1(
-    override val periodisering: IkkeTomPeriodisering<AntallBarn>,
+    val periodisering: IkkeTomPeriodisering<AntallBarn>,
     override val begrunnelse: Begrunnelse?,
 ) : Barnetillegg {
+    /** Antallet er lagret per periode, så [innvilgelsesperioder] brukes ikke. */
+    override fun periodisering(innvilgelsesperioder: NonEmptyList<Periode>): IkkeTomPeriodisering<AntallBarn> = periodisering
+
     override fun krympTilPerioder(perioder: List<Periode>): BarnetilleggV1? {
         val krympetPeriodisering = periodisering.perioderMedVerdi.toList().flatMap { bt ->
             bt.periode.overlappendePerioder(perioder).map {

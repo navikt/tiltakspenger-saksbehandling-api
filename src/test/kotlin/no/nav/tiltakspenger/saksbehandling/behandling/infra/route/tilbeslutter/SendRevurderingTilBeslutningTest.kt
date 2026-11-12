@@ -163,11 +163,12 @@ class SendRevurderingTilBeslutningTest {
             revurdering.shouldBeInstanceOf<Revurdering>()
             val søknadsbehandlingsvedtak = sak.rammevedtaksliste.single()
 
-            revurdering.barnetillegg!!.periodisering shouldBe søknadsbehandling.barnetillegg!!.periodisering.nyPeriode(
+            val søknadsbehandlingensBarnetillegg = søknadsbehandling.barnetilleggsperioder!!
+            revurdering.barnetilleggsperioder!! shouldBe søknadsbehandlingensBarnetillegg.nyPeriode(
                 revurderingInnvilgelsesperiode,
-                defaultVerdiDersomDenMangler = søknadsbehandling.barnetillegg.periodisering.verdier.first(),
+                defaultVerdiDersomDenMangler = søknadsbehandlingensBarnetillegg.verdier.first(),
             )
-            revurdering.barnetillegg!!.begrunnelse shouldBe søknadsbehandling.barnetillegg.begrunnelse
+            revurdering.barnetillegg!!.begrunnelse shouldBe søknadsbehandling.barnetillegg!!.begrunnelse
             revurdering.resultat shouldBe Revurderingsresultat.Innvilgelse(
                 barnetillegg = revurdering.barnetillegg!!,
                 innvilgelsesperioder = innvilgelsesperioder(

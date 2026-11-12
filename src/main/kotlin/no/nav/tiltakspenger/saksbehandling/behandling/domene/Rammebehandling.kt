@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
@@ -73,6 +74,10 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     val valgteTiltaksdeltakelser: IkkeTomPeriodisering<NonEmptyList<TiltaksdeltakelseIntern>>?
     val barnetillegg: Barnetillegg?
+
+    /** Antall barn med barnetillegg per dag i [innvilgelsesperioder], utledet fra [barnetillegg]. */
+    val barnetilleggsperioder: IkkeTomPeriodisering<AntallBarn>?
+        get() = resultat.barnetilleggsperioder
 
     val antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode>?
 

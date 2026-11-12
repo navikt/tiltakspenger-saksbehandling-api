@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskOmgjøri
 import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
@@ -148,7 +149,7 @@ fun Sak.utledAutomatiskOmgjøringAvSluttdato(
         innvilgelsesperioder = innvilgelsesperioder!!.tilKommando(),
         barnetillegg = rammevedtaksliste.gjeldendeBarnetillegg(vedtaksperiode)
             ?.krympTilPerioder(innvilgelsesperioder.perioder)
-            ?: Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+            ?: Barnetillegg.utenBarnetillegg(),
         begrunnelse = lagBegrunnelse(
             tidligereSluttdato = tidligereDeltakelser.last().periode.tilOgMed!!,
             nySluttdato = nySluttdato!!,
@@ -197,14 +198,14 @@ private fun slåSammenBarnetilleggV2(
 ): BarnetilleggV2? {
     val barnetilleggV2 = barnetilleggIPerioder.map { (barnetillegg, periode) -> (barnetillegg as? BarnetilleggV2 ?: return null) to periode }
     val innvilgelsesperioder = antallBarn.perioder.leggSammen().toNonEmptyListOrNull()!!
-    val utenBarn = BarnetilleggV2(barn = emptyList(), innvilgelsesperioder = innvilgelsesperioder, begrunnelse = begrunnelse)
+    val utenBarn = BarnetilleggV2(barn = emptyList(), begrunnelse = begrunnelse)
 
     val sammenslått = barnetilleggV2.map { it.first }.distinct().singleOrNull()
         ?.copy(begrunnelse = begrunnelse)
         ?: utenBarn.copy(
             barn = barnetilleggV2
                 .flatMap { (barnetillegg, periode) ->
-                    barnetillegg.barn.map { barn -> barn to barnetillegg.perioderMedBarnetillegg(barn).mapNotNull { it.overlappendePeriode(periode) } }
+                    barnetillegg.barn.map { barn -> barn to barnetillegg.perioderMedBarnetillegg(barn, nonEmptyListOf(periode)) }
                 }
                 .fold(emptyList<Pair<BarnMedBarnetillegg, List<Periode>>>()) { acc, (barn, perioder) ->
                     val eksisterende = acc.find { it.first.erSammeBarn(barn) }
@@ -217,7 +218,7 @@ private fun slåSammenBarnetilleggV2(
                 .mapNotNull { (barn, perioder) ->
                     val sammenslåtte = perioder.leggSammen().toNonEmptyListOrNull() ?: return@mapNotNull null
                     val helePerioden = barn.copy(perioder = null)
-                    if (utenBarn.perioderMedBarnetillegg(helePerioden) == sammenslåtte) {
+                    if (utenBarn.perioderMedBarnetillegg(helePerioden, innvilgelsesperioder) == sammenslåtte) {
                         helePerioden
                     } else {
                         barn.copy(perioder = sammenslåtte)
@@ -226,7 +227,7 @@ private fun slåSammenBarnetilleggV2(
         )
 
     return sammenslått.takeIf {
-        it.krympTilPerioder(innvilgelsesperioder)?.periodisering?.perioderMedVerdi?.toList() == antallBarn.perioderMedVerdi.toList()
+        it.periodisering(innvilgelsesperioder).perioderMedVerdi.toList() == antallBarn.perioderMedVerdi.toList()
     }
 }
 

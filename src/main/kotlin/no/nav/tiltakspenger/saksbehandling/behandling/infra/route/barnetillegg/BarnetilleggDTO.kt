@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg
 
+import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
@@ -56,16 +57,23 @@ data class BarnetilleggPeriodeDTO(
     val periode: PeriodeDTO,
 )
 
-fun Barnetillegg.toBarnetilleggDTO(): BarnetilleggDTO = BarnetilleggDTO(
+/**
+ * @param innvilgelsesperioder Behandlingens innvilgelsesperioder, som antall barn utledes for.
+ * Mangler de, har [BarnetilleggV2] ingen perioder med barnetillegg ennå.
+ */
+fun Barnetillegg.toBarnetilleggDTO(innvilgelsesperioder: NonEmptyList<Periode>?): BarnetilleggDTO = BarnetilleggDTO(
     versjon = when (this) {
         is BarnetilleggV1 -> BarnetilleggVersjonDTO.V1
         is BarnetilleggV2 -> BarnetilleggVersjonDTO.V2
     },
-    perioder = periodisering.tilBarnetilleggPerioderDTO(),
+    perioder = when (this) {
+        is BarnetilleggV1 -> periodisering
+        is BarnetilleggV2 -> innvilgelsesperioder?.let { periodisering(it) }
+    }?.tilBarnetilleggPerioderDTO().orEmpty(),
     begrunnelse = begrunnelse?.verdi.ikkeSladdet(),
     barn = when (this) {
         is BarnetilleggV1 -> null
-        is BarnetilleggV2 -> barn.map { it.toDTO(perioderMedBarnetillegg(it)) }
+        is BarnetilleggV2 -> barn.map { it.toDTO(innvilgelsesperioder?.let { perioder -> perioderMedBarnetillegg(it, perioder) }.orEmpty()) }
     },
 )
 

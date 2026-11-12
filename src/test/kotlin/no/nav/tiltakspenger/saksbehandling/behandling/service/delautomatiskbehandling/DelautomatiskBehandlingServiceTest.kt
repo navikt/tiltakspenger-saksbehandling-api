@@ -25,7 +25,6 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.tilBarnMedBarnetillegg
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.utenBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
@@ -79,7 +78,7 @@ class DelautomatiskBehandlingServiceTest {
             )
             oppdatertBehandling.resultat.instanceOf(Rammebehandlingsresultat.Innvilgelse::class) shouldBe true
             oppdatertBehandling.vedtaksperiode shouldBe expectedVedtaksperiode
-            oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg(expectedVedtaksperiode)
+            oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg()
             oppdatertBehandling.valgteTiltaksdeltakelser shouldBe listOf(
                 PeriodeMedVerdi(
                     nonEmptyListOf(tiltaksdeltakelse),
@@ -101,7 +100,7 @@ class DelautomatiskBehandlingServiceTest {
             oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
             oppdatertBehandling.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().also {
                 it.barn shouldBe listOf(barn.tilBarnMedBarnetillegg(soknad.id))
-                it.periodisering.perioderMedVerdi.toList() shouldBe listOf(
+                oppdatertBehandling.barnetilleggsperioder!!.perioderMedVerdi.toList() shouldBe listOf(
                     PeriodeMedVerdi(AntallBarn(1), oppdatertBehandling.vedtaksperiode!!),
                 )
             }
@@ -423,7 +422,7 @@ class DelautomatiskBehandlingServiceTest {
             )
             oppdatertBehandling.resultat.instanceOf(Rammebehandlingsresultat.Innvilgelse::class) shouldBe true
             oppdatertBehandling.vedtaksperiode shouldBe tiltaksdeltakelsesperiode
-            oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg(tiltaksdeltakelsesperiode)
+            oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg()
             oppdatertBehandling.valgteTiltaksdeltakelser shouldBe listOf(
                 PeriodeMedVerdi(
                     nonEmptyListOf(tiltaksdeltakelse),

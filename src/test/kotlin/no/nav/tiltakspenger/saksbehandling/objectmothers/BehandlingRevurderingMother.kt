@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import arrow.core.NonEmptySet
 import arrow.core.nonEmptySetOf
-import arrow.core.toNonEmptyListOrNull
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
@@ -480,7 +479,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                     fritekstTilVedtaksbrev = null,
                     innvilgelsesperioder = omgjøringInnvilgelsesperioder.map { periode -> innvilgelsesperiodeKommando(periode) }
                         .medDeltakelseFra(it.saksopplysninger).tilPeriodisering(),
-                    barnetillegg = Barnetillegg.utenBarnetillegg(omgjøringInnvilgelsesperioder.toNonEmptyListOrNull()!!),
+                    barnetillegg = Barnetillegg.utenBarnetillegg(),
                     vedtaksperiode = omgjørRammevedtak.gjeldendeTotalPeriode!!,
                     skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                     skalJournalføreNotat = skalJournalføreNotat,

@@ -5,9 +5,8 @@ import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.trekkFra
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.slåSammenInnvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KunneIkkeOppdatereSaksopplysninger
@@ -31,6 +30,13 @@ sealed interface Rammebehandlingsresultat {
 
     /** Vil være null ved stans og når behandlingen er uferdig */
     val barnetillegg: Barnetillegg?
+
+    /**
+     * Antall barn med barnetillegg per dag i [innvilgelsesperioder], utledet fra [barnetillegg].
+     * Null når en av dem mangler.
+     */
+    val barnetilleggsperioder: IkkeTomPeriodisering<AntallBarn>?
+        get() = innvilgelsesperioder?.let { barnetillegg?.periodisering(it.perioder) }
 
     val omgjørRammevedtak: OmgjørRammevedtak
 
@@ -71,13 +77,11 @@ sealed interface Rammebehandlingsresultat {
         }
 
         private fun validerBarnetillegg(): Boolean {
-            if (barnetillegg == null) {
-                return false
-            }
+            val barnetilleggsperioder = barnetilleggsperioder ?: return false
 
             // Alle barnetilleggsperiodene må overlappe fullstendig med innvilgelsesperiodene
             val ikkeOverlappendePerioder =
-                barnetillegg!!.periodisering.perioder.trekkFra(innvilgelsesperioder!!.perioder)
+                barnetilleggsperioder.perioder.trekkFra(innvilgelsesperioder!!.perioder)
 
             return ikkeOverlappendePerioder.isEmpty()
         }
@@ -85,18 +89,6 @@ sealed interface Rammebehandlingsresultat {
 
     sealed interface IkkeValgt : Rammebehandlingsresultat {
         fun vedtakError(): Nothing
-    }
-}
-
-/**
- * Krever at [BarnetilleggV2] gjelder nøyaktig de samme dagene som [innvilgelsesperioder].
- * [no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1] har ikke egne innvilgelsesperioder, og sjekkes bare i [Rammebehandlingsresultat.erFerdigutfylt].
- */
-fun kreverAtBarnetilleggetGjelderInnvilgelsesperiodene(innvilgelsesperioder: Innvilgelsesperioder?, barnetillegg: Barnetillegg?) {
-    if (innvilgelsesperioder == null || barnetillegg !is BarnetilleggV2) return
-    require(barnetillegg.innvilgelsesperioder == innvilgelsesperioder.perioder.slåSammenInnvilgelsesperioder()) {
-        "Barnetillegget må gjelde de samme dagene som innvilgelsesperiodene. " +
-            "Barnetillegget gjelder ${barnetillegg.innvilgelsesperioder}, men innvilgelsesperiodene er ${innvilgelsesperioder.perioder}"
     }
 }
 

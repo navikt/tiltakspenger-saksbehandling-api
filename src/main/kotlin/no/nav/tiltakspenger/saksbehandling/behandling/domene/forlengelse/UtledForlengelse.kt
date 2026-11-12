@@ -30,6 +30,8 @@ data class UtledetForlengelse(
     val kanIkkeUtledeBarnetillegg: Boolean,
 ) {
     val forlengelsesperiode: Periode = innvilgelsesperioder.totalPeriode
+
+    val barnetilleggsperioder: IkkeTomPeriodisering<AntallBarn> by lazy { barnetillegg.periodisering(innvilgelsesperioder.perioder) }
 }
 
 /**
