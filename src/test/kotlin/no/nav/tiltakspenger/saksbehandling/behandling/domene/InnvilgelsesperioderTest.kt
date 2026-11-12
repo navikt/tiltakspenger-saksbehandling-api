@@ -178,16 +178,29 @@ class InnvilgelsesperioderTest {
         }
 
         @Test
-        fun `summen av antall dager begrenses til dagene i en meldeperiode`() {
+        fun `summen av antall dager kan være lik dagene i en meldeperiode`() {
             val verdi = InnvilgelsesperiodeVerdi(
                 tiltaksdeltakelser = nonEmptyListOf(
-                    innvilgetTiltaksdeltakelse(amo, AntallDagerForMeldeperiode(10)),
-                    innvilgetTiltaksdeltakelse(arbeidstrening, AntallDagerForMeldeperiode(10)),
+                    innvilgetTiltaksdeltakelse(amo, AntallDagerForMeldeperiode(7)),
+                    innvilgetTiltaksdeltakelse(arbeidstrening, AntallDagerForMeldeperiode(7)),
                 ),
                 reversertOpphør = null,
             )
 
             verdi.antallDagerPerMeldeperiode shouldBe AntallDagerForMeldeperiode(MAKS_DAGER_FOR_MELDEPERIODE)
+        }
+
+        @Test
+        fun `kan ikke innvilge for flere dager summert enn det er dager i en meldeperiode`() {
+            shouldThrow<IllegalArgumentException> {
+                InnvilgelsesperiodeVerdi(
+                    tiltaksdeltakelser = nonEmptyListOf(
+                        innvilgetTiltaksdeltakelse(amo, AntallDagerForMeldeperiode(10)),
+                        innvilgetTiltaksdeltakelse(arbeidstrening, AntallDagerForMeldeperiode(5)),
+                    ),
+                    reversertOpphør = null,
+                )
+            }
         }
 
         @Test

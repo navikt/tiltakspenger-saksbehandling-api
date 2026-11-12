@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater
 
+import arrow.core.toNonEmptyListOrThrow
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -49,13 +50,44 @@ interface OppdaterRammebehandlingBuilder {
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Triple<Sak, Rammebehandling, String> {
+        return oppdaterSøknadsbehandlingInnvilgelse(
+            tac = tac,
+            sakId = sakId,
+            behandlingId = behandlingId,
+            innvilgelsesperioder = innvilgelsesperioder.tilDTOMedDeltakelseFra(tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)),
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreNotat = skalJournalføreNotat,
+            barnetillegg = barnetillegg,
+            prioriteringBegrunnelse = prioriteringBegrunnelse,
+            forventet = forventet,
+            saksbehandler = saksbehandler,
+        )
+    }
+
+    /** Sender innvilgelsesperiodene som de er, også verdier domenemodellen ikke tillater. */
+    suspend fun ApplicationTestBuilder.oppdaterSøknadsbehandlingInnvilgelse(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        behandlingId: RammebehandlingId,
+        innvilgelsesperioder: List<InnvilgelsesperiodeDTO>,
+        begrunnelseVilkårsvurdering: String? = null,
+        fritekstTilVedtaksbrev: String? = null,
+        skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.map { it.periode.toDomain() }.toNonEmptyListOrThrow()),
+        prioriteringBegrunnelse: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+    ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
             {
               "resultat": "INNVILGELSE",
               ${
             innvilgelseJson(
-                innvilgelsesperioder.tilDTOMedDeltakelseFra(tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)),
+                innvilgelsesperioder,
                 barnetillegg,
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,

@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_FOR_MELDEPERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.UgyldigInnvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeForlenge
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeOppdatereBehandling
@@ -123,6 +124,13 @@ fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, Erro
     )
 
     is KanIkkeOppdatereBehandling.InnvilgelsenPasserIkkeMedTiltaksdeltakelsene -> HttpStatusCode.BadRequest to innvilgelsenPasserIkkeMedTiltaksdeltakelsene(this.ugyldigePerioder)
+
+    is KanIkkeOppdatereBehandling.ForMangeDagerPerMeldeperiode -> HttpStatusCode.BadRequest to ErrorJson(
+        "Summen av antall dager per meldeperiode for tiltaksdeltakelsene kan ikke være mer enn $MAKS_DAGER_FOR_MELDEPERIODE. Gjelder periodene: ${
+            this.perioder.joinToString(", ")
+        }",
+        "for_mange_dager_per_meldeperiode",
+    )
 
     KanIkkeReversereOpphør.KunVedOmgjøring -> HttpStatusCode.BadRequest to ErrorJson(
         "Reversert opphør kan bare innvilges ved omgjøring",

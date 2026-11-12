@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.NonEmptyList
+import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -32,6 +33,14 @@ data class InnvilgetTiltaksdeltakelseKommando(
     val internDeltakelseId: TiltaksdeltakerId,
     val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
 )
+
+/** Periodene der summen av antall dager per meldeperiode for tiltaksdeltakelsene er mer enn [MAKS_DAGER_FOR_MELDEPERIODE]. */
+fun IkkeTomPeriodisering<InnvilgelsesperiodeKommando>.perioderMedForMangeDager(): NonEmptyList<Periode>? {
+    return perioderMedVerdi
+        .filter { it.verdi.tiltaksdeltakelser.map { innvilget -> innvilget.antallDagerPerMeldeperiode }.overstigerMaksForMeldeperiode() }
+        .map { it.periode }
+        .toNonEmptyListOrNull()
+}
 
 /** Om noen av periodene er markert som reversert opphør. */
 val IkkeTomPeriodisering<InnvilgelsesperiodeKommando>.harReversertOpphør: Boolean

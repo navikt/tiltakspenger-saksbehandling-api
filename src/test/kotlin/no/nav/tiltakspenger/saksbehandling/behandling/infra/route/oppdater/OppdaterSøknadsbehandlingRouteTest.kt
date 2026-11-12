@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
@@ -23,6 +24,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat.Avslag
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgetTiltaksdeltakelseDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
@@ -489,6 +492,35 @@ class OppdaterSøknadsbehandlingRouteTest {
             body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].tiltaksdeltakelser[0].antallDagerPerMeldeperiode", 6)
             body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].tiltaksdeltakelser[1].internDeltakelseId", første.internDeltakelseId.toString())
             body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].tiltaksdeltakelser[1].antallDagerPerMeldeperiode", 4)
+        }
+    }
+
+    @Test
+    fun `kan ikke innvilge for flere dager summert enn det er dager i en meldeperiode`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac, sakId = sak.id, fnr = sak.fnr)
+            val (_, medToDeltakelser) = oppdaterSaksopplysningerForBehandlingId(tac, sak.id, behandling.id)
+            val (første, andre) = medToDeltakelser.saksopplysninger.tiltaksdeltakelser.value.also { it.size shouldBe 2 }
+
+            oppdaterSøknadsbehandlingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                innvilgelsesperioder = listOf(
+                    InnvilgelsesperiodeDTO(
+                        periode = første.lukketPeriode!!.toDTO(),
+                        tiltaksdeltakelser = listOf(
+                            InnvilgetTiltaksdeltakelseDTO(første.internDeltakelseId.toString(), 10),
+                            InnvilgetTiltaksdeltakelseDTO(andre.internDeltakelseId.toString(), 5),
+                        ),
+                    ),
+                ),
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+            ).also { (_, oppdatertBehandling, response) ->
+                response harKode "for_mange_dager_per_meldeperiode"
+                oppdatertBehandling shouldBe medToDeltakelser
+            }
         }
     }
 }

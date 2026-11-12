@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterFo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterOmgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdaterStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.perioderMedForMangeDager
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.perioderForReversertOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.tilInnvilgelsesperioderMedReversertOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.validerReversertOpphør
@@ -72,6 +73,10 @@ class OppdaterRammebehandlingService(
         }
 
         if (kommando is OppdaterBehandlingKommando.Innvilgelse) {
+            kommando.innvilgelsesperioder.perioderMedForMangeDager()?.let {
+                log.warn { "For mange dager per meldeperiode i periodene ${it.joinToString()} på behandling ${behandling.id} i sak ${behandling.sakId}" }
+                return KanIkkeOppdatereBehandling.ForMangeDagerPerMeldeperiode(it).left()
+            }
             kommando.innvilgelsesperioder.ugyldigePerioder(behandling.saksopplysninger.tiltaksdeltakelser)?.let {
                 log.warn { "Innvilgelsen passer ikke med tiltaksdeltakelsene på behandling ${behandling.id} i sak ${behandling.sakId}: ${it.joinToString { feil -> feil.beskrivelse() }}" }
                 return KanIkkeOppdatereBehandling.InnvilgelsenPasserIkkeMedTiltaksdeltakelsene(it).left()

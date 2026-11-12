@@ -104,7 +104,7 @@ data class Innvilgelsesperioder(
                     return@mapNotNull null
                 }
 
-                // Perioden i tiltaksdeltagelsen er alltid definert dersom den kan innvilges
+                // Perioden i tiltaksdeltakelsen er alltid definert dersom den kan innvilges
                 periode.overlappendePeriode(oppdatertTiltaksdeltakelse.periode as Periode)?.let {
                     innvilget.medOppdatertTiltaksdeltakelse(oppdatertTiltaksdeltakelse) to it
                 }
@@ -190,8 +190,11 @@ data class InnvilgelsesperiodeVerdi(
 
     val valgteTiltaksdeltakelser: NonEmptyList<TiltaksdeltakelseIntern> get() = tiltaksdeltakelser.map { it.tiltaksdeltakelse }
 
-    /** Summen av antall dager per meldeperiode for tiltaksdeltakelsene, se [summer]. */
-    val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode get() = tiltaksdeltakelser.map { it.antallDagerPerMeldeperiode }.summer()
+    /**
+     * Summen av antall dager per meldeperiode for tiltaksdeltakelsene, se [summer].
+     * Regnes ut ved opprettelse, slik at en periode med mer enn [MAKS_DAGER_FOR_MELDEPERIODE] dager aldri kan opprettes.
+     */
+    val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode = tiltaksdeltakelser.map { it.antallDagerPerMeldeperiode }.summer()
 
     /**
      * Tiltakstypen dagene i perioden beregnes og utbetales med.
