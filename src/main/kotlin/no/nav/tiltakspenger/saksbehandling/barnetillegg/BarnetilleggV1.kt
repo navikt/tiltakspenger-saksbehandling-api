@@ -14,8 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 
 /**
  * Første versjon av barnetillegg, der saksbehandler satte antall barn per periode uten å oppgi hvilke barn det gjaldt.
- * Finnes på eldre behandlinger og vedtak, og i forlengelser av dem.
- * Lagres ellers bare fra eldre versjoner av frontenden, mens den rulles ut, se [create].
+ * Finnes på eldre behandlinger og vedtak, og i forlengelser og omgjøringer av dem.
  * Kan ikke migreres til [BarnetilleggV2], siden vi ikke vet hvilke barn antallet gjelder.
  */
 data class BarnetilleggV1(
@@ -44,10 +43,8 @@ data class BarnetilleggV1(
 
     companion object {
         /**
-         * Lager barnetillegget fra antall barn per periode, slik eldre versjoner av frontenden sender det.
+         * Lager barnetillegget fra antall barn per periode, ved forhåndsvisning av brev for behandlinger med [BarnetilleggV1] som ikke kan endres.
          * Dager i innvilgelsesperiodene uten en periode får 0 barn, men hull mellom innvilgelsesperiodene fylles ikke.
-         *
-         * TODO: Fjernes når alle saksbehandlere har frontenden som sender barna, se [BarnetilleggV2].
          */
         fun create(
             perioderMedBarn: NonEmptyList<Pair<Periode, AntallBarn>>,

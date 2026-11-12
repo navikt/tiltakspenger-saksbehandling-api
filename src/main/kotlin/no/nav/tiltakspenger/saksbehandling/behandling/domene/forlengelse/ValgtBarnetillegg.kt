@@ -37,11 +37,9 @@ sealed interface ValgtBarnetillegg {
     }
 
     /**
-     * Antall barn per periode, slik eldre versjoner av frontenden sender det.
+     * Antall barn per periode, ved forhåndsvisning av brev for behandlinger med [BarnetilleggV1] som ikke kan endres.
      * Gir [BarnetilleggV1].
-     * Tom liste betyr ingen barnetillegg, og gir et [BarnetilleggV2] uten barn, som frontenden som sender barna.
-     *
-     * TODO: Fjernes når alle saksbehandlere har frontenden som sender barna.
+     * Tom liste betyr ingen barnetillegg, og gir et [BarnetilleggV2] uten barn.
      */
     data class PerioderMedAntallBarn(
         val perioderMedBarn: List<Pair<Periode, AntallBarn>>,

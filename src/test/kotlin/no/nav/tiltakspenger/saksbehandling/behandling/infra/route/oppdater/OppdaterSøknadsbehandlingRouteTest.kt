@@ -13,12 +13,9 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
@@ -229,64 +226,13 @@ class OppdaterSøknadsbehandlingRouteTest {
     }
 
     @Test
-    fun `eldre frontend kan lagre barnetillegg som antall barn per periode`() {
-        withTestApplicationContext { tac ->
-            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
-            val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.first()
-            val innvilgelsesperiode = tiltaksdeltakelse.lukketPeriode!!
-            val medBarn = innvilgelsesperiode.fraOgMed til innvilgelsesperiode.fraOgMed.plusDays(9)
-
-            oppdaterSøknadsbehandlingInnvilgelse(
-                tac = tac,
-                sakId = sak.id,
-                behandlingId = behandling.id,
-                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode, tiltaksdeltakelse),
-                barnetilleggJson = """
-                    {
-                      "begrunnelse": "To barn",
-                      "perioder": [{"antallBarn": 2, "periode": {"fraOgMed": "${medBarn.fraOgMed}", "tilOgMed": "${medBarn.tilOgMed}"}}]
-                    }
-                """.trimIndent(),
-            )
-
-            val barnetillegg = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).barnetillegg
-            barnetillegg.shouldBeInstanceOf<BarnetilleggV1>()
-            barnetillegg.begrunnelse shouldBe Begrunnelse.create("To barn")
-            barnetillegg.periodisering.perioderMedVerdi.toList() shouldBe listOf(
-                PeriodeMedVerdi(AntallBarn(2), medBarn),
-                PeriodeMedVerdi(AntallBarn.ZERO, medBarn.tilOgMed.plusDays(1) til innvilgelsesperiode.tilOgMed),
-            )
-        }
-    }
-
-    @Test
-    fun `eldre frontend uten barnetillegg lagrer barnetillegg uten barn`() {
+    fun `barnetillegg som antall barn per periode kan ikke lagres`() {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
             val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.first()
             val innvilgelsesperiode = tiltaksdeltakelse.lukketPeriode!!
 
             oppdaterSøknadsbehandlingInnvilgelse(
-                tac = tac,
-                sakId = sak.id,
-                behandlingId = behandling.id,
-                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode, tiltaksdeltakelse),
-                barnetilleggJson = """{"begrunnelse": null, "perioder": []}""",
-            )
-
-            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).barnetillegg shouldBe
-                Barnetillegg.utenBarnetillegg()
-        }
-    }
-
-    @Test
-    fun `barnetillegg fra eldre frontend utenfor innvilgelsesperioden avvises`() {
-        withTestApplicationContext { tac ->
-            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
-            val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.first()
-            val innvilgelsesperiode = tiltaksdeltakelse.lukketPeriode!!
-
-            val (_, _, responseJson) = oppdaterSøknadsbehandlingInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = behandling.id,
@@ -294,13 +240,12 @@ class OppdaterSøknadsbehandlingRouteTest {
                 barnetilleggJson = """
                     {
                       "begrunnelse": null,
-                      "perioder": [{"antallBarn": 1, "periode": {"fraOgMed": "${innvilgelsesperiode.fraOgMed}", "tilOgMed": "${innvilgelsesperiode.tilOgMed.plusDays(1)}"}}]
+                      "perioder": [{"antallBarn": 1, "periode": {"fraOgMed": "${innvilgelsesperiode.fraOgMed}", "tilOgMed": "${innvilgelsesperiode.tilOgMed}"}}]
                     }
                 """.trimIndent(),
-                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+                forventet = ForventetRespons(400),
             )
 
-            JSONObject(responseJson).getString("kode") shouldBe "ugyldig_barnetillegg"
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).barnetillegg.shouldBeNull()
         }
     }

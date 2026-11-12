@@ -43,7 +43,7 @@ interface OppdaterRammebehandlingBuilder {
         skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
-        // Overstyrer barnetillegget med rå json, f.eks. slik eldre versjoner av frontenden sender det.
+        // Overstyrer barnetillegget med rå json, f.eks. for å teste ugyldig input.
         barnetilleggJson: String = serialize(barnetillegg.tilOppdaterBarnetilleggDTO()),
         prioriteringBegrunnelse: String? = null,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
@@ -310,8 +310,6 @@ interface OppdaterRammebehandlingBuilder {
         tilOgMed: LocalDate,
         tiltaksdeltakerId: TiltaksdeltakerId? = null,
         barnetillegg: Barnetillegg? = null,
-        // Overstyrer barnetillegget med rå json, f.eks. slik eldre versjoner av frontenden sender det.
-        barnetilleggJson: String? = barnetillegg?.let { serialize(it.tilOppdaterBarnetilleggDTO()) },
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
@@ -325,7 +323,7 @@ interface OppdaterRammebehandlingBuilder {
               "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
               "tilOgMed": "$tilOgMed",
               "internDeltakelseId": "${tiltaksdeltakerId ?: tac.sakContext.sakRepo.hentForSakId(sakId)!!.tiltaksdeltakelsenSomForlenges(behandlingId)}",
-              "barnetillegg": $barnetilleggJson,
+              "barnetillegg": ${barnetillegg?.let { serialize(it.tilOppdaterBarnetilleggDTO()) }},
               "skalSendeVedtaksbrev": true,
               "skalJournalføreNotat": ${serialize(SkalJournalføreNotat.INGEN.tilDTO())}
             }

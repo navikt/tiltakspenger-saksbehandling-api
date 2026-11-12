@@ -39,7 +39,7 @@ interface ForhåndsvisRammevedtaksbrevTestbuilder {
         stansFraOgMed: LocalDate? = null,
         valgteHjemler: List<HjemmelForStansDTO>? = null,
         barnetillegg: OppdaterBarnetilleggDTO? = null,
-        // Overstyrer barnetillegget med rå json, f.eks. slik eldre versjoner av frontenden sender det.
+        // Overstyrer barnetillegget med rå json, f.eks. med antall barn per periode for barnetillegg lagret som V1.
         barnetilleggJson: String? = barnetillegg?.let { serialize(it) },
         resultat: RammebehandlingResultatTypeDTO,
         avslagsgrunner: List<ValgtHjemmelForAvslagDTO>? = null,

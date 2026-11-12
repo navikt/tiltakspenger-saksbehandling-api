@@ -183,7 +183,7 @@ sealed interface UgyldigBarnetillegg {
         override val melding = "Barnet født ${barn.fødselsdato.format(norskDatoFormatter)} gir ikke rett til barnetillegg i innvilgelsesperioden."
     }
 
-    /** Kun for [BarnetilleggV1], som eldre versjoner av frontenden sender. */
+    /** Kun for [BarnetilleggV1], ved forhåndsvisning av brev. */
     data object AntallBarnUtenforInnvilgelsen : UgyldigBarnetillegg {
         override val melding = "Periodene med barnetillegg må være innenfor innvilgelsesperiodene."
     }

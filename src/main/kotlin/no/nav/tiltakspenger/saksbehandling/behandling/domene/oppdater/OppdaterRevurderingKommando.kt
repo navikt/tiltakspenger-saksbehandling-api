@@ -111,7 +111,7 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         val tilOgMed: LocalDate,
         val tiltaksdeltakerId: TiltaksdeltakerId,
-        val barnetillegg: ValgtBarnetillegg?,
+        val barnetillegg: ValgtBarnetillegg.Barn?,
         override val skalSendeVedtaksbrev: Boolean,
         override val prioritering: Prioritering?,
         override val skalJournalføreNotat: SkalJournalføreNotat,
