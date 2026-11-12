@@ -108,7 +108,7 @@ interface StartRevurderingBuilder {
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         // Utledes fra innvilgelsesperiodene slik at flyten registrerer samme deltakelse som innvilges; en frisk deltakelse ville fått ny id.
-        tiltaksdeltakelse: TiltaksdeltakelseIntern = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
+        tiltaksdeltakelse: TiltaksdeltakelseIntern = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.flatten().distinct().single(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple5<Sak, Søknad, Rammevedtak, Revurdering, RammebehandlingDTOJson> {
         val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
@@ -161,7 +161,7 @@ interface StartRevurderingBuilder {
         søknadsbehandlingInnvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         // Default: revurderingen gjelder samme deltakelse som innvilgelsen.
         // Send inn en kopi med endret periode for å teste endret deltakelse.
-        oppdatertTiltaksdeltakelse: TiltaksdeltakelseIntern? = søknadsbehandlingInnvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
+        oppdatertTiltaksdeltakelse: TiltaksdeltakelseIntern? = søknadsbehandlingInnvilgelsesperioder.valgteTiltaksdeltagelser.verdier.flatten().distinct().single(),
         fnr: Fnr = Fnr.random(),
         sakId: SakId? = null,
     ): Tuple5<Sak, Søknad, Rammevedtak, Revurdering, RammebehandlingDTOJson> {
@@ -228,7 +228,7 @@ interface StartRevurderingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         søknadsbehandlingInnvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
-        oppdatertTiltaksdeltakelse: TiltaksdeltakelseIntern? = søknadsbehandlingInnvilgelsesperioder.periodisering.first().verdi.valgtTiltaksdeltakelse,
+        oppdatertTiltaksdeltakelse: TiltaksdeltakelseIntern? = søknadsbehandlingInnvilgelsesperioder.periodisering.first().verdi.valgteTiltaksdeltakelser.single(),
         forventetForStartRevurdering: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple5<Sak, Søknad, Rammevedtak, Revurdering, RammebehandlingDTOJson>? {
         val (sak, søknad, rammevedtakSøknadsbehandling) = iverksettSøknadsbehandling(

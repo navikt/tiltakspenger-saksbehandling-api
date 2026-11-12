@@ -43,7 +43,7 @@ interface IverksettSøknadsbehandlingBuilder {
         jobber: JobberEtterIverksettelse = JobberEtterIverksettelse(),
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         // Utledes fra innvilgelsesperiodene slik at flyten registrerer samme deltakelse som innvilges; en frisk deltakelse ville fått ny id.
-        tiltaksdeltakelse: TiltaksdeltakelseIntern = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
+        tiltaksdeltakelse: TiltaksdeltakelseIntern = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.flatten().distinct().single(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         barnFraSøknad: List<BarnetilleggFraSøknad> = emptyList(),
     ): Tuple4<Sak, Søknad, Rammevedtak, RammebehandlingDTOJson> {

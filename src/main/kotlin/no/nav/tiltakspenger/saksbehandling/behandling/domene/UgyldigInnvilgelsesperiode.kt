@@ -8,7 +8,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 /**
- * En innvilgelsesperiode som ikke passer med tiltaksdeltakelsen den innvilges for i saksopplysningene.
+ * En tiltaksdeltakelse i en innvilgelsesperiode som ikke passer med tiltaksdeltakelsen i saksopplysningene.
+ * En innvilgelsesperiode med flere tiltaksdeltakelser kan gi én slik per tiltaksdeltakelse.
  *
  * Kan oppstå når tiltaksdeltakelsen endres etter at saksbehandler fylte ut innvilgelsen.
  * Vi nullstiller ikke innvilgelsen når saksopplysningene oppdateres, men lar saksbehandler rette den selv.
@@ -75,12 +76,14 @@ fun Tiltaksdeltakelser.validerInnvilgelsesperiode(
 /**
  * Perioder som er markert som reversert opphør valideres ikke her, men mot periodene som kan reverseres.
  * Se [no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.validerReversertOpphør].
- * @return innvilgelsesperiodene som ikke passer med [tiltaksdeltakelser], eller null dersom alle er gyldige
+ * @return én [UgyldigInnvilgelsesperiode] per tiltaksdeltakelse som ikke passer med perioden sin i [tiltaksdeltakelser], eller null dersom alle er gyldige
  */
 fun IkkeTomPeriodisering<InnvilgelsesperiodeKommando>.ugyldigePerioder(
     tiltaksdeltakelser: Tiltaksdeltakelser,
 ): NonEmptyList<UgyldigInnvilgelsesperiode>? {
-    return perioderMedVerdi.filterNot { it.verdi.erReversertOpphør }.mapNotNull {
-        tiltaksdeltakelser.validerInnvilgelsesperiode(it.periode, it.verdi.internDeltakelseId)
+    return perioderMedVerdi.filterNot { it.verdi.erReversertOpphør }.flatMap { (verdi, periode) ->
+        verdi.internDeltakelseIder.mapNotNull {
+            tiltaksdeltakelser.validerInnvilgelsesperiode(periode, it)
+        }
     }.toNonEmptyListOrNull()
 }

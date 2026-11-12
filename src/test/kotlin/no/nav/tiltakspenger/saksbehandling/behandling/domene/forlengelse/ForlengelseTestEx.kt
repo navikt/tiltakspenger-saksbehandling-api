@@ -10,5 +10,6 @@ fun Sak.tiltaksdeltakelsenSomForlenges(behandlingId: RammebehandlingId): Tiltaks
     val forlenger = (hentRammebehandling(behandlingId)!!.resultat as Revurderingsresultat.Forlengelse).forlenger
     return hentRammevedtakForId(forlenger.rammevedtakId).valgteTiltaksdeltakelser!!
         .hentVerdiForDag(forlenger.sisteInnvilgedeDag)!!
+        .single()
         .internDeltakelseId
 }

@@ -174,7 +174,7 @@ class SendRevurderingTilBeslutningTest {
                 ),
                 innvilgelsesperioder = innvilgelsesperioder(
                     periode = revurderingInnvilgelsesperiode,
-                    valgtTiltaksdeltakelse = revurdering.valgteTiltaksdeltakelser!!.single().verdi,
+                    valgtTiltaksdeltakelse = revurdering.valgteTiltaksdeltakelser!!.single().verdi.single(),
                     antallDagerPerMeldeperiode = AntallDagerForMeldeperiode.default,
                 ),
                 omgjørRammevedtak = OmgjørRammevedtak(

@@ -43,10 +43,11 @@ fun Innvilgelsesperioder.tiltaksdeltakelserSomKanForlenges(
 ): List<TiltaksdeltakelseSomKanForlenges> {
     return periodisering.perioderMedVerdi
         .sortedByDescending { it.periode.tilOgMed }
-        .distinctBy { it.verdi.valgtTiltaksdeltakelse.internDeltakelseId }
-        .mapNotNull { innvilgelsesperiode ->
-            saksopplysninger.getTiltaksdeltakelse(innvilgelsesperiode.verdi.valgtTiltaksdeltakelse.internDeltakelseId)
+        .flatMap { it.verdi.tiltaksdeltakelser }
+        .distinctBy { it.internDeltakelseId }
+        .mapNotNull { innvilget ->
+            saksopplysninger.getTiltaksdeltakelse(innvilget.internDeltakelseId)
                 ?.takeIf { it.kanInnvilges && it.lukketPeriode?.inneholder(forlengesFraOgMed) == true }
-                ?.let { TiltaksdeltakelseSomKanForlenges(it, innvilgelsesperiode.verdi.antallDagerPerMeldeperiode) }
+                ?.let { TiltaksdeltakelseSomKanForlenges(it, innvilget.antallDagerPerMeldeperiode) }
         }
 }

@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeVerdi
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgetTiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.harReversertOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeReversereOpphør
@@ -17,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilInnvilgelsesperi
 
 /**
  * Validerer periodene som er markert som reversert opphør.
- * De kan bare innvilges ved omgjøring, og hver periode må ligge innenfor [perioderForReversertOpphør] for samme tiltaksdeltakelse.
+ * De kan bare innvilges ved omgjøring, og hver tiltaksdeltakelse i perioden må ligge innenfor [perioderForReversertOpphør] for samme tiltaksdeltakelse.
  * De andre periodene valideres mot tiltaksdeltakelsene, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.ugyldigePerioder].
  *
  * @return null dersom ingen perioder er markert som reversert opphør, eller alle kan reverseres.
@@ -35,13 +36,16 @@ fun OppdaterBehandlingKommando.Innvilgelse.validerReversertOpphør(
 
     return innvilgelsesperioder.perioderMedVerdi
         .filter { it.verdi.erReversertOpphør }
-        .filterNot { (kommando, periode) ->
-            val perioderForDeltakelsen = perioderForReversertOpphør
-                .filter { opprinnelig, _ -> opprinnelig.internDeltakelseId == kommando.internDeltakelseId }
-                .perioder
-            periode.trekkFra(perioderForDeltakelsen).isEmpty()
+        .flatMap { (kommando, periode) ->
+            kommando.internDeltakelseIder
+                .filterNot { internDeltakelseId ->
+                    val perioderForDeltakelsen = perioderForReversertOpphør
+                        .filter { opprinnelig, _ -> opprinnelig.innvilgerTiltaksdeltakelse(internDeltakelseId) }
+                        .perioder
+                    periode.trekkFra(perioderForDeltakelsen).isEmpty()
+                }
+                .map { KanIkkeReversereOpphør.PeriodeSomIkkeKanReverseres(periode, it) }
         }
-        .map { KanIkkeReversereOpphør.PeriodeSomIkkeKanReverseres(it.periode, it.verdi.internDeltakelseId) }
         .toNonEmptyListOrNull()
         ?.let { KanIkkeReversereOpphør.PeriodeneKanIkkeReverseres(it) }
 }
@@ -49,7 +53,7 @@ fun OppdaterBehandlingKommando.Innvilgelse.validerReversertOpphør(
 /**
  * Konverterer innvilgelsesperioder der noen kan være markert som reversert opphør.
  * Periodene for gyldige tiltaksdeltakelser får tiltaksdeltakelsen fra saksopplysningene til [behandling].
- * Periodene som er reversert opphør får tiltaksdeltakelsen fra den opprinnelige innvilgelsen, og deles opp der den opprinnelige innvilgelsen skifter vedtak.
+ * Periodene som er reversert opphør får tiltaksdeltakelsene fra den opprinnelige innvilgelsen, og deles opp der den opprinnelige innvilgelsen skifter vedtak.
  * Periodene må være validert med [validerReversertOpphør] først.
  */
 fun IkkeTomPeriodisering<InnvilgelsesperiodeKommando>.tilInnvilgelsesperioderMedReversertOpphør(
@@ -65,17 +69,21 @@ fun IkkeTomPeriodisering<InnvilgelsesperiodeKommando>.tilInnvilgelsesperioderMed
             val opprinneligeInnvilgelser = perioderForReversertOpphør.krymp(periode).perioderMedVerdi
 
             require(
-                opprinneligeInnvilgelser.all { it.verdi.internDeltakelseId == kommando.internDeltakelseId } &&
+                opprinneligeInnvilgelser.all { opprinnelig -> kommando.internDeltakelseIder.all { opprinnelig.verdi.innvilgerTiltaksdeltakelse(it) } } &&
                     periode.trekkFra(opprinneligeInnvilgelser.map { it.periode }).isEmpty(),
             ) {
-                "Perioden $periode for tiltaksdeltakelsen ${kommando.internDeltakelseId} kan ikke innvilges som reversert opphør for ${behandling.id}"
+                "Perioden $periode for tiltaksdeltakelsene ${kommando.internDeltakelseIder} kan ikke innvilges som reversert opphør for ${behandling.id}"
             }
 
             opprinneligeInnvilgelser.map { (opprinnelig, delperiode) ->
                 PeriodeMedVerdi(
                     InnvilgelsesperiodeVerdi(
-                        valgtTiltaksdeltakelse = opprinnelig.tiltaksdeltakelse,
-                        antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
+                        tiltaksdeltakelser = kommando.tiltaksdeltakelser.map {
+                            InnvilgetTiltaksdeltakelse(
+                                tiltaksdeltakelse = opprinnelig.hentTiltaksdeltakelse(it.internDeltakelseId)!!,
+                                antallDagerPerMeldeperiode = it.antallDagerPerMeldeperiode,
+                            )
+                        },
                         reversertOpphør = ReversertOpphør(opprinneligVedtakId = opprinnelig.vedtakId),
                     ),
                     delperiode,

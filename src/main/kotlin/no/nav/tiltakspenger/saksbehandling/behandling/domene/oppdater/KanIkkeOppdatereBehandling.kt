@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater
 
 import arrow.core.NonEmptyList
 import arrow.core.NonEmptySet
+import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.UgyldigInnvilgelsesperiode
 
@@ -27,6 +28,9 @@ sealed interface KanIkkeOppdatereBehandling {
     data object InnvilgelsesperiodeHarIngenOverlappMedTiltaksdeltakelserFraSaksopplysninger : KanIkkeOppdatereBehandling
 
     data class InnvilgelsenPasserIkkeMedTiltaksdeltakelsene(val ugyldigePerioder: NonEmptyList<UgyldigInnvilgelsesperiode>) : KanIkkeOppdatereBehandling
+
+    /** Summen av antall dager per meldeperiode for tiltaksdeltakelsene i [perioder] er mer enn det er dager i en meldeperiode. */
+    data class ForMangeDagerPerMeldeperiode(val perioder: NonEmptyList<Periode>) : KanIkkeOppdatereBehandling
 }
 
 sealed interface KanIkkeOppdatereOmgjøring : KanIkkeOppdatereBehandling {

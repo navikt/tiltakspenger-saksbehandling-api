@@ -341,7 +341,7 @@ class IverksettRevurderingTest {
                 gjeldendeVedtaksperioder = listOf(1.til(4.januar(2023))),
                 gjeldendeInnvilgetPerioder = listOf(1.til(4.januar(2023))),
                 omgjortGrad = "DELVIS",
-                internDeltakelseId = rammevedtakSøknadsbehandling.innvilgelsesperioder!!.valgteTiltaksdeltagelser.verdier.single().internDeltakelseId,
+                internDeltakelseId = rammevedtakSøknadsbehandling.innvilgelsesperioder!!.valgteTiltaksdeltagelser.verdier.single().single().internDeltakelseId,
                 opprettet = "2025-01-01T01:02:20.456789",
                 gjeldendeBarnetilleggPerioder = """
                     [
@@ -411,7 +411,7 @@ class IverksettRevurderingTest {
                 gjeldendeInnvilgetPerioder = emptyList(),
                 erGjeldende = false,
                 omgjortGrad = "HELT",
-                internDeltakelseId = sak.rammevedtaksliste[0].innvilgelsesperioder!!.valgteTiltaksdeltagelser.verdier.single().internDeltakelseId,
+                internDeltakelseId = sak.rammevedtaksliste[0].innvilgelsesperioder!!.valgteTiltaksdeltagelser.verdier.single().single().internDeltakelseId,
                 opprettet = "2025-01-01T01:02:20.456789",
                 gjeldendeBarnetilleggPerioder = "[]",
             )
@@ -430,7 +430,7 @@ class IverksettRevurderingTest {
                 vedtaksdato = null,
                 innvilgelsesperioder = """[
                     {
-                        "internDeltakelseId": "${sak.rammevedtaksliste[1].innvilgelsesperioder!!.valgteTiltaksdeltagelser.verdier.single().internDeltakelseId}",
+                        "internDeltakelseId": "${sak.rammevedtaksliste[1].innvilgelsesperioder!!.valgteTiltaksdeltagelser.verdier.single().single().internDeltakelseId}",
                         "ugyldigTiltaksdeltakelse": null,
                         "erReversertOpphør": false,
                         "periode": {

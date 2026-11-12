@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak
 
+import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
@@ -125,7 +126,7 @@ data class Rammevedtak(
     val antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode>? =
         rammebehandling.antallDagerPerMeldeperiode
 
-    val valgteTiltaksdeltakelser: IkkeTomPeriodisering<TiltaksdeltakelseIntern>? = rammebehandling.valgteTiltaksdeltakelser
+    val valgteTiltaksdeltakelser: IkkeTomPeriodisering<NonEmptyList<TiltaksdeltakelseIntern>>? = rammebehandling.valgteTiltaksdeltakelser
 
     val innvilgelsesperioder: Innvilgelsesperioder? = rammebehandling.innvilgelsesperioder
 

@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import arrow.core.NonEmptySet
+import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
@@ -16,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgetTiltaksdeltakelseKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.createOrThrow
@@ -37,8 +39,12 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
     ): InnvilgelsesperiodeKommando {
         return InnvilgelsesperiodeKommando(
             periode = innvilgelsesperiode,
-            antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(antallDagerPerMeldeperiode),
-            internDeltakelseId = tiltaksdeltakelse.internDeltakelseId,
+            tiltaksdeltakelser = nonEmptyListOf(
+                InnvilgetTiltaksdeltakelseKommando(
+                    internDeltakelseId = tiltaksdeltakelse.internDeltakelseId,
+                    antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(antallDagerPerMeldeperiode),
+                ),
+            ),
         )
     }
 

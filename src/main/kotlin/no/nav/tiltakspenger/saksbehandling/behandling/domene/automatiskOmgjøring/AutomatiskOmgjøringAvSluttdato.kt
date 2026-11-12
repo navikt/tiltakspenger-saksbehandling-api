@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgetTiltaksdeltakelseKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
@@ -107,8 +108,7 @@ fun Sak.utledAutomatiskOmgjøringAvSluttdato(
     }
 
     val tidligereDeltakelser = gjeldendeInnvilgelse?.periodisering?.perioderMedVerdi
-        ?.map { it.verdi.valgtTiltaksdeltakelse }
-        ?.filter { it.internDeltakelseId == tiltaksdeltakerId }
+        ?.mapNotNull { it.verdi.hentTiltaksdeltakelse(tiltaksdeltakerId)?.tiltaksdeltakelse }
         .orEmpty()
 
     if (nåtilstand != null && tidligereDeltakelser.any { it.periode.fraOgMed != nåtilstand.periode.fraOgMed }) {
@@ -171,20 +171,25 @@ private fun Rammevedtaksliste.gjeldendeBarnetillegg(vedtaksperiode: Periode): Ba
 }
 
 /**
- * Fjerner dagene etter [nySluttdato] fra periodene der [tiltaksdeltakerId] er innvilget.
- * Perioder som starter etter ny sluttdato, f.eks. fra et senere vedtak, fjernes helt.
- * Periodene der andre deltakelser er innvilget, beholdes.
+ * Fjerner [tiltaksdeltakerId] fra dagene etter [nySluttdato].
+ * Perioder der den er eneste tiltaksdeltakelse, fjernes etter ny sluttdato, og helt dersom de starter etter den, f.eks. fra et senere vedtak.
+ * Andre tiltaksdeltakelser som er innvilget i periodene, beholdes.
  */
 private fun Innvilgelsesperioder.avkortForDeltakelse(
     tiltaksdeltakerId: TiltaksdeltakerId,
     nySluttdato: LocalDate,
 ): Innvilgelsesperioder = Innvilgelsesperioder(
-    periodisering.perioderMedVerdi.mapNotNull { periodeMedVerdi ->
-        val periode = periodeMedVerdi.periode
+    periodisering.perioderMedVerdi.toList().flatMap { (verdi, periode) ->
+        val utenDeltakelsen = verdi.utenTiltaksdeltakelse(tiltaksdeltakerId)
         when {
-            periodeMedVerdi.verdi.valgtTiltaksdeltakelse.internDeltakelseId != tiltaksdeltakerId -> periodeMedVerdi
-            periode.fraOgMed.isAfter(nySluttdato) -> null
-            else -> PeriodeMedVerdi(verdi = periodeMedVerdi.verdi, periode = periode.fraOgMed til minOf(periode.tilOgMed, nySluttdato))
+            !verdi.innvilgerTiltaksdeltakelse(tiltaksdeltakerId) || !periode.tilOgMed.isAfter(nySluttdato) -> listOf(PeriodeMedVerdi(verdi, periode))
+
+            periode.fraOgMed.isAfter(nySluttdato) -> listOfNotNull(utenDeltakelsen?.let { PeriodeMedVerdi(it, periode) })
+
+            else -> listOfNotNull(
+                PeriodeMedVerdi(verdi, periode.fraOgMed til nySluttdato),
+                utenDeltakelsen?.let { PeriodeMedVerdi(it, nySluttdato.plusDays(1) til periode.tilOgMed) },
+            )
         }
     }.tilIkkeTomPeriodisering(),
 )
@@ -194,8 +199,12 @@ private fun Innvilgelsesperioder.tilKommando(): IkkeTomPeriodisering<Innvilgelse
         PeriodeMedVerdi(
             verdi = InnvilgelsesperiodeKommando(
                 periode = it.periode,
-                antallDagerPerMeldeperiode = it.verdi.antallDagerPerMeldeperiode,
-                internDeltakelseId = it.verdi.valgtTiltaksdeltakelse.internDeltakelseId,
+                tiltaksdeltakelser = it.verdi.tiltaksdeltakelser.map { innvilget ->
+                    InnvilgetTiltaksdeltakelseKommando(
+                        internDeltakelseId = innvilget.internDeltakelseId,
+                        antallDagerPerMeldeperiode = innvilget.antallDagerPerMeldeperiode,
+                    )
+                },
             ),
             periode = it.periode,
         )

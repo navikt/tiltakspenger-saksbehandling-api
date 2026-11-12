@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
@@ -11,6 +12,7 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgetTiltaksdeltakelseKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeForlenge
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
@@ -90,8 +92,12 @@ fun Sak.utledForlengelse(
         innvilgelsesperioder = SammenhengendePeriodisering(
             InnvilgelsesperiodeKommando(
                 periode = forlengelsesperiode,
-                antallDagerPerMeldeperiode = valgtTiltaksdeltakelse.antallDagerPerMeldeperiode,
-                internDeltakelseId = tiltaksdeltakerId,
+                tiltaksdeltakelser = nonEmptyListOf(
+                    InnvilgetTiltaksdeltakelseKommando(
+                        internDeltakelseId = tiltaksdeltakerId,
+                        antallDagerPerMeldeperiode = valgtTiltaksdeltakelse.antallDagerPerMeldeperiode,
+                    ),
+                ),
             ),
             forlengelsesperiode,
         ),

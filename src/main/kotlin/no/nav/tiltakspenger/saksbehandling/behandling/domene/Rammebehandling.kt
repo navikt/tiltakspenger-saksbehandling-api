@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -70,7 +71,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     val innvilgelsesperioder: Innvilgelsesperioder?
     val begrunnelseVilkårsvurdering: Begrunnelse?
 
-    val valgteTiltaksdeltakelser: IkkeTomPeriodisering<TiltaksdeltakelseIntern>?
+    val valgteTiltaksdeltakelser: IkkeTomPeriodisering<NonEmptyList<TiltaksdeltakelseIntern>>?
     val barnetillegg: Barnetillegg?
 
     val antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode>?

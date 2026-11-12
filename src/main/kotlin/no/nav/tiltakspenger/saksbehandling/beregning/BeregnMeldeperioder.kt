@@ -121,7 +121,7 @@ private data class BeregnMeldeperioder(
     }
 
     private fun hentTiltakstype(dato: LocalDate): TiltakstypeSomGirRett? {
-        return hentInnvilgelse(dato)?.valgtTiltaksdeltakelse?.tiltakstype
+        return hentInnvilgelse(dato)?.førsteTiltakstype
     }
 
     private fun hentGjeldendeBeregningDagerForKjede(kjedeId: MeldeperiodeKjedeId): NonEmptyList<MeldeperiodeBeregningDag>? {

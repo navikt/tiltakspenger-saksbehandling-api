@@ -132,7 +132,7 @@ class HentTilbakeRammebehandlingRouteTest {
             val innvilgelsesperioder = innvilgelsesperioder()
             val (sak, _, opprettetBehandling) = opprettAutomatiskBehandlingKlarTilBeslutning(
                 tac = tac,
-                tiltaksdeltakelse = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
+                tiltaksdeltakelse = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.flatten().distinct().single(),
             )
             hentTilbakeRammebehandling(tac, sak.id, opprettetBehandling.id, saksbehandler)!!
 

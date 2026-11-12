@@ -21,7 +21,9 @@ fun genererStønadsstatistikkForRammevedtak(
             StatistikkStønadDTO.InnvilgelsesperiodeStatistikk(
                 fraOgMed = it.periode.fraOgMed,
                 tilOgMed = it.periode.tilOgMed,
-                tiltaksdeltakelse = it.verdi.valgtTiltaksdeltakelse.eksternDeltakelseId,
+                // TODO: Fjern enkeltverdien når Team Spenn har tatt i bruk listen.
+                tiltaksdeltakelse = it.verdi.tiltaksdeltakelser.head.tiltaksdeltakelse.eksternDeltakelseId,
+                tiltaksdeltakelser = it.verdi.tiltaksdeltakelser.map { innvilget -> innvilget.tiltaksdeltakelse.eksternDeltakelseId },
             )
         }
 

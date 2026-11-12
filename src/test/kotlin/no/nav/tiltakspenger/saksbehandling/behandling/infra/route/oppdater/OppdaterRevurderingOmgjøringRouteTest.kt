@@ -96,7 +96,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
             resultat.antallDagerPerMeldeperiode shouldBe innvilgelsesperioder.antallDagerPerMeldeperiode
             resultat.valgteTiltaksdeltakelser shouldBe listOf(
                 PeriodeMedVerdi(
-                    avbruttTiltaksdeltakelse,
+                    nonEmptyListOf(avbruttTiltaksdeltakelse),
                     nyInnvilgelsesperiode,
                 ),
             ).tilIkkeTomPeriodisering()

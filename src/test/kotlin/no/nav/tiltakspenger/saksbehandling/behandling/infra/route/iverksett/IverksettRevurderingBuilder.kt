@@ -52,7 +52,7 @@ interface IverksettRevurderingBuilder {
         søknadsbehandlingInnvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         revurderingInnvilgelsesperioder: Innvilgelsesperioder = søknadsbehandlingInnvilgelsesperioder,
         // Utledes fra periodene slik at revurderingen gjelder samme deltakelse som innvilgelsen; en frisk deltakelse ville fått ny id.
-        oppdatertTiltaksdeltakelse: TiltaksdeltakelseIntern = revurderingInnvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
+        oppdatertTiltaksdeltakelse: TiltaksdeltakelseIntern = revurderingInnvilgelsesperioder.valgteTiltaksdeltagelser.verdier.flatten().distinct().single(),
         saksbehandler: Saksbehandler = saksbehandler(),
         beslutter: Saksbehandler = beslutter(),
         barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(revurderingInnvilgelsesperioder.perioder),

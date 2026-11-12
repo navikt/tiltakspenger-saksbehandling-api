@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.trekkFra
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
@@ -21,7 +22,7 @@ sealed interface Rammebehandlingsresultat {
     val innvilgelsesperioder: Innvilgelsesperioder?
 
     /** Vil være null ved stans og når behandlingen er uferdig */
-    val valgteTiltaksdeltakelser: IkkeTomPeriodisering<TiltaksdeltakelseIntern>?
+    val valgteTiltaksdeltakelser: IkkeTomPeriodisering<NonEmptyList<TiltaksdeltakelseIntern>>?
 
     /** Vil være null ved stans og når behandlingen er uferdig */
     val antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode>?

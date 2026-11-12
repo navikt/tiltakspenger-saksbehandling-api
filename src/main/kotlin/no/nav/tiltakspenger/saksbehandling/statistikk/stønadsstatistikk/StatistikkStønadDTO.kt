@@ -76,7 +76,11 @@ data class StatistikkStønadDTO(
     data class InnvilgelsesperiodeStatistikk(
         val fraOgMed: LocalDate,
         val tilOgMed: LocalDate,
+        // Ekstern id for den første tiltaksdeltakelsen i perioden, som også bestemmer tiltakstypen.
+        // Beholdes inntil Team Spenn har tatt i bruk [tiltaksdeltakelser].
         val tiltaksdeltakelse: String,
+        // Eksterne id-er for alle tiltaksdeltakelsene det er innvilget for i perioden, i samme rekkefølge som i vedtaket.
+        val tiltaksdeltakelser: List<String>,
     )
 
     data class OmgjørRammevedtakStatistikk(
