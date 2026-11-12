@@ -11,10 +11,6 @@ spec:
   replicas:
     min: {{ replicas }}
     max: {{ replicas }}
-  # Midlertidig: alle podder stoppes før nye startes, så ulike versjoner aldri kjører samtidig.
-  # Gir nedetid under deploy, og skal tilbake til RollingUpdate etter prodsettingen av flere tiltak per innvilgelsesperiode.
-  strategy:
-    type: Recreate
   resources:
     limits:
       memory: 3000Mi
