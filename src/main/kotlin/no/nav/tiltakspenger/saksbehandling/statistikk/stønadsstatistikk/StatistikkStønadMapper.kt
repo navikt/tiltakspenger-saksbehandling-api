@@ -21,9 +21,9 @@ fun genererStønadsstatistikkForRammevedtak(
             StatistikkStønadDTO.InnvilgelsesperiodeStatistikk(
                 fraOgMed = it.periode.fraOgMed,
                 tilOgMed = it.periode.tilOgMed,
-                // TODO: En innvilgelsesperiode kan ha flere tiltaksdeltakelser, men statistikken har bare plass til én.
-                //  Vi sender den første, som også bestemmer tiltakstypen, inntil formatet er avklart med Team Sak og Team Spenn.
+                // TODO: Fjern enkeltverdien når Team Spenn har tatt i bruk listen.
                 tiltaksdeltakelse = it.verdi.tiltaksdeltakelser.head.tiltaksdeltakelse.eksternDeltakelseId,
+                tiltaksdeltakelser = it.verdi.tiltaksdeltakelser.map { innvilget -> innvilget.tiltaksdeltakelse.eksternDeltakelseId },
             )
         }
 

@@ -173,7 +173,7 @@ class InnvilgelsesperioderTest {
             val verdi = innvilgelsesperioder.periodisering.verdier.single()
 
             verdi.antallDagerPerMeldeperiode shouldBe AntallDagerForMeldeperiode(10)
-            verdi.tiltakstype shouldBe TiltakstypeSomGirRett.ARBEIDSTRENING
+            verdi.førsteTiltakstype shouldBe TiltakstypeSomGirRett.ARBEIDSTRENING
             innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.single() shouldBe nonEmptyListOf(arbeidstrening, amo)
         }
 

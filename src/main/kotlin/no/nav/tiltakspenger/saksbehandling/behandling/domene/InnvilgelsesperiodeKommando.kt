@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 /**
  * @param tiltaksdeltakelser Tiltaksdeltakelsene det innvilges for i perioden.
- * Den første bestemmer tiltakstypen for perioden, se [InnvilgelsesperiodeVerdi.tiltakstype].
+ * Den første bestemmer tiltakstypen for perioden, se [InnvilgelsesperiodeVerdi.førsteTiltakstype].
  * @param erReversertOpphør Saksbehandler har valgt å innvilge perioden som et reversert opphør, uten gyldig tiltaksdeltakelse.
  * Slike perioder konverteres med [no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.tilInnvilgelsesperioderMedReversertOpphør], og aldri med [tilInnvilgelsesperioder].
  */

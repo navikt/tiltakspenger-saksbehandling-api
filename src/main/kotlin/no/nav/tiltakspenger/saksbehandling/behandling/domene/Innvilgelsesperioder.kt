@@ -178,7 +178,7 @@ data class Innvilgelsesperioder(
 
 /**
  * @param tiltaksdeltakelser Tiltaksdeltakelsene det innvilges for i perioden, slik de var registrert da perioden ble innvilget.
- * Den første tiltaksdeltakelsen er den saksbehandler har valgt først, og den bestemmer tiltakstypen for perioden, se [tiltakstype].
+ * Den første tiltaksdeltakelsen er den saksbehandler har valgt først, og den bestemmer tiltakstypen for perioden, se [førsteTiltakstype].
  * @param reversertOpphør Er satt dersom perioden er innvilget som [ReversertOpphør], altså på nytt etter å ha vært opphørt eller stanset, uten gyldig tiltaksdeltakelse i saksopplysningene.
  * Da er [tiltaksdeltakelser] tiltaksdeltakelsene fra det opprinnelige vedtaket.
  */
@@ -197,7 +197,7 @@ data class InnvilgelsesperiodeVerdi(
      * Tiltakstypen dagene i perioden beregnes og utbetales med.
      * En dag kan bare utbetales med én tiltakstype, så når det innvilges for flere tiltaksdeltakelser, er det den første som gjelder.
      */
-    val tiltakstype: TiltakstypeSomGirRett get() = tiltaksdeltakelser.head.tiltaksdeltakelse.tiltakstype
+    val førsteTiltakstype: TiltakstypeSomGirRett get() = tiltaksdeltakelser.head.tiltaksdeltakelse.tiltakstype
 
     init {
         require(tiltaksdeltakelser.map { it.internDeltakelseId }.distinct().size == tiltaksdeltakelser.size) {
