@@ -5,6 +5,7 @@ import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.trekkFra
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
@@ -29,6 +30,13 @@ sealed interface Rammebehandlingsresultat {
 
     /** Vil være null ved stans og når behandlingen er uferdig */
     val barnetillegg: Barnetillegg?
+
+    /**
+     * Antall barn med barnetillegg per dag i [innvilgelsesperioder], utledet fra [barnetillegg].
+     * Null når en av dem mangler.
+     */
+    val barnetilleggsperioder: IkkeTomPeriodisering<AntallBarn>?
+        get() = innvilgelsesperioder?.let { barnetillegg?.periodisering(it.perioder) }
 
     val omgjørRammevedtak: OmgjørRammevedtak
 
@@ -69,13 +77,11 @@ sealed interface Rammebehandlingsresultat {
         }
 
         private fun validerBarnetillegg(): Boolean {
-            if (barnetillegg == null) {
-                return false
-            }
+            val barnetilleggsperioder = barnetilleggsperioder ?: return false
 
             // Alle barnetilleggsperiodene må overlappe fullstendig med innvilgelsesperiodene
             val ikkeOverlappendePerioder =
-                barnetillegg!!.periodisering.perioder.trekkFra(innvilgelsesperioder!!.perioder)
+                barnetilleggsperioder.perioder.trekkFra(innvilgelsesperioder!!.perioder)
 
             return ikkeOverlappendePerioder.isEmpty()
         }

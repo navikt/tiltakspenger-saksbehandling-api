@@ -90,7 +90,7 @@ interface SendRevurderingTilBeslutningBuilder {
             begrunnelseVilkårsvurdering = null,
             fritekstTilVedtaksbrev = null,
             innvilgelsesperioder = revurderingInnvilgelsesperioder,
-            barnetillegg = Barnetillegg.utenBarnetillegg(revurderingInnvilgelsesperioder.perioder),
+            barnetillegg = Barnetillegg.utenBarnetillegg(),
         )
 
         return Tuple4(

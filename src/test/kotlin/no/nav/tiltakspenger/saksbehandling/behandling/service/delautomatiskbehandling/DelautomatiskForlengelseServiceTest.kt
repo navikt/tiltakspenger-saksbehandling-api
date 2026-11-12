@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -22,6 +23,11 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnMedBarnetillegg
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.lagreBarnetilleggSomV1
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.tilBarnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
@@ -37,12 +43,16 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortDa
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortbehandlingDTO.OppdaterMeldekortdagDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortbehandlingDTO.OppdatertMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetilleggForBarnISøknaden
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetilleggMedIdent
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetilleggUtenIdent
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
@@ -155,7 +165,7 @@ class DelautomatiskForlengelseServiceTest {
                 it.antallDagerPerMeldeperiode.shouldNotBeNull().verdier.distinct() shouldBe
                     vedtak.antallDagerPerMeldeperiode.shouldNotBeNull().verdier.distinct()
                 it.barnetillegg.shouldNotBeNull().also { barnetillegg ->
-                    barnetillegg.periodisering.verdier.distinct() shouldBe listOf(AntallBarn.ZERO)
+                    it.barnetilleggsperioder.shouldNotBeNull().verdier.distinct() shouldBe listOf(AntallBarn.ZERO)
                     barnetillegg.begrunnelse.shouldBeNull()
                 }
             }
@@ -170,7 +180,9 @@ class DelautomatiskForlengelseServiceTest {
      * @param nåtilstand Deltakelsen slik den er registrert når forlengelsen behandles, eller null om den ikke lenger finnes.
      * @param innvilgetTilOgMed Siste dag i innvilgelsen, som ellers følger deltakelsen.
      * @param barnFraSøknad Barna i søknaden som innvilges.
-     * @param antallBarnIVedtaket Antall barn det innvilges barnetillegg for i hele vedtaksperioden.
+     * @param velgBarn Barna i søknaden det innvilges barnetillegg for, av dem som har rett i innvilgelsesperioden.
+     * @param andreBarn Barn saksbehandler har lagt til selv i vedtaket.
+     * @param antallBarnIVedtaketV1 Lagrer vedtakets barnetillegg som [BarnetilleggV1] med dette antallet barn i hele vedtaksperioden, slik eldre vedtak er lagret.
      * @param etterInnvilgelse Kjøres etter at søknaden er innvilget, før forlengelsen opprettes.
      * @param førBehandling Kjøres etter at forlengelsen er opprettet, før den behandles.
      */
@@ -180,20 +192,27 @@ class DelautomatiskForlengelseServiceTest {
         nåtilstand: (TiltaksdeltakelseIntern) -> TiltaksdeltakelseIntern? = { it },
         innvilgetTilOgMed: LocalDate = 5.mai(2025),
         barnFraSøknad: List<BarnetilleggFraSøknad> = emptyList(),
-        antallBarnIVedtaket: AntallBarn = AntallBarn(barnFraSøknad.size),
+        velgBarn: (BarnetilleggFraSøknad) -> Boolean = { true },
+        andreBarn: List<BarnMedBarnetillegg> = emptyList(),
+        antallBarnIVedtaketV1: AntallBarn? = null,
         kanSendeHelg: Boolean = false,
         etterInnvilgelse: suspend ApplicationTestBuilder.(Sak) -> Unit = {},
         førBehandling: suspend ApplicationTestBuilder.(Sak) -> Unit = {},
     ): Revurdering {
         val deltakelse = tidligereTilstand(tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025)))
         val innvilgelsesperiode = deltakelse.periode.fraOgMed!! til innvilgetTilOgMed
-        val (sak) = iverksettSøknadsbehandling(
+        val (sak, _, vedtak) = iverksettSøknadsbehandling(
             tac = tac,
             tiltaksdeltakelse = deltakelse,
             innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode, deltakelse),
-            barnetillegg = barnetillegg(periode = innvilgelsesperiode, antallBarn = antallBarnIVedtaket),
+            barnetillegg = barnetillegg(periode = innvilgelsesperiode, antallBarn = antallBarnIVedtaketV1 ?: AntallBarn.ZERO),
             barnFraSøknad = barnFraSøknad,
+            barnetilleggForSøknad = barnetilleggForBarnISøknaden(nonEmptyListOf(innvilgelsesperiode), velgBarn = velgBarn, andreBarn = andreBarn)
+                .takeIf { antallBarnIVedtaketV1 == null },
         )
+        if (antallBarnIVedtaketV1 != null) {
+            tac.lagreBarnetilleggSomV1(vedtak.rammebehandling.id)
+        }
         if (kanSendeHelg) {
             toggleKanSendeHelgForMeldekort(tac, sak.id, kanSendeHelg = true)
         }
@@ -213,7 +232,7 @@ class DelautomatiskForlengelseServiceTest {
         manueltBehandlesGrunner.shouldBeEmpty()
         innvilgelsesperioder.shouldNotBeNull().totalPeriode shouldBe (6.mai(2025) til 30.juni(2025))
         this.antallDagerPerMeldeperiode.shouldNotBeNull().verdier.distinct() shouldBe listOf(AntallDagerForMeldeperiode(antallDagerPerMeldeperiode))
-        barnetillegg.shouldNotBeNull().periodisering.also {
+        barnetilleggsperioder.shouldNotBeNull().also {
             it.totalPeriode shouldBe (6.mai(2025) til 30.juni(2025))
             it.verdier.distinct() shouldBe listOf(antallBarn)
         }
@@ -583,6 +602,29 @@ class DelautomatiskForlengelseServiceTest {
                 barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015)), barnetilleggUtenIdent(fødselsdato = 1.januar(2018))),
             ).also {
                 it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10, antallBarn = AntallBarn(2))
+                it.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().barn.map { barn -> barn.fødselsdato to barn.perioder } shouldBe listOf(
+                    1.januar(2015) to null,
+                    1.januar(2018) to null,
+                )
+                it.barnetillegg.shouldNotBeNull().begrunnelse.shouldNotBeNull().verdi shouldBe
+                    "Barnetillegg for 2 barn videreføres fra det gjeldende vedtaket."
+                it.fritekstTilVedtaksbrev.shouldNotBeNull().verdi shouldBe
+                    "Tiltaket ditt er forlenget. Vi forlenger derfor vedtaket ditt om tiltakspenger og barnetillegg."
+                it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldNotContain "arnetillegg"
+            }
+        }
+    }
+
+    @Test
+    fun `eldre vedtak har barnetillegg for like mange barn som søknaden - antall barn utledes fra søknaden og videreføres`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(
+                tac,
+                barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015)), barnetilleggUtenIdent(fødselsdato = 1.januar(2018))),
+                antallBarnIVedtaketV1 = AntallBarn(2),
+            ).also {
+                it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10, antallBarn = AntallBarn(2))
+                it.barnetillegg.shouldBeInstanceOf<BarnetilleggV1>()
                 it.barnetillegg.shouldNotBeNull().begrunnelse.shouldNotBeNull().verdi shouldBe
                     "Barnetillegg for 2 barn videreføres fra det gjeldende vedtaket."
                 it.fritekstTilVedtaksbrev.shouldNotBeNull().verdi shouldBe
@@ -601,7 +643,7 @@ class DelautomatiskForlengelseServiceTest {
             ).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
                 it.manueltBehandlesGrunner.shouldBeEmpty()
-                it.barnetillegg.shouldNotBeNull().periodisering.perioderMedVerdi.toList() shouldBe listOf(
+                it.barnetilleggsperioder.shouldNotBeNull().perioderMedVerdi.toList() shouldBe listOf(
                     PeriodeMedVerdi(AntallBarn(2), 6.mai(2025) til 31.mai(2025)),
                     PeriodeMedVerdi(AntallBarn(1), 1.juni(2025) til 30.juni(2025)),
                 )
@@ -632,7 +674,7 @@ class DelautomatiskForlengelseServiceTest {
                 ),
             ).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
-                it.barnetillegg.shouldNotBeNull().periodisering.perioderMedVerdi.toList() shouldBe listOf(
+                it.barnetilleggsperioder.shouldNotBeNull().perioderMedVerdi.toList() shouldBe listOf(
                     PeriodeMedVerdi(AntallBarn(3), 6.mai(2025) til 31.mai(2025)),
                     PeriodeMedVerdi(AntallBarn(2), 1.juni(2025) til 14.juni(2025)),
                     PeriodeMedVerdi(AntallBarn(1), 15.juni(2025) til 30.juni(2025)),
@@ -652,7 +694,7 @@ class DelautomatiskForlengelseServiceTest {
         withTestApplicationContextAndPostgres { tac ->
             forlengOgBehandleAutomatisk(tac, barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.juni(2009)))).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
-                it.barnetillegg.shouldNotBeNull().periodisering.perioderMedVerdi.toList() shouldBe listOf(
+                it.barnetilleggsperioder.shouldNotBeNull().perioderMedVerdi.toList() shouldBe listOf(
                     PeriodeMedVerdi(AntallBarn(1), 6.mai(2025) til 31.mai(2025)),
                     PeriodeMedVerdi(AntallBarn.ZERO, 1.juni(2025) til 30.juni(2025)),
                 )
@@ -672,8 +714,8 @@ class DelautomatiskForlengelseServiceTest {
                 tac = tac,
                 tiltaksdeltakelse = deltakelse,
                 innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
-                barnetillegg = barnetillegg(periode = deltakelse.lukketPeriode!!, antallBarn = AntallBarn(2)),
                 barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015)), barnetilleggMedIdent(fødselsdato = 1.juni(2009))),
+                barnetilleggForSøknad = barnetilleggForBarnISøknaden(nonEmptyListOf(deltakelse.lukketPeriode!!)),
             )
             val revurdering = tac.opprettAutomatiskForlengelse(
                 sak = sak,
@@ -723,7 +765,7 @@ class DelautomatiskForlengelseServiceTest {
             forlengOgBehandleAutomatisk(
                 tac,
                 barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015))),
-                antallBarnIVedtaket = AntallBarn.ZERO,
+                velgBarn = { false },
             ).also {
                 it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10, antallBarn = AntallBarn.ZERO)
                 it.begrunnelseVilkårsvurdering.shouldNotBeNull().verdi shouldNotContain "arnetillegg"
@@ -735,24 +777,147 @@ class DelautomatiskForlengelseServiceTest {
     }
 
     @Test
-    fun `vedtaket har barnetillegg for flere barn enn søknaden - overlates til saksbehandler`() {
+    fun `eldre vedtak har barnetillegg for flere barn enn søknaden - overlates til saksbehandler`() {
         withTestApplicationContextAndPostgres { tac ->
             forlengOgBehandleAutomatisk(
                 tac,
                 barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015))),
-                antallBarnIVedtaket = AntallBarn(2),
+                antallBarnIVedtaketV1 = AntallBarn(2),
             ).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG)
         }
     }
 
     @Test
-    fun `vedtaket har barnetillegg for et barn utenfor EØS - overlates til saksbehandler`() {
+    fun `eldre vedtak har barnetillegg for et barn utenfor EØS - overlates til saksbehandler`() {
         withTestApplicationContextAndPostgres { tac ->
             forlengOgBehandleAutomatisk(
                 tac,
                 barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015), oppholderSegIEØS = Søknad.JaNeiSpm.Nei)),
-                antallBarnIVedtaket = AntallBarn(1),
+                antallBarnIVedtaketV1 = AntallBarn(1),
             ).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG)
+        }
+    }
+
+    @Test
+    fun `vedtaket har barnetillegg for et barn utenfor EØS - barnetillegget videreføres`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(
+                tac,
+                barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015), oppholderSegIEØS = Søknad.JaNeiSpm.Nei)),
+            ).skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10, antallBarn = AntallBarn(1))
+        }
+    }
+
+    @Test
+    fun `vedtaket har barnetillegg for et barn saksbehandler har lagt til - barnetillegget videreføres`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(
+                tac,
+                barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015))),
+                andreBarn = listOf(barnMedBarnetillegg(fornavn = "Kari", fødselsdato = 1.januar(2018))),
+            ).also {
+                it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10, antallBarn = AntallBarn(2))
+                it.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().barn.single { barn -> barn.fornavn == "Kari" }
+                    .kilde shouldBe BarnMedBarnetillegg.Kilde.Saksbehandler
+            }
+        }
+    }
+
+    @Test
+    fun `et barn har barnetillegg i en kortere periode enn vedtaket - videreføres ikke`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(
+                tac,
+                barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015))),
+                andreBarn = listOf(barnMedBarnetillegg(fornavn = "Kari", fødselsdato = 1.januar(2018), perioder = listOf(5.januar(2025) til 30.april(2025)))),
+            ).also {
+                it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10, antallBarn = AntallBarn(1))
+                it.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().barn.map { barn -> barn.fødselsdato } shouldBe listOf(1.januar(2015))
+                it.barnetillegg.shouldNotBeNull().begrunnelse.shouldNotBeNull().verdi shouldBe
+                    "Barnetillegg for 1 barn videreføres fra det gjeldende vedtaket."
+            }
+        }
+    }
+
+    @Test
+    fun `vedtaket har barnetillegg for ett av to barn i søknaden - bare det valgte barnet videreføres`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(
+                tac,
+                barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015)), barnetilleggUtenIdent(fødselsdato = 1.januar(2018))),
+                velgBarn = { it.fødselsdato == 1.januar(2015) },
+            ).also {
+                it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10, antallBarn = AntallBarn(1))
+                it.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().barn.single().also { barn ->
+                    barn.fødselsdato shouldBe 1.januar(2015)
+                    barn.kilde.shouldBeInstanceOf<BarnMedBarnetillegg.Kilde.Søknad>()
+                    barn.perioder.shouldBeNull()
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `et barn har en valgt periode som varer ut vedtaket - videreføres for hele forlengelsen`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(
+                tac,
+                barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015))),
+                andreBarn = listOf(barnMedBarnetillegg(fornavn = "Kari", fødselsdato = 1.januar(2018), perioder = listOf(1.mars(2025) til 5.mai(2025)))),
+            ).also {
+                it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10, antallBarn = AntallBarn(2))
+                it.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().barn.single { barn -> barn.fornavn == "Kari" }.perioder.shouldBeNull()
+            }
+        }
+    }
+
+    /**
+     * Barnet er valgt fra søknaden i søknadsbehandlingen og videreført i en revurdering, som er det gjeldende vedtaket ved forlengelsen.
+     * Barnet beholder kilden fra søknaden gjennom hele kjeden, også når forlengelsen iverksettes og forlenges på nytt.
+     */
+    @Test
+    fun `barnet fra søknaden videreføres gjennom revurdering, forlengelse og ny forlengelse`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
+            val (sak, søknad) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(5.januar(2025) til 31.mars(2025), deltakelse),
+                barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015))),
+                barnetilleggForSøknad = barnetilleggForBarnISøknaden(nonEmptyListOf(5.januar(2025) til 31.mars(2025))),
+            )
+            val barnet = søknad.barnetillegg.single().tilBarnMedBarnetillegg(søknad.id)
+            iverksettRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 5.mai(2025), deltakelse),
+                barnetilleggRevurdering = barnetilleggV2(innvilgelsesperioder = nonEmptyListOf(1.april(2025) til 5.mai(2025)), barn = listOf(barnet)),
+            )
+            val forlenget = deltakelse.medPeriode(tilOgMed = 30.juni(2025))
+            val forlengelse = tac.opprettAutomatiskForlengelse(sak = sak, tiltaksdeltakelse = deltakelse, nåtilstand = forlenget)
+
+            tac.behandleForlengelseAutomatisk(forlengelse)
+
+            tac.hentRevurdering(sak, forlengelse).also {
+                it.skalVæreSendtTilBeslutningMed(antallDagerPerMeldeperiode = 10, antallBarn = AntallBarn(1))
+                it.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().barn shouldBe listOf(barnet)
+            }
+            taRammebehandlinger(tac, listOf(sak.id to forlengelse.id), saksbehandler = ObjectMother.beslutter()).shouldNotBeNull()
+            iverksettForBehandlingId(tac, sak.id, forlengelse.id).shouldNotBeNull()
+
+            val nyForlengelse = tac.opprettAutomatiskForlengelse(
+                sak = sak,
+                tiltaksdeltakelse = forlenget,
+                nåtilstand = forlenget.medPeriode(tilOgMed = 31.august(2025)),
+            )
+
+            tac.behandleForlengelseAutomatisk(nyForlengelse)
+
+            tac.hentRevurdering(sak, nyForlengelse).also {
+                it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+                it.innvilgelsesperioder.shouldNotBeNull().totalPeriode shouldBe (1.juli(2025) til 31.august(2025))
+                it.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().barn shouldBe listOf(barnet)
+            }
         }
     }
 
@@ -762,7 +927,17 @@ class DelautomatiskForlengelseServiceTest {
             forlengOgBehandleAutomatisk(
                 tac,
                 barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015)), barnetilleggMedIdent(fødselsdato = 1.juni(2025))),
-                antallBarnIVedtaket = AntallBarn(1),
+            ).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG)
+        }
+    }
+
+    @Test
+    fun `eldre vedtak og søknaden har et barn som blir født i forlengelsen - overlates til saksbehandler`() {
+        withTestApplicationContextAndPostgres { tac ->
+            forlengOgBehandleAutomatisk(
+                tac,
+                barnFraSøknad = listOf(barnetilleggMedIdent(fødselsdato = 1.januar(2015)), barnetilleggMedIdent(fødselsdato = 1.juni(2025))),
+                antallBarnIVedtaketV1 = AntallBarn(1),
             ).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG)
         }
     }
@@ -777,7 +952,6 @@ class DelautomatiskForlengelseServiceTest {
                     barnetilleggMedIdent(fødselsdato = 1.juni(2009)),
                     barnetilleggMedIdent(fødselsdato = 1.juni(2025)),
                 ),
-                antallBarnIVedtaket = AntallBarn(2),
             ).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG)
         }
     }
@@ -792,7 +966,6 @@ class DelautomatiskForlengelseServiceTest {
                     barnetilleggMedIdent(fødselsdato = 1.juni(2009)),
                     barnetilleggMedIdent(fødselsdato = 2.juni(2025)),
                 ),
-                antallBarnIVedtaket = AntallBarn(2),
             ).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG)
         }
     }

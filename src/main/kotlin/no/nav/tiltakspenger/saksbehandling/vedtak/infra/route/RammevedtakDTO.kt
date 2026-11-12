@@ -86,7 +86,7 @@ fun Rammevedtak.tilRammevedtakDTO(rammevedtaksliste: Rammevedtaksliste): Rammeve
         saksbehandler = saksbehandler,
         beslutter = beslutter,
         innvilgelsesperioder = innvilgelsesperioder?.tilDTO(rammebehandling.saksopplysninger.tiltaksdeltakelser),
-        barnetillegg = barnetillegg?.toBarnetilleggDTO(),
+        barnetillegg = barnetillegg?.toBarnetilleggDTO(innvilgelsesperioder?.perioder),
         gjeldendeBarnetilleggPerioder = gjeldendeBarnetillegg.tilBarnetilleggPerioderDTO(),
         opprinneligVedtaksperiode = periode.toDTO(),
         opprinneligInnvilgetPerioder = this.opprinneligInnvilgetPerioder.map { it.toDTO() },

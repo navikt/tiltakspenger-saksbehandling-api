@@ -10,6 +10,7 @@ fun String.shouldBeSøknadDTO(
     søknadId: SøknadId,
     journalpostId: String = "123456789",
     tiltakId: String,
+    tiltakInternDeltakelseId: String,
     tiltakFraOgMed: String = "2023-01-01",
     tiltakTilOgMed: String = "2023-03-31",
     tiltakTypeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
@@ -66,7 +67,8 @@ fun String.shouldBeSøknadDTO(
             "id": "$tiltakId",
             "fraOgMed": "$tiltakFraOgMed",
             "tilOgMed": "$tiltakTilOgMed",
-            "typeNavn": "$tiltakTypeNavn"
+            "typeNavn": "$tiltakTypeNavn",
+            "internDeltakelseId": "$tiltakInternDeltakelseId"
           },
           "tiltaksdeltakelseperiodeDetErSøktOm": {
             "fraOgMed": "$tiltakFraOgMed",

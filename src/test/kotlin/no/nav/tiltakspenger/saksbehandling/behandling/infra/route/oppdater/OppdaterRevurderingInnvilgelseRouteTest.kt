@@ -1,11 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
@@ -13,7 +16,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderin
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnMedBarnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.httpKlientUventetStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -22,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
+import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 class OppdaterRevurderingInnvilgelseRouteTest {
@@ -34,10 +39,10 @@ class OppdaterRevurderingInnvilgelseRouteTest {
             val tiltaksdeltakelse = revurdering.saksopplysninger.tiltaksdeltakelser.first()
             val nyInnvilgelsesperiode = tiltaksdeltakelse.lukketPeriode!!.minusTilOgMed(1)
 
-            val barnetillegg = barnetillegg(
+            val barnetillegg = barnetilleggV2(
                 begrunnelse = Begrunnelse.create("barnetillegg begrunnelse"),
-                periode = nyInnvilgelsesperiode,
-                antallBarn = AntallBarn(1),
+                innvilgelsesperioder = nonEmptyListOf(nyInnvilgelsesperiode),
+                barn = listOf(barnMedBarnetillegg(fornavn = "Ola"), barnMedBarnetillegg(fornavn = "Kari", perioder = listOf(nyInnvilgelsesperiode.minusTilOgMed(7)))),
             )
 
             val antallDager = SammenhengendePeriodisering(
@@ -76,10 +81,10 @@ class OppdaterRevurderingInnvilgelseRouteTest {
             val tiltaksdeltakelse = revurdering.saksopplysninger.tiltaksdeltakelser.first()
             val nyInnvilgelsesperiode = tiltaksdeltakelse.lukketPeriode!!.minusTilOgMed(1)
 
-            val barnetillegg = barnetillegg(
+            val barnetillegg = barnetilleggV2(
                 begrunnelse = Begrunnelse.create("barnetillegg begrunnelse"),
-                periode = nyInnvilgelsesperiode,
-                antallBarn = AntallBarn(1),
+                innvilgelsesperioder = nonEmptyListOf(nyInnvilgelsesperiode),
+                barn = listOf(barnMedBarnetillegg(fornavn = "Ola"), barnMedBarnetillegg(fornavn = "Kari", perioder = listOf(nyInnvilgelsesperiode.minusTilOgMed(7)))),
             )
 
             val antallDager = SammenhengendePeriodisering(
@@ -109,6 +114,38 @@ class OppdaterRevurderingInnvilgelseRouteTest {
             oppdatertBehandling.antallDagerPerMeldeperiode shouldBe antallDager
             oppdatertBehandling.skalSendeVedtaksbrev shouldBe false
             oppdatertBehandling.prioritering shouldBe Prioritering.create("Haster")
+        }
+    }
+
+    @Test
+    fun `barn fra en søknad i saken kan velges, men ikke barn fra en søknad som ikke finnes i saken`() {
+        withTestApplicationContext { tac ->
+            val (sak, søknad, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(tac)
+            val innvilgelsesperiode = revurdering.saksopplysninger.tiltaksdeltakelser.first().lukketPeriode!!
+
+            fun barnetilleggFraSøknad(søknadId: SøknadId) = barnetilleggV2(
+                innvilgelsesperioder = nonEmptyListOf(innvilgelsesperiode),
+                barn = listOf(barnMedBarnetillegg(kilde = BarnMedBarnetillegg.Kilde.Søknad(søknadId))),
+            )
+
+            val (_, _, feilJson) = oppdaterRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
+                barnetillegg = barnetilleggFraSøknad(SøknadId.random()),
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+            )
+            JSONObject(feilJson).getString("kode") shouldBe "ugyldig_barnetillegg"
+
+            oppdaterRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
+                barnetillegg = barnetilleggFraSøknad(søknad.id),
+            )
+            tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id).barnetillegg shouldBe barnetilleggFraSøknad(søknad.id)
         }
     }
 

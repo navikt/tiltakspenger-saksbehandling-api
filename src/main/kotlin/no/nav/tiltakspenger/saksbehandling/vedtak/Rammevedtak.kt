@@ -122,6 +122,12 @@ data class Rammevedtak(
     /** Vil være null for stans, opphør og avslag */
     val barnetillegg: Barnetillegg? by lazy { rammebehandling.barnetillegg }
 
+    /**
+     * Antall barn med barnetillegg per dag i [innvilgelsesperioder].
+     * Vil være null for stans, opphør og avslag.
+     */
+    val barnetilleggsperioder: IkkeTomPeriodisering<AntallBarn>? by lazy { rammebehandling.barnetilleggsperioder }
+
     /** Vil være null for stans og avslag */
     val antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode>? =
         rammebehandling.antallDagerPerMeldeperiode
@@ -144,8 +150,8 @@ data class Rammevedtak(
     }
 
     val gjeldendeBarnetillegg: Periodisering<AntallBarn> by lazy {
-        barnetillegg?.let {
-            it.periodisering.perioderMedVerdi.toList().flatMap { (barnetillegg, gjeldendePeriode) ->
+        barnetilleggsperioder?.let {
+            it.perioderMedVerdi.toList().flatMap { (barnetillegg, gjeldendePeriode) ->
                 gjeldendePeriode.overlappendePerioder(gjeldendeInnvilgetPerioder).map { nyPeriode ->
                     PeriodeMedVerdi(
                         verdi = barnetillegg,

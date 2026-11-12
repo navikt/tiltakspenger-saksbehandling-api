@@ -22,7 +22,6 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.utenBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
@@ -197,7 +196,7 @@ interface BehandlingMother : MotherOfAllMothers {
         fritekstTilVedtaksbrev: String = "nySøknadsbehandlingKlarTilBeslutning()",
         begrunnelseVilkårsvurdering: String = "nySøknadsbehandlingKlarTilBeslutning()",
         vedtaksperiode: Periode = vedtaksperiode(),
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(vedtaksperiode),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = vedtaksperiode.fraOgMed,
             tom = vedtaksperiode.tilOgMed,
@@ -264,7 +263,7 @@ interface BehandlingMother : MotherOfAllMothers {
         fritekstTilVedtaksbrev: String = "nySøknadsbehandlingKlarTilBeslutning()",
         begrunnelseVilkårsvurdering: String = "nySøknadsbehandlingKlarTilBeslutning()",
         vedtaksperiode: Periode = vedtaksperiode(),
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(vedtaksperiode),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = vedtaksperiode.fraOgMed,
             tom = vedtaksperiode.tilOgMed,
@@ -318,7 +317,7 @@ interface BehandlingMother : MotherOfAllMothers {
         fritekstTilVedtaksbrev: String = "nyBehandlingUnderBeslutning()",
         begrunnelseVilkårsvurdering: String = "nyBehandlingUnderBeslutning()",
         vedtaksperiode: Periode = vedtaksperiode(),
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(vedtaksperiode),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = vedtaksperiode.fraOgMed,
             tom = vedtaksperiode.tilOgMed,
@@ -370,7 +369,7 @@ interface BehandlingMother : MotherOfAllMothers {
         fritekstTilVedtaksbrev: String = "nyBehandlingUnderBeslutning()",
         begrunnelseVilkårsvurdering: String = "nyBehandlingUnderBeslutning()",
         vedtaksperiode: Periode = vedtaksperiode(),
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(vedtaksperiode),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = vedtaksperiode.fraOgMed,
             tom = vedtaksperiode.tilOgMed,
@@ -666,7 +665,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
     begrunnelseVilkårsvurdering: String = "Begrunnelse",
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
     innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(innvilgelsesperiodeKommando(innvilgelsesperiode = periode)),
-    barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),
+    barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
     resultat: SøknadsbehandlingsresultatType,
 ): Sak {
     val (sakMedSøknadsbehandling) = startSøknadsbehandling(
@@ -723,7 +722,7 @@ suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
     resultat: SøknadsbehandlingsresultatType,
-    barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),
+    barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
     innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
         innvilgelsesperiodeKommando(
@@ -767,7 +766,7 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
             innvilgelsesperiode = periode,
         ),
     ),
-    barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),
+    barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
     correlationId: CorrelationId = CorrelationId.generate(),
 ): Pair<Sak, Søknadsbehandling> {
@@ -804,7 +803,7 @@ suspend fun TestApplicationContext.søknadsbehandlingIverksattMedMeldeperioder(
             innvilgelsesperiode = periode,
         ),
     ),
-    barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),
+    barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
 ): Sak {
     val (sak, meldeperioder) = søknadssbehandlingIverksatt(
         periode = periode,

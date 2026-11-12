@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.juni
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
@@ -20,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstiltOpprettholdtKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import org.junit.jupiter.api.Test
 import tools.jackson.databind.JsonNode
@@ -44,6 +46,13 @@ class SladdingRouteTest {
         etternavn = "Manueltbarnetternavn",
         fødselsdato = 14.juni(2012),
     )
+    private val valgtBarnFnr = Fnr.random()
+    private val valgtBarnLagtTilAvSaksbehandler = ObjectMother.barnMedBarnetillegg(
+        fnr = valgtBarnFnr,
+        fornavn = "Valgtbarnfornavn",
+        etternavn = "Valgtbarnetternavn",
+        fødselsdato = 3.mars(2016),
+    ).copy(mellomnavn = "Valgtbarnmellomnavn")
 
     @Test
     @IsolatedDatabaseTest
@@ -102,6 +111,46 @@ class SladdingRouteTest {
             somSaksbehandler.getValue(TILTAKSDELTAKELSER) shouldContain
                 ObjectMother.tiltaksdeltakelseMedArrangørnavn().visningsnavn
             somSaksbehandler.getValue(BENK) shouldContain sak.fnr.verdi
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `bruker uten fagrolle får sladdet barna som er valgt i barnetillegget`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val innvilgelsesperioder = ObjectMother.innvilgelsesperioder()
+            val (sak) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder,
+                barnFraSøknad = listOf(barnetilleggMedIdent),
+                barnetilleggForSøknad = ObjectMother.barnetilleggForBarnISøknaden(
+                    innvilgelsesperioder = innvilgelsesperioder.perioder,
+                    andreBarn = listOf(valgtBarnLagtTilAvSaksbehandler),
+                ),
+            )
+            val sensitiveVerdier = listOf(
+                valgtBarnFnr.verdi,
+                "Valgtbarnfornavn",
+                "Valgtbarnmellomnavn",
+                "Valgtbarnetternavn",
+                3.mars(2016).toString(),
+            )
+
+            val somSaksbehandler = hentSomBruker(tac, "/sak/${sak.saksnummer.verdi}", ObjectMother.saksbehandler())
+            val somUtvikler = hentSomBruker(tac, "/sak/${sak.saksnummer.verdi}", ObjectMother.utvikler())
+
+            sensitiveVerdier.forEach { somSaksbehandler shouldContain it }
+            sensitiveVerdier.forEach { somUtvikler shouldNotContain it }
+
+            val barn = objectMapper.readTree(somUtvikler)["rammebehandlinger"].single()["barnetillegg"]["barn"]
+            barn.size() shouldBe 2
+            barn.forEach {
+                it["fnr"].erSladdet()
+                it["fornavn"].erSladdet()
+                it["mellomnavn"].erSladdet()
+                it["etternavn"].erSladdet()
+                it["fødselsdato"].erSladdet()
+            }
         }
     }
 

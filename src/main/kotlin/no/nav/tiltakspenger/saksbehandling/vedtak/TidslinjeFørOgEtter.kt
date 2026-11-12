@@ -150,7 +150,7 @@ private fun Rammebehandling.tilTidslinjeverdier(rammevedtakId: VedtakId?): Perio
     fun innvilgelse(tidslinjeresultat: Tidslinjeresultat): Periodisering<Tidslinjeverdi> {
         val innvilgelsesperioder = this.innvilgelsesperioder ?: return Periodisering.empty()
         return innvilgelsesperioder.periodisering.flatMapTilPeriodisering { (innvilgelsesperiodeVerdi, periode) ->
-            (barnetillegg?.periodisering ?: Periodisering.empty())
+            (barnetilleggsperioder ?: Periodisering.empty())
                 .nyPeriode(periode, AntallBarn(0))
                 .map { antallBarn, _ ->
                     verdi(tidslinjeresultat, innvilgelsesperiodeVerdi.antallDagerPerMeldeperiode, antallBarn)

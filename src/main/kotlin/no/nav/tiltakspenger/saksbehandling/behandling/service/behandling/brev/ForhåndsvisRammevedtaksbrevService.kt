@@ -6,6 +6,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.UgyldigBarnetilleggException
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForInnvilgelseKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForOpphørKlient
@@ -17,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.barnSomFyller16
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.utledForlengelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeForlenge
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.perioderForReversertOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.tilInnvilgelsesperioderMedReversertOpphør
@@ -168,7 +170,7 @@ class ForhåndsvisRammevedtaksbrevService(
             "Behandlingen ${behandling.id} er ikke en forlengelse, men ${resultat?.javaClass?.simpleName}"
         }
         val forlengetVedtak = sak.hentRammevedtakForId(resultat.forlenger.rammevedtakId)
-        val (innvilgelsesperioder, barnetillegg, barnSomFyller16) = when (behandling.status) {
+        val (innvilgelsesperioder, barnetilleggsperioder, barnSomFyller16) = when (behandling.status) {
             Rammebehandlingsstatus.UNDER_BEHANDLING -> {
                 val utledet = sak.utledForlengelse(
                     revurdering = behandling,
@@ -176,14 +178,15 @@ class ForhåndsvisRammevedtaksbrevService(
                     tiltaksdeltakerId = kommando.tiltaksdeltakerId,
                     barnetillegg = kommando.barnetillegg,
                 ).getOrElse {
+                    if (it is KanIkkeForlenge.UgyldigBarnetillegg) throw UgyldigBarnetilleggException(it.feil)
                     throw IllegalArgumentException("Kan ikke forhåndsvise vedtaksbrev for forlengelsen ${behandling.id}: $it")
                 }
                 Triple(
                     utledet.innvilgelsesperioder.tilInnvilgelsesperioder(behandling),
-                    utledet.barnetillegg,
+                    utledet.barnetilleggsperioder,
                     when {
                         kommando.barnetillegg != null || utledet.kanIkkeUtledeBarnetillegg -> null
-                        else -> resultat.forlenger.barnSomFyller16(forlengetVedtak, utledet.barnetillegg.periodisering)
+                        else -> resultat.forlenger.barnSomFyller16(forlengetVedtak, utledet.barnetilleggsperioder)
                     },
                 )
             }
@@ -194,7 +197,7 @@ class ForhåndsvisRammevedtaksbrevService(
             Rammebehandlingsstatus.UNDER_BESLUTNING,
             Rammebehandlingsstatus.VEDTATT,
             Rammebehandlingsstatus.AVBRUTT,
-            -> Triple(behandling.innvilgelsesperioder!!, behandling.barnetillegg, resultat.barnSomFyller16(forlengetVedtak))
+            -> Triple(behandling.innvilgelsesperioder!!, behandling.barnetilleggsperioder, resultat.barnSomFyller16(forlengetVedtak))
         }
 
         return genererInnvilgelsesbrevClient.genererForlengelseBrevForhåndsvisning(
@@ -207,7 +210,7 @@ class ForhåndsvisRammevedtaksbrevService(
             saksnummer = sak.saksnummer,
             sakId = sak.id,
             innvilgelsesperioder = innvilgelsesperioder,
-            barnetilleggsperioder = barnetillegg?.periodisering,
+            barnetilleggsperioder = barnetilleggsperioder,
             barnSomFyller16 = barnSomFyller16,
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
         )

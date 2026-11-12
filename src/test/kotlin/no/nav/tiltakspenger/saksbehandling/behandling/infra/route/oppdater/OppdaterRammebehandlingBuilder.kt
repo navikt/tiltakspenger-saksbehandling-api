@@ -18,9 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.tiltaksdeltakelsenSomForlenges
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.OppdaterBarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilBarnetilleggPerioderDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilOppdaterBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilHjemmelForOpphørDTO
@@ -44,7 +42,9 @@ interface OppdaterRammebehandlingBuilder {
         skalSendeVedtaksbrev: Boolean = true,
         skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
+        // Overstyrer barnetillegget med rå json, f.eks. slik eldre versjoner av frontenden sender det.
+        barnetilleggJson: String = serialize(barnetillegg.tilOppdaterBarnetilleggDTO()),
         prioriteringBegrunnelse: String? = null,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
@@ -56,7 +56,7 @@ interface OppdaterRammebehandlingBuilder {
               ${
             innvilgelseJson(
                 innvilgelsesperioder.tilDTOMedDeltakelseFra(tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)),
-                barnetillegg,
+                barnetilleggJson,
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev,
@@ -152,7 +152,7 @@ interface OppdaterRammebehandlingBuilder {
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         skalSendeVedtaksbrev: Boolean = true,
@@ -166,7 +166,7 @@ interface OppdaterRammebehandlingBuilder {
               ${
             innvilgelseJson(
                 innvilgelsesperioder.tilDTOMedDeltakelseFra(tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)),
-                barnetillegg,
+                serialize(barnetillegg.tilOppdaterBarnetilleggDTO()),
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev,
@@ -195,7 +195,7 @@ interface OppdaterRammebehandlingBuilder {
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode),
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         skalSendeVedtaksbrev: Boolean = true,
@@ -210,7 +210,7 @@ interface OppdaterRammebehandlingBuilder {
               ${
             innvilgelseJson(
                 innvilgelsesperioder.tilDTOMedDeltakelseFra(tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)),
-                barnetillegg,
+                serialize(barnetillegg.tilOppdaterBarnetilleggDTO()),
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev,
@@ -310,6 +310,8 @@ interface OppdaterRammebehandlingBuilder {
         tilOgMed: LocalDate,
         tiltaksdeltakerId: TiltaksdeltakerId? = null,
         barnetillegg: Barnetillegg? = null,
+        // Overstyrer barnetillegget med rå json, f.eks. slik eldre versjoner av frontenden sender det.
+        barnetilleggJson: String? = barnetillegg?.let { serialize(it.tilOppdaterBarnetilleggDTO()) },
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
@@ -323,7 +325,7 @@ interface OppdaterRammebehandlingBuilder {
               "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
               "tilOgMed": "$tilOgMed",
               "internDeltakelseId": "${tiltaksdeltakerId ?: tac.sakContext.sakRepo.hentForSakId(sakId)!!.tiltaksdeltakelsenSomForlenges(behandlingId)}",
-              "barnetillegg": ${barnetillegg?.let { serialize(OppdaterBarnetilleggDTO(perioder = it.periodisering.tilBarnetilleggPerioderDTO(), begrunnelse = it.begrunnelse?.verdi)) }},
+              "barnetillegg": $barnetilleggJson,
               "skalSendeVedtaksbrev": true,
               "skalJournalføreNotat": ${serialize(SkalJournalføreNotat.INGEN.tilDTO())}
             }
@@ -427,7 +429,7 @@ interface OppdaterRammebehandlingBuilder {
 
     private fun innvilgelseJson(
         innvilgelsesperioder: List<InnvilgelsesperiodeDTO>,
-        barnetillegg: Barnetillegg,
+        barnetilleggJson: String,
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         skalSendeVedtaksbrev: Boolean = true,
@@ -449,25 +451,7 @@ interface OppdaterRammebehandlingBuilder {
                 """.trimIndent()
             }
         }],
-            "barnetillegg": ${
-            barnetillegg.toBarnetilleggDTO().let { bt ->
-                """
-                        {
-                            "begrunnelse": ${bt.begrunnelse.verdi?.medQuotes()},
-                            "perioder": [${
-                    bt.perioder.joinToString(",") {
-                        """
-                                    {
-                                        "periode": ${serialize(it.periode)},
-                                        "antallBarn": ${it.antallBarn} 
-                                    }
-                        """.trimIndent()
-                    }
-                }]                                                  
-                        }
-                """.trimIndent()
-            }
-        },
+            "barnetillegg": $barnetilleggJson,
         "skalSendeVedtaksbrev": $skalSendeVedtaksbrev,
         "prioritering": ${prioriteringBegrunnelse.tilPrioriteringJson()},
         "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())}

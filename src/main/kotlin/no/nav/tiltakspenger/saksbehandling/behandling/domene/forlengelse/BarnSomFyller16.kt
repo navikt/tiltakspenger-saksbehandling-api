@@ -55,7 +55,7 @@ fun ForlengerRammevedtak.barnSomFyller16(
     }
     return BarnSomFyller16.utled(
         sisteInnvilgedeDag = sisteInnvilgedeDag,
-        antallBarnIVedtaket = forlengetVedtak.barnetillegg?.periodisering?.hentVerdiForDag(sisteInnvilgedeDag) ?: AntallBarn.ZERO,
+        antallBarnIVedtaket = forlengetVedtak.barnetilleggsperioder?.hentVerdiForDag(sisteInnvilgedeDag) ?: AntallBarn.ZERO,
         antallBarn = antallBarn,
     )
 }

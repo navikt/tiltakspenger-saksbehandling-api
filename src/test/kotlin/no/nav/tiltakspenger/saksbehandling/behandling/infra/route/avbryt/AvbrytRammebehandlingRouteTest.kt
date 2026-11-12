@@ -28,6 +28,7 @@ class AvbrytRammebehandlingRouteTest {
                 søknadId = søknad.id,
                 journalpostId = "123456789",
                 tiltakId = søknad.tiltak!!.id,
+                tiltakInternDeltakelseId = søknad.tiltak!!.tiltaksdeltakerId.toString(),
                 tiltakFraOgMed = "2023-01-01",
                 tiltakTilOgMed = "2023-03-31",
                 tiltakTypeNavn = "Arbeidsmarkedsoppfølging gruppe",

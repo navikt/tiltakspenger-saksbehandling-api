@@ -9,8 +9,9 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.tilBarnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
@@ -192,7 +193,7 @@ class DelautomatiskBehandlingService(
             behandlingId = behandling.id,
             vedtaksperiode = innvilgelsesperiode,
             innvilgelsesperioder = oppdaterKommando.tilInnvilgelseperioder(behandling),
-            barnetilleggsperioder = barnetillegg.periodisering,
+            barnetilleggsperioder = oppdaterKommando.barnetilleggsperioder,
             beregningstidspunkt = nå,
         )?.let {
             val navkontor = navkontorService.hentNavkontor(
@@ -410,20 +411,11 @@ class DelautomatiskBehandlingService(
         require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad" }
         val periode = behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm()
 
-        return if (behandling.søknad.barnetillegg.isNotEmpty()) {
-            val antallBarnFraSøknad = behandling.søknad.barnetillegg.size
-            Barnetillegg(
-                periodisering = nonEmptyListOf(
-                    PeriodeMedVerdi(
-                        AntallBarn(antallBarnFraSøknad),
-                        periode,
-                    ),
-                ).tilIkkeTomPeriodisering(),
-                begrunnelse = null,
-            )
-        } else {
-            Barnetillegg.utenBarnetillegg(nonEmptyListOf(periode))
-        }
+        // Søknaden er allerede vurdert til å kunne behandles automatisk, så alle barna har rett i hele perioden.
+        return BarnetilleggV2(
+            barn = behandling.søknad.barnetillegg.map { it.tilBarnMedBarnetillegg(behandling.søknad.id) },
+            begrunnelse = null,
+        )
     }
 
     private fun utledTiltaksdeltakelser(

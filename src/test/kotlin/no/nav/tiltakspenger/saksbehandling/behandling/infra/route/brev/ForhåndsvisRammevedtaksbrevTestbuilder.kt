@@ -5,13 +5,14 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
+import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.tiltaksdeltakelsenSomForlenges
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.OppdaterBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.HjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperioderDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
@@ -37,7 +38,9 @@ interface ForhåndsvisRammevedtaksbrevTestbuilder {
         vedtaksperiode: Periode? = null,
         stansFraOgMed: LocalDate? = null,
         valgteHjemler: List<HjemmelForStansDTO>? = null,
-        barnetillegg: List<BarnetilleggPeriodeDTO>? = null,
+        barnetillegg: OppdaterBarnetilleggDTO? = null,
+        // Overstyrer barnetillegget med rå json, f.eks. slik eldre versjoner av frontenden sender det.
+        barnetilleggJson: String? = barnetillegg?.let { serialize(it) },
         resultat: RammebehandlingResultatTypeDTO,
         avslagsgrunner: List<ValgtHjemmelForAvslagDTO>? = null,
         innvilgelsesperioder: InnvilgelsesperioderDTO? = null,
@@ -67,12 +70,7 @@ interface ForhåndsvisRammevedtaksbrevTestbuilder {
                 "stansFraOgMed": ${if (stansFraOgMed != null) """"$stansFraOgMed"""" else null},
                 "harValgtStansFraFørsteDagSomGirRett": ${stansFraOgMed == null},
                 "valgteHjemler": ${valgteHjemler?.joinToString(prefix = "[", postfix = "]") { """"$it"""" }},
-                "barnetillegg": ${
-            barnetillegg?.joinToString(
-                prefix = "[",
-                postfix = "]",
-            ) { """{"antallBarn":${it.antallBarn},"periode":{"fraOgMed":"${it.periode.fraOgMed}","tilOgMed":"${it.periode.tilOgMed}"}}""" }
-        },
+                "barnetillegg": $barnetilleggJson,
                 "resultat": "$resultat",
                 "tilOgMed": ${tilOgMed?.let { "\"$it\"" }},
                 "internDeltakelseId": ${internDeltakelseId?.let { "\"$it\"" }},

@@ -37,6 +37,8 @@ fun String.shouldBeRevurderingDTO(
     barnetilleggBegrunnelse: String? = null,
     antallBarn: Int = 0,
     barnetillegg: Boolean = true,
+    // Barna i barnetillegget som JSON, der null betyr V1 uten barn.
+    barnetilleggBarn: String? = "[]",
     iverksattTidspunkt: String? = "2025-01-01T01:03:05.456789",
     vedtaksperiode: String? = """{"fraOgMed": "2023-01-01","tilOgMed": "2023-03-31"}""",
     fritekstTilVedtaksbrev: String? = null,
@@ -100,6 +102,8 @@ fun String.shouldBeRevurderingDTO(
                 if (barnetillegg) {
                     """{
                 "begrunnelse": ${ikkeSladdetTekst(barnetilleggBegrunnelse)},
+                "versjon": "${if (barnetilleggBarn == null) "V1" else "V2"}",
+                "barn": $barnetilleggBarn,
                 "perioder": [
                     {
                         "antallBarn": $antallBarn,
@@ -250,6 +254,8 @@ fun String.shouldBeSøknadsbehandlingDTO(
     barnetilleggBegrunnelse: String? = null,
     antallBarn: Int = 0,
     barnetillegg: Boolean = true,
+    // Barna i barnetillegget som JSON, der null betyr V1 uten barn.
+    barnetilleggBarn: String? = "[]",
     fritekstTilVedtaksbrev: String? = null,
     resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.INNVILGELSE,
     beslutter: String? = "B12345",
@@ -276,6 +282,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
     manueltBehandlesGrunner: List<String> = emptyList(),
     eksternDeltagelseId: String,
     søknadTiltakId: String,
+    søknadInternDeltakelseId: String = internDeltakelseId,
     avbrutt: String? = null,
     periodeFraOgMed: String = "2023-01-01",
     periodeTilOgMed: String = "2023-03-31",
@@ -344,6 +351,8 @@ fun String.shouldBeSøknadsbehandlingDTO(
             """
             "barnetillegg": {
                 "begrunnelse": ${ikkeSladdetTekst(barnetilleggBegrunnelse)},
+                "versjon": "${if (barnetilleggBarn == null) "V1" else "V2"}",
+                "barn": $barnetilleggBarn,
                 "perioder": [
                     {
                         "antallBarn": $antallBarn,
@@ -419,7 +428,8 @@ fun String.shouldBeSøknadsbehandlingDTO(
             "fraOgMed": "$periodeFraOgMed",
             "tilOgMed": "$periodeTilOgMed",
             "typeNavn": "$søknadTiltakTypeNavn",
-            "id": "$søknadTiltakId"
+            "id": "$søknadTiltakId",
+            "internDeltakelseId": "$søknadInternDeltakelseId"
         },
             "manueltSattTiltak": null,
             "søknadstype": "DIGITAL",

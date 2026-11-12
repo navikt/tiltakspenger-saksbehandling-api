@@ -255,6 +255,8 @@ class IverksettRevurderingTest {
                 barnetillegg = """
                     {
                         "begrunnelse": {"verdi": null, "erSladdet": false},
+                        "versjon": "V2",
+                        "barn": [],
                         "perioder": [
                           {
                             "antallBarn": 0,
@@ -304,6 +306,8 @@ class IverksettRevurderingTest {
                 barnetillegg = """
                     {
                         "begrunnelse": {"verdi": null, "erSladdet": false},
+                        "versjon": "V2",
+                        "barn": [],
                         "perioder": [
                           {
                             "antallBarn": 0,
@@ -443,6 +447,8 @@ class IverksettRevurderingTest {
                 barnetillegg = """
                     {
                         "begrunnelse": {"verdi": null, "erSladdet": false},
+                        "versjon": "V2",
+                        "barn": [],
                         "perioder": [
                           {
                             "antallBarn": 0,

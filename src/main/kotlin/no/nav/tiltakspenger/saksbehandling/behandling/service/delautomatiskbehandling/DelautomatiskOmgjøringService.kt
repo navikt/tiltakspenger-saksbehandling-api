@@ -148,7 +148,7 @@ class DelautomatiskOmgjøringService(
             behandlingId = revurdering.id,
             vedtaksperiode = kommando.vedtaksperiode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
-            barnetilleggsperioder = kommando.barnetillegg.periodisering,
+            barnetilleggsperioder = kommando.barnetilleggsperioder,
             beregningstidspunkt = nå(clock),
         )?.let { steg.simuler(this, revurdering, it) }
 

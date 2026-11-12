@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -132,13 +131,11 @@ class StartRevurderingTest {
             oppdatertOmgjøring.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
             oppdatertOmgjøring.vedtaksperiode shouldBe (1 til 10.april(2025))
             oppdatertOmgjøring.innvilgelsesperioder!!.totalPeriode shouldBe (2 til 9.april(2025))
-            oppdatertOmgjøring.barnetillegg shouldBe Barnetillegg(
-                periodisering = SammenhengendePeriodisering(
-                    rammevedtakSøknadsbehandling.barnetillegg!!.periodisering.verdier.single(),
-                    (2 til 9.april(2025)),
-                ),
-                begrunnelse = rammevedtakSøknadsbehandling.rammebehandling.barnetillegg!!.begrunnelse,
+            oppdatertOmgjøring.barnetilleggsperioder!! shouldBe SammenhengendePeriodisering(
+                rammevedtakSøknadsbehandling.barnetilleggsperioder!!.verdier.single(),
+                (2 til 9.april(2025)),
             )
+            oppdatertOmgjøring.barnetillegg!!.begrunnelse shouldBe rammevedtakSøknadsbehandling.rammebehandling.barnetillegg!!.begrunnelse
             oppdatertOmgjøring.valgteTiltaksdeltakelser shouldBe listOf(
                 PeriodeMedVerdi(
                     nonEmptyListOf(oppdatertOmgjøring.saksopplysninger.tiltaksdeltakelser.single()),
@@ -188,13 +185,11 @@ class StartRevurderingTest {
             oppdatertOmgjøring.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
             oppdatertOmgjøring.vedtaksperiode shouldBe (2 til 9.april(2025))
             oppdatertOmgjøring.innvilgelsesperioder!!.totalPeriode shouldBe (2 til 9.april(2025))
-            oppdatertOmgjøring.barnetillegg shouldBe Barnetillegg(
-                periodisering = SammenhengendePeriodisering(
-                    rammevedtakSøknadsbehandling.barnetillegg!!.periodisering.verdier.single(),
-                    (2 til 9.april(2025)),
-                ),
-                begrunnelse = rammevedtakSøknadsbehandling.rammebehandling.barnetillegg!!.begrunnelse,
+            oppdatertOmgjøring.barnetilleggsperioder!! shouldBe SammenhengendePeriodisering(
+                rammevedtakSøknadsbehandling.barnetilleggsperioder!!.verdier.single(),
+                (2 til 9.april(2025)),
             )
+            oppdatertOmgjøring.barnetillegg!!.begrunnelse shouldBe rammevedtakSøknadsbehandling.rammebehandling.barnetillegg!!.begrunnelse
             oppdatertOmgjøring.valgteTiltaksdeltakelser shouldBe listOf(
                 PeriodeMedVerdi(
                     nonEmptyListOf(oppdatertOmgjøring.saksopplysninger.tiltaksdeltakelser.single()),

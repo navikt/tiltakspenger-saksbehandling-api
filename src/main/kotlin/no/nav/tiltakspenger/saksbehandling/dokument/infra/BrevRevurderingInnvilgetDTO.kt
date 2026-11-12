@@ -42,7 +42,7 @@ suspend fun Rammevedtak.tilRevurderingInnvilgetBrev(
         saksnummer = saksnummer,
         forhåndsvisning = false,
         innvilgelsesperioder = innvilgelsesperioder!!,
-        barnetillegg = barnetillegg?.periodisering,
+        barnetillegg = barnetilleggsperioder,
     )
 }
 

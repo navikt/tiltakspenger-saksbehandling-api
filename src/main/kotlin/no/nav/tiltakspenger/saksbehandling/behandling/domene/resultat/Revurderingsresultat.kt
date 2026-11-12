@@ -149,8 +149,8 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
          * Er null når saksbehandler har endret barnetillegget, eller forlengelsen ikke har fått en periode ennå.
          */
         fun barnSomFyller16(forlengetVedtak: Rammevedtak): BarnSomFyller16? = when {
-            harEndretBarnetillegg || barnetillegg == null -> null
-            else -> forlenger.barnSomFyller16(forlengetVedtak, barnetillegg.periodisering)
+            harEndretBarnetillegg -> null
+            else -> barnetilleggsperioder?.let { forlenger.barnSomFyller16(forlengetVedtak, it) }
         }
 
         /**

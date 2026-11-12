@@ -290,7 +290,7 @@ class DelautomatiskForlengelseService(
             behandlingId = revurdering.id,
             vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
-            barnetilleggsperioder = kommando.barnetillegg.periodisering,
+            barnetilleggsperioder = kommando.barnetilleggsperioder,
             beregningstidspunkt = nå(clock),
         )?.let { steg.simuler(this, revurdering, it) }
 

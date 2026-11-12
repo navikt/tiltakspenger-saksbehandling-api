@@ -39,6 +39,11 @@ object Standardfeil {
         "ugyldig_jp_input",
     )
 
+    fun ugyldigBarnetillegg(melding: String): ErrorJson = ErrorJson(
+        melding,
+        "ugyldig_barnetillegg",
+    )
+
     fun ikkeFunnet(): ErrorJson = ErrorJson(
         "Fant ikke ressursen",
         "ikke_funnet",

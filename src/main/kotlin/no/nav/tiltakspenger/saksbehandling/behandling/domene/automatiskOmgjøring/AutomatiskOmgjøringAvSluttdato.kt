@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskOmgjøri
 import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
@@ -12,7 +13,11 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
@@ -144,7 +149,7 @@ fun Sak.utledAutomatiskOmgjøringAvSluttdato(
         innvilgelsesperioder = innvilgelsesperioder!!.tilKommando(),
         barnetillegg = rammevedtaksliste.gjeldendeBarnetillegg(vedtaksperiode)
             ?.krympTilPerioder(innvilgelsesperioder.perioder)
-            ?: Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+            ?: Barnetillegg.utenBarnetillegg(),
         begrunnelse = lagBegrunnelse(
             tidligereSluttdato = tidligereDeltakelser.last().periode.tilOgMed!!,
             nySluttdato = nySluttdato!!,
@@ -157,17 +162,73 @@ fun Sak.utledAutomatiskOmgjøringAvSluttdato(
  * Det gjeldende barnetillegget i [vedtaksperiode], sammenstilt fra vedtakene som gjelder i perioden.
  * Begrunnelsen hentes fra det sist opprettede vedtaket i perioden som har en begrunnelse for barnetillegget.
  * Gir null dersom ingen av vedtakene har barnetillegg.
+ *
+ * Har alle vedtakene i perioden [BarnetilleggV2], blir også resultatet V2, se [slåSammenBarnetilleggV2].
+ * Ellers blir det [BarnetilleggV1] med antall barn fra tidslinjen.
  */
 private fun Rammevedtaksliste.gjeldendeBarnetillegg(vedtaksperiode: Periode): Barnetillegg? {
-    val barnetilleggIVedtakene = innvilgetTidslinje.krymp(vedtaksperiode).perioderMedVerdi
+    val vedtakIPerioden = innvilgetTidslinje.krymp(vedtaksperiode).perioderMedVerdi
+    val barnetilleggIVedtakene = vedtakIPerioden
         .map { it.verdi }
         .sortedBy { it.opprettet }
         .mapNotNull { it.barnetillegg }
         .ifEmpty { return null }
-    return Barnetillegg(
-        periodisering = barnetilleggsperioder.krymp(vedtaksperiode).perioderMedVerdi.tilIkkeTomPeriodisering(),
-        begrunnelse = barnetilleggIVedtakene.mapNotNull { it.begrunnelse }.lastOrNull(),
-    )
+    val begrunnelse = barnetilleggIVedtakene.mapNotNull { it.begrunnelse }.lastOrNull()
+    val antallBarn = barnetilleggsperioder.krymp(vedtaksperiode).perioderMedVerdi.tilIkkeTomPeriodisering()
+
+    return slåSammenBarnetilleggV2(
+        barnetilleggIPerioder = vedtakIPerioden.map { it.verdi.barnetillegg to it.periode },
+        antallBarn = antallBarn,
+        begrunnelse = begrunnelse,
+    ) ?: BarnetilleggV1(periodisering = antallBarn, begrunnelse = begrunnelse)
+}
+
+/**
+ * Slår sammen barnetillegget i periodene til ett [BarnetilleggV2], slik at det fortsatt er kjent hvilke barn det gjelder.
+ * Gjelder ett barnetillegg i alle periodene, brukes det som det er.
+ * Ellers får hvert barn valgte perioder med dagene barnet har barnetillegg i periodene.
+ * Har barnet barnetillegg alle de innvilgede dagene det har rett, får det i stedet barnetillegg for hele perioden.
+ *
+ * Gir null dersom et av barnetilleggene ikke er V2, eller om resultatet ville gitt et annet antall barn enn [antallBarn].
+ */
+private fun slåSammenBarnetilleggV2(
+    barnetilleggIPerioder: List<Pair<Barnetillegg?, Periode>>,
+    antallBarn: IkkeTomPeriodisering<AntallBarn>,
+    begrunnelse: Begrunnelse?,
+): BarnetilleggV2? {
+    val barnetilleggV2 = barnetilleggIPerioder.map { (barnetillegg, periode) -> (barnetillegg as? BarnetilleggV2 ?: return null) to periode }
+    val innvilgelsesperioder = antallBarn.perioder.leggSammen().toNonEmptyListOrNull()!!
+    val utenBarn = BarnetilleggV2(barn = emptyList(), begrunnelse = begrunnelse)
+
+    val sammenslått = barnetilleggV2.map { it.first }.distinct().singleOrNull()
+        ?.copy(begrunnelse = begrunnelse)
+        ?: utenBarn.copy(
+            barn = barnetilleggV2
+                .flatMap { (barnetillegg, periode) ->
+                    barnetillegg.barn.map { barn -> barn to barnetillegg.perioderMedBarnetillegg(barn, nonEmptyListOf(periode)) }
+                }
+                .fold(emptyList<Pair<BarnMedBarnetillegg, List<Periode>>>()) { acc, (barn, perioder) ->
+                    val eksisterende = acc.find { it.first.erSammeBarn(barn) }
+                    if (eksisterende == null) {
+                        acc + (barn to perioder)
+                    } else {
+                        acc - eksisterende + (eksisterende.first to eksisterende.second + perioder)
+                    }
+                }
+                .mapNotNull { (barn, perioder) ->
+                    val sammenslåtte = perioder.leggSammen().toNonEmptyListOrNull() ?: return@mapNotNull null
+                    val helePerioden = barn.copy(perioder = null)
+                    if (utenBarn.perioderMedBarnetillegg(helePerioden, innvilgelsesperioder) == sammenslåtte) {
+                        helePerioden
+                    } else {
+                        barn.copy(perioder = sammenslåtte)
+                    }
+                },
+        )
+
+    return sammenslått.takeIf {
+        it.periodisering(innvilgelsesperioder).perioderMedVerdi.toList() == antallBarn.perioderMedVerdi.toList()
+    }
 }
 
 /**

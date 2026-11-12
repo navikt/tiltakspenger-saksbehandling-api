@@ -8,12 +8,16 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.trekkFra
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.UgyldigBarnetilleggException
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.validerSøknader
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.UtledetForlengelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ValgtBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.utledForlengelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeOppdatereBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeOppdatereBehandling.BehandlingenEiesAvAnnenSaksbehandler
@@ -88,8 +92,17 @@ class OppdaterRammebehandlingService(
         }
 
         sak.rammevedtaksliste.validerOpphør(kommando).onLeft {
-            log.error { "Ugyldig opphør ved forsøk på oppdatering av behandling - $kommando" }
+            log.error { "Ugyldig opphør ved forsøk på oppdatering av behandling ${behandling.id} i sak ${behandling.sakId}: $it" }
             return it.left()
+        }
+
+        val valgteBarn = when (kommando) {
+            is OppdaterBehandlingKommando.Innvilgelse -> (kommando.barnetillegg as? BarnetilleggV2)?.barn
+            is OppdaterRevurderingKommando.Forlengelse -> (kommando.barnetillegg as? ValgtBarnetillegg.Barn)?.barn
+            else -> null
+        }.orEmpty()
+        valgteBarn.validerSøknader(sak.søknader.map { it.id }.toSet()).onLeft {
+            throw UgyldigBarnetilleggException(it)
         }
 
         val utledetForlengelse = (kommando as? OppdaterRevurderingKommando.Forlengelse)?.let {
@@ -140,7 +153,7 @@ class OppdaterRammebehandlingService(
                 behandlingId = kommando.behandlingId,
                 vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
                 innvilgelsesperioder = kommando.tilInnvilgelseperioder(rammebehandling),
-                barnetilleggsperioder = kommando.barnetillegg.periodisering,
+                barnetilleggsperioder = kommando.barnetilleggsperioder,
                 beregningstidspunkt = beregningstidspunkt,
             )
 
@@ -153,7 +166,7 @@ class OppdaterRammebehandlingService(
                         behandling = rammebehandling,
                         perioderForReversertOpphør = rammevedtaksliste.perioderForReversertOpphør(),
                     ),
-                    barnetilleggsperioder = kommando.barnetillegg.periodisering,
+                    barnetilleggsperioder = kommando.barnetilleggsperioder,
                     beregningstidspunkt = beregningstidspunkt,
                 )
             }
@@ -162,7 +175,7 @@ class OppdaterRammebehandlingService(
                 behandlingId = kommando.behandlingId,
                 vedtaksperiode = utledetForlengelse!!.forlengelsesperiode,
                 innvilgelsesperioder = utledetForlengelse.innvilgelsesperioder.tilInnvilgelsesperioder(rammebehandling),
-                barnetilleggsperioder = utledetForlengelse.barnetillegg.periodisering,
+                barnetilleggsperioder = utledetForlengelse.barnetilleggsperioder,
                 beregningstidspunkt = beregningstidspunkt,
             )
 

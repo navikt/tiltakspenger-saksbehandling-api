@@ -2,24 +2,90 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.harBarnSomFårRettI
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.periodiserAntallBarn
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.tilBarnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDate
 
 /**
- * Utleder antall barn med barnetillegg i [innvilgelsesperiode].
+ * Utleder barnetillegget i forlengelsen [innvilgelsesperiode] fra det gjeldende barnetillegget på [sisteInnvilgedeDag].
+ *
+ * Er det gjeldende barnetillegget [BarnetilleggV2], videreføres barna som har barnetillegg på [sisteInnvilgedeDag], for hele forlengelsen.
+ * Barnetillegget avkortes automatisk for barn som fyller 16 år i forlengelsen, og barn som allerede har fylt 16 år, tas ikke med.
+ * Barn saksbehandler har lagt til selv, videreføres også, siden vi vet hvilke barn som er innvilget.
+ * Blir et barn i søknaden født i forlengelsen uten å være valgt, overlates forlengelsen til saksbehandler, siden et nytt barn må vurderes.
+ *
+ * Er det [BarnetilleggV1], vet vi bare antallet, og det utledes fra søknaden som før, se [utledAntallBarn].
+ * Uten barnetillegg på [sisteInnvilgedeDag] får heller ikke forlengelsen barnetillegg.
+ *
+ * Begrunnelsen lages med [lagBegrunnelseBarnetillegg].
+ */
+fun Sak.utledBarnetilleggForForlengelse(
+    tiltaksdeltakerId: TiltaksdeltakerId,
+    sisteInnvilgedeDag: LocalDate,
+    innvilgelsesperiode: Periode,
+): Either<ManueltBehandlesGrunn, Barnetillegg> {
+    val antallBarnIVedtaket = rammevedtaksliste.barnetilleggsperioder.hentVerdiForDag(sisteInnvilgedeDag) ?: AntallBarn.ZERO
+    if (antallBarnIVedtaket == AntallBarn.ZERO) {
+        return BarnetilleggV2.utenBarnetillegg().right()
+    }
+
+    val gjeldendeBarnetillegg = rammevedtaksliste.innvilgetTidslinje.hentVerdiForDag(sisteInnvilgedeDag)?.barnetillegg
+    if (gjeldendeBarnetillegg is BarnetilleggV2) {
+        val søknaden = søknadenSomErInnvilget(tiltaksdeltakerId)
+        val ikkeValgteBarnFraSøknaden = søknaden?.barnetillegg.orEmpty()
+            .filter { barn -> gjeldendeBarnetillegg.barn.none { it.erSammeBarn(barn.tilBarnMedBarnetillegg(søknaden!!.id)) } }
+        if (ikkeValgteBarnFraSøknaden.harBarnSomFårRettI(innvilgelsesperiode)) {
+            return ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG.left()
+        }
+
+        val barn = gjeldendeBarnetillegg.barn
+            .filter { barn ->
+                gjeldendeBarnetillegg.perioderMedBarnetillegg(barn, nonEmptyListOf(sisteInnvilgedeDag til sisteInnvilgedeDag)).isNotEmpty()
+            }
+            .filter { it.periodeMedRett.overlapperMed(innvilgelsesperiode) }
+            .map { it.copy(perioder = null) }
+        val barnetillegg = BarnetilleggV2(barn = barn, begrunnelse = null)
+        return barnetillegg.copy(
+            begrunnelse = lagBegrunnelseBarnetillegg(
+                antallBarnIVedtaket = antallBarnIVedtaket,
+                antallBarn = barnetillegg.periodisering(nonEmptyListOf(innvilgelsesperiode)) as SammenhengendePeriodisering,
+            ),
+        ).right()
+    }
+
+    return utledAntallBarn(
+        tiltaksdeltakerId = tiltaksdeltakerId,
+        sisteInnvilgedeDag = sisteInnvilgedeDag,
+        antallBarnIVedtaket = antallBarnIVedtaket,
+        innvilgelsesperiode = innvilgelsesperiode,
+    ).map { antallBarn ->
+        BarnetilleggV1(
+            periodisering = antallBarn,
+            begrunnelse = lagBegrunnelseBarnetillegg(antallBarnIVedtaket = antallBarnIVedtaket, antallBarn = antallBarn),
+        )
+    }
+}
+
+/**
+ * Utleder antall barn med barnetillegg i [innvilgelsesperiode], når det gjeldende barnetillegget er [BarnetilleggV1].
  *
  * Hadde det gjeldende vedtaket ikke barnetillegg på [sisteInnvilgedeDag] ([antallBarnIVedtaket] er 0), får heller ikke forlengelsen barnetillegg.
  * Nye barn krever en ny søknad, så det er ikke noe å vurdere.
@@ -41,11 +107,7 @@ fun Sak.utledAntallBarn(
         return SammenhengendePeriodisering(AntallBarn.ZERO, innvilgelsesperiode).right()
     }
 
-    val barnFraSøknaden = rammevedtaksliste
-        .filter { it.rammebehandling is Søknadsbehandling && it.rammebehandlingsresultat is Søknadsbehandlingsresultat.Innvilgelse }
-        .filter { vedtak -> vedtak.valgteTiltaksdeltakelser!!.verdier.flatten().any { it.internDeltakelseId == tiltaksdeltakerId } }
-        .maxByOrNull { it.opprettet }
-        ?.let { (it.rammebehandling as Søknadsbehandling).søknad.barnetillegg }
+    val barnFraSøknaden = søknadenSomErInnvilget(tiltaksdeltakerId)?.barnetillegg
         ?: return ManueltBehandlesGrunn.FORLENGELSE_KAN_IKKE_UTLEDE_BARNETILLEGG.left()
 
     val antallBarnFraSøknadenISisteInnvilgedeDag = barnFraSøknaden
@@ -62,6 +124,13 @@ fun Sak.utledAntallBarn(
 
     return barnFraSøknaden.periodiserAntallBarn(innvilgelsesperiode).right()
 }
+
+/** Søknaden fra den siste innvilgede søknadsbehandlingen av [tiltaksdeltakerId], eller null om den ikke finnes. */
+private fun Sak.søknadenSomErInnvilget(tiltaksdeltakerId: TiltaksdeltakerId): Søknad? = rammevedtaksliste
+    .filter { it.rammebehandling is Søknadsbehandling && it.rammebehandlingsresultat is Søknadsbehandlingsresultat.Innvilgelse }
+    .filter { vedtak -> vedtak.valgteTiltaksdeltakelser!!.verdier.flatten().any { it.internDeltakelseId == tiltaksdeltakerId } }
+    .maxByOrNull { it.opprettet }
+    ?.let { (it.rammebehandling as Søknadsbehandling).søknad }
 
 /**
  * Begrunnelsen for barnetillegget.

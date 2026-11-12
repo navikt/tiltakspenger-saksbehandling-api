@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
@@ -164,14 +163,14 @@ class SendRevurderingTilBeslutningTest {
             revurdering.shouldBeInstanceOf<Revurdering>()
             val søknadsbehandlingsvedtak = sak.rammevedtaksliste.single()
 
+            val søknadsbehandlingensBarnetillegg = søknadsbehandling.barnetilleggsperioder!!
+            revurdering.barnetilleggsperioder!! shouldBe søknadsbehandlingensBarnetillegg.nyPeriode(
+                revurderingInnvilgelsesperiode,
+                defaultVerdiDersomDenMangler = søknadsbehandlingensBarnetillegg.verdier.first(),
+            )
+            revurdering.barnetillegg!!.begrunnelse shouldBe søknadsbehandling.barnetillegg!!.begrunnelse
             revurdering.resultat shouldBe Revurderingsresultat.Innvilgelse(
-                barnetillegg = Barnetillegg(
-                    periodisering = søknadsbehandling.barnetillegg!!.periodisering.nyPeriode(
-                        revurderingInnvilgelsesperiode,
-                        defaultVerdiDersomDenMangler = søknadsbehandling.barnetillegg.periodisering.verdier.first(),
-                    ),
-                    begrunnelse = søknadsbehandling.barnetillegg.begrunnelse,
-                ),
+                barnetillegg = revurdering.barnetillegg!!,
                 innvilgelsesperioder = innvilgelsesperioder(
                     periode = revurderingInnvilgelsesperiode,
                     valgtTiltaksdeltakelse = revurdering.valgteTiltaksdeltakelser!!.single().verdi.single(),

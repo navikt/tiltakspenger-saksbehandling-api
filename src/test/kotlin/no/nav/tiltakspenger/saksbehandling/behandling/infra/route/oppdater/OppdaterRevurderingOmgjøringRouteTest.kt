@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.utenBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -68,7 +67,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 nyOmgjøring.id,
             )
 
-            val barnetillegg = Barnetillegg.utenBarnetillegg((3 til 9.april(2025)))
+            val barnetillegg = Barnetillegg.utenBarnetillegg()
             val innvilgelsesperioder = innvilgelsesperioder(
                 nyInnvilgelsesperiode,
                 tiltaksdeltakelseVedOpprettelseAvRevurdering,

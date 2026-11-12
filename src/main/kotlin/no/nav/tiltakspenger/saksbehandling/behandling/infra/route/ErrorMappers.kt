@@ -108,10 +108,7 @@ fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, Erro
         "tiltaksdeltakelsen_dekker_ikke_forlengelsen",
     )
 
-    is KanIkkeForlenge.BarnetilleggetGårUtoverForlengelsen -> HttpStatusCode.BadRequest to ErrorJson(
-        "Barnetillegget må være innenfor forlengelsen ${this.forlengelsesperiode}",
-        "barnetillegget_går_utover_forlengelsen",
-    )
+    is KanIkkeForlenge.UgyldigBarnetillegg -> HttpStatusCode.BadRequest to Standardfeil.ugyldigBarnetillegg(this.feil.melding)
 
     KanIkkeOppdatereBehandling.UgyldigeMeldeperioderHelg -> HttpStatusCode.Conflict to ErrorJson(
         "Behandlingen har meldeperioder med kun rett i helg, men saken er ikke markert for melding på helgedager",

@@ -150,7 +150,7 @@ fun Søknadsbehandlingsresultat.tilSøknadsbehandlingResultatDTO(
 
         is Søknadsbehandlingsresultat.Innvilgelse -> SøknadsbehandlingResultatDTO.Innvilgelse(
             innvilgelsesperioder = innvilgelsesperioder.tilDTO(tiltaksdeltakelser),
-            barnetillegg = barnetillegg.toBarnetilleggDTO(),
+            barnetillegg = barnetillegg.toBarnetilleggDTO(innvilgelsesperioder.perioder),
         )
 
         is Søknadsbehandlingsresultat.IkkeValgt -> SøknadsbehandlingResultatDTO.IkkeValgt
@@ -168,7 +168,7 @@ fun Revurderingsresultat.tilRevurderingResultatDTO(
     return when (this) {
         is Revurderingsresultat.Innvilgelse -> Innvilgelse(
             innvilgelsesperioder = innvilgelsesperioder?.tilDTO(tiltaksdeltakelser),
-            barnetillegg = barnetillegg?.toBarnetilleggDTO(),
+            barnetillegg = barnetillegg?.toBarnetilleggDTO(innvilgelsesperioder?.perioder),
         )
 
         is Revurderingsresultat.Forlengelse -> RevurderingResultatDTO.Forlengelse(
@@ -178,7 +178,7 @@ fun Revurderingsresultat.tilRevurderingResultatDTO(
             kanIkkeUtledeBarnetillegg = kanIkkeUtledeBarnetillegg,
             tiltaksdeltakelserSomKanForlenges = tiltaksdeltakelserSomKanForlenges.map { it.toString() },
             innvilgelsesperioder = innvilgelsesperioder?.tilDTO(tiltaksdeltakelser),
-            barnetillegg = barnetillegg?.toBarnetilleggDTO(),
+            barnetillegg = barnetillegg?.toBarnetilleggDTO(innvilgelsesperioder?.perioder),
         )
 
         is Revurderingsresultat.Stans -> Stans(
@@ -188,7 +188,7 @@ fun Revurderingsresultat.tilRevurderingResultatDTO(
 
         is Omgjøringsresultat.OmgjøringInnvilgelse -> OmgjøringInnvilgelse(
             innvilgelsesperioder = innvilgelsesperioder?.tilDTO(tiltaksdeltakelser),
-            barnetillegg = barnetillegg?.toBarnetilleggDTO(),
+            barnetillegg = barnetillegg?.toBarnetilleggDTO(innvilgelsesperioder?.perioder),
             omgjørVedtak = omgjørRammevedtak.eldsteVedtakId(),
             omgjørRammevedtak = omgjørRammevedtak.tilOmgjørRammevedtakDTO(),
         )

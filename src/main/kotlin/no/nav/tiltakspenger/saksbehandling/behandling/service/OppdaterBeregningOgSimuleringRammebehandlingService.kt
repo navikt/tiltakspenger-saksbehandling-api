@@ -169,7 +169,7 @@ class OppdaterBeregningOgSimuleringRammebehandlingService(
                 behandlingId = behandlingId,
                 vedtaksperiode = behandling.vedtaksperiode ?: error(feilmelding("vedtaksperiode")),
                 innvilgelsesperioder = behandling.innvilgelsesperioder ?: error(feilmelding("innvilgelsesperioder")),
-                barnetilleggsperioder = (behandling.barnetillegg ?: error(feilmelding("barnetillegg"))).periodisering,
+                barnetilleggsperioder = behandling.barnetilleggsperioder ?: error(feilmelding("barnetillegg")),
                 beregningstidspunkt = beregningstidspunkt,
             )
 

@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgetTiltaksdeltakelseKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -29,6 +30,8 @@ data class UtledetForlengelse(
     val kanIkkeUtledeBarnetillegg: Boolean,
 ) {
     val forlengelsesperiode: Periode = innvilgelsesperioder.totalPeriode
+
+    val barnetilleggsperioder: IkkeTomPeriodisering<AntallBarn> by lazy { barnetillegg.periodisering(innvilgelsesperioder.perioder) }
 }
 
 /**
@@ -39,7 +42,7 @@ data class UtledetForlengelse(
  * Forlengelsen kan ikke overlappe andre vedtak, og tiltaksdeltakelsen i saksopplysningene må dekke hele forlengelsen.
  *
  * @param barnetillegg Barnetillegget saksbehandler har valgt.
- * Er det null, utledes det fra vedtaket som forlenges, se [utledAntallBarn].
+ * Er det null, utledes det fra vedtaket som forlenges, se [utledBarnetilleggForForlengelse].
  * Kan det ikke utledes, videreføres antall barn i vedtaket uendret, og saksbehandler må vurdere barnetillegget selv.
  */
 fun Sak.utledForlengelse(
@@ -76,15 +79,13 @@ fun Sak.utledForlengelse(
         return KanIkkeForlenge.TiltaksdeltakelsenDekkerIkkeForlengelsen(forlengelsesperiode).left()
     }
 
-    if (barnetillegg != null && !barnetillegg.erInnenfor(forlengelsesperiode)) {
-        return KanIkkeForlenge.BarnetilleggetGårUtoverForlengelsen(forlengelsesperiode).left()
+    val valgtBarnetillegg = barnetillegg?.let {
+        it.tilBarnetillegg(nonEmptyListOf(forlengelsesperiode)).getOrElse { feil -> return KanIkkeForlenge.UgyldigBarnetillegg(feil).left() }
     }
 
-    val antallBarnIVedtaket = rammevedtaksliste.barnetilleggsperioder.hentVerdiForDag(forlenger.sisteInnvilgedeDag) ?: AntallBarn.ZERO
-    val utledetAntallBarn = utledAntallBarn(
+    val utledetBarnetillegg = utledBarnetilleggForForlengelse(
         tiltaksdeltakerId = tiltaksdeltakerId,
         sisteInnvilgedeDag = forlenger.sisteInnvilgedeDag,
-        antallBarnIVedtaket = antallBarnIVedtaket,
         innvilgelsesperiode = forlengelsesperiode,
     )
 
@@ -101,14 +102,14 @@ fun Sak.utledForlengelse(
             ),
             forlengelsesperiode,
         ),
-        barnetillegg = barnetillegg?.tilBarnetillegg(forlengelsesperiode) ?: utledetAntallBarn
-            .getOrElse { SammenhengendePeriodisering(antallBarnIVedtaket, forlengelsesperiode) }
-            .let { antallBarn ->
-                Barnetillegg(
-                    periodisering = antallBarn,
-                    begrunnelse = lagBegrunnelseBarnetillegg(antallBarnIVedtaket = antallBarnIVedtaket, antallBarn = antallBarn),
-                )
-            },
-        kanIkkeUtledeBarnetillegg = utledetAntallBarn.isLeft(),
+        barnetillegg = valgtBarnetillegg ?: utledetBarnetillegg.getOrElse {
+            val antallBarnIVedtaket = rammevedtaksliste.barnetilleggsperioder.hentVerdiForDag(forlenger.sisteInnvilgedeDag) ?: AntallBarn.ZERO
+            val antallBarn = SammenhengendePeriodisering(antallBarnIVedtaket, forlengelsesperiode)
+            BarnetilleggV1(
+                periodisering = antallBarn,
+                begrunnelse = lagBegrunnelseBarnetillegg(antallBarnIVedtaket = antallBarnIVedtaket, antallBarn = antallBarn),
+            )
+        },
+        kanIkkeUtledeBarnetillegg = utledetBarnetillegg.isLeft(),
     ).right()
 }

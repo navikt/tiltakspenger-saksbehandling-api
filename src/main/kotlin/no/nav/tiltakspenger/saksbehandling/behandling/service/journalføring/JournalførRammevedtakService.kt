@@ -6,6 +6,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForInnvilgelseKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForOpphørKlient
@@ -144,7 +145,10 @@ class JournalførRammevedtakService(
         }
 
         return omgjørRammevedtak.any {
-            rammevedtakSomOmgjøres[it.rammevedtakId]!!.barnetillegg?.harBarnetilleggIPeriode(it.periode) ?: false
+            rammevedtakSomOmgjøres[it.rammevedtakId]!!.barnetilleggsperioder
+                ?.overlappendePeriode(it.periode)
+                ?.any { barnetillegg -> barnetillegg.verdi != AntallBarn.ZERO }
+                ?: false
         }
     }
 }
