@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
-import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
@@ -24,24 +23,18 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat.Avslag
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgetTiltaksdeltakelseDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgetTiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSaksopplysningerForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingAvslag
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingIkkeValgt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
@@ -454,72 +447,6 @@ class OppdaterSøknadsbehandlingRouteTest {
             ).also { (_, oppdatertBehandling, response) ->
                 response harKode "feil_resultattype"
                 oppdatertBehandling shouldBe behandling
-            }
-        }
-    }
-
-    @Test
-    fun `kan innvilge flere overlappende tiltaksdeltakelser i samme innvilgelsesperiode`() {
-        withTestApplicationContext { tac ->
-            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
-            // En ny søknad for et annet, overlappende tiltak gjør at søknadsbehandlingen får med begge tiltaksdeltakelsene.
-            opprettSøknadsbehandlingKlarTilBehandling(tac = tac, sakId = sak.id, fnr = sak.fnr)
-            val (_, medToDeltakelser) = oppdaterSaksopplysningerForBehandlingId(tac, sak.id, behandling.id)
-            val (første, andre) = medToDeltakelser.saksopplysninger.tiltaksdeltakelser.value.also { it.size shouldBe 2 }
-            val periode = første.lukketPeriode!!
-
-            val (_, oppdatert, body) = oppdaterSøknadsbehandlingInnvilgelse(
-                tac = tac,
-                sakId = sak.id,
-                behandlingId = behandling.id,
-                innvilgelsesperioder = innvilgelsesperioder(
-                    innvilgelsesperiode(
-                        periode = periode,
-                        tiltaksdeltakelser = nonEmptyListOf(
-                            innvilgetTiltaksdeltakelse(andre, AntallDagerForMeldeperiode(6)),
-                            innvilgetTiltaksdeltakelse(første, AntallDagerForMeldeperiode(4)),
-                        ),
-                    ),
-                ),
-            )
-
-            val innvilgelsesperiode = oppdatert.innvilgelsesperioder!!.periodisering.verdier.single()
-            innvilgelsesperiode.valgteTiltaksdeltakelser shouldBe nonEmptyListOf(andre, første)
-            innvilgelsesperiode.antallDagerPerMeldeperiode shouldBe AntallDagerForMeldeperiode(10)
-            body.shouldContainJsonKeyValue("$.innvilgelsesperioder.length()", 1)
-            body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].tiltaksdeltakelser.length()", 2)
-            body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].tiltaksdeltakelser[0].internDeltakelseId", andre.internDeltakelseId.toString())
-            body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].tiltaksdeltakelser[0].antallDagerPerMeldeperiode", 6)
-            body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].tiltaksdeltakelser[1].internDeltakelseId", første.internDeltakelseId.toString())
-            body.shouldContainJsonKeyValue("$.innvilgelsesperioder[0].tiltaksdeltakelser[1].antallDagerPerMeldeperiode", 4)
-        }
-    }
-
-    @Test
-    fun `kan ikke innvilge for flere dager summert enn det er dager i en meldeperiode`() {
-        withTestApplicationContext { tac ->
-            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
-            opprettSøknadsbehandlingKlarTilBehandling(tac = tac, sakId = sak.id, fnr = sak.fnr)
-            val (_, medToDeltakelser) = oppdaterSaksopplysningerForBehandlingId(tac, sak.id, behandling.id)
-            val (første, andre) = medToDeltakelser.saksopplysninger.tiltaksdeltakelser.value.also { it.size shouldBe 2 }
-
-            oppdaterSøknadsbehandlingInnvilgelse(
-                tac = tac,
-                sakId = sak.id,
-                behandlingId = behandling.id,
-                innvilgelsesperioder = listOf(
-                    InnvilgelsesperiodeDTO(
-                        periode = første.lukketPeriode!!.toDTO(),
-                        tiltaksdeltakelser = listOf(
-                            InnvilgetTiltaksdeltakelseDTO(første.internDeltakelseId.toString(), 10),
-                            InnvilgetTiltaksdeltakelseDTO(andre.internDeltakelseId.toString(), 5),
-                        ),
-                    ),
-                ),
-                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
-            ).also { (_, oppdatertBehandling, response) ->
-                response harKode "for_mange_dager_per_meldeperiode"
-                oppdatertBehandling shouldBe medToDeltakelser
             }
         }
     }

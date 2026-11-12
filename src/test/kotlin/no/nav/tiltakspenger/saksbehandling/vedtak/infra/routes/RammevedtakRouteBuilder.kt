@@ -32,18 +32,14 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
     innvilgelsesperioder: String = """
         [
             {
-                "tiltaksdeltakelser": [
-                    {
-                        "internDeltakelseId": "${requireNotNull(internDeltakelseId) { "internDeltakelseId må settes når innvilgelsesperioder ikke overstyres" }}",
-                        "antallDagerPerMeldeperiode": 10,
-                        "ugyldigTiltaksdeltakelse": null
-                    }
-                ],
+                "internDeltakelseId": "${requireNotNull(internDeltakelseId) { "internDeltakelseId må settes når innvilgelsesperioder ikke overstyres" }}",
+                "ugyldigTiltaksdeltakelse": null,
                 "erReversertOpphør": false,
                 "periode": {
                     "fraOgMed": "2023-01-01",
                     "tilOgMed": "2023-03-31"
-                }
+                },
+                "antallDagerPerMeldeperiode": 10
             }
         ]
     """.trimIndent(),

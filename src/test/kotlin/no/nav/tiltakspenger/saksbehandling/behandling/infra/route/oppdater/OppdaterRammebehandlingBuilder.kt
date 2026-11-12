@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater
 
-import arrow.core.toNonEmptyListOrThrow
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -50,44 +49,13 @@ interface OppdaterRammebehandlingBuilder {
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Triple<Sak, Rammebehandling, String> {
-        return oppdaterSøknadsbehandlingInnvilgelse(
-            tac = tac,
-            sakId = sakId,
-            behandlingId = behandlingId,
-            innvilgelsesperioder = innvilgelsesperioder.tilDTOMedDeltakelseFra(tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)),
-            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
-            skalJournalføreNotat = skalJournalføreNotat,
-            barnetillegg = barnetillegg,
-            prioriteringBegrunnelse = prioriteringBegrunnelse,
-            forventet = forventet,
-            saksbehandler = saksbehandler,
-        )
-    }
-
-    /** Sender innvilgelsesperiodene som de er, også verdier domenemodellen ikke tillater. */
-    suspend fun ApplicationTestBuilder.oppdaterSøknadsbehandlingInnvilgelse(
-        tac: TestApplicationContext,
-        sakId: SakId,
-        behandlingId: RammebehandlingId,
-        innvilgelsesperioder: List<InnvilgelsesperiodeDTO>,
-        begrunnelseVilkårsvurdering: String? = null,
-        fritekstTilVedtaksbrev: String? = null,
-        skalSendeVedtaksbrev: Boolean = true,
-        skalJournalføreNotat: SkalJournalføreNotat = SkalJournalføreNotat.INGEN,
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.map { it.periode.toDomain() }.toNonEmptyListOrThrow()),
-        prioriteringBegrunnelse: String? = null,
-        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
             {
               "resultat": "INNVILGELSE",
               ${
             innvilgelseJson(
-                innvilgelsesperioder,
+                innvilgelsesperioder.tilDTOMedDeltakelseFra(tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)),
                 barnetillegg,
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
@@ -444,27 +412,16 @@ interface OppdaterRammebehandlingBuilder {
     private fun Innvilgelsesperioder.tilDTOMedDeltakelseFra(behandling: Rammebehandling): List<InnvilgelsesperiodeDTO> {
         val kjenteDeltakelser = behandling.saksopplysninger.tiltaksdeltakelser.value
         return tilDTO(behandling.saksopplysninger.tiltaksdeltakelser).map { dto ->
-            if (dto.erReversertOpphør) {
-                return@map dto
+            if (dto.erReversertOpphør || kjenteDeltakelser.any { it.internDeltakelseId.toString() == dto.internDeltakelseId }) {
+                dto
+            } else {
+                val dekkende = kjenteDeltakelser.firstOrNull { deltakelse ->
+                    deltakelse.lukketPeriode?.inneholderHele(dto.periode.toDomain()) == true
+                }
+                val erstatning = dekkende ?: kjenteDeltakelser.firstOrNull()
+                // Uten kjente deltakelser lar vi dto-en stå, slik at serveren svarer med sin egen feil.
+                if (erstatning == null) dto else dto.copy(internDeltakelseId = erstatning.internDeltakelseId.toString())
             }
-            dto.copy(
-                tiltaksdeltakelser = dto.tiltaksdeltakelser.map { tiltaksdeltakelse ->
-                    if (kjenteDeltakelser.any { it.internDeltakelseId.toString() == tiltaksdeltakelse.internDeltakelseId }) {
-                        tiltaksdeltakelse
-                    } else {
-                        val dekkende = kjenteDeltakelser.firstOrNull { deltakelse ->
-                            deltakelse.lukketPeriode?.inneholderHele(dto.periode.toDomain()) == true
-                        }
-                        val erstatning = dekkende ?: kjenteDeltakelser.firstOrNull()
-                        // Uten kjente deltakelser lar vi dto-en stå, slik at serveren svarer med sin egen feil.
-                        if (erstatning == null) {
-                            tiltaksdeltakelse
-                        } else {
-                            tiltaksdeltakelse.copy(internDeltakelseId = erstatning.internDeltakelseId.toString())
-                        }
-                    }
-                },
-            )
         }
     }
 
@@ -485,7 +442,8 @@ interface OppdaterRammebehandlingBuilder {
                 """
                             {
                                 "periode": ${serialize(it.periode)},
-                                "tiltaksdeltakelser": ${serialize(it.tiltaksdeltakelser)},
+                                "antallDagerPerMeldeperiode": ${it.antallDagerPerMeldeperiode},
+                                "internDeltakelseId": ${it.internDeltakelseId.medQuotes()},
                                 "erReversertOpphør": ${it.erReversertOpphør}
                             }                  
                 """.trimIndent()

@@ -5,7 +5,6 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
-import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
@@ -87,7 +86,8 @@ interface ForhåndsvisRammevedtaksbrevTestbuilder {
                             "fraOgMed": "${periode.periode.fraOgMed}",
                             "tilOgMed": "${periode.periode.tilOgMed}"
                         },
-                        "tiltaksdeltakelser": ${serialize(periode.tiltaksdeltakelser)}
+                        "antallDagerPerMeldeperiode": ${periode.antallDagerPerMeldeperiode},
+                        "internDeltakelseId": "${periode.internDeltakelseId}"
                     }
                 """
                 }
