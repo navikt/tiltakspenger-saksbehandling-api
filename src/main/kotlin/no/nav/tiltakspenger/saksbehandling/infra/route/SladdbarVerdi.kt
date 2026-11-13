@@ -17,8 +17,14 @@ sealed interface SladdbarVerdi<out T> {
     val erSladdet: Boolean
 }
 
+/**
+ * Verdien er typisk en personopplysning, så [toString] maskerer den for å holde den unna logger og feilmeldinger.
+ * Serialiseringen til json går via feltene og påvirkes ikke.
+ */
 data class IkkeSladdetVerdi<out T>(override val verdi: T) : SladdbarVerdi<T> {
     override val erSladdet: Boolean = false
+
+    override fun toString(): String = "IkkeSladdetVerdi(verdi=*****)"
 }
 
 data object SladdetVerdi : SladdbarVerdi<Nothing> {

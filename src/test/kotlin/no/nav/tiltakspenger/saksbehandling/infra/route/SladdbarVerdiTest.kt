@@ -59,4 +59,11 @@ class SladdbarVerdiTest {
         "Hemmelig".ikkeSladdet().verdi shouldBe "Hemmelig"
         "Hemmelig".ikkeSladdet().erSladdet shouldBe false
     }
+
+    @Test
+    fun `toString maskerer verdien, slik at den ikke havner i logger`() {
+        val dto = TestDTO(tekst = "Hemmelig".ikkeSladdet(), dato = 1.januar(2025).ikkeSladdet())
+
+        dto.toString() shouldBe "TestDTO(tekst=IkkeSladdetVerdi(verdi=*****), dato=IkkeSladdetVerdi(verdi=*****))"
+    }
 }
