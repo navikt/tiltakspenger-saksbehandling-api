@@ -10,16 +10,17 @@ import java.time.LocalDate
 
 /**
  * Deltakelsen slik tiltakshistorikk ville levert den, til fakes som trenger libs-domenet.
- * Rundturen tilbake via `tilTiltaksdeltakelseSomFratarRett` gir samme verdi, så lenge statusen finnes hos kilden og bruker ikke har adressebeskyttelse.
+ * Rundturen tilbake via `tilTiltaksdeltakelseSomFratarRett` gir samme verdi, så lenge statusen finnes hos kilden.
  * Arrangør og gjennomføring finnes ikke i den interne modellen, og blir tomme.
+ * Tittelen lagres ikke hos oss, og må derfor sendes inn for å finnes hos kilden.
  */
-fun TiltaksdeltakelseSomFratarRett.tilLibsDeltakelse(): Tiltaksdeltakelse.FratarRett {
+fun TiltaksdeltakelseSomFratarRett.tilLibsDeltakelse(tittel: String? = null): Tiltaksdeltakelse.FratarRett {
     return Tiltaksdeltakelse.FratarRett(
         id = EksternDeltakelseId(eksternDeltakelseId),
         kildestatus = tilKildestatus(kilde, deltakelseStatus),
         tiltakstypenavn = typeNavn,
         tiltakskodeFraKilden = tiltakskodeFraKilden,
-        tittel = tilknytningstittel(),
+        tittel = tittel?.let { Tilknytningstittel(it) },
         arrangør = Arrangør(hovedenhet = null, underenhet = null),
         omfang = Deltakelsesomfang(
             deltakelsesprosent = deltakelseProsent,
@@ -39,6 +40,3 @@ fun TiltaksdeltakelseSomFratarRett.medPeriode(
     fraOgMed: LocalDate? = periode.fraOgMed,
     tilOgMed: LocalDate? = periode.tilOgMed,
 ): TiltaksdeltakelseSomFratarRett = copy(periode = lukketEllerÅpenPeriode(fraOgMed, tilOgMed))
-
-private fun TiltaksdeltakelseSomFratarRett.tilknytningstittel(): Tilknytningstittel? =
-    tittel?.let { Tilknytningstittel(it) }

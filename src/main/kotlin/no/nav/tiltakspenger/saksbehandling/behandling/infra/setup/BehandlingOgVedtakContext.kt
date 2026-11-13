@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Behandl
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentTilbakeRammebehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentTiltaksdataService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.KonverterRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
@@ -169,6 +170,13 @@ open class BehandlingOgVedtakContext(
             clock = clock,
             tiltakspengerArenaClient = tiltakspengerArenaClient,
             tiltaksdeltakerRepo = tiltaksdeltakerRepo,
+        )
+    }
+    val hentTiltaksdataService: HentTiltaksdataService by lazy {
+        HentTiltaksdataService(
+            rammebehandlingRepo = rammebehandlingRepo,
+            personService = personService,
+            tiltaksdeltakelseKlient = tiltaksdeltakelseKlient,
         )
     }
     val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService by lazy {

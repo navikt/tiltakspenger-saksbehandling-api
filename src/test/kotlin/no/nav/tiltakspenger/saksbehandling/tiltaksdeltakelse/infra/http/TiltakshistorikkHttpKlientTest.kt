@@ -306,4 +306,22 @@ class TiltakshistorikkHttpKlientTest {
             tiltaksdeltakelser.single().visningsnavn shouldBe "Oppfølging hos Arrangør AS"
         }
     }
+
+    @Test
+    fun `hentAlleTiltaksdeltakelser - returnerer alle deltakelsene umappet, med tittel`() {
+        val (pdlTransport, historikkTransport) = transports(
+            arenaRadJson(arenaId = 1),
+            arenaRadJson(arenaId = 2, status = "HELT_NY_STATUS", startDato = null, sluttDato = null),
+        )
+
+        runTest {
+            val deltakelser = client(pdlTransport, historikkTransport).hentAlleTiltaksdeltakelser(
+                fnr = fnr,
+                correlationId = CorrelationId.generate(),
+            ).getOrNull().shouldNotBeNull()
+
+            deltakelser.map { it.id.verdi } shouldBe listOf("TA1", "TA2")
+            deltakelser.map { it.tittel?.verdi } shouldBe listOf("Oppfølging hos Arrangør AS", "Oppfølging hos Arrangør AS")
+        }
+    }
 }

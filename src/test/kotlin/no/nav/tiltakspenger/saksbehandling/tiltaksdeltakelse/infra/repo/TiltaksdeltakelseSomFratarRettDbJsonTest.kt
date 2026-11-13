@@ -18,13 +18,12 @@ class TiltaksdeltakelseSomFratarRettDbJsonTest {
     fun `lagres med alle felter`() {
         val deltakelse = ObjectMother.tiltaksdeltakelseSomFratarRett(
             eksternDeltakelseId = "TA123",
-            tittel = "Midlertidig lønnstilskudd hos Arrangør AS",
             status = TiltakDeltakerstatus.HarSluttet,
             kilde = Tiltakskilde.TeamTiltak,
         )
 
         serialize(deltakelse.toDbJson()) shouldBe
-            """{"eksternDeltakelseId":"TA123","typeNavn":"Midlertidig lønnstilskudd","tittel":"Midlertidig lønnstilskudd hos Arrangør AS","tiltakskodeFraKilden":"MIDLONTIL","deltakelseFraOgMed":"2023-01-01","deltakelseTilOgMed":"2023-03-31","deltakelseStatus":"HarSluttet","deltakelseProsent":100.0,"antallDagerPerUke":5.0,"kilde":"TeamTiltak"}"""
+            """{"eksternDeltakelseId":"TA123","typeNavn":"Midlertidig lønnstilskudd","tiltakskodeFraKilden":"MIDLONTIL","deltakelseFraOgMed":"2023-01-01","deltakelseTilOgMed":"2023-03-31","deltakelseStatus":"HarSluttet","deltakelseProsent":100.0,"antallDagerPerUke":5.0,"kilde":"TeamTiltak"}"""
     }
 
     @Test
@@ -38,24 +37,11 @@ class TiltaksdeltakelseSomFratarRettDbJsonTest {
         )
 
         serialize(deltakelse.toDbJson()) shouldBe
-            """{"eksternDeltakelseId":"TA123","typeNavn":"Midlertidig lønnstilskudd","tittel":null,"tiltakskodeFraKilden":"MIDLONTIL","deltakelseFraOgMed":null,"deltakelseTilOgMed":null,"deltakelseStatus":"Deltar","deltakelseProsent":null,"antallDagerPerUke":null,"kilde":"Arena"}"""
+            """{"eksternDeltakelseId":"TA123","typeNavn":"Midlertidig lønnstilskudd","tiltakskodeFraKilden":"MIDLONTIL","deltakelseFraOgMed":null,"deltakelseTilOgMed":null,"deltakelseStatus":"Deltar","deltakelseProsent":null,"antallDagerPerUke":null,"kilde":"Arena"}"""
     }
 
     @Test
     fun `leses tilbake fra lagret verdi`() {
-        val lagret =
-            """{"eksternDeltakelseId":"TA123","typeNavn":"Midlertidig lønnstilskudd","tittel":"Midlertidig lønnstilskudd hos Arrangør AS","tiltakskodeFraKilden":"MIDLONTIL","deltakelseFraOgMed":"2023-01-01","deltakelseTilOgMed":"2023-03-31","deltakelseStatus":"HarSluttet","deltakelseProsent":100.0,"antallDagerPerUke":5.0,"kilde":"TeamTiltak"}"""
-
-        deserialize<TiltaksdeltakelseSomFratarRettDbJson>(lagret).toDomain() shouldBe ObjectMother.tiltaksdeltakelseSomFratarRett(
-            eksternDeltakelseId = "TA123",
-            tittel = "Midlertidig lønnstilskudd hos Arrangør AS",
-            status = TiltakDeltakerstatus.HarSluttet,
-            kilde = Tiltakskilde.TeamTiltak,
-        )
-    }
-
-    @Test
-    fun `lagret verdi uten tittel gir ingen tittel`() {
         val lagret =
             """{"eksternDeltakelseId":"TA123","typeNavn":"Midlertidig lønnstilskudd","tiltakskodeFraKilden":"MIDLONTIL","deltakelseFraOgMed":"2023-01-01","deltakelseTilOgMed":"2023-03-31","deltakelseStatus":"HarSluttet","deltakelseProsent":100.0,"antallDagerPerUke":5.0,"kilde":"TeamTiltak"}"""
 

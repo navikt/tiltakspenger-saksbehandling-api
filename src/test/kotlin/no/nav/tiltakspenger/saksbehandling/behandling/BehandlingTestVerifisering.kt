@@ -194,10 +194,6 @@ fun String.shouldBeRevurderingDTO(
                 "antallDagerPerUke": $antallDagerPerUke,
                 "deltakelseStatus": "Deltar",
                 "typeNavn": "$tiltakTypeNavn",
-                "tittel": {
-                  "verdi": null,
-                  "erSladdet": false
-                },
                 "periode": {
                   "fraOgMed": "$periodeFraOgMed",
                   "tilOgMed": "$periodeTilOgMed"
@@ -332,10 +328,6 @@ fun String.shouldBeSøknadsbehandlingDTO(
                 "antallDagerPerUke": $antallDagerPerUke,
                 "deltakelseStatus": "Deltar",
                 "typeNavn": "$tiltakTypeNavn",
-                "tittel": {
-                  "verdi": null,
-                  "erSladdet": false
-                },
                 "periode": {
                   "fraOgMed": "$periodeFraOgMed",
                   "tilOgMed": "$periodeTilOgMed"

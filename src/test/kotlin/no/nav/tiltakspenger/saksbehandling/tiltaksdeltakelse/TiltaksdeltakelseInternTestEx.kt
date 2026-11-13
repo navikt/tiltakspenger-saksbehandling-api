@@ -18,11 +18,12 @@ import java.time.LocalDate
 
 /**
  * Deltakelsen slik tiltakshistorikk ville levert den, til fakes og tester som trenger libs-domenet.
- * Rundturen tilbake via `tilTiltaksdeltakelseIntern` gir samme verdi, så lenge statusen finnes hos kilden og bruker ikke har adressebeskyttelse.
+ * Rundturen tilbake via `tilTiltaksdeltakelseIntern` gir samme verdi, så lenge statusen finnes hos kilden.
  * Kildestatusen velges slik at den tolkes til [TiltaksdeltakelseIntern.deltakelseStatus] uavhengig av dato.
  * Arrangøren finnes ikke i den interne modellen, og blir tom.
+ * Tittelen lagres ikke hos oss, og må derfor sendes inn for å finnes hos kilden.
  */
-fun TiltaksdeltakelseIntern.tilLibsDeltakelse(): Tiltaksdeltakelse.GirRett {
+fun TiltaksdeltakelseIntern.tilLibsDeltakelse(tittel: String? = null): Tiltaksdeltakelse.GirRett {
     val id = EksternDeltakelseId(eksternDeltakelseId)
     val kildestatus = tilKildestatus()
     val arrangør = Arrangør(hovedenhet = null, underenhet = null)
@@ -39,7 +40,7 @@ fun TiltaksdeltakelseIntern.tilLibsDeltakelse(): Tiltaksdeltakelse.GirRett {
             tiltakstype = tiltakstype,
             tiltakstypenavn = typeNavn,
             tiltakskodeFraKilden = tiltakstype.name,
-            tittel = tilknytningstittel(),
+            tittel = tittel?.let { Tilknytningstittel(it) },
             arrangør = arrangør,
             omfang = omfang,
             gjennomføringId = gjennomføringId,
@@ -52,7 +53,7 @@ fun TiltaksdeltakelseIntern.tilLibsDeltakelse(): Tiltaksdeltakelse.GirRett {
             tiltakstype = tiltakstype,
             tiltakstypenavn = typeNavn,
             tiltakskodeFraKilden = tiltakstype.name,
-            tittel = tilknytningstittel(),
+            tittel = tittel?.let { Tilknytningstittel(it) },
             arrangør = arrangør,
             omfang = omfang,
             gjennomføringId = gjennomføringId,
@@ -145,6 +146,3 @@ fun TiltaksdeltakelseIntern.medPeriode(
     fraOgMed: LocalDate? = periode.fraOgMed,
     tilOgMed: LocalDate? = periode.tilOgMed,
 ): TiltaksdeltakelseIntern = copy(periode = lukketEllerÅpenPeriode(fraOgMed, tilOgMed))
-
-private fun TiltaksdeltakelseIntern.tilknytningstittel(): Tilknytningstittel? =
-    tittel?.let { Tilknytningstittel(it) }

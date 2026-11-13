@@ -15,9 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.overlapperMed
  * Kalles ekstern_id i databasen.
  * Lagres kun for sporbarhet.
  * @param typeNavn Navn på tiltakstypen, f.eks. "Arbeidsforberedende trening"
- * @param tittel Hele tiltaksnavnet fra kilden, typisk på formen "Tiltakstype hos Arrangør".
- * Inneholder arrangøren, og er derfor stedsinformasjon som må sladdes.
- * Er null når bruker har adressebeskyttelse, når kilden ikke ga noen tittel, eller når saksopplysningene ble innhentet før tittelen ble lagret.
  * @param gjennomføringId Ekstern id fra Valp.
  * Dette er gjennomføringen sin ID, eksempelvis Rema 1000 i Strandveien.
  * En person knyttes til en gjennomføring og det kalles da en deltakelse.
@@ -31,7 +28,6 @@ data class TiltaksdeltakelseIntern(
     val eksternDeltakelseId: String,
     val gjennomføringId: String?,
     val typeNavn: String,
-    val tittel: String?,
     val tiltakstype: TiltakstypeSomGirRett,
     val rettPåTiltakspenger: Boolean,
     val periode: LukketEllerÅpenPeriode,

@@ -55,6 +55,7 @@ private data class LagretTiltaksdeltakelseRespons(
     val eksternDeltakelseId: String,
     val opprettet: Boolean,
     val girRett: Boolean,
+    val tittel: String?,
     val deltakelse: Any,
 )
 
@@ -62,6 +63,7 @@ private fun LagretLokalTiltaksdeltakelse.toRespons() = LagretTiltaksdeltakelseRe
     eksternDeltakelseId = deltakelse.eksternDeltakelseId,
     opprettet = opprettet,
     girRett = deltakelse is LokalTiltaksdeltakelse.GirRett,
+    tittel = deltakelse.tittel,
     deltakelse = when (deltakelse) {
         is LokalTiltaksdeltakelse.GirRett -> deltakelse.deltakelse.toDbJson()
         is LokalTiltaksdeltakelse.FratarRett -> deltakelse.deltakelse.toDbJson()

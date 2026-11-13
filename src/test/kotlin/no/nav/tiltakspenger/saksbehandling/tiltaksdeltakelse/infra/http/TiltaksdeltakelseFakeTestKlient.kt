@@ -56,6 +56,13 @@ class TiltaksdeltakelseFakeTestKlient : TiltaksdeltakelseKlient {
         return (listOf(ObjectMother.tiltaksdeltakelseMedArrangørnavn()) + fratarRettMedArrangørnavn).right()
     }
 
+    override suspend fun hentAlleTiltaksdeltakelser(
+        fnr: Fnr,
+        correlationId: CorrelationId,
+    ): Either<KunneIkkeHenteTiltakshistorikk, List<LibsTiltaksdeltakelse>> {
+        return ((data.get()[fnr] ?: emptyList()) + (fratarRett.get()[fnr] ?: emptyList())).right()
+    }
+
     override suspend fun hentTiltaksdeltakelse(
         fnr: Fnr,
         eksternDeltakerId: String,
@@ -72,16 +79,21 @@ class TiltaksdeltakelseFakeTestKlient : TiltaksdeltakelseKlient {
         fratarRett.get()[fnr] = (fratarRett.get()[fnr] ?: emptyList()) + deltakelse
     }
 
+    /**
+     * Lagrer eller erstatter deltakelsen, eller fjerner alle deltakelsene til [fnr] når [tiltaksdeltakelse] er null.
+     * [tittel] er hele tiltaksnavnet fra kilden, som vi ikke lagrer selv.
+     */
     fun lagre(
         fnr: Fnr,
         tiltaksdeltakelse: TiltaksdeltakelseIntern?,
+        tittel: String? = null,
     ) {
         val current = data.get()[fnr]
         if (tiltaksdeltakelse == null) {
             data.get().remove(fnr)
             return
         }
-        val deltakelse = tiltaksdeltakelse.tilLibsDeltakelse()
+        val deltakelse = tiltaksdeltakelse.tilLibsDeltakelse(tittel)
         if (current == null) {
             data.get()[fnr] = listOf(deltakelse)
             return

@@ -50,7 +50,6 @@ class OppdaterRammebehandlingSaksopplysningerTest {
                     eksternDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.value.first().eksternDeltakelseId,
                     gjennomføringId = null,
                     typeNavn = "Testnavn",
-                    tittel = null,
                     tiltakstype = TiltakstypeSomGirRett.JOBBKLUBB,
                     rettPåTiltakspenger = true,
                     periode = lukketEllerÅpenPeriode(behandling.saksopplysningsperiode!!.fraOgMed, behandling.saksopplysningsperiode!!.tilOgMed),

@@ -16,6 +16,7 @@ import java.time.LocalDateTime
  * Tiltaksdeltakelser satt via dev-endepunktet ved lokal kjøring.
  * Tabellen finnes kun lokalt, se [no.nav.tiltakspenger.saksbehandling.lokal.infra.repo.lokalFlywayMigrate].
  * Kolonnen `gir_rett` avgjør hvilket json-format deltakelsen er lagret med.
+ * Tittelen har egen kolonne, siden prodformatet for deltakelsen ikke har den.
  */
 object LokalTiltaksdeltakelsePostgresRepo {
     fun lagre(
@@ -31,18 +32,20 @@ object LokalTiltaksdeltakelsePostgresRepo {
         session.run(
             sqlQuery(
                 """
-                    insert into lokal.tiltaksdeltakelse (ekstern_id, fnr, deltakelse, gir_rett, sist_endret)
-                    values (:ekstern_id, :fnr, :deltakelse::jsonb, :gir_rett, :sist_endret)
+                    insert into lokal.tiltaksdeltakelse (ekstern_id, fnr, deltakelse, gir_rett, tittel, sist_endret)
+                    values (:ekstern_id, :fnr, :deltakelse::jsonb, :gir_rett, :tittel, :sist_endret)
                     on conflict (ekstern_id) do update set
                         fnr = excluded.fnr,
                         deltakelse = excluded.deltakelse,
                         gir_rett = excluded.gir_rett,
+                        tittel = excluded.tittel,
                         sist_endret = excluded.sist_endret
                 """.trimIndent(),
                 "ekstern_id" to tiltaksdeltakelse.eksternDeltakelseId,
                 "fnr" to fnr.verdi,
                 "deltakelse" to deltakelseJson,
                 "gir_rett" to (tiltaksdeltakelse is LokalTiltaksdeltakelse.GirRett),
+                "tittel" to tiltaksdeltakelse.tittel,
                 "sist_endret" to sistEndret,
             ).asUpdate,
         )
@@ -51,7 +54,7 @@ object LokalTiltaksdeltakelsePostgresRepo {
     fun hentForFnr(fnr: Fnr, session: Session): List<LokalTiltaksdeltakelse> =
         session.run(
             sqlQuery(
-                "select deltakelse, gir_rett from lokal.tiltaksdeltakelse where fnr = :fnr",
+                "select deltakelse, gir_rett, tittel from lokal.tiltaksdeltakelse where fnr = :fnr",
                 "fnr" to fnr.verdi,
             ).map { it.toLokalTiltaksdeltakelse() }.asList,
         )
@@ -66,10 +69,11 @@ object LokalTiltaksdeltakelsePostgresRepo {
 
     private fun Row.toLokalTiltaksdeltakelse(): LokalTiltaksdeltakelse {
         val json = string("deltakelse")
+        val tittel = stringOrNull("tittel")
         return if (boolean("gir_rett")) {
-            LokalTiltaksdeltakelse.GirRett(deserialize<TiltaksdeltakelseDb>(json).toDomain())
+            LokalTiltaksdeltakelse.GirRett(deserialize<TiltaksdeltakelseDb>(json).toDomain(), tittel)
         } else {
-            LokalTiltaksdeltakelse.FratarRett(deserialize<TiltaksdeltakelseSomFratarRettDbJson>(json).toDomain())
+            LokalTiltaksdeltakelse.FratarRett(deserialize<TiltaksdeltakelseSomFratarRettDbJson>(json).toDomain(), tittel)
         }
     }
 }

@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Behandl
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenåpneSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentTilbakeRammebehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentTiltaksdataService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.KonverterRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
@@ -33,6 +34,7 @@ fun Route.rammebehandlingRoutes(
     auditService: AuditService,
     behandleSøknadPåNyttService: BehandleSøknadPåNyttService,
     oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
+    hentTiltaksdataService: HentTiltaksdataService,
     iverksettRammebehandlingService: IverksettRammebehandlingService,
     sendBehandlingTilBeslutningService: SendRammebehandlingTilBeslutningService,
     forhåndsvisVedtaksbrevService: ForhåndsvisRammevedtaksbrevService,
@@ -55,6 +57,7 @@ fun Route.rammebehandlingRoutes(
 ) {
     behandleSøknadPåNyttRoute(behandleSøknadPåNyttService, auditService, tilgangskontrollService)
     oppdaterSaksopplysningerRoute(auditService, oppdaterSaksopplysningerService, tilgangskontrollService)
+    hentTiltaksdataRoute(hentTiltaksdataService, auditService, tilgangskontrollService)
     iverksettRammebehandlingRoute(iverksettRammebehandlingService, auditService, tilgangskontrollService)
     sendRammebehandlingTilBeslutningRoute(sendBehandlingTilBeslutningService, auditService, tilgangskontrollService)
     forhåndsvisVedtaksbrevRoute(auditService, forhåndsvisVedtaksbrevService, tilgangskontrollService)

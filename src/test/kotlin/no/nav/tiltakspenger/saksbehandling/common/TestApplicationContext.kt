@@ -561,8 +561,8 @@ sealed class TestApplicationContext(
     }
 
     /** Oppdaterer (eller fjerner med `null`) tiltaksdeltakelsen registrert i [TiltaksdeltakelseFakeTestKlient]. */
-    fun oppdaterTiltaksdeltakelse(fnr: Fnr, tiltaksdeltakelse: TiltaksdeltakelseIntern?) {
-        tiltaksdeltakelseFakeKlient.lagre(fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse)
+    fun oppdaterTiltaksdeltakelse(fnr: Fnr, tiltaksdeltakelse: TiltaksdeltakelseIntern?, tittel: String? = null) {
+        tiltaksdeltakelseFakeKlient.lagre(fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse, tittel = tittel)
     }
 
     /** Registrerer en deltakelse som fratar rett i [TiltaksdeltakelseFakeTestKlient], i tillegg til tiltaksdeltakelsene som gir rett. */

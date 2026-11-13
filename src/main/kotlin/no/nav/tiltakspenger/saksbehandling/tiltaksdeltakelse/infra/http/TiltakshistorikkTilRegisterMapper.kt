@@ -85,14 +85,12 @@ fun Tiltaksdeltakelse.tiltakDeltakerstatus(clock: Clock): TiltakDeltakerstatus =
 
 fun Tiltaksdeltakelse.GirRett.tilTiltaksdeltakelseIntern(
     internDeltakelseId: TiltaksdeltakerId,
-    harAdressebeskyttelse: Boolean,
     clock: Clock,
 ): TiltaksdeltakelseIntern =
     TiltaksdeltakelseIntern(
         eksternDeltakelseId = id.verdi,
         gjennomføringId = gjennomføringId?.verdi,
         typeNavn = tiltakstypenavn,
-        tittel = synligTittel(harAdressebeskyttelse),
         tiltakstype = tiltakstype,
         rettPåTiltakspenger = true,
         periode = periode,
@@ -104,14 +102,10 @@ fun Tiltaksdeltakelse.GirRett.tilTiltaksdeltakelseIntern(
         internDeltakelseId = internDeltakelseId,
     )
 
-fun Tiltaksdeltakelse.FratarRett.tilTiltaksdeltakelseSomFratarRett(
-    harAdressebeskyttelse: Boolean,
-    clock: Clock,
-): TiltaksdeltakelseSomFratarRett =
+fun Tiltaksdeltakelse.FratarRett.tilTiltaksdeltakelseSomFratarRett(clock: Clock): TiltaksdeltakelseSomFratarRett =
     TiltaksdeltakelseSomFratarRett(
         eksternDeltakelseId = id.verdi,
         typeNavn = tiltakstypenavn,
-        tittel = synligTittel(harAdressebeskyttelse),
         tiltakskodeFraKilden = tiltakskodeFraKilden,
         periode = periode,
         deltakelseStatus = tiltakDeltakerstatus(clock),
@@ -146,8 +140,9 @@ fun Tiltakshistorikk.tilTiltaksdeltakelserMedArrangørnavn(
 /**
  * Hele tiltaksnavnet fra kilden ([Tiltaksdeltakelse.tittel]), typisk på formen "Tiltakstype hos Arrangør".
  * Tittelen inneholder arrangøren, og er derfor stedsinformasjon — ved adressebeskyttelse tas den ikke med.
+ * Den lagres ikke, men slås opp i kilden ved behov.
  */
-private fun Tiltaksdeltakelse.synligTittel(harAdressebeskyttelse: Boolean): String? =
+fun Tiltaksdeltakelse.synligTittel(harAdressebeskyttelse: Boolean): String? =
     if (harAdressebeskyttelse) null else tittel?.verdi
 
 /**

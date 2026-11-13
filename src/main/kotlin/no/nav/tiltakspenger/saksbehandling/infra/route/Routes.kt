@@ -33,6 +33,7 @@ fun Route.routes(
             auditService = applicationContext.personContext.auditService,
             behandleSøknadPåNyttService = applicationContext.behandlingContext.behandleSøknadPåNyttService,
             oppdaterSaksopplysningerService = applicationContext.behandlingContext.oppdaterSaksopplysningerService,
+            hentTiltaksdataService = applicationContext.behandlingContext.hentTiltaksdataService,
             iverksettRammebehandlingService = applicationContext.behandlingContext.iverksettRammebehandlingService,
             sendBehandlingTilBeslutningService = applicationContext.behandlingContext.sendRammebehandlingTilBeslutningService,
             forhåndsvisVedtaksbrevService = applicationContext.behandlingContext.forhåndsvisRammevedtaksbrevService,

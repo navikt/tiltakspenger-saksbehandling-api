@@ -30,6 +30,15 @@ interface TiltaksdeltakelseKlient {
     ): Either<KunneIkkeHenteTiltakshistorikk, List<TiltaksdeltakelseMedArrangørnavn>>
 
     /**
+     * Alle deltakelsene i historikken, slik kilden leverer dem, uten utvalg eller mapping til vår interne modell.
+     * Brukes til å slå opp opplysninger vi ikke lagrer, som tittelen på tiltaket.
+     */
+    suspend fun hentAlleTiltaksdeltakelser(
+        fnr: Fnr,
+        correlationId: CorrelationId,
+    ): Either<KunneIkkeHenteTiltakshistorikk, List<Tiltaksdeltakelse>>
+
+    /**
      * Henter nå-tilstanden for én tiltaksdeltakelse, slik den ser ut hos kilden — uten mapping til vår interne modell.
      * Tolkningen gjøres av kalleren ([no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilLesbarNåtilstand]).
      * Returnerer null dersom deltakelsen ikke finnes i historikken.

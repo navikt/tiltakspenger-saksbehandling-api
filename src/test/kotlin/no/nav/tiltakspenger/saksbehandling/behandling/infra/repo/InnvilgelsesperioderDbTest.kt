@@ -92,7 +92,6 @@ class InnvilgelsesperioderDbTest {
           "eksternDeltagelseId": "$eksternDeltakelseId",
           "gjennomføringId": "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
           "typeNavn": "$typeNavn",
-          "tittel": null,
           "typeKode": "$tiltakstype",
           "deltagelseFraOgMed": "2025-01-01",
           "deltagelseTilOgMed": "$tilOgMed",

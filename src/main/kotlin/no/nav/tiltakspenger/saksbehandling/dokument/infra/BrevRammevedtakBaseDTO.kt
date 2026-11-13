@@ -25,8 +25,7 @@ sealed interface BrevRammevedtakInnvilgelseBaseDTO : BrevRammevedtakBaseDTO {
 
 /**
  * @param antallDagerPerMeldeperiode null når antallet varierer i perioden; pdfgenrs lager dagteksten, og saksbehandler skriver den i tilleggsteksten når den mangler.
- * @param tiltak Navnene på tiltakene det innvilges for, i rekkefølgen de først er innvilget, uten duplikater.
- * Bruker tittelen på tiltaket når den finnes, ellers navnet på tiltakstypen.
+ * @param tiltak Navnene på tiltakstypene det innvilges for, i rekkefølgen de først er innvilget, uten duplikater.
  * pdfgenrs bruker dem i «fordi du deltar på …».
  */
 data class BrevInnvilgelsesperioderDTO(
@@ -39,8 +38,7 @@ fun Innvilgelsesperioder.tilBrevInnvilgelsesperioder(): BrevInnvilgelsesperioder
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.verdier.map { it.value }.distinct().singleOrNull(),
         tiltak = valgteTiltaksdeltagelser.verdier
             .flatten()
-            .distinctBy { it.internDeltakelseId }
-            .map { it.tittel?.takeIf { tittel -> tittel.isNotBlank() } ?: it.typeNavn }
+            .map { it.typeNavn }
             .distinct(),
     )
 }

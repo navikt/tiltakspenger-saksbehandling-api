@@ -533,26 +533,21 @@ class BrevRevurderingInnvilgetDTOTest {
     }
 
     @Test
-    fun `tiltak - bruker tittelen når den finnes, ellers navnet på tiltakstypen`() {
-        val medTittel = tiltaksdeltakelse(
-            periode = 1.januar(2025) til 31.mars(2025),
+    fun `tiltak - to deltakelser med samme tiltakstype gir navnet på tiltakstypen én gang`() {
+        val første = tiltaksdeltakelse(
+            periode = 1.januar(2025) til 31.januar(2025),
             typeNavn = "Arbeidstrening",
-            tittel = "Arbeidstrening hos Aremark Snekkerverksted AS",
         )
-        val utenTittel = tiltaksdeltakelse(
-            periode = 1.januar(2025) til 31.mars(2025),
-            typeNavn = "Arbeidsforberedende trening",
-            tittel = null,
+        val andre = tiltaksdeltakelse(
+            periode = 1.mars(2025) til 31.mars(2025),
+            typeNavn = "Arbeidstrening",
         )
         val innvilgelsesperioder = innvilgelsesperioder(
-            innvilgelsesperiode(1.januar(2025) til 31.januar(2025), medTittel),
-            innvilgelsesperiode(1.mars(2025) til 31.mars(2025), utenTittel),
+            innvilgelsesperiode(1.januar(2025) til 31.januar(2025), første),
+            innvilgelsesperiode(1.mars(2025) til 31.mars(2025), andre),
         )
 
-        innvilgelsesperioder.tilBrevInnvilgelsesperioder().tiltak shouldBe listOf(
-            "Arbeidstrening hos Aremark Snekkerverksted AS",
-            "Arbeidsforberedende trening",
-        )
+        innvilgelsesperioder.tilBrevInnvilgelsesperioder().tiltak shouldBe listOf("Arbeidstrening")
     }
 
     @Test
@@ -560,7 +555,6 @@ class BrevRevurderingInnvilgetDTOTest {
         val arbeidstrening = tiltaksdeltakelse(
             periode = 1.januar(2025) til 31.mars(2025),
             typeNavn = "Arbeidstrening",
-            tittel = "Arbeidstrening hos Aremark Snekkerverksted AS",
         )
         val amo = tiltaksdeltakelse(periode = 1.januar(2025) til 31.mars(2025))
         val innvilgelsesperioder = innvilgelsesperioder(
@@ -575,7 +569,7 @@ class BrevRevurderingInnvilgetDTOTest {
         )
 
         innvilgelsesperioder.tilBrevInnvilgelsesperioder().tiltak shouldBe listOf(
-            "Arbeidstrening hos Aremark Snekkerverksted AS",
+            "Arbeidstrening",
             "Arbeidsmarkedsoppfølging gruppe",
         )
     }

@@ -111,7 +111,6 @@ class LokalTiltaksdeltakelseService(
                     eksternDeltakelseId = eksternId,
                     gjennomføringId = null,
                     typeNavn = command.typeNavn ?: tiltakstypeSomGirRett.name,
-                    tittel = command.tittel,
                     tiltakstype = tiltakstypeSomGirRett,
                     rettPåTiltakspenger = true,
                     periode = lukketEllerÅpenPeriode(command.fraOgMed, command.tilOgMed),
@@ -123,13 +122,13 @@ class LokalTiltaksdeltakelseService(
                     // Erstattes av deltakerens id ved lagring, slik oppslaget i saksopplysningene ville gjort.
                     internDeltakelseId = TiltaksdeltakerId.random(),
                 ),
+                tittel = command.tittel,
             )
         } else {
             LokalTiltaksdeltakelse.FratarRett(
                 TiltaksdeltakelseSomFratarRett(
                     eksternDeltakelseId = eksternId,
                     typeNavn = command.typeNavn ?: standardnavn(tiltakskode),
-                    tittel = command.tittel,
                     tiltakskodeFraKilden = tiltakskode,
                     periode = lukketEllerÅpenPeriode(command.fraOgMed, command.tilOgMed),
                     deltakelseStatus = command.status ?: TiltakDeltakerstatus.Deltar,
@@ -137,14 +136,15 @@ class LokalTiltaksdeltakelseService(
                     antallDagerPerUke = command.antallDagerPerUke ?: 5f,
                     kilde = kilde,
                 ),
+                tittel = command.tittel,
             )
         }
         valider(ny).getOrElse { return it.left() }
 
         val lagret = sessionFactory.withTransactionContext { tx ->
             val medInternId = when (ny) {
-                is LokalTiltaksdeltakelse.GirRett -> LokalTiltaksdeltakelse.GirRett(
-                    ny.deltakelse.copy(
+                is LokalTiltaksdeltakelse.GirRett -> ny.copy(
+                    deltakelse = ny.deltakelse.copy(
                         internDeltakelseId = tiltaksdeltakerRepo.hentEllerLagre(
                             eksternId = eksternId,
                             tiltakskode = ny.deltakelse.tiltakstype.name,

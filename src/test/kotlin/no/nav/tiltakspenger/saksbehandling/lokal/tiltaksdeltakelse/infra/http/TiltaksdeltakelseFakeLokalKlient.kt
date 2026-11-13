@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse as LibsTilt
 
 /**
  * Fake for lokal kjøring (LocalApplicationContext).
- * Deltakelsene utledes fra personens lagrede søknader, og en deltakelse satt via dev-endepunktet (se [no.nav.tiltakspenger.saksbehandling.lokal.tiltaksdeltakelse.LokalTiltaksdeltakelseService]) overstyrer den med samme eksterne id.
+ * Deltakelsene utledes fra personens lagrede søknader, med en oppdiktet tittel, og en deltakelse satt via dev-endepunktet (se [no.nav.tiltakspenger.saksbehandling.lokal.tiltaksdeltakelse.LokalTiltaksdeltakelseService]) overstyrer den med samme eksterne id.
  * Deltakelser opprettet via dev-endepunktet, også de som fratar rett, kommer i tillegg.
  * Oppslaget for valg av tiltak i manuell søknad svarer med en fast deltakelse pluss de som er satt via dev-endepunktet.
  * Testene bruker [TiltaksdeltakelseFakeTestKlient].
@@ -50,6 +50,13 @@ class TiltaksdeltakelseFakeLokalKlient(
             .right()
     }
 
+    override suspend fun hentAlleTiltaksdeltakelser(
+        fnr: Fnr,
+        correlationId: CorrelationId,
+    ): Either<KunneIkkeHenteTiltakshistorikk, List<LibsTiltaksdeltakelse>> {
+        return hentLokaleTiltaksdeltakelser(fnr).map { it.tilLibsDeltakelse() }.right()
+    }
+
     override suspend fun hentTiltaksdeltakelse(
         fnr: Fnr,
         eksternDeltakerId: String,
@@ -69,7 +76,7 @@ class TiltaksdeltakelseFakeLokalKlient(
         val satte = hentSatteTiltaksdeltakelser(fnr).associateBy { it.eksternDeltakelseId }
         val fraSøknader = hentTiltaksdeltakelserFraSøknader(fnr)
         val fraSøknaderIder = fraSøknader.map { it.eksternDeltakelseId }.toSet()
-        return fraSøknader.map { satte[it.eksternDeltakelseId] ?: LokalTiltaksdeltakelse.GirRett(it) } +
+        return fraSøknader.map { satte[it.eksternDeltakelseId] ?: LokalTiltaksdeltakelse.GirRett(it, tittel = "${it.typeNavn} hos Lokal arrangør AS") } +
             satte.values.filterNot { it.eksternDeltakelseId in fraSøknaderIder }
     }
 

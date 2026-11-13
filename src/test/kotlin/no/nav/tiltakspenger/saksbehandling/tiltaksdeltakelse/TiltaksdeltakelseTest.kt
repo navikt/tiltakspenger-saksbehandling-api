@@ -155,7 +155,6 @@ class TiltaksdeltakelseTest {
             eksternDeltakelseId = UUID.randomUUID().toString(),
             gjennomføringId = UUID.randomUUID().toString(),
             typeNavn = "Avklaring",
-            tittel = null,
             tiltakstype = TiltakstypeSomGirRett.AVKLARING,
             rettPåTiltakspenger = true,
             periode = lukketEllerÅpenPeriode(fom, tom),

@@ -46,6 +46,7 @@ class SladdingRouteTest {
         etternavn = "Manueltbarnetternavn",
         fødselsdato = 14.juni(2012),
     )
+    private val tiltakstittel = "Sveisekurs hos Hemmelig Arrangør AS"
     private val valgtBarnFnr = Fnr.random()
     private val valgtBarnLagtTilAvSaksbehandler = ObjectMother.barnMedBarnetillegg(
         fnr = valgtBarnFnr,
@@ -77,10 +78,7 @@ class SladdingRouteTest {
                     barn["fornavn"].erSladdet()
                     barn["fødselsdato"].erSladdet()
                 }
-                it["rammebehandlinger"].single()["saksopplysninger"].let { saksopplysninger ->
-                    saksopplysninger["fødselsdato"].erSladdet()
-                    saksopplysninger["tiltaksdeltagelse"].single()["tittel"].erSladdet()
-                }
+                it["rammebehandlinger"].single()["saksopplysninger"]["fødselsdato"].erSladdet()
             }
             objectMapper.readTree(somUtvikler.getValue(SØK_SAK))["fnr"].erSladdet()
             objectMapper.readTree(somUtvikler.getValue(PERSONOPPLYSNINGER))["fnr"].erSladdet()
@@ -88,6 +86,7 @@ class SladdingRouteTest {
             objectMapper.readTree(somUtvikler.getValue(TILTAKSDELTAKELSER)).forEach {
                 it["visningsnavn"].erSladdet()
             }
+            objectMapper.readTree(somUtvikler.getValue(TILTAKSDATA)).single()["tittel"].erSladdet()
             objectMapper.readTree(somUtvikler.getValue(BENK))["oversikt"]["behandlinger"].forEach {
                 it["fnr"].erSladdet()
             }
@@ -108,12 +107,12 @@ class SladdingRouteTest {
                 it shouldContain "Barnefornavn"
                 it shouldContain "Manueltbarnfornavn"
                 it shouldContain 14.juni(2012).toString()
-                it shouldContain ObjectMother.tiltaksdeltakelseMedArrangørnavn().visningsnavn
             }
             somSaksbehandler.getValue(SØK_SAK) shouldContain sak.fnr.verdi
             somSaksbehandler.getValue(PERSONOPPLYSNINGER) shouldContain sak.fnr.verdi
             somSaksbehandler.getValue(TILTAKSDELTAKELSER) shouldContain
                 ObjectMother.tiltaksdeltakelseMedArrangørnavn().visningsnavn
+            somSaksbehandler.getValue(TILTAKSDATA) shouldContain tiltakstittel
             somSaksbehandler.getValue(BENK) shouldContain sak.fnr.verdi
         }
     }
@@ -187,13 +186,14 @@ class SladdingRouteTest {
 
     private suspend fun ApplicationTestBuilder.opprettSakMedBarnetillegg(
         tac: TestApplicationContext,
-    ): Triple<Sak, *, *> = opprettSøknadsbehandlingKlarTilBehandling(
-        tac = tac,
-        tiltaksdeltakelse = tac.tiltaksdeltakelse().copy(
-            tittel = ObjectMother.tiltaksdeltakelseMedArrangørnavn().visningsnavn,
-        ),
-        barnetillegg = listOf(barnetilleggMedIdent, barnetilleggUtenIdent),
-    )
+    ): Triple<Sak, *, *> {
+        val tiltaksdeltakelse = tac.tiltaksdeltakelse()
+        return opprettSøknadsbehandlingKlarTilBehandling(
+            tac = tac,
+            tiltaksdeltakelse = tiltaksdeltakelse,
+            barnetillegg = listOf(barnetilleggMedIdent, barnetilleggUtenIdent),
+        ).also { (sak) -> tac.oppdaterTiltaksdeltakelse(sak.fnr, tiltaksdeltakelse, tittel = tiltakstittel) }
+    }
 
     /**
      * Verdiene som ikke skal finnes igjen i svaret til en bruker uten fagrolle.
@@ -215,6 +215,7 @@ class SladdingRouteTest {
             "Manueltbarnetternavn",
             14.juni(2012).toString(),
             ObjectMother.tiltaksdeltakelseMedArrangørnavn().visningsnavn,
+            tiltakstittel,
             personopplysninger.tekst("fornavn"),
             personopplysninger.tekst("etternavn"),
             personopplysninger.tekst("fødselsdato"),
@@ -257,6 +258,11 @@ class SladdingRouteTest {
             path = "/sak/${sak.id}/tiltaksdeltakelser?fraOgMed=2023-01-01&tilOgMed=2023-03-31",
             saksbehandler = saksbehandler,
         ),
+        TILTAKSDATA to hentSomBruker(
+            tac = tac,
+            path = "/sak/${sak.id}/behandling/${sak.rammebehandlinger.single().id}/tiltaksdata",
+            saksbehandler = saksbehandler,
+        ),
         BENK to hentSomBruker(
             tac = tac,
             path = "/benk/soknader",
@@ -291,6 +297,7 @@ class SladdingRouteTest {
         const val PERSONOPPLYSNINGER = "GET /sak/{sakId}/personopplysninger"
         const val BARN = "GET /sak/{sakId}/personopplysninger/barn"
         const val TILTAKSDELTAKELSER = "GET /sak/{sakId}/tiltaksdeltakelser"
+        const val TILTAKSDATA = "GET /sak/{sakId}/behandling/{behandlingId}/tiltaksdata"
         const val BENK = "POST /benk/soknader"
     }
 }
