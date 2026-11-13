@@ -13,12 +13,14 @@ import no.nav.tiltakspenger.libs.kafka.avro.infra.AvroKafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurdering
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeTestClient
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.PersonRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
@@ -596,4 +598,7 @@ sealed class TestApplicationContext(
 
     /** Forlengelsesbrevene [GenererFakeVedtaksbrevKlient] har generert, både forhåndsvisninger og journalførte brev. */
     val forlengelsesbrev: List<GenererFakeVedtaksbrevKlient.Forlengelsesbrev> get() = genererFakeVedtaksbrevKlient.forlengelsesbrev
+
+    /** Barnetillegget i søknads- og revurderingsbrevene [GenererFakeVedtaksbrevKlient] har forhåndsvist. */
+    val forhåndsvistBarnetillegg: List<Periodisering<AntallBarn>?> get() = genererFakeVedtaksbrevKlient.forhåndsvistBarnetillegg
 }

@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.UgyldigBarnetilleggException
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForAvslagKlient
@@ -16,6 +17,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnGyldigeKommandoer
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ValgtBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.barnSomFyller16
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.utledForlengelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeForlenge
@@ -30,6 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.hentNavnForNavIdentEllerKast
 import java.time.Clock
 import java.time.LocalDate
@@ -59,13 +63,7 @@ class ForhåndsvisRammevedtaksbrevService(
                         kommando = k,
                         sak = sak,
                         behandling = behandling,
-                        innvilgelsesperioder = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) {
-                            k.innvilgelsesperioder.tilInnvilgelsesperioder(
-                                behandling,
-                            )
-                        } else {
-                            behandling.innvilgelsesperioder!!
-                        },
+                        brukSkjema = behandling.brukSkjema(k),
                     )
 
                     is ForhåndsvisVedtaksbrevForSøknadsbehandlingAvslagKommando -> genererSøknadsbehandlingAvslagsbrev(
@@ -88,27 +86,14 @@ class ForhåndsvisRammevedtaksbrevService(
                     is ForhåndsvisVedtaksbrevForRevurderingInnvilgelseKommando -> genererRevurderingInnvilgelsesbrev(
                         sak = sak,
                         behandling = behandling,
-                        innvilgelsesperioder = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) {
-                            k.innvilgelsesperioder.tilInnvilgelsesperioder(
-                                behandling,
-                            )
-                        } else {
-                            behandling.innvilgelsesperioder!!
-                        },
+                        brukSkjema = behandling.brukSkjema(k),
                         kommando = k,
                     )
 
                     is ForhåndsvisVedtaksbrevForOmgjøringInnvilgelseKommando -> genererOmgjøringInnvilgelseBrev(
                         sak = sak,
                         behandling = behandling,
-                        innvilgelsesperioder = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) {
-                            k.innvilgelsesperioder.tilInnvilgelsesperioderMedReversertOpphør(
-                                behandling = behandling,
-                                perioderForReversertOpphør = sak.rammevedtaksliste.perioderForReversertOpphør(),
-                            )
-                        } else {
-                            behandling.innvilgelsesperioder!!
-                        },
+                        brukSkjema = behandling.brukSkjema(k),
                         kommando = k,
                     )
 
@@ -138,9 +123,14 @@ class ForhåndsvisRammevedtaksbrevService(
     private suspend fun genererRevurderingInnvilgelsesbrev(
         sak: Sak,
         behandling: Revurdering,
-        innvilgelsesperioder: Innvilgelsesperioder,
+        brukSkjema: Boolean,
         kommando: ForhåndsvisVedtaksbrevForRevurderingInnvilgelseKommando,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        val innvilgelsesperioder = if (brukSkjema) {
+            kommando.innvilgelsesperioder.tilInnvilgelsesperioder(behandling)
+        } else {
+            behandling.innvilgelsesperioder!!
+        }
         return genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
@@ -152,12 +142,12 @@ class ForhåndsvisRammevedtaksbrevService(
             sakId = sak.id,
             innvilgelsesperioder = innvilgelsesperioder,
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
-            barnetilleggsperioder = kommando.barnetillegg,
+            barnetilleggsperioder = behandling.barnetilleggsperioder(brukSkjema, kommando.barnetillegg, innvilgelsesperioder),
         )
     }
 
     /**
-     * Under behandling utledes perioden og barnetillegget fra skjemaet, som ved oppdatering av forlengelsen.
+     * Når skjemaet brukes, se [brukSkjema], utledes perioden og barnetillegget fra skjemaet, som ved oppdatering av forlengelsen.
      * Ellers brukes verdiene som er lagret på behandlingen.
      */
     private suspend fun genererForlengelseBrev(
@@ -170,34 +160,26 @@ class ForhåndsvisRammevedtaksbrevService(
             "Behandlingen ${behandling.id} er ikke en forlengelse, men ${resultat?.javaClass?.simpleName}"
         }
         val forlengetVedtak = sak.hentRammevedtakForId(resultat.forlenger.rammevedtakId)
-        val (innvilgelsesperioder, barnetilleggsperioder, barnSomFyller16) = when (behandling.status) {
-            Rammebehandlingsstatus.UNDER_BEHANDLING -> {
-                val utledet = sak.utledForlengelse(
-                    revurdering = behandling,
-                    tilOgMed = kommando.tilOgMed,
-                    tiltaksdeltakerId = kommando.tiltaksdeltakerId,
-                    barnetillegg = kommando.barnetillegg,
-                ).getOrElse {
-                    if (it is KanIkkeForlenge.UgyldigBarnetillegg) throw UgyldigBarnetilleggException(it.feil)
-                    throw IllegalArgumentException("Kan ikke forhåndsvise vedtaksbrev for forlengelsen ${behandling.id}: $it")
-                }
-                Triple(
-                    utledet.innvilgelsesperioder.tilInnvilgelsesperioder(behandling),
-                    utledet.barnetilleggsperioder,
-                    when {
-                        kommando.barnetillegg != null || utledet.kanIkkeUtledeBarnetillegg -> null
-                        else -> resultat.forlenger.barnSomFyller16(forlengetVedtak, utledet.barnetilleggsperioder)
-                    },
-                )
+        val (innvilgelsesperioder, barnetilleggsperioder, barnSomFyller16) = if (behandling.brukSkjema(kommando)) {
+            val utledet = sak.utledForlengelse(
+                revurdering = behandling,
+                tilOgMed = kommando.tilOgMed,
+                tiltaksdeltakerId = kommando.tiltaksdeltakerId,
+                barnetillegg = kommando.barnetillegg,
+            ).getOrElse {
+                if (it is KanIkkeForlenge.UgyldigBarnetillegg) throw UgyldigBarnetilleggException(it.feil)
+                throw IllegalArgumentException("Kan ikke forhåndsvise vedtaksbrev for forlengelsen ${behandling.id}: $it")
             }
-
-            Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
-            Rammebehandlingsstatus.KLAR_TIL_BEHANDLING,
-            Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
-            Rammebehandlingsstatus.UNDER_BESLUTNING,
-            Rammebehandlingsstatus.VEDTATT,
-            Rammebehandlingsstatus.AVBRUTT,
-            -> Triple(behandling.innvilgelsesperioder!!, behandling.barnetilleggsperioder, resultat.barnSomFyller16(forlengetVedtak))
+            Triple(
+                utledet.innvilgelsesperioder.tilInnvilgelsesperioder(behandling),
+                utledet.barnetilleggsperioder,
+                when {
+                    kommando.barnetillegg != null || utledet.kanIkkeUtledeBarnetillegg -> null
+                    else -> resultat.forlenger.barnSomFyller16(forlengetVedtak, utledet.barnetilleggsperioder)
+                },
+            )
+        } else {
+            Triple(behandling.innvilgelsesperioder!!, behandling.barnetilleggsperioder, resultat.barnSomFyller16(forlengetVedtak))
         }
 
         return genererInnvilgelsesbrevClient.genererForlengelseBrevForhåndsvisning(
@@ -262,9 +244,17 @@ class ForhåndsvisRammevedtaksbrevService(
     private suspend fun genererOmgjøringInnvilgelseBrev(
         sak: Sak,
         behandling: Revurdering,
-        innvilgelsesperioder: Innvilgelsesperioder,
+        brukSkjema: Boolean,
         kommando: ForhåndsvisVedtaksbrevForOmgjøringInnvilgelseKommando,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        val innvilgelsesperioder = if (brukSkjema) {
+            kommando.innvilgelsesperioder.tilInnvilgelsesperioderMedReversertOpphør(
+                behandling = behandling,
+                perioderForReversertOpphør = sak.rammevedtaksliste.perioderForReversertOpphør(),
+            )
+        } else {
+            behandling.innvilgelsesperioder!!
+        }
         return genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
@@ -276,7 +266,7 @@ class ForhåndsvisRammevedtaksbrevService(
             sakId = sak.id,
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
             innvilgelsesperioder = innvilgelsesperioder,
-            barnetilleggsperioder = kommando.barnetillegg,
+            barnetilleggsperioder = behandling.barnetilleggsperioder(brukSkjema, kommando.barnetillegg, innvilgelsesperioder),
         )
     }
 
@@ -328,8 +318,13 @@ class ForhåndsvisRammevedtaksbrevService(
         kommando: ForhåndsvisVedtaksbrevForSøknadsbehandlingInnvilgelseKommando,
         sak: Sak,
         behandling: Søknadsbehandling,
-        innvilgelsesperioder: Innvilgelsesperioder,
+        brukSkjema: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        val innvilgelsesperioder = if (brukSkjema) {
+            kommando.innvilgelsesperioder.tilInnvilgelsesperioder(behandling)
+        } else {
+            behandling.innvilgelsesperioder!!
+        }
         return genererInnvilgelsesbrevClient.genererInnvilgetSøknadBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
@@ -341,8 +336,36 @@ class ForhåndsvisRammevedtaksbrevService(
             saksnummer = sak.saksnummer,
             sakId = sak.id,
             innvilgelsesperioder = innvilgelsesperioder,
-            barnetilleggsperioder = kommando.barnetillegg,
+            barnetilleggsperioder = behandling.barnetilleggsperioder(brukSkjema, kommando.barnetillegg, innvilgelsesperioder),
         )
+    }
+
+    /**
+     * Skjemaet brukes bare når den innloggede kan saksbehandle behandlingen, eller når innvilgelsen ikke er lagret ennå.
+     * Ellers viser frontend de lagrede verdiene, og brevet skal vise det samme.
+     */
+    private fun Rammebehandling.brukSkjema(kommando: ForhåndsvisVedtaksbrevKommando): Boolean =
+        status == Rammebehandlingsstatus.UNDER_BEHANDLING &&
+            (SaksbehandlerBehandlingKommando.Saksbehandle in finnGyldigeKommandoer(kommando.saksbehandler) || innvilgelsesperioder == null)
+
+    /**
+     * Barnetillegget i skjemaet valideres mot [innvilgelsesperioder] når skjemaet brukes.
+     * Ellers brukes det lagrede barnetillegget, som kan være [no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1].
+     * Null betyr ingen barnetillegg.
+     *
+     * @throws UgyldigBarnetilleggException dersom barnetillegget i skjemaet er ugyldig, som gir 400 til frontend.
+     */
+    private fun Rammebehandling.barnetilleggsperioder(
+        brukSkjema: Boolean,
+        valgtBarnetillegg: ValgtBarnetillegg?,
+        innvilgelsesperioder: Innvilgelsesperioder,
+    ): IkkeTomPeriodisering<AntallBarn>? {
+        val barnetillegg = if (brukSkjema) {
+            valgtBarnetillegg?.tilBarnetillegg(innvilgelsesperioder.perioder)?.getOrElse { throw UgyldigBarnetilleggException(it) }
+        } else {
+            this.barnetillegg
+        }
+        return barnetillegg?.periodisering(innvilgelsesperioder.perioder)
     }
 
     private fun Sak.harBarnetillegg(periode: Periode): Boolean {

@@ -1,11 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.barnetillegg
 
-import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.left
-import arrow.core.right
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.libs.periode.trekkFra
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.perioder
@@ -39,37 +35,5 @@ data class BarnetilleggV1(
         }
 
         return this.copy(periodisering = krympetPeriodisering.tilIkkeTomPeriodisering())
-    }
-
-    companion object {
-        /**
-         * Lager barnetillegget fra antall barn per periode, ved forhåndsvisning av brev for behandlinger med [BarnetilleggV1] som ikke kan endres.
-         * Dager i innvilgelsesperiodene uten en periode får 0 barn, men hull mellom innvilgelsesperiodene fylles ikke.
-         */
-        fun create(
-            perioderMedBarn: NonEmptyList<Pair<Periode, AntallBarn>>,
-            innvilgelsesperioder: NonEmptyList<Periode>,
-            begrunnelse: Begrunnelse?,
-        ): Either<UgyldigBarnetillegg, BarnetilleggV1> {
-            val perioderMedBarnetillegg = perioderMedBarn.map { (periode, antallBarn) ->
-                PeriodeMedVerdi(verdi = antallBarn, periode = periode)
-            }
-            val perioder = perioderMedBarnetillegg.perioder()
-
-            if (perioder.trekkFra(innvilgelsesperioder).isNotEmpty()) {
-                return UgyldigBarnetillegg.AntallBarnUtenforInnvilgelsen.left()
-            }
-
-            val perioderUtenBarnetillegg = innvilgelsesperioder.trekkFra(perioder).map {
-                PeriodeMedVerdi(verdi = AntallBarn.ZERO, periode = it)
-            }
-
-            return BarnetilleggV1(
-                periodisering = perioderMedBarnetillegg.plus(perioderUtenBarnetillegg)
-                    .sortedBy { it.periode.fraOgMed }
-                    .tilIkkeTomPeriodisering(),
-                begrunnelse = begrunnelse,
-            ).right()
-        }
     }
 }

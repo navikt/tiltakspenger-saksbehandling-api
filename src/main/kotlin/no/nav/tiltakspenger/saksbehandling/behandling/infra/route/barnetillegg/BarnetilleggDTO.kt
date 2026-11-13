@@ -5,7 +5,6 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
@@ -91,12 +90,6 @@ private fun BarnMedBarnetillegg.toDTO(perioderMedBarnetillegg: List<Periode>): B
     perioder = perioder?.map { it.toDTO() },
     perioderMedBarnetillegg = perioderMedBarnetillegg.map { it.toDTO() },
 )
-
-fun List<BarnetilleggPeriodeDTO>.tilPeriodisering(): Periodisering<AntallBarn> {
-    // Vi ønsker ikke fylle hull med 0 på dette tidspunktet.
-    // Det gjøres av domenet siden man skal bruke innvilgelsesperiode på behandlingen dersom den er satt.
-    return this.map { Pair(it.periode.toDomain(), AntallBarn(it.antallBarn)) }.tilPeriodisering()
-}
 
 fun Periodisering<AntallBarn>.tilBarnetilleggPerioderDTO(): List<BarnetilleggPeriodeDTO> {
     return this.perioderMedVerdi.map {

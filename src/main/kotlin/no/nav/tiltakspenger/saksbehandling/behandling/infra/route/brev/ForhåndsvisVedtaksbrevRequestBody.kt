@@ -8,11 +8,8 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
-import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev.Companion.toFritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.OppdaterBarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.HjemmelForOpphørDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.HjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperioderDTO
@@ -60,7 +57,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
 
     data class SøknadsbehandlingInnvilgelse(
         val fritekst: String?,
-        val barnetillegg: ForhåndsvisBarnetilleggDTO?,
+        val barnetillegg: OppdaterBarnetilleggDTO?,
         val innvilgelsesperioder: InnvilgelsesperioderDTO,
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
@@ -76,7 +73,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
                 saksbehandler = saksbehandler,
                 fritekstTilVedtaksbrev = fritekst?.toFritekstTilVedtaksbrev(),
                 innvilgelsesperioder = innvilgelsesperioder.tilKommando(),
-                barnetillegg = barnetillegg.tilAntallBarn(innvilgelsesperioder),
+                barnetillegg = barnetillegg?.tilValgtBarnetillegg(),
             )
         }
     }
@@ -104,7 +101,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
 
     data class RevurderingInnvilgelse(
         val fritekst: String?,
-        val barnetillegg: ForhåndsvisBarnetilleggDTO?,
+        val barnetillegg: OppdaterBarnetilleggDTO?,
         val innvilgelsesperioder: InnvilgelsesperioderDTO,
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
@@ -120,7 +117,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
                 saksbehandler = saksbehandler,
                 fritekstTilVedtaksbrev = fritekst?.toFritekstTilVedtaksbrev(),
                 innvilgelsesperioder = innvilgelsesperioder.tilKommando(),
-                barnetillegg = barnetillegg.tilAntallBarn(innvilgelsesperioder),
+                barnetillegg = barnetillegg?.tilValgtBarnetillegg(),
             )
         }
     }
@@ -152,7 +149,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
     data class OmgjøringInnvilgelse(
         val fritekst: String?,
         val innvilgelsesperioder: InnvilgelsesperioderDTO,
-        val barnetillegg: ForhåndsvisBarnetilleggDTO?,
+        val barnetillegg: OppdaterBarnetilleggDTO?,
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
             sakId: SakId,
@@ -167,7 +164,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
                 saksbehandler = saksbehandler,
                 fritekstTilVedtaksbrev = fritekst?.toFritekstTilVedtaksbrev(),
                 innvilgelsesperioder = innvilgelsesperioder.tilKommando(),
-                barnetillegg = barnetillegg.tilAntallBarn(innvilgelsesperioder),
+                barnetillegg = barnetillegg?.tilValgtBarnetillegg(),
             )
         }
     }
@@ -202,7 +199,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
         val fritekst: String?,
         val tilOgMed: LocalDate,
         val internDeltakelseId: String,
-        val barnetillegg: ForhåndsvisBarnetilleggDTO?,
+        val barnetillegg: OppdaterBarnetilleggDTO?,
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
             sakId: SakId,
@@ -222,14 +219,4 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
             )
         }
     }
-}
-
-/** Null når det ikke er barnetillegg, som i brevet. */
-private fun ForhåndsvisBarnetilleggDTO?.tilAntallBarn(innvilgelsesperioder: InnvilgelsesperioderDTO): IkkeTomPeriodisering<AntallBarn>? {
-    if (this == null) return null
-    // Barnetillegg lagret som antall barn per periode brukes som det er lagret, uten å fylle hull med 0.
-    if (perioder != null) return if (perioder.isEmpty()) null else perioder.tilPeriodisering() as IkkeTomPeriodisering
-    if (barn.isNullOrEmpty()) return null
-    val perioder = innvilgelsesperioder.tilKommando().perioder
-    return OppdaterBarnetilleggDTO(barn = barn, begrunnelse = begrunnelse).tilBarnetillegg(perioder).periodisering(perioder)
 }
