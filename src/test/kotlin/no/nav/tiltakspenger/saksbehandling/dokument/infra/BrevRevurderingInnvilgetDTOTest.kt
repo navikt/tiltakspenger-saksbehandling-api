@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
+import arrow.core.nonEmptyListOf
 import io.kotest.assertions.json.shouldEqualJson
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
@@ -12,6 +14,7 @@ import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.dato.november
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
@@ -19,8 +22,12 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgetTiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import org.junit.jupiter.api.Test
 
@@ -57,7 +64,8 @@ class BrevRevurderingInnvilgetDTOTest {
                  "forhandsvisning":true,
                  "datoForUtsending": "2025-01-31",
                  "innvilgelsesperioder": { 
-                  "antallDagerPerMeldeperiode": 10
+                  "antallDagerPerMeldeperiode": 10,
+                  "tiltak": ["Arbeidsmarkedsoppfølging gruppe"]
                  },
                  "sisteKjenteSatsår": 2026,
                  "perioder": [
@@ -110,7 +118,8 @@ class BrevRevurderingInnvilgetDTOTest {
                   "forhandsvisning":true,
                   "datoForUtsending": "2025-01-31",
                  "innvilgelsesperioder": { 
-                  "antallDagerPerMeldeperiode": 10
+                  "antallDagerPerMeldeperiode": 10,
+                  "tiltak": ["Arbeidsmarkedsoppfølging gruppe"]
                  },
                  "sisteKjenteSatsår": 2026,
                  "perioder": [
@@ -170,7 +179,8 @@ class BrevRevurderingInnvilgetDTOTest {
                  "forhandsvisning": true,
                  "datoForUtsending": "2025-01-31",
                  "innvilgelsesperioder": { 
-                  "antallDagerPerMeldeperiode": 10
+                  "antallDagerPerMeldeperiode": 10,
+                  "tiltak": ["Arbeidsmarkedsoppfølging gruppe"]
                  },
                  "sisteKjenteSatsår": 2026,
                  "perioder": [
@@ -229,7 +239,8 @@ class BrevRevurderingInnvilgetDTOTest {
                   "forhandsvisning": true,
                   "datoForUtsending": "2025-01-31",
                  "innvilgelsesperioder": { 
-                  "antallDagerPerMeldeperiode": 10
+                  "antallDagerPerMeldeperiode": 10,
+                  "tiltak": ["Arbeidsmarkedsoppfølging gruppe"]
                  },
                  "sisteKjenteSatsår": 2026,
                  "perioder": [
@@ -296,7 +307,8 @@ class BrevRevurderingInnvilgetDTOTest {
                   "forhandsvisning": true,
                   "datoForUtsending": "2025-01-31",
                   "innvilgelsesperioder": {
-                    "antallDagerPerMeldeperiode": 10
+                    "antallDagerPerMeldeperiode": 10,
+                    "tiltak": ["Arbeidsmarkedsoppfølging gruppe"]
                   },
                   "sisteKjenteSatsår": 2026,
                   "perioder": [
@@ -374,7 +386,8 @@ class BrevRevurderingInnvilgetDTOTest {
                   "forhandsvisning": true,
                   "datoForUtsending": "2025-01-31",
                   "innvilgelsesperioder": {
-                      "antallDagerPerMeldeperiode": 10
+                      "antallDagerPerMeldeperiode": 10,
+                      "tiltak": ["Arbeidsmarkedsoppfølging gruppe"]
                   },
                   "sisteKjenteSatsår": 2026,
                   "perioder": [
@@ -465,7 +478,8 @@ class BrevRevurderingInnvilgetDTOTest {
                   "forhandsvisning": true,
                   "datoForUtsending": "2025-01-31",
                   "innvilgelsesperioder": {
-                    "antallDagerPerMeldeperiode": 10
+                    "antallDagerPerMeldeperiode": 10,
+                    "tiltak": ["Arbeidsmarkedsoppfølging gruppe"]
                   },
                   "sisteKjenteSatsår": 2026,
                   "perioder": [
@@ -516,5 +530,53 @@ class BrevRevurderingInnvilgetDTOTest {
               }
             """.trimIndent()
         }
+    }
+
+    @Test
+    fun `tiltak - bruker tittelen når den finnes, ellers navnet på tiltakstypen`() {
+        val medTittel = tiltaksdeltakelse(
+            periode = 1.januar(2025) til 31.mars(2025),
+            typeNavn = "Arbeidstrening",
+            tittel = "Arbeidstrening hos Aremark Snekkerverksted AS",
+        )
+        val utenTittel = tiltaksdeltakelse(
+            periode = 1.januar(2025) til 31.mars(2025),
+            typeNavn = "Arbeidsforberedende trening",
+            tittel = null,
+        )
+        val innvilgelsesperioder = innvilgelsesperioder(
+            innvilgelsesperiode(1.januar(2025) til 31.januar(2025), medTittel),
+            innvilgelsesperiode(1.mars(2025) til 31.mars(2025), utenTittel),
+        )
+
+        innvilgelsesperioder.tilBrevInnvilgelsesperioder().tiltak shouldBe listOf(
+            "Arbeidstrening hos Aremark Snekkerverksted AS",
+            "Arbeidsforberedende trening",
+        )
+    }
+
+    @Test
+    fun `tiltak - flere tiltak i samme periode og samme tiltak i flere perioder gir hvert tiltak én gang`() {
+        val arbeidstrening = tiltaksdeltakelse(
+            periode = 1.januar(2025) til 31.mars(2025),
+            typeNavn = "Arbeidstrening",
+            tittel = "Arbeidstrening hos Aremark Snekkerverksted AS",
+        )
+        val amo = tiltaksdeltakelse(periode = 1.januar(2025) til 31.mars(2025))
+        val innvilgelsesperioder = innvilgelsesperioder(
+            innvilgelsesperiode(1.januar(2025) til 31.januar(2025), arbeidstrening),
+            innvilgelsesperiode(
+                1.mars(2025) til 31.mars(2025),
+                nonEmptyListOf(
+                    innvilgetTiltaksdeltakelse(amo, AntallDagerForMeldeperiode(4)),
+                    innvilgetTiltaksdeltakelse(arbeidstrening, AntallDagerForMeldeperiode(6)),
+                ),
+            ),
+        )
+
+        innvilgelsesperioder.tilBrevInnvilgelsesperioder().tiltak shouldBe listOf(
+            "Arbeidstrening hos Aremark Snekkerverksted AS",
+            "Arbeidsmarkedsoppfølging gruppe",
+        )
     }
 }

@@ -77,6 +77,6 @@ suspend fun genererInnvilgetSøknadsbrev(
         tilleggstekst = tilleggstekst?.verdi,
         forhandsvisning = forhåndsvisning,
         datoForUtsending = vedtaksdato,
-        innvilgelsesperioder = tilBrevInnvilgelsesperioder(innvilgelsesperioder),
+        innvilgelsesperioder = innvilgelsesperioder.tilBrevInnvilgelsesperioder(),
     ).let { serialize(it) }
 }

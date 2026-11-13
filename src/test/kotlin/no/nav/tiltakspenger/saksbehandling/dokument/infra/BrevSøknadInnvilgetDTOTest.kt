@@ -64,7 +64,8 @@ class BrevSøknadInnvilgetDTOTest {
                  "forhandsvisning":true,
                  "datoForUtsending": "2025-01-31",
                  "innvilgelsesperioder": { 
-                  "antallDagerPerMeldeperiode": 10
+                  "antallDagerPerMeldeperiode": 10,
+                  "tiltak": ["Arbeidsmarkedsoppfølging gruppe"]
                  },
                  "sisteKjenteSatsår": 2026,
                  "perioder": [
@@ -117,7 +118,8 @@ class BrevSøknadInnvilgetDTOTest {
                   "forhandsvisning":true,
                   "datoForUtsending": "2025-01-31",
                  "innvilgelsesperioder": { 
-                  "antallDagerPerMeldeperiode": 10
+                  "antallDagerPerMeldeperiode": 10,
+                  "tiltak": ["Arbeidsmarkedsoppfølging gruppe"]
                  },
                  "sisteKjenteSatsår": 2026,
                  "perioder": [
@@ -177,7 +179,8 @@ class BrevSøknadInnvilgetDTOTest {
                  "forhandsvisning": true,
                  "datoForUtsending": "2025-01-31",
                  "innvilgelsesperioder": { 
-                  "antallDagerPerMeldeperiode": 10
+                  "antallDagerPerMeldeperiode": 10,
+                  "tiltak": ["Arbeidsmarkedsoppfølging gruppe"]
                  },
                  "sisteKjenteSatsår": 2026,
                  "perioder": [
@@ -236,7 +239,8 @@ class BrevSøknadInnvilgetDTOTest {
                   "forhandsvisning": true,
                   "datoForUtsending": "2025-01-31",
                  "innvilgelsesperioder": { 
-                  "antallDagerPerMeldeperiode": 10
+                  "antallDagerPerMeldeperiode": 10,
+                  "tiltak": ["Arbeidsmarkedsoppfølging gruppe"]
                  },
                  "sisteKjenteSatsår": 2026,
                  "perioder": [
@@ -303,7 +307,8 @@ class BrevSøknadInnvilgetDTOTest {
                   "forhandsvisning": true,
                   "datoForUtsending": "2025-01-31",
                   "innvilgelsesperioder": {
-                    "antallDagerPerMeldeperiode": 10
+                    "antallDagerPerMeldeperiode": 10,
+                    "tiltak": ["Arbeidsmarkedsoppfølging gruppe"]
                   },
                   "sisteKjenteSatsår": 2026,
                   "perioder": [
@@ -381,7 +386,8 @@ class BrevSøknadInnvilgetDTOTest {
                   "forhandsvisning": true,
                   "datoForUtsending": "2025-01-31",
                   "innvilgelsesperioder": {
-                      "antallDagerPerMeldeperiode": 10
+                      "antallDagerPerMeldeperiode": 10,
+                      "tiltak": ["Arbeidsmarkedsoppfølging gruppe"]
                   },
                   "sisteKjenteSatsår": 2026,
                   "perioder": [
@@ -472,7 +478,8 @@ class BrevSøknadInnvilgetDTOTest {
                   "forhandsvisning": true,
                   "datoForUtsending": "2025-01-31",
                   "innvilgelsesperioder": {
-                    "antallDagerPerMeldeperiode": 10
+                    "antallDagerPerMeldeperiode": 10,
+                    "tiltak": ["Arbeidsmarkedsoppfølging gruppe"]
                   },
                   "sisteKjenteSatsår": 2026,
                   "perioder": [

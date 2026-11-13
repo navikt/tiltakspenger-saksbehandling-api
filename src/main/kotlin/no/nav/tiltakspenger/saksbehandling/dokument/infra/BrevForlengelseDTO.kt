@@ -100,7 +100,7 @@ suspend fun genererForlengelseBrev(
         forhandsvisning = forhåndsvisning,
         harBarnetillegg = barnetillegg != null && barnetillegg.any { it.verdi.value > 0 },
         datoForUtsending = vedtaksdato,
-        innvilgelsesperioder = tilBrevInnvilgelsesperioder(innvilgelsesperioder),
+        innvilgelsesperioder = innvilgelsesperioder.tilBrevInnvilgelsesperioder(),
         barnSomFyller16 = barnSomFyller16?.let {
             BarnSomFyller16DTO(
                 antall = it.antall,

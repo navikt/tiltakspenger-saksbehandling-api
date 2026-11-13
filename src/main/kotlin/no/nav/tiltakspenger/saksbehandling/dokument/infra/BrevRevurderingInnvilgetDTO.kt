@@ -77,14 +77,6 @@ suspend fun genererRevurderingInnvilgetBrev(
         tilleggstekst = tilleggstekst?.verdi,
         forhandsvisning = forhåndsvisning,
         datoForUtsending = vedtaksdato,
-        innvilgelsesperioder = tilBrevInnvilgelsesperioder(innvilgelsesperioder),
+        innvilgelsesperioder = innvilgelsesperioder.tilBrevInnvilgelsesperioder(),
     ).let { serialize(it) }
-}
-
-fun tilBrevInnvilgelsesperioder(
-    innvilgelsesperioder: Innvilgelsesperioder,
-): BrevInnvilgelsesperioderDTO {
-    return BrevInnvilgelsesperioderDTO(
-        antallDagerPerMeldeperiode = innvilgelsesperioder.antallDagerPerMeldeperiode.verdier.map { it.value }.distinct().singleOrNull(),
-    )
 }
