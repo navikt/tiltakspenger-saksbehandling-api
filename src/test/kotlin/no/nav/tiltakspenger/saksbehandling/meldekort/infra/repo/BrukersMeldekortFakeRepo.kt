@@ -27,6 +27,7 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
             behandlesAutomatisk = brukersMeldekort.behandlesAutomatisk,
             behandletAutomatiskStatus = brukersMeldekort.behandletAutomatiskStatus,
             behandletAutomatiskForsøkshistorikk = brukersMeldekort.behandletAutomatiskForsøkshistorikk,
+            prioritering = brukersMeldekort.prioritering,
         )
     }
 

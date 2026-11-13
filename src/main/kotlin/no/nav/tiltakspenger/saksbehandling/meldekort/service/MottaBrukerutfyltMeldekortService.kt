@@ -5,14 +5,17 @@ import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.LagreBrukersMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.utledPrioriteringForBrukersMeldekort
 import java.time.Clock
 
 class MottaBrukerutfyltMeldekortService(
     private val brukersMeldekortRepo: BrukersMeldekortRepo,
     private val meldeperiodeRepo: MeldeperiodeRepo,
+    private val sakRepo: SakRepo,
     private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
@@ -27,8 +30,15 @@ class MottaBrukerutfyltMeldekortService(
             "Fant ikke meldeperioden $meldeperiodeId for meldekortet $meldekortId"
         }
 
+        val sak = requireNotNull(sakRepo.hentForSakId(kommando.sakId)) {
+            "Fant ikke saken ${kommando.sakId} for meldekortet $meldekortId"
+        }
+
+        val prioritering = sak.utledPrioriteringForBrukersMeldekort(meldekortId, meldeperiode.kjedeId)
+
         val nyttMeldekort = kommando.tilNyttBrukersMeldekort(
             meldeperiode,
+            prioritering = prioritering,
             clock = clock,
         )
 
@@ -56,6 +66,10 @@ class MottaBrukerutfyltMeldekortService(
             }
 
             return KanIkkeLagreBrukersMeldekort.AlleredeLagretMedDiff.left()
+        }
+
+        if (prioritering != null) {
+            logger.info { "Meldekortet $meldekortId på sak ${sak.id} er en korrigering mottatt før utbetalingen av meldeperioden er iverksatt, og prioriteres i benken" }
         }
 
         return Unit.right()

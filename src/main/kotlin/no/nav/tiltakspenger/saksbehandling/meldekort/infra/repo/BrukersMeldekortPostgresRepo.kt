@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toForsøkshistorikk
@@ -43,7 +44,8 @@ class BrukersMeldekortPostgresRepo(
                         journalpost_id,
                         behandles_automatisk,
                         behandlet_automatisk_status,
-                        behandlet_automatisk_metadata
+                        behandlet_automatisk_metadata,
+                        prioritering_begrunnelse
                     ) values (
                         :id,
                         :meldeperiode_id,
@@ -55,7 +57,8 @@ class BrukersMeldekortPostgresRepo(
                         :journalpost_id,
                         :behandles_automatisk,
                         :behandlet_automatisk_status,
-                        :behandlet_automatisk_metadata::jsonb
+                        :behandlet_automatisk_metadata::jsonb,
+                        :prioritering_begrunnelse
                     )
                     """,
                     "id" to brukersMeldekort.id.toString(),
@@ -67,6 +70,7 @@ class BrukersMeldekortPostgresRepo(
                     "behandles_automatisk" to brukersMeldekort.behandlesAutomatisk,
                     "behandlet_automatisk_status" to brukersMeldekort.behandletAutomatiskStatus.tilDb(),
                     "behandlet_automatisk_metadata" to brukersMeldekort.behandletAutomatiskForsøkshistorikk.toDbJson(),
+                    "prioritering_begrunnelse" to brukersMeldekort.prioritering?.begrunnelse?.verdi,
                 ).asUpdate,
             )
         }
@@ -87,12 +91,14 @@ class BrukersMeldekortPostgresRepo(
                         mk.*
                     from meldekort_bruker mk
                     where mk.behandles_automatisk is true
-                    and not exists (
+                    -- Prioriterte korrigeringer slippes forbi sperren mot utbetalinger som ikke er kvittert OK.
+                    -- De kan ikke behandles automatisk, men jobben må gi dem opp før de havner på benken, og det skal skje før utbetalingen er iverksatt.
+                    and (mk.prioritering_begrunnelse is not null or not exists (
                         select 1
                         from utbetaling u
                         where u.sak_id = mk.sak_id
                         and (u.status is null or u.status not in ('OK', 'OK_UTEN_UTBETALING'))
-                    )
+                    ))
                     order by mk.sak_id, mk.meldeperiode_kjede_id, mk.meldeperiode_versjon, mk.mottatt
                     limit :limit;
                     """,
@@ -202,6 +208,7 @@ class BrukersMeldekortPostgresRepo(
                     .tilMeldekortBehandletAutomatiskStatus(),
                 behandletAutomatiskForsøkshistorikk = row.string("behandlet_automatisk_metadata")
                     .toForsøkshistorikk(),
+                prioritering = row.stringOrNull("prioritering_begrunnelse")?.let { Prioritering.create(it) },
             )
         }
     }

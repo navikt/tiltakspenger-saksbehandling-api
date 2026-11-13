@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -26,6 +27,8 @@ import java.time.LocalDateTime
  * @param dager Et innslag per dag i meldeperioden.
  * Må være sortert.
  * @param behandletAutomatiskStatus Status for automatisk behandling. null dersom meldekortet er flagget for automatisk behandling, men jobben for behandling ikke har kjørt ennå
+ * @param prioritering Satt når meldekortet er en korrigering som skal ligge øverst i benken, se [utledPrioriteringForBrukersMeldekort].
+ * Ellers null.
  */
 data class BrukersMeldekort(
     val id: MeldekortId,
@@ -37,6 +40,7 @@ data class BrukersMeldekort(
     val behandlesAutomatisk: Boolean,
     val behandletAutomatiskStatus: MeldekortBehandletAutomatiskStatus,
     val behandletAutomatiskForsøkshistorikk: Forsøkshistorikk,
+    val prioritering: Prioritering?,
 ) {
     val kjedeId: MeldeperiodeKjedeId = meldeperiode.kjedeId
     val meldeperiodeId: MeldeperiodeId = meldeperiode.id
