@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeVerdi
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgetTiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.harReversertOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeReversereOpphør
@@ -78,12 +77,8 @@ fun IkkeTomPeriodisering<InnvilgelsesperiodeKommando>.tilInnvilgelsesperioderMed
             opprinneligeInnvilgelser.map { (opprinnelig, delperiode) ->
                 PeriodeMedVerdi(
                     InnvilgelsesperiodeVerdi(
-                        tiltaksdeltakelser = kommando.tiltaksdeltakelser.map {
-                            InnvilgetTiltaksdeltakelse(
-                                tiltaksdeltakelse = opprinnelig.hentTiltaksdeltakelse(it.internDeltakelseId)!!,
-                                antallDagerPerMeldeperiode = it.antallDagerPerMeldeperiode,
-                            )
-                        },
+                        tiltaksdeltakelser = kommando.internDeltakelseIder.map { opprinnelig.hentTiltaksdeltakelse(it)!! },
+                        antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
                         reversertOpphør = ReversertOpphør(opprinneligVedtakId = opprinnelig.vedtakId),
                     ),
                     delperiode,

@@ -21,7 +21,6 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgetTiltaksdeltakelseKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
@@ -113,7 +112,7 @@ fun Sak.utledAutomatiskOmgjøringAvSluttdato(
     }
 
     val tidligereDeltakelser = gjeldendeInnvilgelse?.periodisering?.perioderMedVerdi
-        ?.mapNotNull { it.verdi.hentTiltaksdeltakelse(tiltaksdeltakerId)?.tiltaksdeltakelse }
+        ?.mapNotNull { it.verdi.hentTiltaksdeltakelse(tiltaksdeltakerId) }
         .orEmpty()
 
     if (nåtilstand != null && tidligereDeltakelser.any { it.periode.fraOgMed != nåtilstand.periode.fraOgMed }) {
@@ -260,12 +259,8 @@ private fun Innvilgelsesperioder.tilKommando(): IkkeTomPeriodisering<Innvilgelse
         PeriodeMedVerdi(
             verdi = InnvilgelsesperiodeKommando(
                 periode = it.periode,
-                tiltaksdeltakelser = it.verdi.tiltaksdeltakelser.map { innvilget ->
-                    InnvilgetTiltaksdeltakelseKommando(
-                        internDeltakelseId = innvilget.internDeltakelseId,
-                        antallDagerPerMeldeperiode = innvilget.antallDagerPerMeldeperiode,
-                    )
-                },
+                internDeltakelseIder = it.verdi.tiltaksdeltakelser.map { tiltaksdeltakelse -> tiltaksdeltakelse.internDeltakelseId },
+                antallDagerPerMeldeperiode = it.verdi.antallDagerPerMeldeperiode,
             ),
             periode = it.periode,
         )

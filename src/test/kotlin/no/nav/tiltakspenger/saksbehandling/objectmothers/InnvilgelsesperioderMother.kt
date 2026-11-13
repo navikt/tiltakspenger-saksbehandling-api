@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeVerdi
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgetTiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.ReversertOpphør
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.vedtaksperiode
@@ -25,32 +24,25 @@ interface InnvilgelsesperioderMother {
     ): PeriodeMedVerdi<InnvilgelsesperiodeVerdi> {
         return innvilgelsesperiode(
             periode = periode,
-            tiltaksdeltakelser = nonEmptyListOf(innvilgetTiltaksdeltakelse(valgtTiltaksdeltakelse, antallDagerPerMeldeperiode)),
+            tiltaksdeltakelser = nonEmptyListOf(valgtTiltaksdeltakelse),
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             reversertOpphør = reversertOpphør,
         )
     }
 
     fun innvilgelsesperiode(
         periode: Periode,
-        tiltaksdeltakelser: NonEmptyList<InnvilgetTiltaksdeltakelse>,
+        tiltaksdeltakelser: NonEmptyList<TiltaksdeltakelseIntern>,
+        antallDagerPerMeldeperiode: AntallDagerForMeldeperiode = AntallDagerForMeldeperiode.default,
         reversertOpphør: ReversertOpphør? = null,
     ): PeriodeMedVerdi<InnvilgelsesperiodeVerdi> {
         return PeriodeMedVerdi(
             verdi = InnvilgelsesperiodeVerdi(
                 tiltaksdeltakelser = tiltaksdeltakelser,
+                antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                 reversertOpphør = reversertOpphør,
             ),
             periode = periode,
-        )
-    }
-
-    fun innvilgetTiltaksdeltakelse(
-        tiltaksdeltakelse: TiltaksdeltakelseIntern,
-        antallDagerPerMeldeperiode: AntallDagerForMeldeperiode = AntallDagerForMeldeperiode.default,
-    ): InnvilgetTiltaksdeltakelse {
-        return InnvilgetTiltaksdeltakelse(
-            tiltaksdeltakelse = tiltaksdeltakelse,
-            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         )
     }
 

@@ -159,7 +159,6 @@ private fun Rammevedtak.innvilgetMedGyldigTiltaksdeltakelse(tiltaksdeltakerId: T
         ?.periodisering
         ?.filterNot { verdi, _ -> verdi.erReversertOpphør }
         ?.forTiltaksdeltakelse(tiltaksdeltakerId)
-        ?.map { innvilget, _ -> innvilget.tiltaksdeltakelse }
         ?: Periodisering.empty()
 
 /**

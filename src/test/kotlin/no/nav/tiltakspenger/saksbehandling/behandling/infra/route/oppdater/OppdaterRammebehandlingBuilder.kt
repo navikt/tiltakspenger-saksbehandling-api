@@ -411,23 +411,26 @@ interface OppdaterRammebehandlingBuilder {
      */
     private fun Innvilgelsesperioder.tilDTOMedDeltakelseFra(behandling: Rammebehandling): InnvilgelsesperioderDTO {
         val kjenteDeltakelser = behandling.saksopplysninger.tiltaksdeltakelser.value
-        return tilDTO(behandling.saksopplysninger.tiltaksdeltakelser).flatMap { dto ->
-            if (dto.erReversertOpphør || kjenteDeltakelser.any { it.internDeltakelseId.toString() == dto.internDeltakelseId }) {
-                listOf(dto)
-            } else {
-                dto.perioder.map { periode ->
-                    val dekkende = kjenteDeltakelser.firstOrNull { deltakelse ->
-                        deltakelse.lukketPeriode?.inneholderHele(periode.periode.toDomain()) == true
+        val dto = tilDTO(behandling.saksopplysninger.tiltaksdeltakelser)
+        return dto.copy(
+            tiltak = dto.tiltak.flatMap { dto ->
+                if (dto.erReversertOpphør || kjenteDeltakelser.any { it.internDeltakelseId.toString() == dto.internDeltakelseId }) {
+                    listOf(dto)
+                } else {
+                    dto.perioder.map { periode ->
+                        val dekkende = kjenteDeltakelser.firstOrNull { deltakelse ->
+                            deltakelse.lukketPeriode?.inneholderHele(periode.periode.toDomain()) == true
+                        }
+                        val erstatning = dekkende ?: kjenteDeltakelser.firstOrNull()
+                        // Uten kjente deltakelser lar vi dto-en stå, slik at serveren svarer med sin egen feil.
+                        dto.copy(
+                            internDeltakelseId = erstatning?.internDeltakelseId?.toString() ?: dto.internDeltakelseId,
+                            perioder = listOf(periode),
+                        )
                     }
-                    val erstatning = dekkende ?: kjenteDeltakelser.firstOrNull()
-                    // Uten kjente deltakelser lar vi dto-en stå, slik at serveren svarer med sin egen feil.
-                    dto.copy(
-                        internDeltakelseId = erstatning?.internDeltakelseId?.toString() ?: dto.internDeltakelseId,
-                        perioder = listOf(periode),
-                    )
                 }
-            }
-        }
+            },
+        )
     }
 
     private fun innvilgelseJson(

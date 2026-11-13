@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgetTiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import org.junit.jupiter.api.Nested
@@ -161,15 +160,13 @@ class InnvilgelsesperioderTest {
         private val innvilgelsesperioder = innvilgelsesperioder(
             innvilgelsesperiode(
                 periode = januar,
-                tiltaksdeltakelser = nonEmptyListOf(
-                    innvilgetTiltaksdeltakelse(arbeidstrening, AntallDagerForMeldeperiode(6)),
-                    innvilgetTiltaksdeltakelse(amo, AntallDagerForMeldeperiode(4)),
-                ),
+                tiltaksdeltakelser = nonEmptyListOf(arbeidstrening, amo),
+                antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(10),
             ),
         )
 
         @Test
-        fun `summerer antall dager og bruker tiltakstypen til den første tiltaksdeltakelsen`() {
+        fun `har felles antall dager og bruker tiltakstypen til den første tiltaksdeltakelsen`() {
             val verdi = innvilgelsesperioder.periodisering.verdier.single()
 
             verdi.antallDagerPerMeldeperiode shouldBe AntallDagerForMeldeperiode(10)
@@ -178,43 +175,18 @@ class InnvilgelsesperioderTest {
         }
 
         @Test
-        fun `summen av antall dager kan være lik dagene i en meldeperiode`() {
-            val verdi = InnvilgelsesperiodeVerdi(
-                tiltaksdeltakelser = nonEmptyListOf(
-                    innvilgetTiltaksdeltakelse(amo, AntallDagerForMeldeperiode(7)),
-                    innvilgetTiltaksdeltakelse(arbeidstrening, AntallDagerForMeldeperiode(7)),
-                ),
-                reversertOpphør = null,
-            )
-
-            verdi.antallDagerPerMeldeperiode shouldBe AntallDagerForMeldeperiode(MAKS_DAGER_FOR_MELDEPERIODE)
-        }
-
-        @Test
-        fun `kan ikke innvilge for flere dager summert enn det er dager i en meldeperiode`() {
-            shouldThrow<IllegalArgumentException> {
-                InnvilgelsesperiodeVerdi(
-                    tiltaksdeltakelser = nonEmptyListOf(
-                        innvilgetTiltaksdeltakelse(amo, AntallDagerForMeldeperiode(10)),
-                        innvilgetTiltaksdeltakelse(arbeidstrening, AntallDagerForMeldeperiode(5)),
-                    ),
-                    reversertOpphør = null,
-                )
-            }
-        }
-
-        @Test
         fun `kan ikke innvilge for samme tiltaksdeltakelse flere ganger i samme periode`() {
             shouldThrow<IllegalArgumentException> {
                 InnvilgelsesperiodeVerdi(
-                    tiltaksdeltakelser = nonEmptyListOf(innvilgetTiltaksdeltakelse(amo), innvilgetTiltaksdeltakelse(amo)),
+                    tiltaksdeltakelser = nonEmptyListOf(amo, amo),
+                    antallDagerPerMeldeperiode = AntallDagerForMeldeperiode.default,
                     reversertOpphør = null,
                 )
             }
         }
 
         @Test
-        fun `deler opp perioden der en av tiltaksdeltakelsene har krympet`() {
+        fun `deler opp perioden der en av tiltaksdeltakelsene har krympet, og beholder antall dager`() {
             val krympetAmo = tiltaksdeltakelse(
                 periode = 1.januar(2026) til 15.januar(2026),
                 eksternTiltaksdeltakelseId = amo.eksternDeltakelseId,
@@ -224,14 +196,13 @@ class InnvilgelsesperioderTest {
             innvilgelsesperioder.oppdaterTiltaksdeltakelser(Tiltaksdeltakelser(listOf(arbeidstrening, krympetAmo))) shouldBe innvilgelsesperioder(
                 innvilgelsesperiode(
                     periode = 1.januar(2026) til 15.januar(2026),
-                    tiltaksdeltakelser = nonEmptyListOf(
-                        innvilgetTiltaksdeltakelse(arbeidstrening, AntallDagerForMeldeperiode(6)),
-                        innvilgetTiltaksdeltakelse(krympetAmo, AntallDagerForMeldeperiode(4)),
-                    ),
+                    tiltaksdeltakelser = nonEmptyListOf(arbeidstrening, krympetAmo),
+                    antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(10),
                 ),
                 innvilgelsesperiode(
                     periode = 16.januar(2026) til 31.januar(2026),
-                    tiltaksdeltakelser = nonEmptyListOf(innvilgetTiltaksdeltakelse(arbeidstrening, AntallDagerForMeldeperiode(6))),
+                    tiltaksdeltakelser = nonEmptyListOf(arbeidstrening),
+                    antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(10),
                 ),
             )
         }
@@ -244,7 +215,8 @@ class InnvilgelsesperioderTest {
             innvilgelsesperioder.oppdaterTiltaksdeltakelser(tiltaksdeltakelser) shouldBe innvilgelsesperioder(
                 innvilgelsesperiode(
                     periode = januar,
-                    tiltaksdeltakelser = nonEmptyListOf(innvilgetTiltaksdeltakelse(arbeidstrening, AntallDagerForMeldeperiode(6))),
+                    tiltaksdeltakelser = nonEmptyListOf(arbeidstrening),
+                    antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(10),
                 ),
             )
             innvilgelsesperioder.ugyldigePerioder(tiltaksdeltakelser) shouldBe nonEmptyListOf(

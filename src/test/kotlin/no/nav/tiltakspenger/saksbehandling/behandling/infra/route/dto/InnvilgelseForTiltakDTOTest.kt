@@ -11,12 +11,11 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periode.toDTO
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeVerdi
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgetTiltaksdeltakelse
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgetTiltaksdeltakelseKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.ReversertOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -32,91 +31,133 @@ class InnvilgelseForTiltakDTOTest {
 
     private val amo = ObjectMother.tiltaksdeltakelse(periode = 1.januar(2025) til 30.april(2025))
     private val arbeidstrening = ObjectMother.tiltaksdeltakelse(periode = 1.januar(2025) til 30.april(2025))
+    private val tiltaksdeltakelser = Tiltaksdeltakelser(listOf(amo, arbeidstrening))
 
     private fun tiltak(
         tiltaksdeltakelse: TiltaksdeltakelseIntern,
-        vararg perioder: Pair<Periode, Int>,
+        vararg perioder: Periode,
         erReversertOpphør: Boolean = false,
     ) = InnvilgelseForTiltakDTO(
         internDeltakelseId = tiltaksdeltakelse.internDeltakelseId.toString(),
         erReversertOpphør = erReversertOpphør,
-        perioder = perioder.map { (periode, dager) ->
-            InnvilgelsesperiodeForTiltakDTO(periode = periode.toDTO(), antallDagerPerMeldeperiode = dager)
+        perioder = perioder.map { InnvilgelsesperiodeForTiltakDTO(periode = it.toDTO()) },
+    )
+
+    private fun request(
+        vararg tiltak: InnvilgelseForTiltakDTO,
+        antallDager: List<Pair<Periode, Int>>,
+    ) = InnvilgelsesperioderDTO(
+        tiltak = tiltak.toList(),
+        antallDagerPerMeldeperiode = antallDager.map { (periode, dager) ->
+            AntallDagerPerMeldeperiodeDTO(periode = periode.toDTO(), antallDagerPerMeldeperiode = dager)
         },
     )
 
-    private fun kommando(tiltaksdeltakelse: TiltaksdeltakelseIntern, dager: Int) = InnvilgetTiltaksdeltakelseKommando(
-        internDeltakelseId = tiltaksdeltakelse.internDeltakelseId,
+    private fun kommando(
+        periode: Periode,
+        vararg tiltaksdeltakelser: TiltaksdeltakelseIntern,
+        dager: Int,
+        erReversertOpphør: Boolean = false,
+    ) = InnvilgelsesperiodeKommando(
+        periode = periode,
+        internDeltakelseIder = nonEmptyListOf(tiltaksdeltakelser.first(), *tiltaksdeltakelser.drop(1).toTypedArray()).map { it.internDeltakelseId },
         antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(dager),
+        erReversertOpphør = erReversertOpphør,
     )
 
-    private fun innvilget(tiltaksdeltakelse: TiltaksdeltakelseIntern, dager: Int) = InnvilgetTiltaksdeltakelse(
-        tiltaksdeltakelse = tiltaksdeltakelse,
+    private fun innvilgelsesperiode(
+        periode: Periode,
+        vararg tiltaksdeltakelser: TiltaksdeltakelseIntern,
+        dager: Int,
+        reversertOpphør: ReversertOpphør? = null,
+    ): PeriodeMedVerdi<InnvilgelsesperiodeVerdi> = ObjectMother.innvilgelsesperiode(
+        periode = periode,
+        tiltaksdeltakelser = nonEmptyListOf(tiltaksdeltakelser.first(), *tiltaksdeltakelser.drop(1).toTypedArray()),
         antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(dager),
+        reversertOpphør = reversertOpphør,
+    )
+
+    /** Slik domenet blir når requesten lagres, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.tilInnvilgelsesperiodeVerdi]. */
+    private fun InnvilgelsesperioderDTO.tilDomene(): Innvilgelsesperioder = Innvilgelsesperioder(
+        tilKommando().map { kommando, _ ->
+            InnvilgelsesperiodeVerdi(
+                tiltaksdeltakelser = kommando.internDeltakelseIder.map { tiltaksdeltakelser.getTiltaksdeltakelse(it)!! },
+                antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
+                reversertOpphør = null,
+            )
+        },
     )
 
     @Test
-    fun `overlappende tiltak deles opp i delperioder med tiltaksdeltakelsene i rekkefølgen fra requesten`() {
-        val kommando = listOf(
-            tiltak(arbeidstrening, (1.februar(2025) til 30.april(2025)) to 3),
-            tiltak(amo, (1.januar(2025) til 31.mars(2025)) to 5),
+    fun `overlappende tiltak deles opp i delperioder med tiltaksdeltakelsene i rekkefølgen fra requesten og antall dager for delperioden`() {
+        val kommando = request(
+            tiltak(arbeidstrening, 1.februar(2025) til 30.april(2025)),
+            tiltak(amo, 1.januar(2025) til 31.mars(2025)),
+            antallDager = listOf(januar to 5, (1.februar(2025) til 31.mars(2025)) to 8, april to 3),
         ).tilKommando()
 
         kommando.verdier shouldBe listOf(
-            InnvilgelsesperiodeKommando(januar, nonEmptyListOf(kommando(amo, 5))),
-            InnvilgelsesperiodeKommando(1.februar(2025) til 31.mars(2025), nonEmptyListOf(kommando(arbeidstrening, 3), kommando(amo, 5))),
-            InnvilgelsesperiodeKommando(april, nonEmptyListOf(kommando(arbeidstrening, 3))),
+            kommando(januar, amo, dager = 5),
+            kommando(1.februar(2025) til 31.mars(2025), arbeidstrening, amo, dager = 8),
+            kommando(april, arbeidstrening, dager = 3),
         )
     }
 
     @Test
-    fun `tilstøtende delperioder med like tiltaksdeltakelser slås sammen, og tiltak uten perioder ignoreres`() {
-        val kommando = listOf(
-            tiltak(amo, januar to 5, februar to 5, mars to 4),
+    fun `én periode for antall dager kan dekke flere delperioder, og tilstøtende delperioder slås ikke sammen`() {
+        val kommando = request(
+            tiltak(amo, januar, februar),
             tiltak(arbeidstrening),
+            antallDager = listOf((1.januar(2025) til 28.februar(2025)) to 5),
         ).tilKommando()
 
         kommando.verdier shouldBe listOf(
-            InnvilgelsesperiodeKommando(1.januar(2025) til 28.februar(2025), nonEmptyListOf(kommando(amo, 5))),
-            InnvilgelsesperiodeKommando(mars, nonEmptyListOf(kommando(amo, 4))),
+            kommando(januar, amo, dager = 5),
+            kommando(februar, amo, dager = 5),
         )
     }
 
     @Test
     fun `perioder uten tiltak blir hull`() {
-        val kommando = listOf(
-            tiltak(amo, januar to 5),
-            tiltak(arbeidstrening, april to 3),
+        val kommando = request(
+            tiltak(amo, januar),
+            tiltak(arbeidstrening, april),
+            antallDager = listOf(januar to 5, april to 3),
         ).tilKommando()
 
         kommando.verdier shouldBe listOf(
-            InnvilgelsesperiodeKommando(januar, nonEmptyListOf(kommando(amo, 5))),
-            InnvilgelsesperiodeKommando(april, nonEmptyListOf(kommando(arbeidstrening, 3))),
+            kommando(januar, amo, dager = 5),
+            kommando(april, arbeidstrening, dager = 3),
         )
     }
 
     @Test
     fun `reversert opphør tilstøtende vanlige perioder beholder flagget sitt`() {
-        val kommando = listOf(
-            tiltak(amo, januar to 5),
-            tiltak(amo, februar to 5, erReversertOpphør = true),
+        val kommando = request(
+            tiltak(amo, januar),
+            tiltak(amo, februar, erReversertOpphør = true),
+            antallDager = listOf((1.januar(2025) til 28.februar(2025)) to 5),
         ).tilKommando()
 
         kommando.verdier shouldBe listOf(
-            InnvilgelsesperiodeKommando(januar, nonEmptyListOf(kommando(amo, 5))),
-            InnvilgelsesperiodeKommando(februar, nonEmptyListOf(kommando(amo, 5)), erReversertOpphør = true),
+            kommando(januar, amo, dager = 5),
+            kommando(februar, amo, dager = 5, erReversertOpphør = true),
         )
     }
 
     @Test
     fun `kaster når periodene for samme tiltak overlapper`() {
         shouldThrow<IllegalArgumentException> {
-            listOf(tiltak(amo, (1.januar(2025) til 28.februar(2025)) to 5, februar to 3)).tilKommando()
+            request(
+                tiltak(amo, 1.januar(2025) til 28.februar(2025), februar),
+                antallDager = listOf((1.januar(2025) til 28.februar(2025)) to 5),
+            ).tilKommando()
         }
         shouldThrow<IllegalArgumentException> {
-            listOf(
-                tiltak(amo, januar to 5),
-                tiltak(amo, januar to 5, erReversertOpphør = true),
+            request(
+                tiltak(amo, januar),
+                tiltak(amo, januar, erReversertOpphør = true),
+                antallDager = listOf(januar to 5),
             ).tilKommando()
         }
     }
@@ -124,75 +165,126 @@ class InnvilgelseForTiltakDTOTest {
     @Test
     fun `kaster når reversert opphør overlapper perioder som ikke er reversert opphør`() {
         shouldThrow<IllegalArgumentException> {
-            listOf(
-                tiltak(amo, (1.januar(2025) til 28.februar(2025)) to 5),
-                tiltak(arbeidstrening, februar to 3, erReversertOpphør = true),
+            request(
+                tiltak(amo, 1.januar(2025) til 28.februar(2025)),
+                tiltak(arbeidstrening, februar, erReversertOpphør = true),
+                antallDager = listOf((1.januar(2025) til 28.februar(2025)) to 5),
             ).tilKommando()
         }
     }
 
     @Test
     fun `kaster når det ikke finnes noen perioder`() {
-        shouldThrow<IllegalArgumentException> { emptyList<InnvilgelseForTiltakDTO>().tilKommando() }
-        shouldThrow<IllegalArgumentException> { listOf(tiltak(amo)).tilKommando() }
+        shouldThrow<IllegalArgumentException> { request(antallDager = emptyList()).tilKommando() }
+        shouldThrow<IllegalArgumentException> { request(tiltak(amo), antallDager = listOf(januar to 5)).tilKommando() }
     }
 
     @Test
-    fun `respons grupperes per tiltak med eget antall dager, og tilstøtende perioder med likt antall dager slås sammen`() {
-        val innvilgelsesperioder = ObjectMother.innvilgelsesperioder(
-            ObjectMother.innvilgelsesperiode(januar, nonEmptyListOf(innvilget(amo, 5))),
-            ObjectMother.innvilgelsesperiode(februar, nonEmptyListOf(innvilget(amo, 5), innvilget(arbeidstrening, 3))),
-            ObjectMother.innvilgelsesperiode(mars, nonEmptyListOf(innvilget(arbeidstrening, 3), innvilget(amo, 4))),
+    fun `kaster når antall dager ikke passer med delperiodene`() {
+        val tiltak = arrayOf(
+            tiltak(amo, 1.januar(2025) til 31.mars(2025)),
+            tiltak(arbeidstrening, 1.februar(2025) til 30.april(2025)),
         )
 
-        innvilgelsesperioder.tilDTO(Tiltaksdeltakelser(listOf(amo, arbeidstrening))) shouldBe listOf(
-            tiltak(amo, (1.januar(2025) til 28.februar(2025)) to 5, mars to 4),
-            tiltak(arbeidstrening, (1.februar(2025) til 31.mars(2025)) to 3),
+        // Perioden for antall dager deler delperioden februar til mars i to.
+        shouldThrow<IllegalArgumentException> {
+            request(*tiltak, antallDager = listOf((1.januar(2025) til 14.februar(2025)) to 5, (15.februar(2025) til 30.april(2025)) to 8)).tilKommando()
+        }
+        // Delperioden for april mangler antall dager.
+        shouldThrow<IllegalArgumentException> {
+            request(*tiltak, antallDager = listOf(januar to 5, (1.februar(2025) til 31.mars(2025)) to 8)).tilKommando()
+        }
+        // Periodene for antall dager overlapper.
+        shouldThrow<IllegalArgumentException> {
+            request(*tiltak, antallDager = listOf((1.januar(2025) til 30.april(2025)) to 5, januar to 8)).tilKommando()
+        }
+        // Perioden for antall dager dekker hullet mellom tiltakene.
+        shouldThrow<IllegalArgumentException> {
+            request(tiltak(amo, januar), tiltak(arbeidstrening, april), antallDager = listOf((1.januar(2025) til 30.april(2025)) to 5)).tilKommando()
+        }
+    }
+
+    @Test
+    fun `respons slår sammen perioder for tiltak, unntatt der de samme tiltakene har ulikt antall dager på hver side`() {
+        val innvilgelsesperioder = ObjectMother.innvilgelsesperioder(
+            innvilgelsesperiode(januar, amo, dager = 5),
+            innvilgelsesperiode(februar, amo, arbeidstrening, dager = 5),
+            innvilgelsesperiode(mars, arbeidstrening, amo, dager = 4),
         )
+
+        innvilgelsesperioder.tilDTO(tiltaksdeltakelser) shouldBe request(
+            tiltak(amo, 1.januar(2025) til 28.februar(2025), mars),
+            tiltak(arbeidstrening, februar, mars),
+            antallDager = listOf((1.januar(2025) til 28.februar(2025)) to 5, mars to 4),
+        )
+    }
+
+    @Test
+    fun `respons for ett tiltak med ulikt antall dager gir én periode per antall dager, og gir det samme domenet tilbake`() {
+        val innvilgelsesperioder = ObjectMother.innvilgelsesperioder(
+            innvilgelsesperiode(januar, amo, dager = 5),
+            innvilgelsesperiode(februar, amo, dager = 8),
+        )
+
+        val respons = innvilgelsesperioder.tilDTO(tiltaksdeltakelser)
+
+        respons shouldBe request(
+            tiltak(amo, januar, februar),
+            antallDager = listOf(januar to 5, februar to 8),
+        )
+        respons.tilDomene() shouldBe innvilgelsesperioder
+    }
+
+    @Test
+    fun `respons slår sammen periodene for et tiltak når et annet tiltak overlapper deler av det, og gir det samme domenet tilbake`() {
+        val innvilgelsesperioder = ObjectMother.innvilgelsesperioder(
+            innvilgelsesperiode(januar, amo, dager = 5),
+            innvilgelsesperiode(februar, amo, arbeidstrening, dager = 8),
+        )
+
+        val respons = innvilgelsesperioder.tilDTO(tiltaksdeltakelser)
+
+        respons shouldBe request(
+            tiltak(amo, 1.januar(2025) til 28.februar(2025)),
+            tiltak(arbeidstrening, februar),
+            antallDager = listOf(januar to 5, februar to 8),
+        )
+        respons.tilDomene() shouldBe innvilgelsesperioder
     }
 
     @Test
     fun `respons har egen innvilgelse for reversert opphør, uten validering mot saksopplysningene`() {
         val innvilgelsesperioder = ObjectMother.innvilgelsesperioder(
-            ObjectMother.innvilgelsesperiode(januar, nonEmptyListOf(innvilget(amo, 5))),
-            ObjectMother.innvilgelsesperiode(februar, nonEmptyListOf(innvilget(amo, 5)), ReversertOpphør(VedtakId.random())),
-            ObjectMother.innvilgelsesperiode(mars, nonEmptyListOf(innvilget(amo, 5)), ReversertOpphør(VedtakId.random())),
+            innvilgelsesperiode(januar, amo, dager = 5),
+            innvilgelsesperiode(februar, amo, dager = 5, reversertOpphør = ReversertOpphør(VedtakId.random())),
+            innvilgelsesperiode(mars, amo, dager = 5, reversertOpphør = ReversertOpphør(VedtakId.random())),
         )
 
-        innvilgelsesperioder.tilDTO(Tiltaksdeltakelser.empty()) shouldBe listOf(
+        innvilgelsesperioder.tilDTO(Tiltaksdeltakelser.empty()) shouldBe request(
             InnvilgelseForTiltakDTO(
                 internDeltakelseId = amo.internDeltakelseId.toString(),
                 perioder = listOf(
                     InnvilgelsesperiodeForTiltakDTO(
                         periode = januar.toDTO(),
-                        antallDagerPerMeldeperiode = 5,
                         ugyldigTiltaksdeltakelse = UgyldigTiltaksdeltakelseDTO(UgyldigTiltaksdeltakelseDTO.Type.FINNES_IKKE, null),
                     ),
                 ),
             ),
-            tiltak(amo, (1.februar(2025) til 31.mars(2025)) to 5, erReversertOpphør = true),
+            tiltak(amo, 1.februar(2025) til 31.mars(2025), erReversertOpphør = true),
+            antallDager = listOf((1.januar(2025) til 31.mars(2025)) to 5),
         )
     }
 
     @Test
-    fun `request til domene og tilbake til respons gir de samme innvilgelsene`() {
-        val request = listOf(
-            tiltak(arbeidstrening, februar to 3, april to 2),
-            tiltak(amo, (1.januar(2025) til 31.mars(2025)) to 5),
-        )
-        val tiltaksdeltakelser = Tiltaksdeltakelser(listOf(amo, arbeidstrening))
-
-        val innvilgelsesperioder = Innvilgelsesperioder(
-            request.tilKommando().map { kommando, _ ->
-                InnvilgelsesperiodeVerdi(
-                    tiltaksdeltakelser = kommando.tiltaksdeltakelser.map {
-                        innvilget(tiltaksdeltakelser.getTiltaksdeltakelse(it.internDeltakelseId)!!, it.antallDagerPerMeldeperiode.value)
-                    },
-                    reversertOpphør = null,
-                )
-            },
+    fun `request til domene og tilbake til respons gir den samme requesten`() {
+        val request = request(
+            tiltak(arbeidstrening, februar, april),
+            tiltak(amo, 1.januar(2025) til 31.mars(2025)),
+            antallDager = listOf((1.januar(2025) til 28.februar(2025)) to 5, mars to 8, april to 2),
         )
 
-        innvilgelsesperioder.tilDTO(tiltaksdeltakelser).sortedBy { it.internDeltakelseId } shouldBe request.sortedBy { it.internDeltakelseId }
+        request.tilDomene().tilDTO(tiltaksdeltakelser) shouldBe request.copy(
+            tiltak = request.tiltak.sortedBy { it.internDeltakelseId != amo.internDeltakelseId.toString() },
+        )
     }
 }

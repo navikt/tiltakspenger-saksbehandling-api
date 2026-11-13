@@ -90,9 +90,9 @@ fun Sak.utledAutomatiskForlengelse(
         grunner.add(ManueltBehandlesGrunn.FORLENGELSE_FANT_IKKE_GJELDENDE_VEDTAK)
     }
     val tidligereInnvilget = gjeldende?.let { (vedtak, periode) ->
-        vedtak.innvilgelsesperioder!!.periodisering.hentVerdiForDag(periode.tilOgMed)!!.hentTiltaksdeltakelse(tiltaksdeltakerId)!!
+        vedtak.innvilgelsesperioder!!.periodisering.hentVerdiForDag(periode.tilOgMed)!!
     }
-    val tidligereDeltakelse = tidligereInnvilget?.tiltaksdeltakelse
+    val tidligereDeltakelse = tidligereInnvilget?.hentTiltaksdeltakelse(tiltaksdeltakerId)
 
     // Er slutten av innvilgelsen erstattet av et senere vedtak, er vedtaket stanset, opphørt eller omgjort.
     val erStansetEllerOpphørt = gjeldende != null && gjeldende.periode.tilOgMed != gjeldende.verdi.innvilgelsesperioder!!.tilOgMed

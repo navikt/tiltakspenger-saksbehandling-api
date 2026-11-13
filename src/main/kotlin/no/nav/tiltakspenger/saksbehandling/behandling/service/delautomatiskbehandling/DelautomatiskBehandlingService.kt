@@ -16,7 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgetTiltaksdeltakelseKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
@@ -169,14 +168,10 @@ class DelautomatiskBehandlingService(
                 PeriodeMedVerdi(
                     verdi = InnvilgelsesperiodeKommando(
                         periode = innvilgelsesperiode,
-                        tiltaksdeltakelser = nonEmptyListOf(
-                            InnvilgetTiltaksdeltakelseKommando(
-                                internDeltakelseId = tiltaksdeltakelse.tiltaksdeltakerId,
-                                antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(
-                                    utledAntallDagerPerMeldeperiode(
-                                        behandling,
-                                    ),
-                                ),
+                        internDeltakelseIder = nonEmptyListOf(tiltaksdeltakelse.tiltaksdeltakerId),
+                        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(
+                            utledAntallDagerPerMeldeperiode(
+                                behandling,
                             ),
                         ),
                     ),
