@@ -64,6 +64,8 @@ fun String.shouldBeRevurderingDTO(
     // Null betyr at feltet ikke sammenlignes.
     tidslinjeFørOgEtter: String? = null,
     tiltakshistorikk: String = """{"innslag": [], "harEndringEtterSistEndret": false}""",
+    // JSON for barna det kan gis barnetillegg for.
+    barnetilleggKandidater: String = "[]",
     periodeFraOgMed: String = "2023-01-01",
     periodeTilOgMed: String = "2023-03-31",
     eksternDeltagelseId: String,
@@ -224,6 +226,7 @@ fun String.shouldBeRevurderingDTO(
           "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())},
           "beslutterEndringer": {"skalJournalføreNotat": null},
           "tiltakshistorikk": $tiltakshistorikk,
+          "barnetilleggKandidater": $barnetilleggKandidater,
           "innvilgbarePerioder": [
             {
               "internDeltakelseId": "$internDeltakelseId",
@@ -281,6 +284,8 @@ fun String.shouldBeSøknadsbehandlingDTO(
     // Null betyr at feltet ikke sammenlignes.
     tidslinjeFørOgEtter: String? = null,
     tiltakshistorikk: String = """{"innslag": [], "harEndringEtterSistEndret": false}""",
+    // JSON for barna det kan gis barnetillegg for.
+    barnetilleggKandidater: String = "[]",
     automatiskSaksbehandlet: Boolean = false,
     kanInnvilges: Boolean = true,
     manueltBehandlesGrunner: List<String> = emptyList(),
@@ -453,6 +458,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
         "skalJournalføreNotat": ${serialize(skalJournalføreNotat.tilDTO())},
         "beslutterEndringer": {"skalJournalføreNotat": null},
         "tiltakshistorikk": $tiltakshistorikk,
+        "barnetilleggKandidater": $barnetilleggKandidater,
         "innvilgbarePerioder": [
           {
             "internDeltakelseId": "$internDeltakelseId",

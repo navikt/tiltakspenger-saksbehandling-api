@@ -7,6 +7,8 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggKandidat
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.barnetilleggKandidater
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -16,6 +18,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.innvilgbarePerioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.perioderForReversertOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggKandidatDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilBarnetilleggKandidaterDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.UtbetalingskontrollDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilUtbetalingskontrollDTO
@@ -104,6 +108,12 @@ sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
      * Frontend skal bruke disse i stedet for å utlede innvilgbare perioder fra saksopplysningene selv.
      */
     val innvilgbarePerioder: List<InnvilgbarPeriodeDTO>
+
+    /**
+     * Barna saksbehandler kan velge å gi barnetillegg for, sortert med eldste først.
+     * Frontend velger ut barna som er aktuelle for tiltaksdeltakelsene det innvilges for, og legger til barn saksbehandler har lagt til selv.
+     */
+    val barnetilleggKandidater: List<BarnetilleggKandidatDTO>
 }
 
 data class SøknadsbehandlingDTO(
@@ -142,6 +152,7 @@ data class SøknadsbehandlingDTO(
     override val tidslinjeFørOgEtter: TidslinjeFørOgEtterDTO?,
     override val tiltakshistorikk: TiltakshistorikkForBehandlingDTO,
     override val innvilgbarePerioder: List<InnvilgbarPeriodeDTO>,
+    override val barnetilleggKandidater: List<BarnetilleggKandidatDTO>,
 ) : RammebehandlingDTO,
     SøknadsbehandlingResultatDTO by resultatDTO {
     override val type = RammebehandlingstypeDTO.SØKNADSBEHANDLING
@@ -184,6 +195,7 @@ data class RevurderingDTO(
     override val tidslinjeFørOgEtter: TidslinjeFørOgEtterDTO?,
     override val tiltakshistorikk: TiltakshistorikkForBehandlingDTO,
     override val innvilgbarePerioder: List<InnvilgbarPeriodeDTO>,
+    override val barnetilleggKandidater: List<BarnetilleggKandidatDTO>,
     val perioderForReversertOpphør: List<PeriodeForReversertOpphørDTO>,
 ) : RammebehandlingDTO,
     RevurderingResultatDTO by resultatDTO {
@@ -207,6 +219,7 @@ fun Sak.tilRammebehandlingDTO(
     val tilbakekrevingId = hentTilbakekrevingForRammebehandling(behandlingId)?.id
     val tidslinjeFørOgEtter = rammevedtaksliste.tidslinjeFørOgEtter(behandling)
     val tiltakshistorikk = tiltakshistorikk.forBehandling(behandling)
+    val kandidater = barnetilleggKandidater(behandling)
 
     return when (behandling) {
         is Revurdering -> behandling.tilRevurderingDTO(
@@ -217,6 +230,7 @@ fun Sak.tilRammebehandlingDTO(
             kallendeSaksbehandler = kallendeSaksbehandler,
             tidslinjeFørOgEtter = tidslinjeFørOgEtter,
             tiltakshistorikk = tiltakshistorikk,
+            barnetilleggKandidater = kandidater,
             tiltaksdeltakelserSomKanForlenges = (behandling.resultat as? Revurderingsresultat.Forlengelse)?.let { resultat ->
                 tiltaksdeltakelserSomKanForlenges(resultat.forlenger, behandling.saksopplysninger)
                     .map { it.tiltaksdeltakelse.internDeltakelseId }
@@ -236,6 +250,7 @@ fun Sak.tilRammebehandlingDTO(
             kallendeSaksbehandler = kallendeSaksbehandler,
             tidslinjeFørOgEtter = tidslinjeFørOgEtter,
             tiltakshistorikk = tiltakshistorikk,
+            barnetilleggKandidater = kandidater,
         )
     }
 }
@@ -252,6 +267,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
     kallendeSaksbehandler: Saksbehandler,
     tidslinjeFørOgEtter: TidslinjeFørOgEtter?,
     tiltakshistorikk: TiltakshistorikkForBehandling,
+    barnetilleggKandidater: List<BarnetilleggKandidat>,
 ): SøknadsbehandlingDTO {
     return SøknadsbehandlingDTO(
         id = this.id.toString(),
@@ -289,6 +305,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         tidslinjeFørOgEtter = tidslinjeFørOgEtter?.tilTidslinjeFørOgEtterDTO(),
         tiltakshistorikk = tiltakshistorikk.tilDTO(),
         innvilgbarePerioder = this.saksopplysninger.tiltaksdeltakelser.innvilgbarePerioder().tilDTO(),
+        barnetilleggKandidater = barnetilleggKandidater.tilBarnetilleggKandidaterDTO(),
     )
 }
 
@@ -300,6 +317,7 @@ fun Revurdering.tilRevurderingDTO(
     kallendeSaksbehandler: Saksbehandler,
     tidslinjeFørOgEtter: TidslinjeFørOgEtter?,
     tiltakshistorikk: TiltakshistorikkForBehandling,
+    barnetilleggKandidater: List<BarnetilleggKandidat>,
     tiltaksdeltakelserSomKanForlenges: List<TiltaksdeltakerId>,
     perioderForReversertOpphør: List<PeriodeForReversertOpphørDTO>,
 ): RevurderingDTO {
@@ -337,6 +355,7 @@ fun Revurdering.tilRevurderingDTO(
         tidslinjeFørOgEtter = tidslinjeFørOgEtter?.tilTidslinjeFørOgEtterDTO(),
         tiltakshistorikk = tiltakshistorikk.tilDTO(),
         innvilgbarePerioder = this.saksopplysninger.tiltaksdeltakelser.innvilgbarePerioder().tilDTO(),
+        barnetilleggKandidater = barnetilleggKandidater.tilBarnetilleggKandidaterDTO(),
         perioderForReversertOpphør = perioderForReversertOpphør,
     )
 }

@@ -101,6 +101,7 @@ class RammebehandlingDTOTest {
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
                 tidslinjeFørOgEtter = null,
                 tiltakshistorikk = TiltakshistorikkForBehandling(innslag = emptyList(), utløsendeInnslag = null, harEndringEtterSistEndret = false),
+                barnetilleggKandidater = emptyList(),
             ),
         )
 
@@ -176,6 +177,7 @@ class RammebehandlingDTOTest {
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
                 tidslinjeFørOgEtter = null,
                 tiltakshistorikk = TiltakshistorikkForBehandling(innslag = emptyList(), utløsendeInnslag = null, harEndringEtterSistEndret = false),
+                barnetilleggKandidater = emptyList(),
             ),
         )
 
@@ -255,6 +257,7 @@ class RammebehandlingDTOTest {
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
                 tidslinjeFørOgEtter = null,
                 tiltakshistorikk = TiltakshistorikkForBehandling(innslag = emptyList(), utløsendeInnslag = null, harEndringEtterSistEndret = false),
+                barnetilleggKandidater = emptyList(),
             ),
         )
 
@@ -325,6 +328,7 @@ class RammebehandlingDTOTest {
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
                 tidslinjeFørOgEtter = null,
                 tiltakshistorikk = TiltakshistorikkForBehandling(innslag = emptyList(), utløsendeInnslag = null, harEndringEtterSistEndret = false),
+                barnetilleggKandidater = emptyList(),
                 tiltaksdeltakelserSomKanForlenges = emptyList(),
                 perioderForReversertOpphør = emptyList(),
             ),
@@ -390,6 +394,7 @@ class RammebehandlingDTOTest {
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
                 tidslinjeFørOgEtter = null,
                 tiltakshistorikk = TiltakshistorikkForBehandling(innslag = emptyList(), utløsendeInnslag = null, harEndringEtterSistEndret = false),
+                barnetilleggKandidater = emptyList(),
                 tiltaksdeltakelserSomKanForlenges = emptyList(),
                 perioderForReversertOpphør = emptyList(),
             ),
@@ -502,6 +507,7 @@ class RammebehandlingDTOTest {
                 kallendeSaksbehandler = ObjectMother.saksbehandler(),
                 tidslinjeFørOgEtter = null,
                 tiltakshistorikk = TiltakshistorikkForBehandling(innslag = emptyList(), utløsendeInnslag = null, harEndringEtterSistEndret = false),
+                barnetilleggKandidater = emptyList(),
                 tiltaksdeltakelserSomKanForlenges = emptyList(),
                 perioderForReversertOpphør = emptyList(),
             ),
