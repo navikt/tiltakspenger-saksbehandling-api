@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
@@ -33,6 +34,7 @@ data class LagreBrukersMeldekortKommando(
     /** Oppretter et nytt meldekort som skal forsøkes å behandles automatisk */
     fun tilNyttBrukersMeldekort(
         meldeperiode: Meldeperiode,
+        prioritering: Prioritering?,
         clock: Clock,
     ): BrukersMeldekort {
         require(meldeperiode.id == meldeperiodeId) {
@@ -49,6 +51,7 @@ data class LagreBrukersMeldekortKommando(
             behandlesAutomatisk = true,
             behandletAutomatiskStatus = MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
             behandletAutomatiskForsøkshistorikk = Forsøkshistorikk.opprett(clock = clock),
+            prioritering = prioritering,
         )
     }
 

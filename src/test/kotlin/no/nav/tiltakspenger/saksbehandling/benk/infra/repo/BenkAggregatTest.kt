@@ -976,6 +976,8 @@ class BenkAggregatTest {
             )
             oversikt.behandlinger.first().let {
                 it.id shouldBe korrigering.id
+                // Utbetalingen av første kort var iverksatt før korrigeringen kom, så den prioriteres ikke.
+                it.prioritering shouldBe null
                 it.felles.startet shouldBe korrigering.mottatt
                 it.felles.sistEndret shouldBe korrigering.mottatt
                 it.meldeperioder shouldBe listOf(sak.meldeperiodeKjeder[0].periode)
@@ -994,6 +996,48 @@ class BenkAggregatTest {
 
             repo.hentMeldekort(meldekortCommand(type = BenkMeldekortType.KORRIGERT_MELDEKORT)).totalAntall shouldBe 1
             repo.hentMeldekort(meldekortCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT)).totalAntall shouldBe 2
+        }
+    }
+
+    /**
+     * En korrigering som kommer før oppdragssystemet har iverksatt utbetalingen av første kort, må behandles før pengene går ut.
+     * Den prioriteres, slippes forbi jobbens sperre mot ikke-kvitterte utbetalinger, og behandlingen som opprettes for den arver prioriteringen.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `meldekortfanen viser korrigering som kom før utbetalingen var iverksatt som prioritert`() {
+        withTestApplicationContextAndPostgres(
+            clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0))),
+            runIsolated = true,
+        ) { tac ->
+            val (sakUtenKorrigering) = iverksettSøknadsbehandling(tac = tac)
+            val (_, innsendt) = mottaManueltMeldekortForKjede(tac, sakUtenKorrigering, kjedeIndeks = 0)
+            val (sak) = iverksettSøknadsbehandling(tac = tac)
+            mottaAutomatiskMeldekortForKjede(tac, sak, kjedeIndeks = 0)
+            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+            val (_, korrigering) = mottaAutomatiskMeldekortForKjede(tac, sak, kjedeIndeks = 0)
+            korrigering.prioritering.shouldNotBeNull()
+            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+            val repo = tac.benkContext.benkRepo
+            val forventetPrioritering = BenkPrioritering(korrigering.prioritering.begrunnelse.verdi)
+
+            repo.hentMeldekort(meldekortCommand()).behandlinger.let { rader ->
+                rader.map { it.id } shouldBe listOf(korrigering.id, innsendt.id)
+                rader.map { it.type } shouldBe listOf(BenkMeldekortType.KORRIGERT_MELDEKORT, BenkMeldekortType.INNSENDT_MELDEKORT)
+                rader.map { it.prioritering } shouldBe listOf(forventetPrioritering, null)
+            }
+
+            val (_, meldekortbehandling) = opprettMeldekortbehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = sak.meldeperiodeKjeder[0].kjedeId,
+            )!!
+
+            meldekortbehandling.prioritering shouldBe korrigering.prioritering
+            repo.hentMeldekort(meldekortCommand()).behandlinger.let { rader ->
+                rader.map { it.id } shouldBe listOf(meldekortbehandling.id, innsendt.id)
+                rader.map { it.prioritering } shouldBe listOf(forventetPrioritering, null)
+            }
         }
     }
 

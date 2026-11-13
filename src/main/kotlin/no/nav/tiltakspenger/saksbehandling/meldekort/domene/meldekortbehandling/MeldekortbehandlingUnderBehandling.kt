@@ -28,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.oppdaterBehandlingId
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.prioriteringFraUbehandledeBrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.KanIkkeOppdatereMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.KanIkkeSendeMeldekortbehandlingTilBeslutter
@@ -259,6 +260,7 @@ fun Sak.opprettManuellMeldekortbehandling(
 /**
  * Oppretter en manuell meldekortbehandling som omfatter én eller flere meldeperiodekjeder.
  * Meldeperiodene sorteres etter periode, og hver kjede får sin egen [MeldeperiodebehandlingType] basert på om kjeden er behandlet fra før.
+ * Behandlingen arver prioriteringen til et ubehandlet, prioritert meldekort fra bruker for kjedene.
  * Krever at [saksbehandler] har rollen saksbehandler eller beslutter, og kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
  */
 fun Sak.opprettManuellMeldekortbehandling(
@@ -319,7 +321,7 @@ fun Sak.opprettManuellMeldekortbehandling(
         beslutterEndringer = MeldekortbehandlingBeslutterEndringer(
             skalJournalføreNotat = null,
         ),
-        prioritering = null,
+        prioritering = this.prioriteringFraUbehandledeBrukersMeldekort(kjedeIder),
         ventestatus = Ventestatus(),
         klagebehandling = klagebehandlingId?.let {
             val klagebehandling = hentKlagebehandling(it)

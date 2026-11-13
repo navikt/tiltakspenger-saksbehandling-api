@@ -610,6 +610,7 @@ open class ApplicationContext(
         MottaBrukerutfyltMeldekortService(
             brukersMeldekortRepo = meldekortContext.brukersMeldekortRepo,
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
+            sakRepo = sakContext.sakRepo,
             clock = clock,
         )
     }
