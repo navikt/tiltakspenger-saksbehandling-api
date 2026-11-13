@@ -33,4 +33,13 @@ class ForhåndsvisAvslagVedtaksbrevTest {
             responseJson shouldBe "pdf"
         }
     }
+
+    @Test
+    fun `forhåndsvisning av avslag med grunn InnvilgetTiltakspenger får den gjeldende innvilgelsen`() {
+        // TODO: Iverksett en innvilgelse, og start en ny søknadsbehandling for samme periode.
+        // Forhåndsvis med avslagsgrunner = listOf(ValgtHjemmelForAvslagDTO.InnvilgetTiltakspenger).
+        // Forvent at faken fikk innvilgelsesvedtaket og den innvilgede perioden som tidligereInnvilgelse.
+        // Krever samme utvidelse av GenererFakeVedtaksbrevKlient som i JournalførRammevedtakServiceTest.
+        TODO("Ikke implementert")
+    }
 }

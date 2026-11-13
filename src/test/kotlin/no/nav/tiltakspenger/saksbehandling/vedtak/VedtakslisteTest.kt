@@ -151,4 +151,78 @@ class VedtakslisteTest {
             )
         }
     }
+
+    @Test
+    fun `gjeldendeInnvilgelseForPeriode gir null når saken ikke har innvilgelser`() {
+        // TODO: Tom Rammevedtaksliste, eller en sak med bare et avslag.
+        // Forvent null.
+        TODO("Ikke implementert")
+    }
+
+    @Test
+    fun `gjeldendeInnvilgelseForPeriode gir null når innvilgelsen ikke overlapper perioden`() {
+        // TODO: Innvilgelse i januar, spør om en periode i mars.
+        // Forvent null.
+        TODO("Ikke implementert")
+    }
+
+    @Test
+    fun `gjeldendeInnvilgelseForPeriode gir hele den innvilgede perioden, ikke bare overlappen`() {
+        // TODO: Innvilgelse 1.–31. januar, spør om 15. januar–15. februar.
+        // Forvent vedtaket, med periode 1.–31. januar.
+        TODO("Ikke implementert")
+    }
+
+    @Test
+    fun `gjeldendeInnvilgelseForPeriode gir null når flere innvilgelser overlapper perioden`() {
+        // TODO: To innvilgelser, f.eks. januar og februar, spør om en periode som dekker begge.
+        // Forvent null, så saksbehandler skriver periodene i fritekst.
+        TODO("Ikke implementert")
+    }
+
+    @Test
+    fun `gjeldendeInnvilgelseForPeriode gir null når ett vedtak har innvilgelsesperioder med hull som begge overlapper`() {
+        // TODO: Ett vedtak med to innvilgelsesperioder med hull mellom, f.eks. jan og mars, og avslagsperiode jan–mars.
+        // Forvent null, slik at saksbehandler fyller inn innvilgelsen manuelt i brevet (avklart med fag).
+        TODO("Ikke implementert")
+    }
+
+    @Test
+    fun `gjeldendeInnvilgelseForPeriode slår sammen tilstøtende innvilgelsesperioder i samme vedtak`() {
+        // TODO: Ett vedtak med to tilstøtende innvilgelsesperioder, f.eks. ulikt antall dager per meldeperiode i jan og feb.
+        // Forvent én PeriodeMedVerdi med hele perioden jan–feb, siden tilPeriodisering slår sammen like verdier.
+        TODO("Ikke implementert")
+    }
+
+    @Test
+    fun `gjeldendeInnvilgelseForPeriode gir den gjeldende delen når innvilgelsen er delvis stanset`() {
+        // TODO: Innvilgelse 1.–31. januar, så stans fra 16. januar.
+        // Forvent vedtaket med periode 1.–15. januar.
+        TODO("Ikke implementert")
+    }
+
+    @Test
+    fun `opprettetFør gir tom liste når ingen vedtak er eldre enn tidspunktet`() {
+        // TODO: Iverksett én innvilgelse.
+        // Kall opprettetFør med vedtakets egen opprettet-tidspunkt.
+        // Forvent tom liste, siden vedtak opprettet på tidspunktet ikke tas med.
+        TODO("Ikke implementert")
+    }
+
+    @Test
+    fun `opprettetFør tar bort senere vedtak og regner omgjøringene på nytt`() {
+        // TODO: Iverksett en innvilgelse, deretter en revurdering som omgjør deler av den.
+        // Kall opprettetFør med revurderingens opprettet-tidspunkt.
+        // Forvent at lista bare har innvilgelsen, og at omgjortAvRammevedtak på den er tom.
+        // Forvent at innvilgetTidslinje igjen dekker hele den opprinnelige innvilgelsesperioden.
+        TODO("Ikke implementert")
+    }
+
+    @Test
+    fun `gjeldendeInnvilgelseForPeriode før avslaget ser bort fra revurdering etter avslaget`() {
+        // TODO: Innvilgelse, så avslag med grunn InnvilgetTiltakspenger, så revurdering som endrer innvilgelsen.
+        // Kall opprettetFør(avslaget.opprettet).gjeldendeInnvilgelseForPeriode(avslaget.periode).
+        // Forvent den opprinnelige innvilgelsen med hele den opprinnelige perioden.
+        TODO("Ikke implementert")
+    }
 }

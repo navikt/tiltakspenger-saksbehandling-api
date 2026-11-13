@@ -134,4 +134,20 @@ class AvslagsgrunnlagTest {
             it.last().ledd shouldBe Ledd(1)
         }
     }
+
+    @Test
+    fun `InnvilgetTiltakspenger er lenket til riktig hjemler`() {
+        Avslagsgrunnlag.InnvilgetTiltakspenger.hjemler.let {
+            it.size shouldBe 2
+
+            it.first().paragraf shouldBe Paragraf("7")
+            it.first().rettskilde shouldBe Rettskilde.Tiltakspengeforskriften
+            it.first().ledd shouldBe Ledd(1)
+            it.first().punktum shouldBe null
+
+            it.last().paragraf shouldBe Paragraf("13")
+            it.last().rettskilde shouldBe Rettskilde.Arbeidsmarkedsloven
+            it.last().ledd shouldBe Ledd(1)
+        }
+    }
 }

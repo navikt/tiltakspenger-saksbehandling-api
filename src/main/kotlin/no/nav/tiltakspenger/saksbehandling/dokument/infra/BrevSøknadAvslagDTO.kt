@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel
@@ -23,6 +24,7 @@ private data class BrevSøknadAvslagDTO(
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
     val avslagsgrunner: List<GrunnBrevDto>,
+    val tidligereInnvilgelse: TidligereInnvilgelseDTO?,
     val harSøktMedBarn: Boolean,
     /**
      * Hjemlene avslaget bygger på, også når det bare har én grunn.
@@ -45,6 +47,7 @@ suspend fun genererAvslagSøknadsbrev(
     forhåndsvisning: Boolean,
     harSøktBarnetillegg: Boolean,
     avslagsperiode: Periode,
+    tidligereInnvilgelse: PeriodeMedVerdi<Rammevedtak>?,
     datoForUtsending: LocalDate,
 ): String {
     val brukersNavn = hentBrukersNavn(fnr)
@@ -61,6 +64,7 @@ suspend fun genererAvslagSøknadsbrev(
         tilleggstekst = tilleggstekst?.verdi,
         forhandsvisning = forhåndsvisning,
         avslagsgrunner = avslagsgrunner.map { it.tilGrunnBrevDto() },
+        tidligereInnvilgelse = tidligereInnvilgelse?.tilTidligereInnvilgelseDTO(),
         hjemler = avslagsgrunner.hjemlerForBrev(harSøktBarnetillegg).map { it.tilHjemmelBrevDto() },
         harSøktMedBarn = harSøktBarnetillegg,
         saksbehandlerNavn = saksbehandlersNavn,
@@ -75,6 +79,7 @@ suspend fun Rammevedtak.genererAvslagSøknadsbrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
     datoForUtsending: LocalDate,
+    tidligereInnvilgelse: PeriodeMedVerdi<Rammevedtak>?,
 ): String {
     require(rammebehandling is Søknadsbehandling && rammebehandling.resultat is Søknadsbehandlingsresultat.Avslag) {
         "Behandlingen må være et avslag for å generere avslagbrev"
@@ -92,6 +97,7 @@ suspend fun Rammevedtak.genererAvslagSøknadsbrev(
         forhåndsvisning = false,
         harSøktBarnetillegg = rammebehandling.søknad.barnetillegg.isNotEmpty(),
         avslagsperiode = this.periode,
+        tidligereInnvilgelse = tidligereInnvilgelse,
         datoForUtsending = datoForUtsending,
     )
 }
@@ -102,3 +108,22 @@ suspend fun Rammevedtak.genererAvslagSøknadsbrev(
 private fun Set<Avslagsgrunnlag>.hjemlerForBrev(harSøktBarnetillegg: Boolean): List<Hjemmel> =
     this.flatMap { it.hjemler } +
         if (harSøktBarnetillegg) listOf(Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_3) else emptyList()
+
+private data class TidligereInnvilgelseDTO(
+    val fraOgMed: LocalDate,
+    val tilOgMed: LocalDate,
+    val vedtaksdato: LocalDate,
+    val harBarnetillegg: Boolean,
+)
+
+private fun PeriodeMedVerdi<Rammevedtak>.tilTidligereInnvilgelseDTO(): TidligereInnvilgelseDTO {
+    return TidligereInnvilgelseDTO(
+        fraOgMed = periode.fraOgMed,
+        tilOgMed = periode.tilOgMed,
+        vedtaksdato = verdi.vedtaksdato ?: verdi.opprettet.toLocalDate(),
+        harBarnetillegg = verdi.barnetilleggsperioder
+            ?.overlappendePeriode(periode)
+            ?.any { barnIPeriode -> barnIPeriode.verdi.value > 0 }
+            ?: false,
+    )
+}

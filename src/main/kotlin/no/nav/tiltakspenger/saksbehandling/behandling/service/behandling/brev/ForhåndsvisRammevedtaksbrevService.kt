@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.UgyldigBarnetilleggException
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForInnvilgelseKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForOpphørKlient
@@ -311,6 +312,11 @@ class ForhåndsvisRammevedtaksbrevService(
             forhåndsvisning = true,
             harSøktBarnetillegg = behandling.søknad.barnetillegg.isNotEmpty(),
             datoForUtsending = LocalDate.now(clock),
+            tidligereInnvilgelse = if (Avslagsgrunnlag.InnvilgetTiltakspenger in kommando.avslagsgrunner) {
+                sak.rammevedtaksliste.gjeldendeInnvilgelseForPeriode(avslagsperiode)
+            } else {
+                null
+            },
         )
     }
 

@@ -227,6 +227,7 @@ open class BehandlingOgVedtakContext(
         JournalførRammevedtakService(
             journalførRammevedtaksbrevKlient = journalførRammevedtaksbrevKlient,
             rammevedtakRepo = rammevedtakRepo,
+            sakService = sakService,
             genererVedtaksbrevForInnvilgelseKlient = genererVedtaksbrevForInnvilgelseKlient,
             genererVedtaksbrevForAvslagKlient = genererVedtaksbrevForAvslagKlient,
             genererVedtaksbrevForStansKlient = genererVedtaksbrevForStansKlient,

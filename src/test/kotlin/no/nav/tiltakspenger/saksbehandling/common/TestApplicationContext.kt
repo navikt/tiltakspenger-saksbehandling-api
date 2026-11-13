@@ -609,6 +609,9 @@ sealed class TestApplicationContext(
     /** Forlengelsesbrevene [GenererFakeVedtaksbrevKlient] har generert, både forhåndsvisninger og journalførte brev. */
     val forlengelsesbrev: List<GenererFakeVedtaksbrevKlient.Forlengelsesbrev> get() = genererFakeVedtaksbrevKlient.forlengelsesbrev
 
+    /** Avslagsbrevene [GenererFakeVedtaksbrevKlient] har generert, både forhåndsvisninger og journalførte brev. */
+    val avslagsbrev: List<GenererFakeVedtaksbrevKlient.Avslagsbrev> get() = genererFakeVedtaksbrevKlient.avslagsbrev
+
     /** Barnetillegget i søknads- og revurderingsbrevene [GenererFakeVedtaksbrevKlient] har forhåndsvist. */
     val forhåndsvistBarnetillegg: List<Periodisering<AntallBarn>?> get() = genererFakeVedtaksbrevKlient.forhåndsvistBarnetillegg
 }

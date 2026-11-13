@@ -40,6 +40,7 @@ class BrevSøknadAvslagDTOTest {
                 forhåndsvisning = true,
                 harSøktBarnetillegg = true,
                 avslagsperiode = ObjectMother.vedtaksperiode(),
+                tidligereInnvilgelse = null,
                 datoForUtsending = LocalDate.now(fixedClock),
             )
 
@@ -61,8 +62,8 @@ class BrevSøknadAvslagDTOTest {
                   "forhandsvisning":true,
                   "avslagFraOgMed":"2023-01-01",
                   "avslagTilOgMed":"2023-03-31",
-                  "datoForUtsending": "2025-01-01"
-                  
+                  "datoForUtsending": "2025-01-01",
+                  "tidligereInnvilgelse": null
                 }
             """.trimIndent()
 
@@ -78,6 +79,7 @@ class BrevSøknadAvslagDTOTest {
                 hentBrukersNavn = { _: Fnr -> Navn("Fornavn", null, "Etternavn") },
                 hentSaksbehandlersNavn = { _: String -> "Saksbehandlernavn" },
                 datoForUtsending = LocalDate.now(fixedClock),
+                tidligereInnvilgelse = null,
             ).shouldEqualJson(
                 //language=json
                 """
@@ -97,8 +99,8 @@ class BrevSøknadAvslagDTOTest {
                   "forhandsvisning":false,
                   "avslagFraOgMed":"2023-01-01",
                   "avslagTilOgMed":"2023-03-31",
-                  "datoForUtsending": "2025-01-01"
-                  
+                  "datoForUtsending": "2025-01-01",
+                  "tidligereInnvilgelse": null
                 }
                 """.trimIndent(),
             )
@@ -160,6 +162,49 @@ class BrevSøknadAvslagDTOTest {
         }
     }
 
+    @Test
+    fun `tidligereInnvilgelse er null i brevdata når det ikke finnes én tidligere innvilgelse`() {
+        // TODO: genererBrevJson med tidligereInnvilgelse = null.
+        // Forvent at feltet tidligereInnvilgelse er null, så pdfgenrs bruker reserveteksten.
+        TODO("Ikke implementert")
+    }
+
+    @Test
+    fun `tidligereInnvilgelse gir periode, vedtaksdato og harBarnetillegg i brevdata`() {
+        // TODO: Lag en PeriodeMedVerdi<Rammevedtak> med kjent periode og vedtaksdato.
+        // Pin JSON-en for feltet med shouldEqualJson, inkludert nøyaktige feltnavn.
+        // Feltnavnene må være de samme som pdfgenrs leser: fraOgMed, tilOgMed, vedtaksdato, harBarnetillegg.
+        TODO("Ikke implementert")
+    }
+
+    @Test
+    fun `tidligereInnvilgelse bruker opprettet-datoen når vedtaksdato mangler`() {
+        // TODO: Rammevedtak med vedtaksdato = null.
+        // Forvent at vedtaksdato i brevdata er opprettet.toLocalDate().
+        TODO("Ikke implementert")
+    }
+
+    @Test
+    fun `harBarnetillegg er sann når innvilgelsen har barn i perioden`() {
+        // TODO: Vedtak med barnetilleggsperioder med minst ett barn innenfor perioden.
+        // Forvent harBarnetillegg = true.
+        TODO("Ikke implementert")
+    }
+
+    @Test
+    fun `harBarnetillegg er usann uten barnetilleggsperioder eller med bare null barn`() {
+        // TODO: To varianter: barnetilleggsperioder = null, og barnetilleggsperioder med AntallBarn(0).
+        // Forvent harBarnetillegg = false i begge.
+        TODO("Ikke implementert")
+    }
+
+    @Test
+    fun `harBarnetillegg ser bare på barnetillegg innenfor den gjeldende perioden`() {
+        // TODO: Vedtak med barnetillegg bare i en del av vedtaksperioden som ligger utenfor periode i PeriodeMedVerdi.
+        // Forvent harBarnetillegg = false.
+        TODO("Ikke implementert")
+    }
+
     private suspend fun genererBrevJson(
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
         harSøktBarnetillegg: Boolean,
@@ -176,6 +221,7 @@ class BrevSøknadAvslagDTOTest {
             forhåndsvisning = true,
             harSøktBarnetillegg = harSøktBarnetillegg,
             avslagsperiode = ObjectMother.vedtaksperiode(),
+            tidligereInnvilgelse = null,
             datoForUtsending = LocalDate.now(fixedClock),
         ),
     )

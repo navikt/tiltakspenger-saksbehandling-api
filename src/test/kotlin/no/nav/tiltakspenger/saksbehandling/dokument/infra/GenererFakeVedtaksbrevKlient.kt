@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
@@ -56,6 +57,17 @@ class GenererFakeVedtaksbrevKlient :
 
     /** Barnetillegget i søknads- og revurderingsbrevene faken har forhåndsvist, i rekkefølgen de ble generert. */
     val forhåndsvistBarnetillegg: List<Periodisering<AntallBarn>?> get() = barnetilleggIForhåndsvisteInnvilgelsesbrev.get().toList()
+
+    /** Et avslagsbrev faken har generert, med den tidligere innvilgelsen brevet fikk. */
+    data class Avslagsbrev(
+        val forhåndsvisning: Boolean,
+        val tidligereInnvilgelse: PeriodeMedVerdi<Rammevedtak>?,
+    )
+
+    private val genererteAvslagsbrev = Atomic(mutableListOf<Avslagsbrev>())
+
+    /** Avslagsbrevene faken har generert, i rekkefølgen de ble generert. */
+    val avslagsbrev: List<Avslagsbrev> get() = genererteAvslagsbrev.get().toList()
 
     override suspend fun genererInnvilgetVedtakBrev(
         vedtak: Rammevedtak,
@@ -172,7 +184,9 @@ class GenererFakeVedtaksbrevKlient :
         forhåndsvisning: Boolean,
         harSøktBarnetillegg: Boolean,
         datoForUtsending: LocalDate,
+        tidligereInnvilgelse: PeriodeMedVerdi<Rammevedtak>?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        genererteAvslagsbrev.get().add(Avslagsbrev(forhåndsvisning = forhåndsvisning, tidligereInnvilgelse = tidligereInnvilgelse))
         return response
     }
 
@@ -181,7 +195,9 @@ class GenererFakeVedtaksbrevKlient :
         datoForUtsending: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        tidligereInnvilgelse: PeriodeMedVerdi<Rammevedtak>?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        genererteAvslagsbrev.get().add(Avslagsbrev(forhåndsvisning = false, tidligereInnvilgelse = tidligereInnvilgelse))
         return response
     }
 

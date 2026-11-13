@@ -32,4 +32,5 @@ enum class Avslagsgrunnlag(val hjemler: List<Hjemmel>) {
     Institusjonsopphold(listOf(TILTAKSPENGEFORSKRIFTEN_9)),
     FremmetForSent(listOf(TILTAKSPENGEFORSKRIFTEN_11, ARBEIDSMARKEDSLOVEN_15)),
     RettTilDagpenger(listOf(TILTAKSPENGEFORSKRIFTEN_7_L1_P3, ARBEIDSMARKEDSLOVEN_13_L1)),
+    InnvilgetTiltakspenger(listOf(TILTAKSPENGEFORSKRIFTEN_7_L1, ARBEIDSMARKEDSLOVEN_13_L1)),
 }

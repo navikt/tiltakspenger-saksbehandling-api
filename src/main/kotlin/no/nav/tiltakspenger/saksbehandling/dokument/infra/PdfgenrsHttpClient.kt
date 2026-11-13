@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
@@ -353,6 +354,7 @@ class PdfgenrsHttpClient(
         forhåndsvisning: Boolean,
         harSøktBarnetillegg: Boolean,
         datoForUtsending: LocalDate,
+        tidligereInnvilgelse: PeriodeMedVerdi<Rammevedtak>?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         val jsonPayload = suspend {
             genererAvslagSøknadsbrev(
@@ -368,6 +370,7 @@ class PdfgenrsHttpClient(
                 harSøktBarnetillegg = harSøktBarnetillegg,
                 avslagsperiode = avslagsperiode,
                 datoForUtsending = datoForUtsending,
+                tidligereInnvilgelse = tidligereInnvilgelse,
             )
         }
 
@@ -379,12 +382,14 @@ class PdfgenrsHttpClient(
         datoForUtsending: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        tidligereInnvilgelse: PeriodeMedVerdi<Rammevedtak>?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         val jsonPayload = suspend {
             vedtak.genererAvslagSøknadsbrev(
                 hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
                 datoForUtsending = datoForUtsending,
+                tidligereInnvilgelse = tidligereInnvilgelse,
             )
         }
 
