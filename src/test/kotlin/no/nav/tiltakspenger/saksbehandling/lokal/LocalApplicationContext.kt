@@ -169,6 +169,7 @@ class LocalApplicationContext(
         eksternTiltaksgjennomføringsId = "5667273f-784e-4521-89c3-75b0be8ee250",
         tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
         typeNavn = "Arbeidsmarkedsoppfølging gruppe",
+        tittel = "Arbeidsmarkedsoppfølging gruppe hos Lokal arrangør AS",
         fom = ObjectMother.vedtaksperiode().fraOgMed,
         tom = ObjectMother.vedtaksperiode().tilOgMed,
         kilde = Tiltakskilde.Komet,

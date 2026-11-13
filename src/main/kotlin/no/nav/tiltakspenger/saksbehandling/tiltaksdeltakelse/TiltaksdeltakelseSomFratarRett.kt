@@ -14,12 +14,14 @@ import no.nav.tiltakspenger.saksbehandling.felles.overlapperMed
  *
  * @param eksternDeltakelseId Arena (TA1234567) eller Team Tiltak (UUID).
  * @param typeNavn Navn på tiltakstypen, f.eks. "Midlertidig lønnstilskudd".
+ * @param tittel Hele tiltaksnavnet fra kilden, se [TiltaksdeltakelseIntern.tittel].
  * @param tiltakskodeFraKilden Tiltakskoden slik kilden oppgir den, f.eks. "MIDLONTIL".
  * @param periode en [Periode] når både start- og sluttdato er kjent, ellers en [ÅpenPeriode].
  */
 data class TiltaksdeltakelseSomFratarRett(
     val eksternDeltakelseId: String,
     val typeNavn: String,
+    val tittel: String?,
     val tiltakskodeFraKilden: String,
     val periode: LukketEllerÅpenPeriode,
     val deltakelseStatus: TiltakDeltakerstatus,

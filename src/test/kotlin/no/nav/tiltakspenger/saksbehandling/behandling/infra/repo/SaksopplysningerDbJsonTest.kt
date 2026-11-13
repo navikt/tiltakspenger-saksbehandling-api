@@ -20,7 +20,7 @@ class SaksopplysningerDbJsonTest {
         val lagret = saksopplysninger.toDbJson()
 
         lagret shouldContain
-            """"tiltaksdeltakelserSomFratarRett":[{"eksternDeltakelseId":"TA123","typeNavn":"Midlertidig lønnstilskudd","tiltakskodeFraKilden":"MIDLONTIL","deltakelseFraOgMed":"2023-01-01","deltakelseTilOgMed":"2023-03-31","deltakelseStatus":"Deltar","deltakelseProsent":100.0,"antallDagerPerUke":5.0,"kilde":"Arena"}]"""
+            """"tiltaksdeltakelserSomFratarRett":[{"eksternDeltakelseId":"TA123","typeNavn":"Midlertidig lønnstilskudd","tittel":null,"tiltakskodeFraKilden":"MIDLONTIL","deltakelseFraOgMed":"2023-01-01","deltakelseTilOgMed":"2023-03-31","deltakelseStatus":"Deltar","deltakelseProsent":100.0,"antallDagerPerUke":5.0,"kilde":"Arena"}]"""
         lagret.toSaksopplysninger() shouldBe saksopplysninger
     }
 

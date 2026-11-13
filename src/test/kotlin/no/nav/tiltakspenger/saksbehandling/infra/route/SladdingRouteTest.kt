@@ -77,7 +77,10 @@ class SladdingRouteTest {
                     barn["fornavn"].erSladdet()
                     barn["fødselsdato"].erSladdet()
                 }
-                it["rammebehandlinger"].single()["saksopplysninger"]["fødselsdato"].erSladdet()
+                it["rammebehandlinger"].single()["saksopplysninger"].let { saksopplysninger ->
+                    saksopplysninger["fødselsdato"].erSladdet()
+                    saksopplysninger["tiltaksdeltagelse"].single()["tittel"].erSladdet()
+                }
             }
             objectMapper.readTree(somUtvikler.getValue(SØK_SAK))["fnr"].erSladdet()
             objectMapper.readTree(somUtvikler.getValue(PERSONOPPLYSNINGER))["fnr"].erSladdet()
@@ -105,6 +108,7 @@ class SladdingRouteTest {
                 it shouldContain "Barnefornavn"
                 it shouldContain "Manueltbarnfornavn"
                 it shouldContain 14.juni(2012).toString()
+                it shouldContain ObjectMother.tiltaksdeltakelseMedArrangørnavn().visningsnavn
             }
             somSaksbehandler.getValue(SØK_SAK) shouldContain sak.fnr.verdi
             somSaksbehandler.getValue(PERSONOPPLYSNINGER) shouldContain sak.fnr.verdi
@@ -185,6 +189,9 @@ class SladdingRouteTest {
         tac: TestApplicationContext,
     ): Triple<Sak, *, *> = opprettSøknadsbehandlingKlarTilBehandling(
         tac = tac,
+        tiltaksdeltakelse = tac.tiltaksdeltakelse().copy(
+            tittel = ObjectMother.tiltaksdeltakelseMedArrangørnavn().visningsnavn,
+        ),
         barnetillegg = listOf(barnetilleggMedIdent, barnetilleggUtenIdent),
     )
 

@@ -91,9 +91,10 @@ class TiltakshistorikkTilRegisterMapperTest {
     fun `feltene mappes fra libs-domenet til deltakelse som fratar rett`() {
         val deltakelse = fratarRett(id = "TA123", tiltakskode = "MIDLONTIL")
 
-        deltakelse.tilTiltaksdeltakelseSomFratarRett(fixedClock) shouldBe TiltaksdeltakelseSomFratarRett(
+        deltakelse.tilTiltaksdeltakelseSomFratarRett(harAdressebeskyttelse = false, clock = fixedClock) shouldBe TiltaksdeltakelseSomFratarRett(
             eksternDeltakelseId = "TA123",
             typeNavn = "Oppfølging",
+            tittel = "Oppfølging hos Arrangør AS",
             tiltakskodeFraKilden = "MIDLONTIL",
             periode = lukketEllerÅpenPeriode(testStart, testSlutt),
             deltakelseStatus = TiltakDeltakerstatus.Deltar,
@@ -144,12 +145,13 @@ class TiltakshistorikkTilRegisterMapperTest {
             .copy(gjennomføringId = GjennomføringId("gjennomføring-1"))
         val internId = TiltaksdeltakerId.random()
 
-        val resultat = deltakelse.tilTiltaksdeltakelseIntern(internId, fixedClock)
+        val resultat = deltakelse.tilTiltaksdeltakelseIntern(internId, harAdressebeskyttelse = false, clock = fixedClock)
 
         resultat shouldBe TiltaksdeltakelseIntern(
             eksternDeltakelseId = "TA123",
             gjennomføringId = "gjennomføring-1",
             typeNavn = "Oppfølging",
+            tittel = "Oppfølging hos Arrangør AS",
             tiltakstype = TiltakstypeSomGirRett.OPPFØLGING,
             rettPåTiltakspenger = true,
             periode = lukketEllerÅpenPeriode(deltakelse.fraOgMed, deltakelse.tilOgMed),
@@ -167,10 +169,21 @@ class TiltakshistorikkTilRegisterMapperTest {
         val deltakelse = (testdeltakelse(id = "TA1") as Tiltaksdeltakelse.GirRett.MedPeriode)
             .copy(omfang = Deltakelsesomfang(deltakelsesprosent = null, dagerPerUke = null, deltidsprosentPåGjennomføring = 80f), gjennomføringId = null)
 
-        val resultat = deltakelse.tilTiltaksdeltakelseIntern(TiltaksdeltakerId.random(), fixedClock)
+        val resultat = deltakelse.tilTiltaksdeltakelseIntern(TiltaksdeltakerId.random(), harAdressebeskyttelse = false, clock = fixedClock)
 
         resultat.gjennomføringId shouldBe null
         resultat.deltidsprosentGjennomforing shouldBe 80.0
+    }
+
+    @Test
+    fun `saksopplysningene får ingen tittel når bruker har adressebeskyttelse`() {
+        val girRett = testdeltakelse(id = "TA1") as Tiltaksdeltakelse.GirRett
+        val fratarRett = fratarRett(id = "TA2")
+
+        girRett.tilTiltaksdeltakelseIntern(TiltaksdeltakerId.random(), harAdressebeskyttelse = true, clock = fixedClock)
+            .tittel shouldBe null
+        fratarRett.tilTiltaksdeltakelseSomFratarRett(harAdressebeskyttelse = true, clock = fixedClock)
+            .tittel shouldBe null
     }
 
     @Test
@@ -356,6 +369,7 @@ class TiltakshistorikkTilRegisterMapperTest {
         val medDatoer = TiltaksdeltakelseSomFratarRett(
             eksternDeltakelseId = "TA1",
             typeNavn = "Midlertidig lønnstilskudd",
+            tittel = "Midlertidig lønnstilskudd hos Arrangør AS",
             tiltakskodeFraKilden = "MIDLONTIL",
             periode = lukketEllerÅpenPeriode(1.januar(2024), 31.mars(2024)),
             deltakelseStatus = TiltakDeltakerstatus.Deltar,
@@ -365,13 +379,14 @@ class TiltakshistorikkTilRegisterMapperTest {
         )
         val utenDatoer = medDatoer.medPeriode(fraOgMed = null, tilOgMed = null).copy(
             eksternDeltakelseId = "8d6a2b1e-7c0e-4f4b-9a8e-0f6c7f1a2b3c",
+            tittel = null,
             tiltakskodeFraKilden = "VARIG_LONNSTILSKUDD",
             deltakelseStatus = TiltakDeltakerstatus.HarSluttet,
             kilde = Tiltakskilde.TeamTiltak,
         )
 
         listOf(medDatoer, utenDatoer).forEach {
-            it.tilLibsDeltakelse().tilTiltaksdeltakelseSomFratarRett(fixedClock) shouldBe it
+            it.tilLibsDeltakelse().tilTiltaksdeltakelseSomFratarRett(harAdressebeskyttelse = false, clock = fixedClock) shouldBe it
         }
     }
 }

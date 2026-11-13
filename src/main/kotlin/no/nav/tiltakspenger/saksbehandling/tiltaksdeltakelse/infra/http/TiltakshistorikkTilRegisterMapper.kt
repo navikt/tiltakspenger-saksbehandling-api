@@ -85,12 +85,14 @@ fun Tiltaksdeltakelse.tiltakDeltakerstatus(clock: Clock): TiltakDeltakerstatus =
 
 fun Tiltaksdeltakelse.GirRett.tilTiltaksdeltakelseIntern(
     internDeltakelseId: TiltaksdeltakerId,
+    harAdressebeskyttelse: Boolean,
     clock: Clock,
 ): TiltaksdeltakelseIntern =
     TiltaksdeltakelseIntern(
         eksternDeltakelseId = id.verdi,
         gjennomføringId = gjennomføringId?.verdi,
         typeNavn = tiltakstypenavn,
+        tittel = synligTittel(harAdressebeskyttelse),
         tiltakstype = tiltakstype,
         rettPåTiltakspenger = true,
         periode = periode,
@@ -102,10 +104,14 @@ fun Tiltaksdeltakelse.GirRett.tilTiltaksdeltakelseIntern(
         internDeltakelseId = internDeltakelseId,
     )
 
-fun Tiltaksdeltakelse.FratarRett.tilTiltaksdeltakelseSomFratarRett(clock: Clock): TiltaksdeltakelseSomFratarRett =
+fun Tiltaksdeltakelse.FratarRett.tilTiltaksdeltakelseSomFratarRett(
+    harAdressebeskyttelse: Boolean,
+    clock: Clock,
+): TiltaksdeltakelseSomFratarRett =
     TiltaksdeltakelseSomFratarRett(
         eksternDeltakelseId = id.verdi,
         typeNavn = tiltakstypenavn,
+        tittel = synligTittel(harAdressebeskyttelse),
         tiltakskodeFraKilden = tiltakskodeFraKilden,
         periode = periode,
         deltakelseStatus = tiltakDeltakerstatus(clock),
@@ -117,8 +123,7 @@ fun Tiltaksdeltakelse.FratarRett.tilTiltaksdeltakelseSomFratarRett(clock: Clock)
 /**
  * Samme utvalg som [tilRelevanteTiltaksdeltakelser], men med visningsnavn i stedet for full saksopplysning.
  * Deltakelser som fratar rett er med, men har ingen [TiltaksdeltakelseMedArrangørnavn.tiltakstype], siden de ikke kan velges.
- * Visningsnavnet ([Tiltaksdeltakelse.tittel]) inneholder arrangøren, og er derfor stedsinformasjon — ved adressebeskyttelse vises kun tiltakstypenavnet.
- * Faller tilbake på tiltakstypenavnet også når kilden ikke ga noen tittel.
+ * Visningsnavnet faller tilbake på tiltakstypenavnet når det ikke finnes noen tittel å vise.
  */
 fun Tiltakshistorikk.tilTiltaksdeltakelserMedArrangørnavn(
     harAdressebeskyttelse: Boolean,
@@ -132,15 +137,18 @@ fun Tiltakshistorikk.tilTiltaksdeltakelserMedArrangørnavn(
             tiltakstype = (deltakelse as? Tiltaksdeltakelse.GirRett)?.tiltakstype,
             tiltakskodeFraKilden = deltakelse.tiltakskodeFraKilden,
             periode = lukketEllerÅpenPeriode(deltakelse.fraOgMed, deltakelse.tilOgMed),
-            visningsnavn = if (harAdressebeskyttelse) {
-                deltakelse.tiltakstypenavn
-            } else {
-                deltakelse.tittel?.verdi ?: deltakelse.tiltakstypenavn
-            },
+            visningsnavn = deltakelse.synligTittel(harAdressebeskyttelse) ?: deltakelse.tiltakstypenavn,
             status = deltakelse.tiltakDeltakerstatus(clock),
         )
     }
 }
+
+/**
+ * Hele tiltaksnavnet fra kilden ([Tiltaksdeltakelse.tittel]), typisk på formen "Tiltakstype hos Arrangør".
+ * Tittelen inneholder arrangøren, og er derfor stedsinformasjon — ved adressebeskyttelse tas den ikke med.
+ */
+private fun Tiltaksdeltakelse.synligTittel(harAdressebeskyttelse: Boolean): String? =
+    if (harAdressebeskyttelse) null else tittel?.verdi
 
 /**
  * Felles utvalgsregel for uttrekkene.

@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse
 
+import no.nav.tiltakspenger.libs.common.personopplysning.Tilknytningstittel
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Arrangør
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Deltakelsesomfang
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.EksternDeltakelseId
@@ -9,8 +10,8 @@ import java.time.LocalDate
 
 /**
  * Deltakelsen slik tiltakshistorikk ville levert den, til fakes som trenger libs-domenet.
- * Rundturen tilbake via `tilTiltaksdeltakelseSomFratarRett` gir samme verdi, så lenge statusen finnes hos kilden.
- * Tittel, arrangør og gjennomføring finnes ikke i den interne modellen, og blir tomme.
+ * Rundturen tilbake via `tilTiltaksdeltakelseSomFratarRett` gir samme verdi, så lenge statusen finnes hos kilden og bruker ikke har adressebeskyttelse.
+ * Arrangør og gjennomføring finnes ikke i den interne modellen, og blir tomme.
  */
 fun TiltaksdeltakelseSomFratarRett.tilLibsDeltakelse(): Tiltaksdeltakelse.FratarRett {
     return Tiltaksdeltakelse.FratarRett(
@@ -18,7 +19,7 @@ fun TiltaksdeltakelseSomFratarRett.tilLibsDeltakelse(): Tiltaksdeltakelse.Fratar
         kildestatus = tilKildestatus(kilde, deltakelseStatus),
         tiltakstypenavn = typeNavn,
         tiltakskodeFraKilden = tiltakskodeFraKilden,
-        tittel = null,
+        tittel = tilknytningstittel(),
         arrangør = Arrangør(hovedenhet = null, underenhet = null),
         omfang = Deltakelsesomfang(
             deltakelsesprosent = deltakelseProsent,
@@ -38,3 +39,6 @@ fun TiltaksdeltakelseSomFratarRett.medPeriode(
     fraOgMed: LocalDate? = periode.fraOgMed,
     tilOgMed: LocalDate? = periode.tilOgMed,
 ): TiltaksdeltakelseSomFratarRett = copy(periode = lukketEllerÅpenPeriode(fraOgMed, tilOgMed))
+
+private fun TiltaksdeltakelseSomFratarRett.tilknytningstittel(): Tilknytningstittel? =
+    tittel?.let { Tilknytningstittel(it) }

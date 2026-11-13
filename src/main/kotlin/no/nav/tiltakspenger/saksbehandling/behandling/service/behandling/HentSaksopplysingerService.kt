@@ -79,9 +79,12 @@ class HentSaksopplysingerService(
         behandlingId: RammebehandlingId? = null,
     ): Saksopplysninger {
         val oppslagstidspunkt = nå(clock)
+        val person = hentPersonopplysninger(fnr)
+        val harAdressebeskyttelse = person.adressebeskyttelse.erGradert
 
         val (aktuelleTiltaksdeltakelser, tiltaksdeltakelserSomFratarRett) = hentAktuelleTiltaksdeltakelser(
             fnr = fnr,
+            harAdressebeskyttelse = harAdressebeskyttelse,
             correlationId = correlationId,
             tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
             aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
@@ -101,14 +104,14 @@ class HentSaksopplysingerService(
         val saksopplysningsperiode = aktuelleTiltaksdeltakelser.totalPeriode
 
         return Saksopplysninger(
-            fødselsdato = hentPersonopplysninger(fnr).fødselsdato,
+            fødselsdato = person.fødselsdato,
             // Vi tar foreløpig med de periodene
             tiltaksdeltakelser = aktuelleTiltaksdeltakelser,
             tiltaksdeltakelserSomFratarRett = saksopplysningsperiode
                 ?.let { periode ->
                     tiltaksdeltakelserSomFratarRett
                         .filter { it.overlapper(periode) != Overlapp.Nei }
-                        .map { it.tilTiltaksdeltakelseSomFratarRett(clock) }
+                        .map { it.tilTiltaksdeltakelseSomFratarRett(harAdressebeskyttelse, clock) }
                 }
                 ?: emptyList(),
             ytelser = saksopplysningsperiode
@@ -145,6 +148,7 @@ class HentSaksopplysingerService(
      */
     private suspend fun hentAktuelleTiltaksdeltakelser(
         fnr: Fnr,
+        harAdressebeskyttelse: Boolean,
         correlationId: CorrelationId,
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
         aktuelleTiltaksdeltakelserForBehandlingen: List<TiltaksdeltakerId>,
@@ -188,7 +192,7 @@ class HentSaksopplysingerService(
                 sakId = sakId,
                 sessionContext = sessionContext,
             )
-            it.tilTiltaksdeltakelseIntern(internDeltakelseId, clock)
+            it.tilTiltaksdeltakelseIntern(internDeltakelseId, harAdressebeskyttelse, clock)
         }
         return Tiltaksdeltakelser(tiltaksdeltakelser) to fraTiltakshistorikk.fratarRett
     }

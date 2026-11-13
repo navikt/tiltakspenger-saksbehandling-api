@@ -6,10 +6,13 @@ import java.time.LocalDate
 
 /**
  * Lagres som en del av saksopplysningene.
+ *
+ * @param tittel Mangler i saksopplysninger lagret før tittelen ble innført.
  */
 data class TiltaksdeltakelseSomFratarRettDbJson(
     val eksternDeltakelseId: String,
     val typeNavn: String,
+    val tittel: String?,
     val tiltakskodeFraKilden: String,
     val deltakelseFraOgMed: LocalDate?,
     val deltakelseTilOgMed: LocalDate?,
@@ -22,6 +25,7 @@ data class TiltaksdeltakelseSomFratarRettDbJson(
         return TiltaksdeltakelseSomFratarRett(
             eksternDeltakelseId = eksternDeltakelseId,
             typeNavn = typeNavn,
+            tittel = tittel,
             tiltakskodeFraKilden = tiltakskodeFraKilden,
             periode = lukketEllerÅpenPeriode(deltakelseFraOgMed, deltakelseTilOgMed),
             deltakelseStatus = deltakelseStatus.toTiltakDeltakerstatus(),
@@ -36,6 +40,7 @@ fun TiltaksdeltakelseSomFratarRett.toDbJson(): TiltaksdeltakelseSomFratarRettDbJ
     return TiltaksdeltakelseSomFratarRettDbJson(
         eksternDeltakelseId = eksternDeltakelseId,
         typeNavn = typeNavn,
+        tittel = tittel,
         tiltakskodeFraKilden = tiltakskodeFraKilden,
         deltakelseFraOgMed = periode.fraOgMed,
         deltakelseTilOgMed = periode.tilOgMed,

@@ -39,13 +39,14 @@ sealed interface LokalTiltaksdeltakelse {
             tiltakstype = deltakelse.tiltakstype,
             tiltakskodeFraKilden = tiltakskode,
             periode = deltakelse.periode,
-            visningsnavn = deltakelse.typeNavn,
+            visningsnavn = deltakelse.tittel ?: deltakelse.typeNavn,
             status = deltakelse.deltakelseStatus,
         )
 
         override fun endre(command: OpprettEllerOppdaterLokalTiltaksdeltakelseCommand) = GirRett(
             deltakelse.copy(
                 typeNavn = command.typeNavn ?: deltakelse.typeNavn,
+                tittel = command.tittel ?: deltakelse.tittel,
                 periode = lukketEllerÅpenPeriode(
                     command.fraOgMed ?: deltakelse.periode.fraOgMed,
                     command.tilOgMed ?: deltakelse.periode.tilOgMed,
@@ -70,13 +71,14 @@ sealed interface LokalTiltaksdeltakelse {
             tiltakstype = null,
             tiltakskodeFraKilden = tiltakskode,
             periode = deltakelse.periode,
-            visningsnavn = deltakelse.typeNavn,
+            visningsnavn = deltakelse.tittel ?: deltakelse.typeNavn,
             status = deltakelse.deltakelseStatus,
         )
 
         override fun endre(command: OpprettEllerOppdaterLokalTiltaksdeltakelseCommand) = FratarRett(
             deltakelse.copy(
                 typeNavn = command.typeNavn ?: deltakelse.typeNavn,
+                tittel = command.tittel ?: deltakelse.tittel,
                 periode = lukketEllerÅpenPeriode(
                     command.fraOgMed ?: deltakelse.periode.fraOgMed,
                     command.tilOgMed ?: deltakelse.periode.tilOgMed,

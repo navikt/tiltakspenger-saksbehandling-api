@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route
 
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 import no.nav.tiltakspenger.saksbehandling.infra.route.toÅpenPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.ÅpenPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
@@ -8,6 +10,7 @@ data class TiltaksdeltakelseDTO(
     val eksternDeltagelseId: String,
     val gjennomføringId: String?,
     val typeNavn: String,
+    val tittel: SladdbarVerdi<String?>,
     val periode: ÅpenPeriodeDTO,
     val deltakelseStatus: TiltakDeltakerstatusDto,
     val deltakelseProsent: Float?,
@@ -23,6 +26,7 @@ fun TiltaksdeltakelseIntern.toDTO(): TiltaksdeltakelseDTO {
         eksternDeltagelseId = this.eksternDeltakelseId,
         gjennomføringId = this.gjennomføringId,
         typeNavn = this.typeNavn,
+        tittel = this.tittel.ikkeSladdet(),
         periode = this.periode.toÅpenPeriodeDTO(),
         deltakelseStatus = this.deltakelseStatus.toDto(),
         deltakelseProsent = this.deltakelseProsent,

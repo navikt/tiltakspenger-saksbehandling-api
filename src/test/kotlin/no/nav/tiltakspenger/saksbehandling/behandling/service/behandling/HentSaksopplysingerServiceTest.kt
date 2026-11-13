@@ -9,6 +9,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -36,6 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Yt
 import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import no.nav.tiltakspenger.saksbehandling.felles.uventetStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.Fødselsnumre
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
@@ -885,6 +887,7 @@ class HentSaksopplysingerServiceTest {
             result.tiltaksdeltakelserSomFratarRett.first() shouldBeEqual TiltaksdeltakelseSomFratarRett(
                 eksternDeltakelseId = "TA1",
                 typeNavn = "Oppfølging",
+                tittel = "Oppfølging hos Arrangør AS",
                 tiltakskodeFraKilden = "MIDLONTIL",
                 periode = lukketEllerÅpenPeriode(1.januar(2023), 31.januar(2023)),
                 deltakelseStatus = TiltakDeltakerstatus.Deltar,
@@ -892,6 +895,35 @@ class HentSaksopplysingerServiceTest {
                 antallDagerPerUke = 3f,
                 kilde = Tiltakskilde.Komet,
             )
+        }
+    }
+
+    @Test
+    fun `tittelen utelates når bruker har adressebeskyttelse`() {
+        runBlocking {
+            val periode: Periode = 2.januar(2023) til 30.januar(2023)
+            val tiltak = ObjectMother.tiltakOgSøknadstiltak(
+                søknadFraOgMed = periode.fraOgMed,
+                søknadTilOgMed = periode.tilOgMed,
+                tittel = "Arbeidsmarkedsoppfølging gruppe hos Arrangør AS",
+            )
+            val service = serviceMedTiltakshistorikk(
+                tiltak.first,
+                lønnstilskudd("TA1", 1.januar(2023), 31.januar(2023)),
+                adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG,
+            )
+
+            val result = service.hentSaksopplysningerFraRegistre(
+                fnr = Fnr.random(),
+                correlationId = CorrelationId.generate(),
+                tiltaksdeltakelserDetErSøktTiltakspengerFor = TiltaksdeltakelserDetErSøktTiltakspengerFor(tiltak.second, periode.fraOgMed.atStartOfDay()),
+                aktuelleTiltaksdeltakelserForBehandlingen = listOf(tiltak.first.internDeltakelseId),
+                sakId = SakId.random(),
+                inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = false,
+            )
+
+            result.tiltaksdeltakelser.single().tittel shouldBe null
+            result.tiltaksdeltakelserSomFratarRett.single().tittel shouldBe null
         }
     }
 
@@ -967,6 +999,7 @@ class HentSaksopplysingerServiceTest {
         vararg andreDeltakelser: LibsTiltaksdeltakelse,
         ytelser: Either<HttpKlientError, YtelserMedMetadata> = ingenYtelser().right(),
         arenavedtak: Either<HttpKlientError, List<ArenaTPVedtak>> = emptyList<ArenaTPVedtak>().right(),
+        adressebeskyttelse: Adressebeskyttelse = Adressebeskyttelse.UGRADERT,
     ): HentSaksopplysingerService {
         val tiltaksdeltakerRepo = TiltaksdeltakerFakeRepo().apply {
             lagre(
@@ -977,7 +1010,7 @@ class HentSaksopplysingerServiceTest {
             )
         }
         return HentSaksopplysingerService(
-            hentPersonopplysninger = { ObjectMother.personopplysningKjedeligFyr(fnr = it) },
+            hentPersonopplysninger = { ObjectMother.personopplysningKjedeligFyr(fnr = it, adressebeskyttelse = adressebeskyttelse) },
             hentNåværendeOgHistoriskeFnr = { Fødselsnumre(it).right() },
             tiltaksdeltakelseKlient = object : TiltaksdeltakelseKlient {
                 override suspend fun hentTiltaksdeltakelser(

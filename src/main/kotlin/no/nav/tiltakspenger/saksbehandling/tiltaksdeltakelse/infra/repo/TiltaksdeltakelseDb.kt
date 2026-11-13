@@ -5,10 +5,14 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDate
 
+/**
+ * @param tittel Mangler i saksopplysninger og innvilgelsesperioder lagret før tittelen ble innført.
+ */
 data class TiltaksdeltakelseDb(
     val eksternDeltagelseId: String,
     val gjennomføringId: String?,
     val typeNavn: String,
+    val tittel: String?,
     val typeKode: String,
     val deltagelseFraOgMed: LocalDate?,
     val deltagelseTilOgMed: LocalDate?,
@@ -25,6 +29,7 @@ data class TiltaksdeltakelseDb(
             eksternDeltakelseId = eksternDeltagelseId,
             gjennomføringId = gjennomføringId,
             typeNavn = typeNavn,
+            tittel = tittel,
             tiltakstype = typeKode.toTiltakstypeSomGirRett(),
             periode = lukketEllerÅpenPeriode(deltagelseFraOgMed, deltagelseTilOgMed),
             deltakelseStatus = deltakelseStatus.toTiltakDeltakerstatus(),
@@ -43,6 +48,7 @@ fun TiltaksdeltakelseIntern.toDbJson(): TiltaksdeltakelseDb {
         eksternDeltagelseId = this.eksternDeltakelseId,
         gjennomføringId = this.gjennomføringId,
         typeNavn = this.typeNavn,
+        tittel = this.tittel,
         typeKode = this.tiltakstype.toDb(),
         deltagelseFraOgMed = this.periode.fraOgMed,
         deltagelseTilOgMed = this.periode.tilOgMed,

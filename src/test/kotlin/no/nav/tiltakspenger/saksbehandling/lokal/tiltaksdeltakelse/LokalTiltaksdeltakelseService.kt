@@ -111,6 +111,7 @@ class LokalTiltaksdeltakelseService(
                     eksternDeltakelseId = eksternId,
                     gjennomføringId = null,
                     typeNavn = command.typeNavn ?: tiltakstypeSomGirRett.name,
+                    tittel = command.tittel,
                     tiltakstype = tiltakstypeSomGirRett,
                     rettPåTiltakspenger = true,
                     periode = lukketEllerÅpenPeriode(command.fraOgMed, command.tilOgMed),
@@ -128,6 +129,7 @@ class LokalTiltaksdeltakelseService(
                 TiltaksdeltakelseSomFratarRett(
                     eksternDeltakelseId = eksternId,
                     typeNavn = command.typeNavn ?: standardnavn(tiltakskode),
+                    tittel = command.tittel,
                     tiltakskodeFraKilden = tiltakskode,
                     periode = lukketEllerÅpenPeriode(command.fraOgMed, command.tilOgMed),
                     deltakelseStatus = command.status ?: TiltakDeltakerstatus.Deltar,
@@ -233,12 +235,15 @@ class LokalTiltaksdeltakelseService(
  * [tiltakskode] og [kilde] kan ikke endres på en eksisterende deltakelse.
  *
  * @param tiltakskode navnet på en [TiltakstypeSomGirRett] eller kildens kode for en tiltakstype som fratar rett, f.eks. `MIDLONTIL`.
+ * @param tittel hele tiltaksnavnet slik kilden leverer det, f.eks. `Oppfølging hos Arrangør AS`.
+ * Uten tittel beholdes en eksisterende tittel, og en ny deltakelse får ingen, slik som når kilden ikke leverer en.
  */
 data class OpprettEllerOppdaterLokalTiltaksdeltakelseCommand(
     val eksternDeltakelseId: String?,
     val sakId: SakId?,
     val tiltakskode: String?,
     val typeNavn: String?,
+    val tittel: String?,
     val kilde: Tiltakskilde?,
     val fraOgMed: LocalDate?,
     val tilOgMed: LocalDate?,
