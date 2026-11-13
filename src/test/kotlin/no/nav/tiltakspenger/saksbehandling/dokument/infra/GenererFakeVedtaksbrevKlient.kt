@@ -52,6 +52,11 @@ class GenererFakeVedtaksbrevKlient :
     /** Forlengelsesbrevene faken har generert, i rekkefølgen de ble generert. */
     val forlengelsesbrev: List<Forlengelsesbrev> get() = genererteForlengelsesbrev.get().toList()
 
+    private val barnetilleggIForhåndsvisteInnvilgelsesbrev = Atomic(mutableListOf<Periodisering<AntallBarn>?>())
+
+    /** Barnetillegget i søknads- og revurderingsbrevene faken har forhåndsvist, i rekkefølgen de ble generert. */
+    val forhåndsvistBarnetillegg: List<Periodisering<AntallBarn>?> get() = barnetilleggIForhåndsvisteInnvilgelsesbrev.get().toList()
+
     override suspend fun genererInnvilgetVedtakBrev(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,
@@ -75,6 +80,7 @@ class GenererFakeVedtaksbrevKlient :
         barnetilleggsperioder: Periodisering<AntallBarn>?,
         tilleggstekst: FritekstTilVedtaksbrev?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        barnetilleggIForhåndsvisteInnvilgelsesbrev.get().add(barnetilleggsperioder)
         return response
     }
 
@@ -90,7 +96,10 @@ class GenererFakeVedtaksbrevKlient :
         innvilgelsesperioder: Innvilgelsesperioder,
         barnetilleggsperioder: Periodisering<AntallBarn>?,
         tilleggstekst: FritekstTilVedtaksbrev?,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> = response
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        barnetilleggIForhåndsvisteInnvilgelsesbrev.get().add(barnetilleggsperioder)
+        return response
+    }
 
     override suspend fun genererForlengelseBrev(
         vedtak: Rammevedtak,

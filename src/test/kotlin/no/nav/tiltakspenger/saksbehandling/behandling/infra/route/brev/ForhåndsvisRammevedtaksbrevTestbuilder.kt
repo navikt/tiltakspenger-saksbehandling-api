@@ -39,8 +39,6 @@ interface ForhåndsvisRammevedtaksbrevTestbuilder {
         stansFraOgMed: LocalDate? = null,
         valgteHjemler: List<HjemmelForStansDTO>? = null,
         barnetillegg: OppdaterBarnetilleggDTO? = null,
-        // Overstyrer barnetillegget med rå json, f.eks. med antall barn per periode for barnetillegg lagret som V1.
-        barnetilleggJson: String? = barnetillegg?.let { serialize(it) },
         resultat: RammebehandlingResultatTypeDTO,
         avslagsgrunner: List<ValgtHjemmelForAvslagDTO>? = null,
         innvilgelsesperioder: InnvilgelsesperioderDTO? = null,
@@ -70,7 +68,7 @@ interface ForhåndsvisRammevedtaksbrevTestbuilder {
                 "stansFraOgMed": ${if (stansFraOgMed != null) """"$stansFraOgMed"""" else null},
                 "harValgtStansFraFørsteDagSomGirRett": ${stansFraOgMed == null},
                 "valgteHjemler": ${valgteHjemler?.joinToString(prefix = "[", postfix = "]") { """"$it"""" }},
-                "barnetillegg": $barnetilleggJson,
+                "barnetillegg": ${barnetillegg?.let { serialize(it) }},
                 "resultat": "$resultat",
                 "tilOgMed": ${tilOgMed?.let { "\"$it\"" }},
                 "internDeltakelseId": ${internDeltakelseId?.let { "\"$it\"" }},

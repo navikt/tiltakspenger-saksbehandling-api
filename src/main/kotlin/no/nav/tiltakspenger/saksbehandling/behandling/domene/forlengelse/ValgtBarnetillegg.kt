@@ -2,58 +2,26 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnMedBarnetillegg
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.UgyldigBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 
 /**
  * Barnetillegget saksbehandler har valgt, før det er validert mot innvilgelsesperiodene.
+ *
+ * @param barn Barna det skal gis barnetillegg for.
+ * Tom liste betyr ingen barnetillegg.
  */
-sealed interface ValgtBarnetillegg {
-    val begrunnelse: Begrunnelse?
-
-    fun tilBarnetillegg(innvilgelsesperioder: NonEmptyList<Periode>): Either<UgyldigBarnetillegg, Barnetillegg>
-
-    /**
-     * Barna det skal gis barnetillegg for.
-     * Tom liste betyr ingen barnetillegg.
-     */
-    data class Barn(
-        val barn: List<BarnMedBarnetillegg>,
-        override val begrunnelse: Begrunnelse?,
-    ) : ValgtBarnetillegg {
-        override fun tilBarnetillegg(innvilgelsesperioder: NonEmptyList<Periode>): Either<UgyldigBarnetillegg, BarnetilleggV2> =
-            BarnetilleggV2.create(
-                barn = barn,
-                innvilgelsesperioder = innvilgelsesperioder,
-                begrunnelse = begrunnelse,
-            )
-    }
-
-    /**
-     * Antall barn per periode, ved forhåndsvisning av brev for behandlinger med [BarnetilleggV1] som ikke kan endres.
-     * Gir [BarnetilleggV1].
-     * Tom liste betyr ingen barnetillegg, og gir et [BarnetilleggV2] uten barn.
-     */
-    data class PerioderMedAntallBarn(
-        val perioderMedBarn: List<Pair<Periode, AntallBarn>>,
-        override val begrunnelse: Begrunnelse?,
-    ) : ValgtBarnetillegg {
-        override fun tilBarnetillegg(innvilgelsesperioder: NonEmptyList<Periode>): Either<UgyldigBarnetillegg, Barnetillegg> {
-            val perioderMedBarn = perioderMedBarn.toNonEmptyListOrNull()
-                ?: return Barn(barn = emptyList(), begrunnelse = begrunnelse).tilBarnetillegg(innvilgelsesperioder)
-
-            return BarnetilleggV1.create(
-                perioderMedBarn = perioderMedBarn,
-                innvilgelsesperioder = innvilgelsesperioder,
-                begrunnelse = begrunnelse,
-            )
-        }
-    }
+data class ValgtBarnetillegg(
+    val barn: List<BarnMedBarnetillegg>,
+    val begrunnelse: Begrunnelse?,
+) {
+    fun tilBarnetillegg(innvilgelsesperioder: NonEmptyList<Periode>): Either<UgyldigBarnetillegg, BarnetilleggV2> =
+        BarnetilleggV2.create(
+            barn = barn,
+            innvilgelsesperioder = innvilgelsesperioder,
+            begrunnelse = begrunnelse,
+        )
 }

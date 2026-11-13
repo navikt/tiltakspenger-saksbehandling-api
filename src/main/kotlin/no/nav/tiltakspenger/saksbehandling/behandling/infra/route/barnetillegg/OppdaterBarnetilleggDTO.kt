@@ -30,7 +30,7 @@ data class OppdaterBarnetilleggDTO(
     fun tilBarnetillegg(innvilgelsesperioder: NonEmptyList<Periode>): BarnetilleggV2 =
         tilValgtBarnetillegg().tilBarnetillegg(innvilgelsesperioder).getOrElse { throw UgyldigBarnetilleggException(it) }
 
-    fun tilValgtBarnetillegg(): ValgtBarnetillegg.Barn = ValgtBarnetillegg.Barn(
+    fun tilValgtBarnetillegg(): ValgtBarnetillegg = ValgtBarnetillegg(
         barn = barn.map { it.tilDomene() },
         begrunnelse = begrunnelse?.let { Begrunnelse.create(it) },
     )

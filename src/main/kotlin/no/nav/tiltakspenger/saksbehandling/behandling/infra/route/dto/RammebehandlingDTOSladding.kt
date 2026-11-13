@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.sladdet
  * Sladding av [RammebehandlingDTO].
  * Fødselsdatoen i saksopplysningene, søknaden og saksbehandlers fritekster erstattes.
  * Titlene på tiltaksdeltakelsene i saksopplysningene inneholder arrangøren, som er stedsinformasjon, og sladdes.
+ * Personopplysningene om barna det kan gis barnetillegg for erstattes.
  * Begrunnelsen for prioriteringen er fritekst og sladdes, men det at behandlingen er prioritert beholdes.
  * Navkontoret er stedsinformasjon om personen og sladdes sammen med resten.
  * Identer, ID-er, statuser, beløp og perioder beholdes.
@@ -32,6 +33,7 @@ fun SøknadsbehandlingDTO.sladdet(): SøknadsbehandlingDTO = this.copy(
     ventestatus = ventestatus.map { it.sladdet() },
     utbetaling = utbetaling?.sladdet(),
     resultatDTO = resultatDTO.sladdet(),
+    barnetilleggKandidater = barnetilleggKandidater.map { it.sladdet() },
     søknad = søknad.sladdet(),
 )
 
@@ -45,6 +47,7 @@ fun RevurderingDTO.sladdet(): RevurderingDTO = this.copy(
     ventestatus = ventestatus.map { it.sladdet() },
     utbetaling = utbetaling?.sladdet(),
     resultatDTO = resultatDTO.sladdet(),
+    barnetilleggKandidater = barnetilleggKandidater.map { it.sladdet() },
 )
 
 fun SaksopplysningerDTO.sladdet(): SaksopplysningerDTO = this.copy(

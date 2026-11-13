@@ -1,20 +1,32 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev
 
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periode.toDTO
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.lagreBarnetilleggSomV1
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnKildeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.OppdaterBarnMedBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.OppdaterBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.forhåndsvisVedtaksbrevForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import org.junit.jupiter.api.Test
 
 class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
@@ -108,34 +120,83 @@ class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                 resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
             )
             responseJson shouldBe "pdf"
+            tac.forhåndsvistBarnetillegg.last()!!.perioderMedVerdi.toList() shouldBe listOf(
+                PeriodeMedVerdi(AntallBarn(2), 1.januar(2025) til 31.januar(2025)),
+                PeriodeMedVerdi(AntallBarn(1), 1.februar(2025) til 31.mars(2025)),
+            )
         }
     }
 
     @Test
-    fun `kan forhåndsvise vedtaksbrev med barnetillegg lagret som antall barn per periode`() {
-        withTestApplicationContext { tac ->
-            val innvilgelsesperiode = (1.januar(2025) til 31.mars(2025))
-            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(
-                tac,
-                tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperiode),
+    fun `beslutter får barnetillegget som er lagret som antall barn per periode, uavhengig av skjemaet`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+            val tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperiode)
+            val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(
+                tac = tac,
+                tiltaksdeltakelse = tiltaksdeltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode, tiltaksdeltakelse),
+                barnetillegg = barnetillegg(periode = 1.januar(2025) til 31.januar(2025), antallBarn = AntallBarn(2)),
             )
-            val (_, _, responseJson) = forhåndsvisVedtaksbrevForBehandlingId(
+            tac.lagreBarnetilleggSomV1(behandlingId)
+            taRammebehandlinger(tac, listOf(sak.id to behandlingId), saksbehandler = ObjectMother.beslutter())
+
+            forhåndsvisVedtaksbrevForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandlingId,
+                saksbehandler = ObjectMother.beslutter(),
+                innvilgelsesperioder = innvilgelsesperioderDTO(innvilgelsesperiode, tiltaksdeltakelse.internDeltakelseId.toString()),
+                barnetillegg = OppdaterBarnetilleggDTO(barn = emptyList(), begrunnelse = null),
+                resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
+            )
+
+            tac.forhåndsvistBarnetillegg.last()!!.perioderMedVerdi.toList() shouldBe listOf(
+                PeriodeMedVerdi(AntallBarn(2), 1.januar(2025) til 31.januar(2025)),
+                PeriodeMedVerdi(AntallBarn.ZERO, 1.februar(2025) til 31.mars(2025)),
+            )
+        }
+    }
+
+    @Test
+    fun `saksbehandler som ikke eier behandlingen får det lagrede barnetillegget`() {
+        withTestApplicationContext { tac ->
+            val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+            val tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperiode)
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
+                tac = tac,
+                tiltaksdeltakelse = tiltaksdeltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode, tiltaksdeltakelse),
+                barnetillegg = barnetillegg(periode = 1.januar(2025) til 31.januar(2025), antallBarn = AntallBarn(1)),
+            )
+
+            forhåndsvisVedtaksbrevForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = behandling.id,
-                innvilgelsesperioder = listOf(
-                    InnvilgelsesperiodeDTO(
-                        periode = innvilgelsesperiode.toDTO(),
-                        antallDagerPerMeldeperiode = 10,
-                        internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
-                    ),
+                saksbehandler = ObjectMother.saksbehandler(navIdent = "Z99999"),
+                innvilgelsesperioder = innvilgelsesperioderDTO(innvilgelsesperiode, tiltaksdeltakelse.internDeltakelseId.toString()),
+                barnetillegg = OppdaterBarnetilleggDTO(
+                    barn = listOf(barnLagtTilAvSaksbehandler(fornavn = "Ola", perioder = null)),
+                    begrunnelse = null,
                 ),
-                barnetilleggJson = """{"begrunnelse": null, "perioder": [{"antallBarn": 1, "periode": {"fraOgMed": "2025-01-01", "tilOgMed": "2025-01-31"}}]}""",
                 resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
             )
-            responseJson shouldBe "pdf"
+
+            tac.forhåndsvistBarnetillegg.last()!!.perioderMedVerdi.toList() shouldBe listOf(
+                PeriodeMedVerdi(AntallBarn(1), 1.januar(2025) til 31.januar(2025)),
+                PeriodeMedVerdi(AntallBarn.ZERO, 1.februar(2025) til 31.mars(2025)),
+            )
         }
     }
+
+    private fun innvilgelsesperioderDTO(periode: Periode, internDeltakelseId: String) = listOf(
+        InnvilgelsesperiodeDTO(
+            periode = periode.toDTO(),
+            antallDagerPerMeldeperiode = 10,
+            internDeltakelseId = internDeltakelseId,
+        ),
+    )
 
     private fun barnLagtTilAvSaksbehandler(fornavn: String, perioder: List<PeriodeDTO>?) = OppdaterBarnMedBarnetilleggDTO(
         fnr = null,
