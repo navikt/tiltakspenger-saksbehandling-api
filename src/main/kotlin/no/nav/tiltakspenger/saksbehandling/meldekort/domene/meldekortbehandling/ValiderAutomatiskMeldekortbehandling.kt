@@ -3,18 +3,32 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import java.time.Clock
 
-fun Sak.validerAutomatiskMeldekortbehandling(brukersMeldekort: BrukersMeldekort): Either<MeldekortBehandletAutomatiskStatus, Unit> {
-    validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort).onLeft { return it.left() }
+/**
+ * Antall dager etter at førstegangsinnsendingen ble behandlet automatisk, hvor en korrigering fra bruker også kan behandles automatisk.
+ * Utbetalingen har én ventedag før den betales ut, så vi antar at den ikke er utbetalt før dagen etter behandlingen er omme.
+ */
+private const val DAGER_ETTER_FØRSTE_BEHANDLING_FOR_AUTOMATISK_KORRIGERING = 1L
+
+fun Sak.validerAutomatiskMeldekortbehandling(
+    brukersMeldekort: BrukersMeldekort,
+    clock: Clock,
+): Either<MeldekortBehandletAutomatiskStatus, Unit> {
+    validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort, clock).onLeft { return it.left() }
     validerTilstanderSomKanPrøvesPåNytt(brukersMeldekort).onLeft { return it.left() }
     return Unit.right()
 }
 
 /** Validering som gir permanente feil - skal ikke prøves på nytt */
-private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort: BrukersMeldekort): Either<MeldekortBehandletAutomatiskStatus, Unit> {
+private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
+    brukersMeldekort: BrukersMeldekort,
+    clock: Clock,
+): Either<MeldekortBehandletAutomatiskStatus, Unit> {
     val kjedeId = brukersMeldekort.kjedeId
 
     if (!brukersMeldekort.behandlesAutomatisk) {
@@ -23,7 +37,7 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort: Bruk
 
     val behandledeMeldekort = this.meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId] ?: emptyList()
 
-    if (behandledeMeldekort.isNotEmpty()) {
+    if (behandledeMeldekort.isNotEmpty() && !kanKorrigeresAutomatisk(behandledeMeldekort, brukersMeldekort, clock)) {
         return MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET.left()
     }
 
@@ -50,6 +64,27 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort: Bruk
     }
 
     return Unit.right()
+}
+
+/**
+ * En korrigering fra bruker kan behandles automatisk dersom kjeden kun har én behandling, og den ble behandlet automatisk på samme versjon av meldeperioden.
+ * Korrigeringen må i tillegg behandles senest dagen etter førstegangsinnsendingen ble behandlet, slik at utbetalingen ennå ikke er utbetalt.
+ * Vi sjekker ikke utbetalingsstatusen, siden den kun forteller om Oppdrag har tatt imot utbetalingen og ikke om den er utbetalt.
+ */
+private fun kanKorrigeresAutomatisk(
+    behandledeMeldekort: List<Meldekortbehandling.Behandlet>,
+    brukersMeldekort: BrukersMeldekort,
+    clock: Clock,
+): Boolean {
+    val førsteBehandling = behandledeMeldekort.singleOrNull() as? MeldekortBehandletAutomatisk ?: return false
+    val førsteInnsending = førsteBehandling.brukersMeldekort
+    val sisteDagForAutomatiskKorrigering = førsteBehandling.iverksattTidspunkt.toLocalDate()
+        .plusDays(DAGER_ETTER_FØRSTE_BEHANDLING_FOR_AUTOMATISK_KORRIGERING)
+
+    return førsteInnsending.id != brukersMeldekort.id &&
+        førsteInnsending.mottatt < brukersMeldekort.mottatt &&
+        førsteInnsending.meldeperiode == brukersMeldekort.meldeperiode &&
+        !nå(clock).toLocalDate().isAfter(sisteDagForAutomatiskKorrigering)
 }
 
 /** Validering som kan gi midlertidige feil - kan prøves på nytt */

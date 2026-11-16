@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.Bru
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandlingIverksatt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.nyOpprettetMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingJobb.Companion.MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -238,7 +239,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     @Test
-    fun `skal feile dersom det allerede finnes en behandling på meldeperiodekjeden`() {
+    fun `skal ikke behandle korrigering automatisk når dagen etter første behandling er omme`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
@@ -255,6 +256,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     behandlesAutomatisk = true,
                     sakId = sak.id,
                     meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+                    mottatt = nå(clock),
                 )
 
                 brukersMeldekortRepo.lagre(brukersMeldekort)
@@ -264,11 +266,13 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     behandlesAutomatisk = true,
                     sakId = sak.id,
                     meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+                    mottatt = nå(clock),
                 )
 
                 brukersMeldekortRepo.lagre(brukersMeldekortDuplikat)
 
-                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock)
+                // Første behandling skjedde 1. april, så fra og med 3. april kan utbetalingen være utbetalt.
+                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(fixedClockAt(3.april(2025).atTime(6, 30)))
 
                 val meldekortbehandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)
 
@@ -474,18 +478,21 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     sakId = sak.id,
                     meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
                     behandlesAutomatisk = true,
+                    mottatt = nå(clock),
                 )
                 brukersMeldekortRepo.lagre(brukersMeldekort)
                 service.behandleBrukersMeldekort(clock)
 
-                // Duplikat for samme meldeperiode -> vil feile med ALLEREDE_BEHANDLET
+                // Duplikat for samme meldeperiode etter at korrigeringsvinduet er omme -> vil feile med ALLEREDE_BEHANDLET
                 val duplikat = ObjectMother.brukersMeldekort(
                     sakId = sak.id,
                     meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
                     behandlesAutomatisk = true,
+                    mottatt = nå(clock),
                 )
                 brukersMeldekortRepo.lagre(duplikat)
-                service.behandleBrukersMeldekort(clock)
+                val etterKorrigeringsvinduet = fixedClockAt(3.april(2025).atTime(12, 0))
+                service.behandleBrukersMeldekort(etterKorrigeringsvinduet)
 
                 val lagretDuplikat = brukersMeldekortRepo.hentForMeldekortId(duplikat.id)!!
                 lagretDuplikat.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
@@ -493,7 +500,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 lagretDuplikat.behandlesAutomatisk shouldBe false
 
                 // Selv langt frem i tid (godt over maxDelay) skal den ikke retries
-                service.behandleBrukersMeldekort(clock = fixedClockAt(nå(clock).plusHours(1)))
+                service.behandleBrukersMeldekort(clock = fixedClockAt(nå(etterKorrigeringsvinduet).plusHours(1)))
                 meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 1
             }
         }
@@ -778,7 +785,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     @Test
-    fun `skal ikke behandle korrigert meldekort automatisk`() {
+    fun `skal behandle korrigert meldekort automatisk ut dagen etter første automatiske behandling`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
@@ -792,32 +799,79 @@ class AutomatiskMeldekortbehandlingJobbTest {
 
                 val meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode()
 
-                // Første meldekort behandles automatisk
-                val førsteMeldekort = ObjectMother.brukersMeldekort(
-                    behandlesAutomatisk = true,
-                    sakId = sak.id,
-                    meldeperiode = meldeperiode,
-                )
-                brukersMeldekortRepo.lagre(førsteMeldekort)
-                service.behandleBrukersMeldekort(clock)
-
-                meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 1
-
-                // Korrigert meldekort (andre innsending på samme kjede)
                 val korrigertMeldekort = ObjectMother.brukersMeldekort(
                     behandlesAutomatisk = true,
                     sakId = sak.id,
                     meldeperiode = meldeperiode,
+                    mottatt = nå(clock).plusMinutes(1),
+                )
+
+                // Bruker glemte å melde en dag i førstegangsinnsendingen, og korrigerer den til deltatt.
+                val førsteMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = meldeperiode,
+                    mottatt = nå(clock),
+                    dager = korrigertMeldekort.dager.let { dager ->
+                        val glemtDag = dager.first { it.status == InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET }
+                        dager.map { if (it == glemtDag) it.copy(status = InnmeldtStatus.IKKE_TILTAKSDAG) else it }
+                    },
+                )
+                brukersMeldekortRepo.lagre(førsteMeldekort)
+                service.behandleBrukersMeldekort(clock)
+
+                brukersMeldekortRepo.lagre(korrigertMeldekort)
+
+                // Første behandling skjedde 1. april, så siste mulighet er før økonomisystemet stenger 2. april.
+                service.behandleBrukersMeldekort(fixedClockAt(2.april(2025).atTime(20, 49)))
+
+                val behandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort
+                behandlinger.size shouldBe 2
+
+                val korrigering = behandlinger.last().shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
+                korrigering.brukersMeldekort.id shouldBe korrigertMeldekort.id
+                korrigering.harKorrigering shouldBe true
+
+                brukersMeldekortRepo.hentForMeldekortId(korrigertMeldekort.id)!!
+                    .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
+            }
+        }
+    }
+
+    @Test
+    fun `skal ikke behandle korrigert meldekort automatisk når første behandling var manuell`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                val kjede = sak.meldeperiodeKjeder.first()
+                tac.meldekortbehandlingIverksatt(
+                    sakId = sak.id,
+                    kjedeId = kjede.kjedeId,
+                )
+
+                val korrigertMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = kjede.hentSisteMeldeperiode(),
+                    mottatt = nå(clock),
                 )
                 brukersMeldekortRepo.lagre(korrigertMeldekort)
                 service.behandleBrukersMeldekort(clock)
 
-                // Skal fortsatt bare ha 1 behandling
                 meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 1
 
-                val lagretKorrigert = brukersMeldekortRepo.hentForMeldekortId(korrigertMeldekort.id)!!
-                lagretKorrigert.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
-                lagretKorrigert.behandlesAutomatisk shouldBe false
+                brukersMeldekortRepo.hentForMeldekortId(korrigertMeldekort.id)!!.let {
+                    it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
+                    it.behandlesAutomatisk shouldBe false
+                }
             }
         }
     }

@@ -82,9 +82,6 @@ data class MeldekortBehandletAutomatisk(
         require(meldeperioder.single().brukersMeldekort.size == 1) {
             "En automatisk behandling må være knyttet til nøyaktig ett meldekort fra bruker"
         }
-        require(!harKorrigering) {
-            "Vi støtter ikke automatisk behandling av korrigering fra bruker"
-        }
         require(status === MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET) {
             "Ugyldig status for automatisk behandling: $status"
         }
@@ -115,7 +112,7 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
     clock: Clock,
     simuler: suspend (behandling: Meldekortbehandling, navkontor: Navkontor) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
 ): Either<MeldekortBehandletAutomatiskStatus, Pair<MeldekortBehandletAutomatisk, SimuleringMedMetadata?>> {
-    validerAutomatiskMeldekortbehandling(brukersMeldekort).onLeft {
+    validerAutomatiskMeldekortbehandling(brukersMeldekort, clock).onLeft {
         return it.left()
     }
 
@@ -132,6 +129,12 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
     val meldekortbehandlingId = MeldekortId.random()
 
     val tidspunkt = nå(clock)
+
+    val type = if (this.meldekortbehandlinger.hentIkkeAvbrutteBehandlingerForKjede(brukersMeldekort.kjedeId).isEmpty()) {
+        MeldeperiodebehandlingType.FØRSTE_BEHANDLING
+    } else {
+        MeldeperiodebehandlingType.KORRIGERING
+    }
 
     val beregning = this.beregnMeldekort(
         meldekortIdSomBeregnes = meldekortbehandlingId,
@@ -152,7 +155,7 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
         meldeperioder = Meldeperiodebehandlinger(
             meldeperioder = nonEmptyListOf(
                 brukersMeldekort.tilMeldeperiodebehandling(
-                    MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                    type,
                     meldekortbehandlingId,
                 ),
             ),
