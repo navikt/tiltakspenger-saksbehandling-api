@@ -28,6 +28,9 @@ enum class MeldekortBehandletAutomatiskStatus(val loggnivå: Level, val kanPrøv
     FOR_MANGE_DAGER_REGISTRERT(loggnivå = Level.ERROR, kanPrøvesPåNytt = false),
     KAN_IKKE_MELDE_HELG(loggnivå = Level.ERROR, kanPrøvesPåNytt = false),
 
+    /** Korrigeringer fra bruker krever en simulering, slik at vi fanger opp feilutbetalinger før de iverksettes. */
+    SIMULERING_FEILET(loggnivå = Level.ERROR, kanPrøvesPåNytt = true),
+
     /** Simuleringen viser feilutbetaling eller justering, som automatisk behandling ikke støtter. */
     HAR_FEILUTBETALING(loggnivå = Level.WARN, kanPrøvesPåNytt = false),
     HAR_JUSTERING(loggnivå = Level.WARN, kanPrøvesPåNytt = false),

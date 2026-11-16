@@ -39,6 +39,7 @@ enum class MeldekortBehandletAutomatiskStatusDTO {
     INGEN_DAGER_GIR_RETT,
     HAR_JUSTERING,
     HAR_FEILUTBETALING,
+    SIMULERING_FEILET,
 }
 
 data class BrukersMeldekortDTO(
@@ -90,6 +91,7 @@ private fun MeldekortBehandletAutomatiskStatus.tilBehandletAutomatiskStatusDTO()
         MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT -> MeldekortBehandletAutomatiskStatusDTO.INGEN_DAGER_GIR_RETT
         MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING -> MeldekortBehandletAutomatiskStatusDTO.HAR_FEILUTBETALING
         MeldekortBehandletAutomatiskStatus.HAR_JUSTERING -> MeldekortBehandletAutomatiskStatusDTO.HAR_JUSTERING
+        MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET -> MeldekortBehandletAutomatiskStatusDTO.SIMULERING_FEILET
     }
 }
 

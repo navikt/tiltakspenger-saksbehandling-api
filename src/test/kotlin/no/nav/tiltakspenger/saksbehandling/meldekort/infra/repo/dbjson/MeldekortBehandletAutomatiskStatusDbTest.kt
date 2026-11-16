@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 /**
  * **Enhetstest framfor e2e, bevisst valgt.**
  * Statusene er utfallene av automatisk meldekortbehandling, og hver av dem krever sin egen feilsituasjon for å oppstå gjennom prodstien.
- * Å konstruere alle nitten ville kostet langt mer enn det gir — vi brukte reell tid på å få fram én av dem (`KAN_IKKE_MELDE_HELG`) — og mappingen rører ikke postgres.
+ * Å konstruere alle tjue ville kostet langt mer enn det gir — vi brukte reell tid på å få fram én av dem (`KAN_IKKE_MELDE_HELG`) — og mappingen rører ikke postgres.
  *
  * Testen pinner **de faktiske databaseverdiene**, ikke bare rundturen.
  * En ren rundtur er symmetrisk og ville passert selv om en status ble omdøpt i begge `when`-ene samtidig, og da er lagret data ulesbar uten at noe slår ut.
@@ -39,6 +39,7 @@ class MeldekortBehandletAutomatiskStatusDbTest {
             MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT to "INGEN_DAGER_GIR_RETT",
             MeldekortBehandletAutomatiskStatus.HAR_JUSTERING to "HAR_JUSTERING",
             MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING to "HAR_FEILUTBETALING",
+            MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET to "SIMULERING_FEILET",
         )
     }
 
