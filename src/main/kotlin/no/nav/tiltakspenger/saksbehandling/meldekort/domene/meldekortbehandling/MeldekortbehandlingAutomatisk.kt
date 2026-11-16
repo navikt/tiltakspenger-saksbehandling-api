@@ -112,7 +112,7 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
     clock: Clock,
     simuler: suspend (behandling: Meldekortbehandling, navkontor: Navkontor) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
 ): Either<MeldekortBehandletAutomatiskStatus, Pair<MeldekortBehandletAutomatisk, SimuleringMedMetadata?>> {
-    validerAutomatiskMeldekortbehandling(brukersMeldekort, clock).onLeft {
+    validerAutomatiskMeldekortbehandling(brukersMeldekort).onLeft {
         return it.left()
     }
 

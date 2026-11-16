@@ -239,7 +239,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     @Test
-    fun `skal ikke behandle korrigering automatisk når dagen etter første behandling er omme`() {
+    fun `skal ikke behandle korrigering automatisk når den er mottatt kl 17 dagen etter første innsending eller senere`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
@@ -262,17 +262,17 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 brukersMeldekortRepo.lagre(brukersMeldekort)
                 automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock)
 
+                // Første innsending ble mottatt 1. april, så fristen for automatisk korrigering er 2. april kl 17.
                 val brukersMeldekortDuplikat = ObjectMother.brukersMeldekort(
                     behandlesAutomatisk = true,
                     sakId = sak.id,
                     meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
-                    mottatt = nå(clock),
+                    mottatt = 2.april(2025).atTime(17, 0),
                 )
 
                 brukersMeldekortRepo.lagre(brukersMeldekortDuplikat)
 
-                // Første behandling skjedde 1. april, så fra og med 3. april kan utbetalingen være utbetalt.
-                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(fixedClockAt(3.april(2025).atTime(6, 30)))
+                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(fixedClockAt(2.april(2025).atTime(17, 1)))
 
                 val meldekortbehandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)
 
@@ -488,10 +488,10 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     sakId = sak.id,
                     meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
                     behandlesAutomatisk = true,
-                    mottatt = nå(clock),
+                    mottatt = 3.april(2025).atTime(12, 0),
                 )
                 brukersMeldekortRepo.lagre(duplikat)
-                val etterKorrigeringsvinduet = fixedClockAt(3.april(2025).atTime(12, 0))
+                val etterKorrigeringsvinduet = fixedClockAt(duplikat.mottatt)
                 service.behandleBrukersMeldekort(etterKorrigeringsvinduet)
 
                 val lagretDuplikat = brukersMeldekortRepo.hentForMeldekortId(duplikat.id)!!
@@ -785,7 +785,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     @Test
-    fun `skal behandle korrigert meldekort automatisk ut dagen etter første automatiske behandling`() {
+    fun `skal behandle korrigert meldekort automatisk når det er mottatt før kl 17 dagen etter første innsending`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
@@ -803,7 +803,8 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     behandlesAutomatisk = true,
                     sakId = sak.id,
                     meldeperiode = meldeperiode,
-                    mottatt = nå(clock).plusMinutes(1),
+                    // Første innsending mottas 1. april, så fristen er 2. april kl 17.
+                    mottatt = 2.april(2025).atTime(16, 59, 59),
                 )
 
                 // Bruker glemte å melde en dag i førstegangsinnsendingen, og korrigerer den til deltatt.
@@ -822,8 +823,8 @@ class AutomatiskMeldekortbehandlingJobbTest {
 
                 brukersMeldekortRepo.lagre(korrigertMeldekort)
 
-                // Første behandling skjedde 1. april, så siste mulighet er før økonomisystemet stenger 2. april.
-                service.behandleBrukersMeldekort(fixedClockAt(2.april(2025).atTime(20, 49)))
+                // Det er mottakstidspunktet som teller, så korrigeringen kan behandles etter fristen.
+                service.behandleBrukersMeldekort(fixedClockAt(2.april(2025).atTime(18, 0)))
 
                 val behandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort
                 behandlinger.size shouldBe 2
