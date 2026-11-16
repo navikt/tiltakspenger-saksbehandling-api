@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
+import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
@@ -407,6 +408,7 @@ interface IverksettRevurderingBuilder {
         stansFraOgMed: LocalDate? = null,
         harValgtStansFraFørsteDagSomGirRett: Boolean = stansFraOgMed == null,
         valgteHjemler: Set<HjemmelForStans> = setOf(HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+        jobber: JobberEtterIverksettelse = JobberEtterIverksettelse(),
     ): Triple<Sak, Rammevedtak, RammebehandlingDTOJson> {
         val (sak, revurdering, _) = startRevurderingStans(
             tac = tac,
@@ -440,6 +442,7 @@ interface IverksettRevurderingBuilder {
             sakId = sak.id,
             behandlingId = revurdering.id,
             beslutter = beslutter,
+            jobber = jobber,
         )!!
 
         return Triple(

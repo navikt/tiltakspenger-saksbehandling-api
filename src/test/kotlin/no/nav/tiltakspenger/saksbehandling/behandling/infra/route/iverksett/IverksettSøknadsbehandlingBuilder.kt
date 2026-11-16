@@ -1,12 +1,15 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 
+import arrow.core.NonEmptySet
 import arrow.core.Tuple4
+import arrow.core.nonEmptySetOf
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -16,7 +19,9 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgels
 import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskBehandlingKlarTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedAvslag
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
@@ -78,6 +83,46 @@ interface IverksettSøknadsbehandlingBuilder {
             rammevedtak,
             jsonResponse,
         )
+    }
+
+    /**
+     * Avslår en ny søknad på en eksisterende sak og iverksetter avslaget.
+     * Den nye perioden blir perioden til [tiltaksdeltakelse], siden det er den søknaden gjelder.
+     */
+    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingAvslag(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        fnr: Fnr,
+        tiltaksdeltakelse: TiltaksdeltakelseIntern,
+        avslagsgrunner: NonEmptySet<Avslagsgrunnlag> = nonEmptySetOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        beslutter: Saksbehandler = ObjectMother.beslutter(),
+        jobber: JobberEtterIverksettelse = JobberEtterIverksettelse(),
+    ): Pair<Sak, Rammevedtak> {
+        val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandlingMedAvslag(
+            tac = tac,
+            sakId = sakId,
+            fnr = fnr,
+            saksbehandler = saksbehandler,
+            avslagsgrunner = avslagsgrunner,
+            tiltaksdeltakelse = tiltaksdeltakelse,
+        )
+        sendSøknadsbehandlingTilBeslutningForBehandlingId(
+            tac = tac,
+            sakId = sak.id,
+            behandlingId = behandling.id,
+            saksbehandler = saksbehandler,
+        )
+        taRammebehandlinger(tac, behandlinger = listOf(sak.id to behandling.id), saksbehandler = beslutter)
+
+        val (oppdatertSak, rammevedtak) = iverksettForBehandlingId(
+            tac = tac,
+            sakId = sak.id,
+            behandlingId = behandling.id,
+            beslutter = beslutter,
+            jobber = jobber,
+        )!!
+        return oppdatertSak to rammevedtak
     }
 
     /** Oppretter ny sak, søknad og behandling. */

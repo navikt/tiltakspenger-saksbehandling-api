@@ -1,19 +1,26 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak
 
+import arrow.core.nonEmptySetOf
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingAvslag
 import org.junit.jupiter.api.Test
 
 class VedtakslisteTest {
@@ -153,76 +160,127 @@ class VedtakslisteTest {
     }
 
     @Test
-    fun `gjeldendeInnvilgelseForPeriode gir null når saken ikke har innvilgelser`() {
-        // TODO: Tom Rammevedtaksliste, eller en sak med bare et avslag.
-        // Forvent null.
-        TODO("Ikke implementert")
-    }
-
-    @Test
-    fun `gjeldendeInnvilgelseForPeriode gir null når innvilgelsen ikke overlapper perioden`() {
-        // TODO: Innvilgelse i januar, spør om en periode i mars.
-        // Forvent null.
-        TODO("Ikke implementert")
-    }
-
-    @Test
     fun `gjeldendeInnvilgelseForPeriode gir hele den innvilgede perioden, ikke bare overlappen`() {
-        // TODO: Innvilgelse 1.–31. januar, spør om 15. januar–15. februar.
-        // Forvent vedtaket, med periode 1.–31. januar.
-        TODO("Ikke implementert")
+        withTestApplicationContext { tac ->
+            val innvilgelsesperiode = 1 til 31.januar(2025)
+            val (sak, _, innvilgelse, _) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode, tiltaksdeltakelse(innvilgelsesperiode)),
+            )
+            val nyPeriode = 15.januar(2025) til 15.februar(2025)
+
+            sak.rammevedtaksliste.gjeldendeInnvilgelseForPeriode(nyPeriode).also { gjeldendeInnvilgelse ->
+                gjeldendeInnvilgelse shouldBe PeriodeMedVerdi(innvilgelse, innvilgelsesperiode)
+            }
+        }
     }
 
+    /**
+     * Ett vedtak med hull mellom januar og mars gir to innslag i den innvilgede tidslinja.
+     * Bare innslagene som overlapper den nye perioden skal telle, og overlapper begge, får saksbehandler skrive innvilgelsen i fritekst (avklart med fag).
+     */
     @Test
-    fun `gjeldendeInnvilgelseForPeriode gir null når flere innvilgelser overlapper perioden`() {
-        // TODO: To innvilgelser, f.eks. januar og februar, spør om en periode som dekker begge.
-        // Forvent null, så saksbehandler skriver periodene i fritekst.
-        TODO("Ikke implementert")
+    fun `gjeldendeInnvilgelseForPeriode velger delen som overlapper, og gir null når flere deler overlapper`() {
+        withTestApplicationContext { tac ->
+            val heleJanuar = 1 til 31.januar(2025)
+            val heleMars = 1 til 31.mars(2025)
+            val (sak, _, innvilgelse, _) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(heleJanuar, heleMars),
+            )
+
+            sak.rammevedtaksliste.gjeldendeInnvilgelseForPeriode(heleMars) shouldBe PeriodeMedVerdi(innvilgelse, heleMars)
+            sak.rammevedtaksliste.gjeldendeInnvilgelseForPeriode(heleJanuar.fraOgMed til heleMars.tilOgMed) shouldBe null
+        }
     }
 
-    @Test
-    fun `gjeldendeInnvilgelseForPeriode gir null når ett vedtak har innvilgelsesperioder med hull som begge overlapper`() {
-        // TODO: Ett vedtak med to innvilgelsesperioder med hull mellom, f.eks. jan og mars, og avslagsperiode jan–mars.
-        // Forvent null, slik at saksbehandler fyller inn innvilgelsen manuelt i brevet (avklart med fag).
-        TODO("Ikke implementert")
-    }
-
+    /**
+     * Ulikt antall dager per meldeperiode gir to tilstøtende innvilgelsesperioder i samme vedtak.
+     * De må slås sammen til ett innslag, ellers faller brevet tilbake til reserveteksten for helt vanlige vedtak.
+     */
     @Test
     fun `gjeldendeInnvilgelseForPeriode slår sammen tilstøtende innvilgelsesperioder i samme vedtak`() {
-        // TODO: Ett vedtak med to tilstøtende innvilgelsesperioder, f.eks. ulikt antall dager per meldeperiode i jan og feb.
-        // Forvent én PeriodeMedVerdi med hele perioden jan–feb, siden tilPeriodisering slår sammen like verdier.
-        TODO("Ikke implementert")
-    }
+        withTestApplicationContext { tac ->
+            val førstePeriode = 1 til 14.september(2025)
+            val andrePeriode = 15 til 28.september(2025)
+            val tiltaksdeltakelse = tiltaksdeltakelse(fom = førstePeriode.fraOgMed, tom = andrePeriode.tilOgMed)
+            val (sak, _, innvilgelse, _) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(
+                    innvilgelsesperiode(
+                        periode = førstePeriode,
+                        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(9),
+                        valgtTiltaksdeltakelse = tiltaksdeltakelse,
+                    ),
+                    innvilgelsesperiode(
+                        periode = andrePeriode,
+                        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(8),
+                        valgtTiltaksdeltakelse = tiltaksdeltakelse,
+                    ),
+                ),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+            // Forutsetning: vedtaket har to innvilgelsesperioder, ellers beviser testen ingenting.
+            innvilgelse.innvilgelsesperioder!!.perioder shouldBe listOf(førstePeriode, andrePeriode)
 
-    @Test
-    fun `gjeldendeInnvilgelseForPeriode gir den gjeldende delen når innvilgelsen er delvis stanset`() {
-        // TODO: Innvilgelse 1.–31. januar, så stans fra 16. januar.
-        // Forvent vedtaket med periode 1.–15. januar.
-        TODO("Ikke implementert")
-    }
-
-    @Test
-    fun `opprettetFør gir tom liste når ingen vedtak er eldre enn tidspunktet`() {
-        // TODO: Iverksett én innvilgelse.
-        // Kall opprettetFør med vedtakets egen opprettet-tidspunkt.
-        // Forvent tom liste, siden vedtak opprettet på tidspunktet ikke tas med.
-        TODO("Ikke implementert")
+            sak.rammevedtaksliste.gjeldendeInnvilgelseForPeriode(førstePeriode) shouldBe
+                PeriodeMedVerdi(innvilgelse, førstePeriode.fraOgMed til andrePeriode.tilOgMed)
+        }
     }
 
     @Test
     fun `opprettetFør tar bort senere vedtak og regner omgjøringene på nytt`() {
-        // TODO: Iverksett en innvilgelse, deretter en revurdering som omgjør deler av den.
-        // Kall opprettetFør med revurderingens opprettet-tidspunkt.
-        // Forvent at lista bare har innvilgelsen, og at omgjortAvRammevedtak på den er tom.
-        // Forvent at innvilgetTidslinje igjen dekker hele den opprinnelige innvilgelsesperioden.
-        TODO("Ikke implementert")
+        withTestApplicationContext { tac ->
+            val innvilgelsesperiode = 1 til 31.januar(2025)
+            val (sak, _, innvilgelse, _) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode, tiltaksdeltakelse(innvilgelsesperiode)),
+            )
+            // Stansen omgjør innvilgelsen fra og med 16. januar.
+            val (sakEtterStans, stans, _) = iverksettRevurderingStans(
+                tac = tac,
+                sakId = sak.id,
+                stansFraOgMed = 16.januar(2025),
+            )
+
+            // Forutsetning: stansen har omgjort innvilgelsen fra 16. januar, ellers beviser testen ingenting.
+            sakEtterStans.rammevedtaksliste.hentRammevedtakForId(innvilgelse.id)
+                .omgjortAvRammevedtak.perioder shouldBe listOf(16.januar(2025) til 31.januar(2025))
+
+            sakEtterStans.rammevedtaksliste.opprettetFør(stans.opprettet).also { førStansen ->
+                førStansen shouldContainExactly listOf(innvilgelse)
+                førStansen.hentRammevedtakForId(innvilgelse.id).omgjortAvRammevedtak.perioder shouldBe emptyList()
+                førStansen.innvilgetTidslinje.perioder shouldBe listOf(innvilgelsesperiode)
+            }
+        }
     }
 
     @Test
     fun `gjeldendeInnvilgelseForPeriode før avslaget ser bort fra revurdering etter avslaget`() {
-        // TODO: Innvilgelse, så avslag med grunn InnvilgetTiltakspenger, så revurdering som endrer innvilgelsen.
-        // Kall opprettetFør(avslaget.opprettet).gjeldendeInnvilgelseForPeriode(avslaget.periode).
-        // Forvent den opprinnelige innvilgelsen med hele den opprinnelige perioden.
-        TODO("Ikke implementert")
+        withTestApplicationContext { tac ->
+            val innvilgelsesperiode = 1 til 31.januar(2025)
+            val tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperiode)
+            val (sak, _, innvilgelse, _) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode, tiltaksdeltakelse),
+            )
+            val (_, avslag) = iverksettSøknadsbehandlingAvslag(
+                tac = tac,
+                sakId = sak.id,
+                fnr = sak.fnr,
+                tiltaksdeltakelse = tiltaksdeltakelse,
+                avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.InnvilgetTiltakspenger),
+            )
+            // Stansen kommer etter avslaget og skal ikke påvirke hva som gjaldt da avslaget ble fattet.
+            val (sakEtterStans, _, _) = iverksettRevurderingStans(
+                tac = tac,
+                sakId = sak.id,
+                stansFraOgMed = 16.januar(2025),
+            )
+
+            sakEtterStans.rammevedtaksliste.opprettetFør(avslag.opprettet).gjeldendeInnvilgelseForPeriode(avslag.periode).also { gjeldendeInnvilgelse ->
+                gjeldendeInnvilgelse shouldBe PeriodeMedVerdi(innvilgelse, innvilgelsesperiode)
+            }
+        }
     }
 }

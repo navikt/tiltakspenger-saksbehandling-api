@@ -4,10 +4,13 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.forhåndsvisVedtaksbrevForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import org.junit.jupiter.api.Test
 
@@ -36,10 +39,37 @@ class ForhåndsvisAvslagVedtaksbrevTest {
 
     @Test
     fun `forhåndsvisning av avslag med grunn InnvilgetTiltakspenger får den gjeldende innvilgelsen`() {
-        // TODO: Iverksett en innvilgelse, og start en ny søknadsbehandling for samme periode.
-        // Forhåndsvis med avslagsgrunner = listOf(ValgtHjemmelForAvslagDTO.InnvilgetTiltakspenger).
-        // Forvent at faken fikk innvilgelsesvedtaket og den innvilgede perioden som tidligereInnvilgelse.
-        // Krever samme utvidelse av GenererFakeVedtaksbrevKlient som i JournalførRammevedtakServiceTest.
-        TODO("Ikke implementert")
+        withTestApplicationContext { tac ->
+            val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+            val tiltaksdeltakelse = tac.tiltaksdeltakelse(innvilgelsesperiode)
+            val (sak, _, innvilgelse, _) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode, tiltaksdeltakelse),
+            )
+            // Ny søknad for samme deltakelse, slik at den nye perioden er den samme som innvilgelsesperioden.
+            val (_, _, behandling) = opprettSøknadsbehandlingUnderBehandling(
+                tac = tac,
+                sakId = sak.id,
+                fnr = sak.fnr,
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+
+            forhåndsvisVedtaksbrevForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                vedtaksperiode = innvilgelsesperiode,
+                stansFraOgMed = null,
+                valgteHjemler = null,
+                barnetillegg = null,
+                resultat = RammebehandlingResultatTypeDTO.AVSLAG,
+                avslagsgrunner = listOf(ValgtHjemmelForAvslagDTO.InnvilgetTiltakspenger),
+            )
+
+            tac.avslagsbrev.single().also { avslagsbrev ->
+                avslagsbrev.forhåndsvisning shouldBe true
+                avslagsbrev.tidligereInnvilgelse shouldBe PeriodeMedVerdi(innvilgelse, innvilgelsesperiode)
+            }
+        }
     }
 }
