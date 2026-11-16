@@ -241,7 +241,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     @Test
-    fun `skal ikke behandle korrigering automatisk når den er mottatt kl 17 dagen etter første innsending eller senere`() {
+    fun `skal ikke behandle korrigering automatisk kl 17 dagen etter at første meldekort ble behandlet eller senere`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
@@ -264,17 +264,18 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 brukersMeldekortRepo.lagre(brukersMeldekort)
                 automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock)
 
-                // Første innsending ble mottatt 1. april, så fristen for automatisk korrigering er 2. april kl 17.
+                // Første meldekort ble behandlet 1. april, så fristen for automatisk korrigering er 2. april kl 17.
+                // Det er behandlingstidspunktet som teller, så korrigeringen avvises selv om den ble mottatt før fristen.
                 val brukersMeldekortDuplikat = ObjectMother.brukersMeldekort(
                     behandlesAutomatisk = true,
                     sakId = sak.id,
                     meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
-                    mottatt = 2.april(2025).atTime(17, 0),
+                    mottatt = 2.april(2025).atTime(16, 0),
                 )
 
                 brukersMeldekortRepo.lagre(brukersMeldekortDuplikat)
 
-                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(fixedClockAt(2.april(2025).atTime(17, 1)))
+                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(fixedClockAt(2.april(2025).atTime(17, 0)))
 
                 val meldekortbehandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)
 
@@ -787,7 +788,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     @Test
-    fun `skal behandle korrigert meldekort automatisk når det er mottatt før kl 17 dagen etter første innsending`() {
+    fun `skal behandle korrigert meldekort automatisk før kl 17 dagen etter at første meldekort ble behandlet`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
@@ -805,8 +806,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     behandlesAutomatisk = true,
                     sakId = sak.id,
                     meldeperiode = meldeperiode,
-                    // Første innsending mottas 1. april, så fristen er 2. april kl 17.
-                    mottatt = 2.april(2025).atTime(16, 59, 59),
+                    mottatt = 3.april(2025).atTime(10, 0),
                 )
 
                 // Bruker glemte å melde en dag i førstegangsinnsendingen, og korrigerer den til deltatt.
@@ -821,12 +821,11 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     },
                 )
                 brukersMeldekortRepo.lagre(førsteMeldekort)
-                service.behandleBrukersMeldekort(clock)
+                // Første meldekort mottas 1. april, men behandles først 2. april, så fristen er 3. april kl 17.
+                service.behandleBrukersMeldekort(fixedClockAt(2.april(2025).atTime(10, 0)))
 
                 brukersMeldekortRepo.lagre(korrigertMeldekort)
-
-                // Det er mottakstidspunktet som teller, så korrigeringen kan behandles etter fristen.
-                service.behandleBrukersMeldekort(fixedClockAt(2.april(2025).atTime(18, 0)))
+                service.behandleBrukersMeldekort(fixedClockAt(3.april(2025).atTime(16, 59, 59)))
 
                 val behandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort
                 behandlinger.size shouldBe 2

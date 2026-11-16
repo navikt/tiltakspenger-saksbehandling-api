@@ -3,26 +3,34 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import java.time.Clock
 import java.time.LocalDateTime
 import java.time.LocalTime
 
 /**
- * En korrigering fra bruker må være mottatt før dette klokkeslettet dagen etter førstegangsinnsendingen for å kunne behandles automatisk.
+ * En korrigering fra bruker må behandles før dette klokkeslettet dagen etter at første meldekortbehandling ble iverksatt for å kunne behandles automatisk.
  * Utbetalingen har én ventedag før den betales ut, så vi antar at den ikke er utbetalt før fristen.
  */
 private val FRIST_FOR_AUTOMATISK_KORRIGERING_DAGEN_ETTER: LocalTime = LocalTime.of(17, 0)
 
-fun Sak.validerAutomatiskMeldekortbehandling(brukersMeldekort: BrukersMeldekort): Either<MeldekortBehandletAutomatiskStatus, Unit> {
-    validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort).onLeft { return it.left() }
+fun Sak.validerAutomatiskMeldekortbehandling(
+    brukersMeldekort: BrukersMeldekort,
+    clock: Clock,
+): Either<MeldekortBehandletAutomatiskStatus, Unit> {
+    validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort, clock).onLeft { return it.left() }
     validerTilstanderSomKanPrøvesPåNytt(brukersMeldekort).onLeft { return it.left() }
     return Unit.right()
 }
 
 /** Validering som gir permanente feil - skal ikke prøves på nytt */
-private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort: BrukersMeldekort): Either<MeldekortBehandletAutomatiskStatus, Unit> {
+private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
+    brukersMeldekort: BrukersMeldekort,
+    clock: Clock,
+): Either<MeldekortBehandletAutomatiskStatus, Unit> {
     val kjedeId = brukersMeldekort.kjedeId
 
     if (!brukersMeldekort.behandlesAutomatisk) {
@@ -31,7 +39,7 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort: Bruk
 
     val behandledeMeldekort = this.meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId] ?: emptyList()
 
-    if (behandledeMeldekort.isNotEmpty() && !kanKorrigeresAutomatisk(behandledeMeldekort, brukersMeldekort)) {
+    if (behandledeMeldekort.isNotEmpty() && !kanKorrigeresAutomatisk(behandledeMeldekort, brukersMeldekort, clock)) {
         return MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET.left()
     }
 
@@ -62,23 +70,24 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort: Bruk
 
 /**
  * En korrigering fra bruker kan behandles automatisk dersom kjeden kun har én behandling, og den ble behandlet automatisk på samme versjon av meldeperioden.
- * Korrigeringen må i tillegg være mottatt før kl. 17 dagen etter førstegangsinnsendingen, slik at utbetalingen ennå ikke er utbetalt.
+ * Korrigeringen må i tillegg behandles før kl. 17 dagen etter at første behandling ble iverksatt, slik at utbetalingen ennå ikke er utbetalt.
  * Vi sjekker ikke utbetalingsstatusen, siden den kun forteller om Oppdrag har tatt imot utbetalingen og ikke om den er utbetalt.
  */
 private fun kanKorrigeresAutomatisk(
     behandledeMeldekort: List<Meldekortbehandling.Behandlet>,
     brukersMeldekort: BrukersMeldekort,
+    clock: Clock,
 ): Boolean {
     val førsteBehandling = behandledeMeldekort.singleOrNull() as? MeldekortBehandletAutomatisk ?: return false
     val førsteInnsending = førsteBehandling.brukersMeldekort
-    val frist: LocalDateTime = førsteInnsending.mottatt.toLocalDate()
+    val frist: LocalDateTime = førsteBehandling.iverksattTidspunkt.toLocalDate()
         .plusDays(1)
         .atTime(FRIST_FOR_AUTOMATISK_KORRIGERING_DAGEN_ETTER)
 
     return førsteInnsending.id != brukersMeldekort.id &&
         førsteInnsending.mottatt < brukersMeldekort.mottatt &&
         førsteInnsending.meldeperiode == brukersMeldekort.meldeperiode &&
-        brukersMeldekort.mottatt < frist
+        nå(clock) < frist
 }
 
 /** Validering som kan gi midlertidige feil - kan prøves på nytt */
