@@ -47,6 +47,7 @@ class SladdingRouteTest {
         fødselsdato = 14.juni(2012),
     )
     private val tiltakstittel = "Sveisekurs hos Hemmelig Arrangør AS"
+    private val gjennomføringsnavn = "AMO-kurs i sveis, Hemmeligveien"
     private val valgtBarnFnr = Fnr.random()
     private val valgtBarnLagtTilAvSaksbehandler = ObjectMother.barnMedBarnetillegg(
         fnr = valgtBarnFnr,
@@ -86,7 +87,10 @@ class SladdingRouteTest {
             objectMapper.readTree(somUtvikler.getValue(TILTAKSDELTAKELSER)).forEach {
                 it["visningsnavn"].erSladdet()
             }
-            objectMapper.readTree(somUtvikler.getValue(TILTAKSDATA)).single()["tittel"].erSladdet()
+            objectMapper.readTree(somUtvikler.getValue(TILTAKSDATA)).single().let {
+                it["tittel"].erSladdet()
+                it["gjennomføringsnavn"].erSladdet()
+            }
             objectMapper.readTree(somUtvikler.getValue(BENK))["oversikt"]["behandlinger"].forEach {
                 it["fnr"].erSladdet()
             }
@@ -113,6 +117,7 @@ class SladdingRouteTest {
             somSaksbehandler.getValue(TILTAKSDELTAKELSER) shouldContain
                 ObjectMother.tiltaksdeltakelseMedArrangørnavn().visningsnavn
             somSaksbehandler.getValue(TILTAKSDATA) shouldContain tiltakstittel
+            somSaksbehandler.getValue(TILTAKSDATA) shouldContain gjennomføringsnavn
             somSaksbehandler.getValue(BENK) shouldContain sak.fnr.verdi
         }
     }
@@ -192,7 +197,14 @@ class SladdingRouteTest {
             tac = tac,
             tiltaksdeltakelse = tiltaksdeltakelse,
             barnetillegg = listOf(barnetilleggMedIdent, barnetilleggUtenIdent),
-        ).also { (sak) -> tac.oppdaterTiltaksdeltakelse(sak.fnr, tiltaksdeltakelse, tittel = tiltakstittel) }
+        ).also { (sak) ->
+            tac.oppdaterTiltaksdeltakelse(
+                sak.fnr,
+                tiltaksdeltakelse,
+                tittel = tiltakstittel,
+                gjennomføringsnavn = gjennomføringsnavn,
+            )
+        }
     }
 
     /**
@@ -216,6 +228,7 @@ class SladdingRouteTest {
             14.juni(2012).toString(),
             ObjectMother.tiltaksdeltakelseMedArrangørnavn().visningsnavn,
             tiltakstittel,
+            gjennomføringsnavn,
             personopplysninger.tekst("fornavn"),
             personopplysninger.tekst("etternavn"),
             personopplysninger.tekst("fødselsdato"),

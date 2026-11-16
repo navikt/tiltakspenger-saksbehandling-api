@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse
 
+import no.nav.tiltakspenger.libs.common.personopplysning.Gjennomføringsnavn
 import no.nav.tiltakspenger.libs.common.personopplysning.Tilknytningstittel
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Arrangør
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Deltakelsesomfang
@@ -12,15 +13,19 @@ import java.time.LocalDate
  * Deltakelsen slik tiltakshistorikk ville levert den, til fakes som trenger libs-domenet.
  * Rundturen tilbake via `tilTiltaksdeltakelseSomFratarRett` gir samme verdi, så lenge statusen finnes hos kilden.
  * Arrangør og gjennomføring finnes ikke i den interne modellen, og blir tomme.
- * Tittelen lagres ikke hos oss, og må derfor sendes inn for å finnes hos kilden.
+ * Tittelen og gjennomføringsnavnet lagres ikke hos oss, og må derfor sendes inn for å finnes hos kilden.
  */
-fun TiltaksdeltakelseSomFratarRett.tilLibsDeltakelse(tittel: String? = null): Tiltaksdeltakelse.FratarRett {
+fun TiltaksdeltakelseSomFratarRett.tilLibsDeltakelse(
+    tittel: String? = null,
+    gjennomføringsnavn: String? = null,
+): Tiltaksdeltakelse.FratarRett {
     return Tiltaksdeltakelse.FratarRett(
         id = EksternDeltakelseId(eksternDeltakelseId),
         kildestatus = tilKildestatus(kilde, deltakelseStatus),
         tiltakstypenavn = typeNavn,
         tiltakskodeFraKilden = tiltakskodeFraKilden,
         tittel = tittel?.let { Tilknytningstittel(it) },
+        gjennomføringsnavn = gjennomføringsnavn?.let { Gjennomføringsnavn(it) },
         arrangør = Arrangør(hovedenhet = null, underenhet = null),
         omfang = Deltakelsesomfang(
             deltakelsesprosent = deltakelseProsent,

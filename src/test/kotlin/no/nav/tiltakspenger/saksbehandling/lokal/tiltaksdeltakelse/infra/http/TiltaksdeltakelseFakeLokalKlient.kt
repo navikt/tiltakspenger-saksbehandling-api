@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse as LibsTilt
 
 /**
  * Fake for lokal kjøring (LocalApplicationContext).
- * Deltakelsene utledes fra personens lagrede søknader, med en oppdiktet tittel, og en deltakelse satt via dev-endepunktet (se [no.nav.tiltakspenger.saksbehandling.lokal.tiltaksdeltakelse.LokalTiltaksdeltakelseService]) overstyrer den med samme eksterne id.
+ * Deltakelsene utledes fra personens lagrede søknader, med oppdiktet tittel og gjennomføringsnavn, og en deltakelse satt via dev-endepunktet (se [no.nav.tiltakspenger.saksbehandling.lokal.tiltaksdeltakelse.LokalTiltaksdeltakelseService]) overstyrer den med samme eksterne id.
  * Deltakelser opprettet via dev-endepunktet, også de som fratar rett, kommer i tillegg.
  * Oppslaget for valg av tiltak i manuell søknad svarer med en fast deltakelse pluss de som er satt via dev-endepunktet.
  * Testene bruker [TiltaksdeltakelseFakeTestKlient].
@@ -76,7 +76,7 @@ class TiltaksdeltakelseFakeLokalKlient(
         val satte = hentSatteTiltaksdeltakelser(fnr).associateBy { it.eksternDeltakelseId }
         val fraSøknader = hentTiltaksdeltakelserFraSøknader(fnr)
         val fraSøknaderIder = fraSøknader.map { it.eksternDeltakelseId }.toSet()
-        return fraSøknader.map { satte[it.eksternDeltakelseId] ?: LokalTiltaksdeltakelse.GirRett(it, tittel = "${it.typeNavn} hos Lokal arrangør AS") } +
+        return fraSøknader.map { satte[it.eksternDeltakelseId] ?: lagDeltakelseFraSøknad(it) } +
             satte.values.filterNot { it.eksternDeltakelseId in fraSøknaderIder }
     }
 
@@ -87,6 +87,12 @@ class TiltaksdeltakelseFakeLokalKlient(
         sessionFactory.withSession(disableSessionCounter = true) { session ->
             LokalTiltaksdeltakelsePostgresRepo.hentForFnr(fnr, session)
         }
+
+    private fun lagDeltakelseFraSøknad(deltakelse: TiltaksdeltakelseIntern) = LokalTiltaksdeltakelse.GirRett(
+        deltakelse,
+        tittel = "${deltakelse.typeNavn} hos Lokal arrangør AS",
+        gjennomføringsnavn = "${deltakelse.typeNavn}, Lokalveien",
+    )
 
     private fun hentTiltaksdeltakelserFraSøknader(fnr: Fnr): List<TiltaksdeltakelseIntern> {
         // TODO: Denne utledningen av tiltaksdeltakelser fra søknaden er skjør og henger tett sammen med søknadsflyten.

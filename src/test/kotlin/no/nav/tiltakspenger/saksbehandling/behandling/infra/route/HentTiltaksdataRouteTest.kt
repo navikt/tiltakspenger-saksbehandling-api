@@ -20,26 +20,33 @@ import org.junit.jupiter.api.Test
 class HentTiltaksdataRouteTest {
 
     @Test
-    fun `henter tittelen på tiltakene i saksopplysningene fra kilden`() {
+    fun `henter tittelen og gjennomføringsnavnet på tiltakene i saksopplysningene fra kilden`() {
         withTestApplicationContext { tac ->
             val fnr = Fnr.random()
             val tiltaksdeltakelse = tac.tiltaksdeltakelse()
             val fratarRett = ObjectMother.tiltaksdeltakelseSomFratarRett(eksternDeltakelseId = "TA9")
             tac.leggTilTiltaksdeltakelseSomFratarRett(fnr, fratarRett.tilLibsDeltakelse(tittel = "Lønnstilskudd hos Bedrift AS"))
             val (sak, _, behandling) = opprettSøknadsbehandlingKlarTilBehandling(tac, fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse)
-            tac.oppdaterTiltaksdeltakelse(fnr, tiltaksdeltakelse, tittel = "Sveisekurs hos Arrangør AS")
+            tac.oppdaterTiltaksdeltakelse(
+                fnr,
+                tiltaksdeltakelse,
+                tittel = "Sveisekurs hos Arrangør AS",
+                gjennomføringsnavn = "AMO-kurs i sveis, Strandveien",
+            )
 
             hentTiltaksdata(tac, sak.id, behandling.id) shouldEqualJson """
                 [
                   {
                     "eksternDeltakelseId": "${tiltaksdeltakelse.eksternDeltakelseId}",
                     "internDeltakelseId": "${tiltaksdeltakelse.internDeltakelseId}",
-                    "tittel": {"verdi": "Sveisekurs hos Arrangør AS", "erSladdet": false}
+                    "tittel": {"verdi": "Sveisekurs hos Arrangør AS", "erSladdet": false},
+                    "gjennomføringsnavn": {"verdi": "AMO-kurs i sveis, Strandveien", "erSladdet": false}
                   },
                   {
                     "eksternDeltakelseId": "TA9",
                     "internDeltakelseId": null,
-                    "tittel": {"verdi": "Lønnstilskudd hos Bedrift AS", "erSladdet": false}
+                    "tittel": {"verdi": "Lønnstilskudd hos Bedrift AS", "erSladdet": false},
+                    "gjennomføringsnavn": {"verdi": null, "erSladdet": false}
                   }
                 ]
             """.trimIndent()
@@ -47,7 +54,7 @@ class HentTiltaksdataRouteTest {
     }
 
     @Test
-    fun `tittelen er null når deltakelsen ikke lenger finnes i kilden`() {
+    fun `tittel og gjennomføringsnavn er null når deltakelsen ikke lenger finnes i kilden`() {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingKlarTilBehandling(tac)
             tac.oppdaterTiltaksdeltakelse(sak.fnr, null)
@@ -57,7 +64,8 @@ class HentTiltaksdataRouteTest {
                   {
                     "eksternDeltakelseId": "${behandling.saksopplysninger.tiltaksdeltakelser.single().eksternDeltakelseId}",
                     "internDeltakelseId": "${behandling.saksopplysninger.tiltaksdeltakelser.single().internDeltakelseId}",
-                    "tittel": {"verdi": null, "erSladdet": false}
+                    "tittel": {"verdi": null, "erSladdet": false},
+                    "gjennomføringsnavn": {"verdi": null, "erSladdet": false}
                   }
                 ]
             """.trimIndent()
@@ -65,7 +73,7 @@ class HentTiltaksdataRouteTest {
     }
 
     @Test
-    fun `tittelen tas ikke med når personen har adressebeskyttelse`() {
+    fun `tittel og gjennomføringsnavn tas ikke med når personen har adressebeskyttelse`() {
         withTestApplicationContext { tac ->
             val fnr = Fnr.random()
             val tiltaksdeltakelse = tac.tiltaksdeltakelse()
@@ -75,14 +83,20 @@ class HentTiltaksdataRouteTest {
                 person = ObjectMother.personopplysningKjedeligFyr(fnr = fnr, adressebeskyttelse = Adressebeskyttelse.FORTROLIG),
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
-            tac.oppdaterTiltaksdeltakelse(fnr, tiltaksdeltakelse, tittel = "Sveisekurs hos Arrangør AS")
+            tac.oppdaterTiltaksdeltakelse(
+                fnr,
+                tiltaksdeltakelse,
+                tittel = "Sveisekurs hos Arrangør AS",
+                gjennomføringsnavn = "AMO-kurs i sveis, Strandveien",
+            )
 
             hentTiltaksdata(tac, sak.id, behandling.id) shouldEqualJson """
                 [
                   {
                     "eksternDeltakelseId": "${tiltaksdeltakelse.eksternDeltakelseId}",
                     "internDeltakelseId": "${tiltaksdeltakelse.internDeltakelseId}",
-                    "tittel": {"verdi": null, "erSladdet": false}
+                    "tittel": {"verdi": null, "erSladdet": false},
+                    "gjennomføringsnavn": {"verdi": null, "erSladdet": false}
                   }
                 ]
             """.trimIndent()

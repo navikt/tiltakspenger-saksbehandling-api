@@ -25,7 +25,7 @@ import java.time.LocalDateTime
  * Feltene settes eksplisitt, slik at formatet i databasen ikke endrer seg stille når libs-domenet gjør det.
  * Kildestatusen lagres slik kilden ga den, og ikke tolket til vår egen deltakerstatus.
  * Tolkningen kan reproduseres fra kildestatus, fraOgMed og tidspunktet nå-tilstanden ble innhentet, og en tolket statusendring står i endringen som lagres ved siden av.
- * Tittel og arrangør lagres ikke, siden de er stedsinformasjon.
+ * Tittel, arrangør og gjennomføringsnavn lagres ikke, siden de er stedsinformasjon eller fritekst som kan inneholde persondata.
  * Innslag som V276 konverterte fra et eldre format har i tillegg feltet `migrertFraTidligereFormat`, som sier hvilke verdier som kan være unøyaktige.
  * Feltet leses ikke tilbake, siden ukjente felter ignoreres.
  */
@@ -80,7 +80,7 @@ private fun Kildestatus.tilDbJson(): TiltaksdeltakelseNåtilstandDbJson.Kildesta
 
 /**
  * Gjenskaper nå-tilstanden fra det som ble lagret.
- * Tittel og arrangør lagres ikke, og leses derfor tilbake som ukjente.
+ * Tittel, arrangør og gjennomføringsnavn lagres ikke, og leses derfor tilbake som ukjente.
  * Kildestatusen gjenskapes fra koden i kontrakten, og blir en ukjent kildeverdi dersom vi ikke lenger kjenner koden igjen.
  */
 fun TiltaksdeltakelseNåtilstandDbJson.tilDomene(): Tiltaksdeltakelse.GirRett {
@@ -105,6 +105,7 @@ fun TiltaksdeltakelseNåtilstandDbJson.tilDomene(): Tiltaksdeltakelse.GirRett {
             arrangør = arrangør,
             omfang = omfang,
             gjennomføringId = gjennomføringId,
+            gjennomføringsnavn = null,
             periode = periode,
         )
 
@@ -118,6 +119,7 @@ fun TiltaksdeltakelseNåtilstandDbJson.tilDomene(): Tiltaksdeltakelse.GirRett {
             arrangør = arrangør,
             omfang = omfang,
             gjennomføringId = gjennomføringId,
+            gjennomføringsnavn = null,
             periode = periode,
         )
     }

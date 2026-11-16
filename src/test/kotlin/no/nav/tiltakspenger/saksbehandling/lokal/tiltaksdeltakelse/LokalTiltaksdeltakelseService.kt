@@ -123,6 +123,7 @@ class LokalTiltaksdeltakelseService(
                     internDeltakelseId = TiltaksdeltakerId.random(),
                 ),
                 tittel = command.tittel,
+                gjennomføringsnavn = command.gjennomføringsnavn,
             )
         } else {
             LokalTiltaksdeltakelse.FratarRett(
@@ -137,6 +138,7 @@ class LokalTiltaksdeltakelseService(
                     kilde = kilde,
                 ),
                 tittel = command.tittel,
+                gjennomføringsnavn = command.gjennomføringsnavn,
             )
         }
         valider(ny).getOrElse { return it.left() }
@@ -237,6 +239,8 @@ class LokalTiltaksdeltakelseService(
  * @param tiltakskode navnet på en [TiltakstypeSomGirRett] eller kildens kode for en tiltakstype som fratar rett, f.eks. `MIDLONTIL`.
  * @param tittel hele tiltaksnavnet slik kilden leverer det, f.eks. `Oppfølging hos Arrangør AS`.
  * Uten tittel beholdes en eksisterende tittel, og en ny deltakelse får ingen, slik som når kilden ikke leverer en.
+ * @param gjennomføringsnavn navnet på gjennomføringen slik kilden leverer det, f.eks. `AMO-kurs i sveis, Strandveien`.
+ * Beholdes og utelates på samme måte som tittelen.
  */
 data class OpprettEllerOppdaterLokalTiltaksdeltakelseCommand(
     val eksternDeltakelseId: String?,
@@ -244,6 +248,7 @@ data class OpprettEllerOppdaterLokalTiltaksdeltakelseCommand(
     val tiltakskode: String?,
     val typeNavn: String?,
     val tittel: String?,
+    val gjennomføringsnavn: String?,
     val kilde: Tiltakskilde?,
     val fraOgMed: LocalDate?,
     val tilOgMed: LocalDate?,

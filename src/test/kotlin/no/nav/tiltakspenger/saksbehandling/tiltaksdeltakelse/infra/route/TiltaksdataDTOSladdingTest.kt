@@ -13,15 +13,16 @@ class TiltaksdataDTOSladdingTest {
         eksternDeltakelseId = "TA1",
         internDeltakelseId = TiltaksdeltakerId.random(),
         tittel = "Sveisekurs hos Arrangør AS",
+        gjennomføringsnavn = "AMO-kurs i sveis, Strandveien",
     ).toDTO()
 
     @Test
-    fun `tittelen erstattes mens id-ene forblir uendret`() {
-        tiltaksdataDTO.sladdet() shouldBe tiltaksdataDTO.copy(tittel = SladdetVerdi)
+    fun `tittelen og gjennomføringsnavnet erstattes mens id-ene forblir uendret`() {
+        tiltaksdataDTO.sladdet() shouldBe tiltaksdataDTO.copy(tittel = SladdetVerdi, gjennomføringsnavn = SladdetVerdi)
     }
 
     @Test
-    fun `veileder får urørt tittel, mens utvikler får den sladdet`() {
+    fun `veileder får urørte verdier, mens utvikler får dem sladdet`() {
         listOf(tiltaksdataDTO).sladdetFor(ObjectMother.veileder()) shouldBe listOf(tiltaksdataDTO)
         listOf(tiltaksdataDTO).sladdetFor(ObjectMother.utvikler()) shouldBe listOf(tiltaksdataDTO.sladdet())
     }

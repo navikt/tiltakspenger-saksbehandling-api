@@ -11,12 +11,14 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdata
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.loggFeil
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.synligGjennomføringsnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.synligTittel
 
 /**
- * Slår opp opplysninger om tiltakene i behandlingens saksopplysninger som vi ikke lagrer, som tittelen på tiltaket.
+ * Slår opp opplysninger om tiltakene i behandlingens saksopplysninger som vi ikke lagrer, som tittelen og gjennomføringsnavnet.
  * Tiltakene hentes fra den lagrede behandlingen, så klienten trenger ikke å vite hvilke tiltak det gjelder.
  */
 class HentTiltaksdataService(
@@ -43,16 +45,26 @@ class HentTiltaksdataService(
             .getOrElse { return KunneIkkeHenteTiltaksdata.FeilVedKallMotPdl.left() }
             .adressebeskyttelse.erGradert
 
-        val titler = tiltaksdeltakelseKlient.hentAlleTiltaksdeltakelser(behandling.fnr, correlationId)
+        val fraKilden = tiltaksdeltakelseKlient.hentAlleTiltaksdeltakelser(behandling.fnr, correlationId)
             .getOrElse { feil ->
                 feil.loggFeil(logger, "henting av tiltaksdata fra tiltakshistorikk", "sakId: $sakId, behandlingId: $behandlingId, correlationId: $correlationId")
                 return KunneIkkeHenteTiltaksdata.FeilVedKallMotTiltak.left()
             }
-            .associate { it.id.verdi to it.synligTittel(harAdressebeskyttelse) }
+            .associateBy { it.id.verdi }
+
+        fun tiltaksdata(eksternDeltakelseId: String, internDeltakelseId: TiltaksdeltakerId?): Tiltaksdata {
+            val deltakelse = fraKilden[eksternDeltakelseId]
+            return Tiltaksdata(
+                eksternDeltakelseId = eksternDeltakelseId,
+                internDeltakelseId = internDeltakelseId,
+                tittel = deltakelse?.synligTittel(harAdressebeskyttelse),
+                gjennomføringsnavn = deltakelse?.synligGjennomføringsnavn(harAdressebeskyttelse),
+            )
+        }
 
         return (
-            girRett.map { Tiltaksdata(it.eksternDeltakelseId, it.internDeltakelseId, titler[it.eksternDeltakelseId]) } +
-                fratarRett.map { Tiltaksdata(it.eksternDeltakelseId, null, titler[it.eksternDeltakelseId]) }
+            girRett.map { tiltaksdata(it.eksternDeltakelseId, it.internDeltakelseId) } +
+                fratarRett.map { tiltaksdata(it.eksternDeltakelseId, null) }
             ).right()
     }
 }

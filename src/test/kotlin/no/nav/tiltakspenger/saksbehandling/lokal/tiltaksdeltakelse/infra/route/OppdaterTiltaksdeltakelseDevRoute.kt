@@ -27,6 +27,7 @@ private data class OpprettEllerOppdaterTiltaksdeltakelseBody(
     val tiltakskode: String?,
     val typeNavn: String?,
     val tittel: String?,
+    val gjennomføringsnavn: String?,
     val kilde: Tiltakskilde?,
     val fraOgMed: LocalDate?,
     val tilOgMed: LocalDate?,
@@ -42,6 +43,7 @@ private data class OpprettEllerOppdaterTiltaksdeltakelseBody(
         tiltakskode = tiltakskode?.trim()?.ifBlank { null },
         typeNavn = typeNavn?.trim()?.ifBlank { null },
         tittel = tittel?.trim()?.ifBlank { null },
+        gjennomføringsnavn = gjennomføringsnavn?.trim()?.ifBlank { null },
         kilde = kilde,
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
@@ -56,6 +58,7 @@ private data class LagretTiltaksdeltakelseRespons(
     val opprettet: Boolean,
     val girRett: Boolean,
     val tittel: String?,
+    val gjennomføringsnavn: String?,
     val deltakelse: Any,
 )
 
@@ -64,6 +67,7 @@ private fun LagretLokalTiltaksdeltakelse.toRespons() = LagretTiltaksdeltakelseRe
     opprettet = opprettet,
     girRett = deltakelse is LokalTiltaksdeltakelse.GirRett,
     tittel = deltakelse.tittel,
+    gjennomføringsnavn = deltakelse.gjennomføringsnavn,
     deltakelse = when (deltakelse) {
         is LokalTiltaksdeltakelse.GirRett -> deltakelse.deltakelse.toDbJson()
         is LokalTiltaksdeltakelse.FratarRett -> deltakelse.deltakelse.toDbJson()
@@ -78,6 +82,7 @@ private fun LagretLokalTiltaksdeltakelse.toRespons() = LagretTiltaksdeltakelseRe
  * Finnes ingen deltakelse med `eksternDeltakelseId`, opprettes en ny på `sakId` med `tiltakskode` (påkrevd), og ekstern id genereres dersom den mangler.
  * `tiltakskode` er navnet på en tiltakstype som gir rett (f.eks. `GRUPPE_AMO`) eller kildens kode for en tiltakstype som fratar rett (f.eks. `MIDLONTIL`).
  * `tittel` er hele tiltaksnavnet (f.eks. `Oppfølging hos Arrangør AS`), og vises i saksopplysningene og ved valg av tiltak i manuell søknad.
+ * `gjennomføringsnavn` er navnet på gjennomføringen (f.eks. `AMO-kurs i sveis, Strandveien`), og vises i saksopplysningene.
  */
 fun Route.oppdaterTiltaksdeltakelseDevRoute(lokalTiltaksdeltakelseService: LokalTiltaksdeltakelseService) {
     post(PATH) {

@@ -81,19 +81,20 @@ class TiltaksdeltakelseFakeTestKlient : TiltaksdeltakelseKlient {
 
     /**
      * Lagrer eller erstatter deltakelsen, eller fjerner alle deltakelsene til [fnr] når [tiltaksdeltakelse] er null.
-     * [tittel] er hele tiltaksnavnet fra kilden, som vi ikke lagrer selv.
+     * [tittel] er hele tiltaksnavnet og [gjennomføringsnavn] navnet på gjennomføringen fra kilden, som vi ikke lagrer selv.
      */
     fun lagre(
         fnr: Fnr,
         tiltaksdeltakelse: TiltaksdeltakelseIntern?,
         tittel: String? = null,
+        gjennomføringsnavn: String? = null,
     ) {
         val current = data.get()[fnr]
         if (tiltaksdeltakelse == null) {
             data.get().remove(fnr)
             return
         }
-        val deltakelse = tiltaksdeltakelse.tilLibsDeltakelse(tittel)
+        val deltakelse = tiltaksdeltakelse.tilLibsDeltakelse(tittel, gjennomføringsnavn)
         if (current == null) {
             data.get()[fnr] = listOf(deltakelse)
             return

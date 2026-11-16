@@ -8,10 +8,12 @@ data class TiltaksdataDTO(
     val eksternDeltakelseId: String,
     val internDeltakelseId: String?,
     val tittel: SladdbarVerdi<String?>,
+    val gjennomføringsnavn: SladdbarVerdi<String?>,
 )
 
 fun Tiltaksdata.toDTO(): TiltaksdataDTO = TiltaksdataDTO(
     eksternDeltakelseId = eksternDeltakelseId,
     internDeltakelseId = internDeltakelseId?.toString(),
     tittel = tittel.ikkeSladdet(),
+    gjennomføringsnavn = gjennomføringsnavn.ikkeSladdet(),
 )

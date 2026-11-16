@@ -146,6 +146,14 @@ fun Tiltaksdeltakelse.synligTittel(harAdressebeskyttelse: Boolean): String? =
     if (harAdressebeskyttelse) null else tittel?.verdi
 
 /**
+ * Navnet på gjennomføringen fra kilden ([Tiltaksdeltakelse.gjennomføringsnavn]), fritekst som kan peke ut hvor personen deltar.
+ * Ved adressebeskyttelse tas det derfor ikke med, på samme måte som tittelen.
+ * Det lagres ikke, men slås opp i kilden ved behov.
+ */
+fun Tiltaksdeltakelse.synligGjennomføringsnavn(harAdressebeskyttelse: Boolean): String? =
+    if (harAdressebeskyttelse) null else gjennomføringsnavn?.verdi
+
+/**
  * Felles utvalgsregel for uttrekkene.
  * Deltakelser med ukjent kildestatus kan ikke tolkes og er aldri med.
  * Tiltakstyper som gir rett følger [erRelevant], de som fratar rett er alltid med, og alt annet utelates.

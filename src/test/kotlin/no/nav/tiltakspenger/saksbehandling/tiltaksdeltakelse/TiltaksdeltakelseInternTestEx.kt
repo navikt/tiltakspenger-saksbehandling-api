@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse
 
+import no.nav.tiltakspenger.libs.common.personopplysning.Gjennomføringsnavn
 import no.nav.tiltakspenger.libs.common.personopplysning.Tilknytningstittel
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.ÅpenPeriode
@@ -21,9 +22,12 @@ import java.time.LocalDate
  * Rundturen tilbake via `tilTiltaksdeltakelseIntern` gir samme verdi, så lenge statusen finnes hos kilden.
  * Kildestatusen velges slik at den tolkes til [TiltaksdeltakelseIntern.deltakelseStatus] uavhengig av dato.
  * Arrangøren finnes ikke i den interne modellen, og blir tom.
- * Tittelen lagres ikke hos oss, og må derfor sendes inn for å finnes hos kilden.
+ * Tittelen og gjennomføringsnavnet lagres ikke hos oss, og må derfor sendes inn for å finnes hos kilden.
  */
-fun TiltaksdeltakelseIntern.tilLibsDeltakelse(tittel: String? = null): Tiltaksdeltakelse.GirRett {
+fun TiltaksdeltakelseIntern.tilLibsDeltakelse(
+    tittel: String? = null,
+    gjennomføringsnavn: String? = null,
+): Tiltaksdeltakelse.GirRett {
     val id = EksternDeltakelseId(eksternDeltakelseId)
     val kildestatus = tilKildestatus()
     val arrangør = Arrangør(hovedenhet = null, underenhet = null)
@@ -41,6 +45,7 @@ fun TiltaksdeltakelseIntern.tilLibsDeltakelse(tittel: String? = null): Tiltaksde
             tiltakstypenavn = typeNavn,
             tiltakskodeFraKilden = tiltakstype.name,
             tittel = tittel?.let { Tilknytningstittel(it) },
+            gjennomføringsnavn = gjennomføringsnavn?.let { Gjennomføringsnavn(it) },
             arrangør = arrangør,
             omfang = omfang,
             gjennomføringId = gjennomføringId,
@@ -54,6 +59,7 @@ fun TiltaksdeltakelseIntern.tilLibsDeltakelse(tittel: String? = null): Tiltaksde
             tiltakstypenavn = typeNavn,
             tiltakskodeFraKilden = tiltakstype.name,
             tittel = tittel?.let { Tilknytningstittel(it) },
+            gjennomføringsnavn = gjennomføringsnavn?.let { Gjennomføringsnavn(it) },
             arrangør = arrangør,
             omfang = omfang,
             gjennomføringId = gjennomføringId,

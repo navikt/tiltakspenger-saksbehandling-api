@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 /**
  * En tiltaksdeltakelse slik den lokale fake-klienten leverer den.
  * Tiltakstyper som gir rett representeres som [TiltaksdeltakelseIntern], og de som fratar rett som [TiltaksdeltakelseSomFratarRett].
- * [tittel] ligger ved siden av deltakelsen, siden den ikke lagres i saksopplysningene, men slås opp hos kilden ved behov.
+ * [tittel] og [gjennomføringsnavn] ligger ved siden av deltakelsen, siden de ikke lagres i saksopplysningene, men slås opp hos kilden ved behov.
  */
 sealed interface LokalTiltaksdeltakelse {
     val eksternDeltakelseId: String
@@ -23,6 +23,9 @@ sealed interface LokalTiltaksdeltakelse {
     /** Hele tiltaksnavnet slik kilden leverer det, f.eks. `Oppfølging hos Arrangør AS`. */
     val tittel: String?
 
+    /** Navnet på gjennomføringen slik kilden leverer det, f.eks. `AMO-kurs i sveis, Strandveien`. */
+    val gjennomføringsnavn: String?
+
     fun tilLibsDeltakelse(): Tiltaksdeltakelse
 
     fun tilTiltaksdeltakelseMedArrangørnavn(): TiltaksdeltakelseMedArrangørnavn
@@ -33,12 +36,13 @@ sealed interface LokalTiltaksdeltakelse {
     data class GirRett(
         val deltakelse: TiltaksdeltakelseIntern,
         override val tittel: String?,
+        override val gjennomføringsnavn: String?,
     ) : LokalTiltaksdeltakelse {
         override val eksternDeltakelseId: String get() = deltakelse.eksternDeltakelseId
         override val tiltakskode: String get() = deltakelse.tiltakstype.name
         override val kilde: Tiltakskilde get() = deltakelse.kilde
 
-        override fun tilLibsDeltakelse(): Tiltaksdeltakelse.GirRett = deltakelse.tilLibsDeltakelse(tittel)
+        override fun tilLibsDeltakelse(): Tiltaksdeltakelse.GirRett = deltakelse.tilLibsDeltakelse(tittel, gjennomføringsnavn)
 
         override fun tilTiltaksdeltakelseMedArrangørnavn() = TiltaksdeltakelseMedArrangørnavn(
             eksternDeltakelseId = deltakelse.eksternDeltakelseId,
@@ -62,18 +66,20 @@ sealed interface LokalTiltaksdeltakelse {
                 antallDagerPerUke = command.antallDagerPerUke ?: deltakelse.antallDagerPerUke,
             ),
             tittel = command.tittel ?: tittel,
+            gjennomføringsnavn = command.gjennomføringsnavn ?: gjennomføringsnavn,
         )
     }
 
     data class FratarRett(
         val deltakelse: TiltaksdeltakelseSomFratarRett,
         override val tittel: String?,
+        override val gjennomføringsnavn: String?,
     ) : LokalTiltaksdeltakelse {
         override val eksternDeltakelseId: String get() = deltakelse.eksternDeltakelseId
         override val tiltakskode: String get() = deltakelse.tiltakskodeFraKilden
         override val kilde: Tiltakskilde get() = deltakelse.kilde
 
-        override fun tilLibsDeltakelse(): Tiltaksdeltakelse.FratarRett = deltakelse.tilLibsDeltakelse(tittel)
+        override fun tilLibsDeltakelse(): Tiltaksdeltakelse.FratarRett = deltakelse.tilLibsDeltakelse(tittel, gjennomføringsnavn)
 
         override fun tilTiltaksdeltakelseMedArrangørnavn() = TiltaksdeltakelseMedArrangørnavn(
             eksternDeltakelseId = deltakelse.eksternDeltakelseId,
@@ -97,6 +103,7 @@ sealed interface LokalTiltaksdeltakelse {
                 antallDagerPerUke = command.antallDagerPerUke ?: deltakelse.antallDagerPerUke,
             ),
             tittel = command.tittel ?: tittel,
+            gjennomføringsnavn = command.gjennomføringsnavn ?: gjennomføringsnavn,
         )
     }
 }
