@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderin
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilOppdaterBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
+import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -194,8 +195,9 @@ class ForlengelseRouteTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `barnetillegget videreføres fra vedtaket og faller bort for barn som fyller 16 år, som forklares i brevet`() {
-        withTestApplicationContextAndPostgres { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, vedtak) = iverksettVedtakDerEttAvToBarnFyller16IForlengelsen(tac)
             val forventetBarnSomFyller16 = BarnSomFyller16(antall = 1, antallBarnIVedtaket = 2, sisteDagMedBarnetillegg = 31.mai(2025))
 
@@ -211,8 +213,9 @@ class ForlengelseRouteTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `barnet som fyller 16 år faller ut av barnetillegget og brevet når forlengelsen forkortes til før 16-årsdagen`() {
-        withTestApplicationContextAndPostgres { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, vedtak) = iverksettVedtakDerEttAvToBarnFyller16IForlengelsen(tac)
             val forlengelse = startOgOppdaterForlengelse(tac, sak, vedtak)
 
@@ -225,8 +228,9 @@ class ForlengelseRouteTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `brevet forklarer ikke barn som fyller 16 år når saksbehandler har endret barnetillegget`() {
-        withTestApplicationContextAndPostgres { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, vedtak) = iverksettVedtakDerEttAvToBarnFyller16IForlengelsen(tac)
             val valgtBarnetillegg = barnetillegg(periode = 1.april(2025) til 31.mai(2025), antallBarn = AntallBarn(1))
 
