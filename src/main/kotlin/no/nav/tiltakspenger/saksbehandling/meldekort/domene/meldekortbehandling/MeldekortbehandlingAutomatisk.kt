@@ -82,9 +82,6 @@ data class MeldekortBehandletAutomatisk(
         require(meldeperioder.single().brukersMeldekort.size == 1) {
             "En automatisk behandling må være knyttet til nøyaktig ett meldekort fra bruker"
         }
-        require(!harKorrigering) {
-            "Vi støtter ikke automatisk behandling av korrigering fra bruker"
-        }
         require(status === MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET) {
             "Ugyldig status for automatisk behandling: $status"
         }
@@ -133,6 +130,12 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
 
     val tidspunkt = nå(clock)
 
+    val type = if (this.meldekortbehandlinger.hentIkkeAvbrutteBehandlingerForKjede(brukersMeldekort.kjedeId).isEmpty()) {
+        MeldeperiodebehandlingType.FØRSTE_BEHANDLING
+    } else {
+        MeldeperiodebehandlingType.KORRIGERING
+    }
+
     val beregning = this.beregnMeldekort(
         meldekortIdSomBeregnes = meldekortbehandlingId,
         meldeperioderSomBeregnes = nonEmptyListOf(brukersMeldekort.tilUtfyltMeldeperiode()),
@@ -152,7 +155,7 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
         meldeperioder = Meldeperiodebehandlinger(
             meldeperioder = nonEmptyListOf(
                 brukersMeldekort.tilMeldeperiodebehandling(
-                    MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                    type,
                     meldekortbehandlingId,
                 ),
             ),
@@ -162,7 +165,11 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
 
     return simuler(meldekortBehandletAutomatisk, navkontor).mapLeft {
         // Simuleringsklienten logger feil selv.
-        // I førsteomgang ønsker vi ikke stoppe den automatiske utbetalingen selv om simuleringen feiler.
+        // En korrigering kan redusere utbetalingen, så den krever en simulering som kan avdekke feilutbetaling.
+        if (type == MeldeperiodebehandlingType.KORRIGERING) {
+            return MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET.left()
+        }
+        // For førstegangsbehandlinger ønsker vi i førsteomgang ikke å stoppe den automatiske utbetalingen selv om simuleringen feiler.
         return Pair(meldekortBehandletAutomatisk, null).right()
     }.map { Pair(meldekortBehandletAutomatisk.copy(simulering = it.simulering), it) }
 }

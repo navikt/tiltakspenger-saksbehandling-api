@@ -6,6 +6,14 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import java.time.LocalDateTime
+import java.time.LocalTime
+
+/**
+ * En korrigering fra bruker må være mottatt før dette klokkeslettet dagen etter førstegangsinnsendingen for å kunne behandles automatisk.
+ * Utbetalingen har én ventedag før den betales ut, så vi antar at den ikke er utbetalt før fristen.
+ */
+private val FRIST_FOR_AUTOMATISK_KORRIGERING_DAGEN_ETTER: LocalTime = LocalTime.of(17, 0)
 
 fun Sak.validerAutomatiskMeldekortbehandling(brukersMeldekort: BrukersMeldekort): Either<MeldekortBehandletAutomatiskStatus, Unit> {
     validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort).onLeft { return it.left() }
@@ -23,7 +31,7 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort: Bruk
 
     val behandledeMeldekort = this.meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId] ?: emptyList()
 
-    if (behandledeMeldekort.isNotEmpty()) {
+    if (behandledeMeldekort.isNotEmpty() && !kanKorrigeresAutomatisk(behandledeMeldekort, brukersMeldekort)) {
         return MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET.left()
     }
 
@@ -50,6 +58,27 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort: Bruk
     }
 
     return Unit.right()
+}
+
+/**
+ * En korrigering fra bruker kan behandles automatisk dersom kjeden kun har én behandling, og den ble behandlet automatisk på samme versjon av meldeperioden.
+ * Korrigeringen må i tillegg være mottatt før kl. 17 dagen etter førstegangsinnsendingen, slik at utbetalingen ennå ikke er utbetalt.
+ * Vi sjekker ikke utbetalingsstatusen, siden den kun forteller om Oppdrag har tatt imot utbetalingen og ikke om den er utbetalt.
+ */
+private fun kanKorrigeresAutomatisk(
+    behandledeMeldekort: List<Meldekortbehandling.Behandlet>,
+    brukersMeldekort: BrukersMeldekort,
+): Boolean {
+    val førsteBehandling = behandledeMeldekort.singleOrNull() as? MeldekortBehandletAutomatisk ?: return false
+    val førsteInnsending = førsteBehandling.brukersMeldekort
+    val frist: LocalDateTime = førsteInnsending.mottatt.toLocalDate()
+        .plusDays(1)
+        .atTime(FRIST_FOR_AUTOMATISK_KORRIGERING_DAGEN_ETTER)
+
+    return førsteInnsending.id != brukersMeldekort.id &&
+        førsteInnsending.mottatt < brukersMeldekort.mottatt &&
+        førsteInnsending.meldeperiode == brukersMeldekort.meldeperiode &&
+        brukersMeldekort.mottatt < frist
 }
 
 /** Validering som kan gi midlertidige feil - kan prøves på nytt */

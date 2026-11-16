@@ -22,6 +22,7 @@ private enum class MeldekortBehandletAutomatiskStatusDb {
     INGEN_DAGER_GIR_RETT,
     HAR_JUSTERING,
     HAR_FEILUTBETALING,
+    SIMULERING_FEILET,
 }
 
 fun MeldekortBehandletAutomatiskStatus.tilDb(): String = when (this) {
@@ -44,6 +45,7 @@ fun MeldekortBehandletAutomatiskStatus.tilDb(): String = when (this) {
     MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT -> MeldekortBehandletAutomatiskStatusDb.INGEN_DAGER_GIR_RETT
     MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING -> MeldekortBehandletAutomatiskStatusDb.HAR_FEILUTBETALING
     MeldekortBehandletAutomatiskStatus.HAR_JUSTERING -> MeldekortBehandletAutomatiskStatusDb.HAR_JUSTERING
+    MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET -> MeldekortBehandletAutomatiskStatusDb.SIMULERING_FEILET
 }.toString()
 
 fun String.tilMeldekortBehandletAutomatiskStatus(): MeldekortBehandletAutomatiskStatus =
@@ -67,4 +69,5 @@ fun String.tilMeldekortBehandletAutomatiskStatus(): MeldekortBehandletAutomatisk
         MeldekortBehandletAutomatiskStatusDb.INGEN_DAGER_GIR_RETT -> MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT
         MeldekortBehandletAutomatiskStatusDb.HAR_JUSTERING -> MeldekortBehandletAutomatiskStatus.HAR_JUSTERING
         MeldekortBehandletAutomatiskStatusDb.HAR_FEILUTBETALING -> MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING
+        MeldekortBehandletAutomatiskStatusDb.SIMULERING_FEILET -> MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET
     }
