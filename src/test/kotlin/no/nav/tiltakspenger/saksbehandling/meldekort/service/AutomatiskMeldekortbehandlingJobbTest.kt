@@ -842,6 +842,72 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     @Test
+    fun `skal ikke behandle en ny korrigering automatisk når kjeden allerede er korrigert`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                val meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode()
+
+                val alleDagerDeltatt = ObjectMother.brukersMeldekort(
+                    sakId = sak.id,
+                    meldeperiode = meldeperiode,
+                ).dager
+
+                // Bruker glemte å melde en dag i førstegangsinnsendingen, og korrigerer den til deltatt.
+                val førsteMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = meldeperiode,
+                    mottatt = nå(clock),
+                    dager = alleDagerDeltatt.let { dager ->
+                        val glemtDag = dager.first { it.status == InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET }
+                        dager.map { if (it == glemtDag) it.copy(status = InnmeldtStatus.IKKE_TILTAKSDAG) else it }
+                    },
+                )
+                brukersMeldekortRepo.lagre(førsteMeldekort)
+                service.behandleBrukersMeldekort(clock)
+
+                val førsteKorrigering = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = meldeperiode,
+                    mottatt = nå(clock),
+                    dager = alleDagerDeltatt,
+                )
+                brukersMeldekortRepo.lagre(førsteKorrigering)
+                service.behandleBrukersMeldekort(clock)
+
+                meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 2
+
+                // Den andre korrigeringen kommer også innenfor fristen, men kjeden har allerede en korrigering.
+                val andreKorrigering = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = meldeperiode,
+                    mottatt = nå(clock),
+                )
+                brukersMeldekortRepo.lagre(andreKorrigering)
+                service.behandleBrukersMeldekort(clock)
+
+                meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 2
+
+                brukersMeldekortRepo.hentForMeldekortId(andreKorrigering.id)!!.let {
+                    it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
+                    it.behandlesAutomatisk shouldBe false
+                }
+            }
+        }
+    }
+
+    @Test
     fun `skal ikke behandle korrigert meldekort automatisk uten simulering`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
