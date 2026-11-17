@@ -112,5 +112,9 @@ class ÅpningstiderTest {
         status(11.mai(2025), 12, 0) shouldBe Åpningsstatus.STENGT
         status(1.mai(2025), 12, 0) shouldBe Åpningsstatus.STENGT
         status(17.mai(2025), 12, 0) shouldBe Åpningsstatus.STENGT
+        // Påskeaften 19. april 2025 er en vanlig lørdag, mens langfredag og 2. påskedag er bevegelige helligdager.
+        status(18.april(2025), 12, 0) shouldBe Åpningsstatus.STENGT
+        status(19.april(2025), 12, 0) shouldBe Åpningsstatus.MULIG_ÅPENT
+        status(21.april(2025), 12, 0) shouldBe Åpningsstatus.STENGT
     }
 }

@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.felles.erFastHelligdag
+import no.nav.tiltakspenger.saksbehandling.felles.erHelligdag
 import no.nav.tiltakspenger.saksbehandling.felles.erHverdag
 import java.time.Clock
 import java.time.DayOfWeek
@@ -12,7 +12,7 @@ import java.time.LocalTime
 object Åpningstider {
     /**
      * Sier om tidspunktet er innenfor økonomisystemets ordinære åpningstid.
-     * Tar ikke høyde for bevegelige helligdager, vedlikehold i helger eller åpning utenom ordinær tid.
+     * Tar ikke høyde for 2. pinsedag, vedlikehold i helger eller åpning utenom ordinær tid.
      * https://helved-docs.intern.dev.nav.no/v3/doc/faq
      */
     fun erInnenforØkonomisystemetsÅpningstider(clock: Clock): Boolean = erÅpent(nå(clock))
@@ -20,7 +20,7 @@ object Åpningstider {
     /**
      * Sier om økonomisystemet antas å være åpent, muligens er åpent eller er stengt.
      * Økonomisystemet stenger av og til kl. 18 på hverdager, og er av og til åpent på lørdager kl. 07-18.
-     * Tar ikke høyde for bevegelige helligdager eller vedlikehold.
+     * Tar ikke høyde for 2. pinsedag eller vedlikehold.
      */
     fun økonomisystemetsÅpningsstatus(clock: Clock): Åpningsstatus {
         val tidspunkt = nå(clock)
@@ -70,9 +70,9 @@ object Åpningstider {
     private fun LocalTime.erMellom(fraOgMed: LocalTime, tilOgMedEksklusiv: LocalTime): Boolean =
         !isBefore(fraOgMed) && isBefore(tilOgMedEksklusiv)
 
-    private fun LocalDate.erÅpenDag(): Boolean = erHverdag() && !erFastHelligdag()
+    private fun LocalDate.erÅpenDag(): Boolean = erHverdag() && !erHelligdag()
 
-    private fun LocalDate.erLørdagSomKanVæreÅpen(): Boolean = dayOfWeek == DayOfWeek.SATURDAY && !erFastHelligdag()
+    private fun LocalDate.erLørdagSomKanVæreÅpen(): Boolean = dayOfWeek == DayOfWeek.SATURDAY && !erHelligdag()
 
     private val ÅPNINGSTIDSPUNKT: LocalTime = LocalTime.of(6, 10)
     private val STENGETIDSPUNKT: LocalTime = LocalTime.of(20, 50)
