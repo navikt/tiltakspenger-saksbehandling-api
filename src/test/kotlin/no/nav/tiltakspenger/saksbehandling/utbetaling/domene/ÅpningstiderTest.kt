@@ -6,6 +6,8 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.erInnenforØkonomisystemetsÅpningstider
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.Åpningsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.økonomisystemetsÅpningsstatus
 import org.junit.jupiter.api.Test
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -86,5 +88,29 @@ class ÅpningstiderTest {
         Åpningstider.senesteSendetidspunktSomKanStåIReskontroen(5.mai(2025).atTime(12, 0)) shouldBe 30.april(2025).atTime(20, 50)
         Åpningstider.senesteSendetidspunktSomKanStåIReskontroen(7.mai(2025).atTime(12, 0)) shouldBe 5.mai(2025).atTime(20, 50)
         Åpningstider.senesteSendetidspunktSomKanStåIReskontroen(10.mai(2025).atTime(12, 0)) shouldBe 7.mai(2025).atTime(20, 50)
+    }
+
+    /** 5. mai 2025 er en mandag, 10. mai en lørdag, 11. mai en søndag, og 1. mai og 17. mai er faste helligdager. */
+    @Test
+    fun `åpningsstatus skiller mellom garantert åpent, kanskje åpent og stengt`() {
+        fun status(dato: LocalDate, time: Int, minutt: Int) = økonomisystemetsÅpningsstatus(fixedClockAt(dato.atTime(time, minutt)))
+
+        val mandag = 5.mai(2025)
+        status(mandag, 6, 9) shouldBe Åpningsstatus.STENGT
+        status(mandag, 6, 10) shouldBe Åpningsstatus.GARANTERT_ÅPENT
+        status(mandag, 17, 49) shouldBe Åpningsstatus.GARANTERT_ÅPENT
+        status(mandag, 17, 50) shouldBe Åpningsstatus.KANSKJE_ÅPENT
+        status(mandag, 20, 49) shouldBe Åpningsstatus.KANSKJE_ÅPENT
+        status(mandag, 20, 50) shouldBe Åpningsstatus.STENGT
+
+        val lørdag = 10.mai(2025)
+        status(lørdag, 6, 9) shouldBe Åpningsstatus.STENGT
+        status(lørdag, 6, 10) shouldBe Åpningsstatus.KANSKJE_ÅPENT
+        status(lørdag, 17, 49) shouldBe Åpningsstatus.KANSKJE_ÅPENT
+        status(lørdag, 17, 50) shouldBe Åpningsstatus.STENGT
+
+        status(11.mai(2025), 12, 0) shouldBe Åpningsstatus.STENGT
+        status(1.mai(2025), 12, 0) shouldBe Åpningsstatus.STENGT
+        status(17.mai(2025), 12, 0) shouldBe Åpningsstatus.STENGT
     }
 }

@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.coroutines.test.runTest
@@ -327,17 +328,127 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock = klokken2101)
                 }
 
-                for (dagOffset in DayOfWeek.SATURDAY.ordinal..DayOfWeek.SUNDAY.ordinal) {
-                    val dag = mandag.plusDays(dagOffset.toLong())
-                    val klokken1200 = fixedClockAt(dag.atTime(12, 0))
+                // Lørdag kan økonomisystemet være åpent 06:10-17:50, så vi tester bare tidspunktene utenfor.
+                val lørdag = mandag.with(DayOfWeek.SATURDAY)
+                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock = fixedClockAt(lørdag.atTime(6, 9)))
+                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock = fixedClockAt(lørdag.atTime(17, 50)))
 
-                    automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock = klokken1200)
-                }
+                val søndag = mandag.with(DayOfWeek.SUNDAY)
+                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock = fixedClockAt(søndag.atTime(12, 0)))
 
                 meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
             }
         }
     }
+
+    @Test
+    fun `skal behandle meldekort automatisk når økonomisystemet kanskje er åpent og simuleringen går gjennom`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+                    mottatt = nå(clock),
+                )
+                tac.meldekortContext.brukersMeldekortRepo.lagre(brukersMeldekort)
+
+                tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(
+                    clock = kanskjeÅpentKlokke(),
+                )
+
+                tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!.sisteGodkjenteMeldekort!!
+                    .shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
+                    .simulering shouldNotBe null
+                tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!
+                    .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
+            }
+        }
+    }
+
+    @Test
+    fun `skal vente til neste kjøring uten å lagre forsøket når økonomisystemet kanskje er åpent og simuleringen svarer stengt`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+                    mottatt = nå(clock),
+                )
+                brukersMeldekortRepo.lagre(brukersMeldekort)
+
+                tac.utbetalingFakeKlient.simulerFeil = KunneIkkeSimulere.Stengt(
+                    httpKlientUventetStatus(statusCode = 503, body = "simulering stengt"),
+                )
+                tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(
+                    clock = kanskjeÅpentKlokke(),
+                )
+
+                tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+                // Forsøket lagres ikke, slik at det ikke teller mot maksgrensen for nye forsøk.
+                brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.let {
+                    it.behandlesAutomatisk shouldBe true
+                    it.behandletAutomatiskStatus shouldBe brukersMeldekort.behandletAutomatiskStatus
+                    it.behandletAutomatiskForsøkshistorikk shouldBe brukersMeldekort.behandletAutomatiskForsøkshistorikk
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `skal kreve simulering for førstegangsbehandling når økonomisystemet kanskje er åpent`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+                    mottatt = nå(clock),
+                )
+                brukersMeldekortRepo.lagre(brukersMeldekort)
+
+                tac.utbetalingFakeKlient.simulerFeil = KunneIkkeSimulere.UkjentFeil(
+                    httpKlientUventetStatus(statusCode = 500, body = "simulering feilet"),
+                )
+                tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(
+                    clock = kanskjeÅpentKlokke(),
+                )
+
+                tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+                brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.let {
+                    it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET
+                    it.behandlesAutomatisk shouldBe true
+                }
+
+                // I garantert åpningstid stopper vi ikke førstegangsbehandlingen selv om simuleringen feiler.
+                tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(
+                    clock = fixedClockAt(2.april(2025).atTime(8, 0)),
+                )
+
+                tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!.sisteGodkjenteMeldekort!!
+                    .shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
+                    .simulering shouldBe null
+            }
+        }
+    }
+
+    /** Tirsdag kl 18, etter garantert stengetid, men før økonomisystemet senest stenger. */
+    private fun kanskjeÅpentKlokke() = fixedClockAt(1.april(2025).atTime(18, 0))
 
     @Test
     fun `skal prøve på nytt etter 1 minutt for første forsøk`() {

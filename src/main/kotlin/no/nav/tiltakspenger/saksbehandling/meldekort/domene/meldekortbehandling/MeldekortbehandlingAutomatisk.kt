@@ -106,10 +106,15 @@ data class MeldekortBehandletAutomatisk(
     }
 }
 
+/**
+ * @param kreverSimulering Krever at simuleringen går gjennom også for førstegangsbehandlinger.
+ * Korrigeringer krever alltid simulering.
+ */
 suspend fun Sak.opprettAutomatiskMeldekortbehandling(
     brukersMeldekort: BrukersMeldekort,
     hentNavkontor: suspend (fnr: Fnr) -> Navkontor,
     clock: Clock,
+    kreverSimulering: Boolean,
     simuler: suspend (behandling: Meldekortbehandling, navkontor: Navkontor) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
 ): Either<MeldekortBehandletAutomatiskStatus, Pair<MeldekortBehandletAutomatisk, SimuleringMedMetadata?>> {
     validerAutomatiskMeldekortbehandling(brukersMeldekort, clock).onLeft {
@@ -166,10 +171,10 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
     return simuler(meldekortBehandletAutomatisk, navkontor).mapLeft {
         // Simuleringsklienten logger feil selv.
         // En korrigering kan redusere utbetalingen, så den krever en simulering som kan avdekke feilutbetaling.
-        if (type == MeldeperiodebehandlingType.KORRIGERING) {
+        if (type == MeldeperiodebehandlingType.KORRIGERING || kreverSimulering) {
             return MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET.left()
         }
-        // For førstegangsbehandlinger ønsker vi i førsteomgang ikke å stoppe den automatiske utbetalingen selv om simuleringen feiler.
+        // For førstegangsbehandlinger ønsker vi ellers ikke å stoppe utbetalingen selv om simuleringen feiler.
         return Pair(meldekortBehandletAutomatisk, null).right()
     }.map { Pair(meldekortBehandletAutomatisk.copy(simulering = it.simulering), it) }
 }
