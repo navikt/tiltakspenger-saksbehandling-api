@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.Bru
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
@@ -84,8 +85,8 @@ private fun kanKorrigeresAutomatisk(
 ): Boolean {
     val førsteBehandling = behandledeMeldekort.singleOrNull() as? MeldekortBehandletAutomatisk ?: return false
     val førsteInnsending = førsteBehandling.brukersMeldekort
-    val frist: LocalDateTime = generateSequence(førsteBehandling.iverksattTidspunkt.toLocalDate().plusDays(1)) { it.plusDays(1) }
-        .first { it.dayOfWeek != DayOfWeek.SUNDAY && !it.erHelligdag() }
+    val frist: LocalDateTime = førsteBehandling.iverksattTidspunkt.toLocalDate()
+        .nesteDagSomIkkeErSøndagEllerHelligdag()
         .atTime(FRIST_FOR_AUTOMATISK_KORRIGERING_DAGEN_ETTER)
 
     return førsteInnsending.id != brukersMeldekort.id &&
@@ -93,6 +94,10 @@ private fun kanKorrigeresAutomatisk(
         førsteInnsending.meldeperiode == brukersMeldekort.meldeperiode &&
         nå(clock) < frist
 }
+
+private fun LocalDate.nesteDagSomIkkeErSøndagEllerHelligdag(): LocalDate =
+    generateSequence(plusDays(1)) { it.plusDays(1) }
+        .first { it.dayOfWeek != DayOfWeek.SUNDAY && !it.erHelligdag() }
 
 /** Validering som kan gi midlertidige feil - kan prøves på nytt */
 private fun Sak.validerTilstanderSomKanPrøvesPåNytt(brukersMeldekort: BrukersMeldekort): Either<MeldekortBehandletAutomatiskStatus, Unit> {
