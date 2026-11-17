@@ -48,6 +48,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import org.junit.jupiter.api.Test
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 class AutomatiskMeldekortbehandlingJobbTest {
@@ -910,6 +911,74 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 meldekortbehandlinger.sisteGodkjenteMeldekort.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
             }
         }
+    }
+
+    /** Første meldekort behandles lørdag 5. april 2025, så søndagen hoppes over og fristen er mandag 7. april kl 17. */
+    @Test
+    fun `skal hoppe over søndager når fristen for automatisk korrigering beregnes`() {
+        korrigerMeldekortAutomatisk(
+            førsteBehandlingstidspunkt = 5.april(2025).atTime(12, 0),
+            korrigeringstidspunkt = 7.april(2025).atTime(16, 59, 59),
+        ) shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
+    }
+
+    /** Første meldekort behandles onsdag 16. april 2025, så skjærtorsdag og langfredag hoppes over og fristen er lørdag 19. april kl 17. */
+    @Test
+    fun `skal hoppe over helligdager når fristen for automatisk korrigering beregnes`() {
+        korrigerMeldekortAutomatisk(
+            førsteBehandlingstidspunkt = 16.april(2025).atTime(12, 0),
+            korrigeringstidspunkt = 19.april(2025).atTime(16, 59, 59),
+        ) shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
+        korrigerMeldekortAutomatisk(
+            førsteBehandlingstidspunkt = 16.april(2025).atTime(12, 0),
+            korrigeringstidspunkt = 19.april(2025).atTime(17, 0),
+        ) shouldBe MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
+    }
+
+    /** Behandler første meldekort og en korrigering av det på de gitte tidspunktene, og gir statusen til korrigeringen. */
+    private fun korrigerMeldekortAutomatisk(
+        førsteBehandlingstidspunkt: LocalDateTime,
+        korrigeringstidspunkt: LocalDateTime,
+    ): MeldekortBehandletAutomatiskStatus {
+        var status: MeldekortBehandletAutomatiskStatus? = null
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+                val meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode()
+
+                val korrigertMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = meldeperiode,
+                    mottatt = korrigeringstidspunkt.minusHours(1),
+                )
+                val førsteMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = meldeperiode,
+                    mottatt = førsteBehandlingstidspunkt.minusHours(1),
+                    dager = korrigertMeldekort.dager.let { dager ->
+                        val glemtDag = dager.first { it.status == InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET }
+                        dager.map { if (it == glemtDag) it.copy(status = InnmeldtStatus.IKKE_TILTAKSDAG) else it }
+                    },
+                )
+                brukersMeldekortRepo.lagre(førsteMeldekort)
+                service.behandleBrukersMeldekort(fixedClockAt(førsteBehandlingstidspunkt))
+                brukersMeldekortRepo.hentForMeldekortId(førsteMeldekort.id)!!
+                    .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
+
+                brukersMeldekortRepo.lagre(korrigertMeldekort)
+                service.behandleBrukersMeldekort(fixedClockAt(korrigeringstidspunkt))
+                status = brukersMeldekortRepo.hentForMeldekortId(korrigertMeldekort.id)!!.behandletAutomatiskStatus
+            }
+        }
+        return status!!
     }
 
     @Test
