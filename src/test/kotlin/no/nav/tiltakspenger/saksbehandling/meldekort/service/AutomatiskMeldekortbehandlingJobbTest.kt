@@ -918,8 +918,9 @@ class AutomatiskMeldekortbehandlingJobbTest {
     fun `skal hoppe over søndager når fristen for automatisk korrigering beregnes`() {
         korrigerMeldekortAutomatisk(
             førsteBehandlingstidspunkt = 5.april(2025).atTime(12, 0),
-            korrigeringstidspunkt = 7.april(2025).atTime(16, 59, 59),
-        ) shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
+            korrigeringMottatt = 7.april(2025).atTime(10, 0),
+            Kjøring(7.april(2025).atTime(16, 59, 59)),
+        ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.BEHANDLET)
     }
 
     /** Første meldekort behandles onsdag 16. april 2025, så skjærtorsdag og langfredag hoppes over og fristen er lørdag 19. april kl 17. */
@@ -927,20 +928,93 @@ class AutomatiskMeldekortbehandlingJobbTest {
     fun `skal hoppe over helligdager når fristen for automatisk korrigering beregnes`() {
         korrigerMeldekortAutomatisk(
             førsteBehandlingstidspunkt = 16.april(2025).atTime(12, 0),
-            korrigeringstidspunkt = 19.april(2025).atTime(16, 59, 59),
-        ) shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
+            korrigeringMottatt = 19.april(2025).atTime(10, 0),
+            Kjøring(19.april(2025).atTime(16, 59, 59)),
+        ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.BEHANDLET)
         korrigerMeldekortAutomatisk(
             førsteBehandlingstidspunkt = 16.april(2025).atTime(12, 0),
-            korrigeringstidspunkt = 19.april(2025).atTime(17, 0),
-        ) shouldBe MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
+            korrigeringMottatt = 19.april(2025).atTime(10, 0),
+            Kjøring(19.april(2025).atTime(17, 0)),
+        ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET)
     }
 
-    /** Behandler første meldekort og en korrigering av det på de gitte tidspunktene, og gir statusen til korrigeringen. */
+    /** Første meldekort behandles fredag 4. april 2025, så fristen er lørdag 5. april kl 17, selv om økonomisystemet bare muligens er åpent da. */
+    @Test
+    fun `skal ikke behandle korrigering automatisk etter fristen lørdagen etter at første meldekort ble behandlet en fredag`() {
+        korrigerMeldekortAutomatisk(
+            førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
+            korrigeringMottatt = 5.april(2025).atTime(10, 0),
+            Kjøring(5.april(2025).atTime(16, 59, 59)),
+        ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.BEHANDLET)
+        korrigerMeldekortAutomatisk(
+            førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
+            korrigeringMottatt = 5.april(2025).atTime(10, 0),
+            Kjøring(5.april(2025).atTime(17, 0)),
+        ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET)
+    }
+
+    /** Korrigeringen mottas søndag 6. april 2025, etter fristen lørdag kl 17, og jobben kjører ikke før mandag. */
+    @Test
+    fun `skal ikke behandle korrigering mottatt mens økonomisystemet er stengt når fristen har gått ut før det åpner`() {
+        korrigerMeldekortAutomatisk(
+            førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
+            korrigeringMottatt = 6.april(2025).atTime(10, 0),
+            Kjøring(6.april(2025).atTime(10, 0)),
+            Kjøring(7.april(2025).atTime(8, 0)),
+        ) shouldBe listOf(
+            MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
+            MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET,
+        )
+    }
+
+    /** Fristen er lørdag 5. april 2025 kl 17, og pausen etter at simuleringen svarte stengt kl 16:50 varer til 17:05. */
+    @Test
+    fun `skal ikke behandle korrigering automatisk når pausen etter stengt simulering varer forbi fristen`() {
+        korrigerMeldekortAutomatisk(
+            førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
+            korrigeringMottatt = 5.april(2025).atTime(16, 50),
+            Kjøring(
+                tidspunkt = 5.april(2025).atTime(16, 50),
+                simulerFeil = KunneIkkeSimulere.Stengt(httpKlientUventetStatus(statusCode = 503, body = "simulering stengt")),
+            ),
+            Kjøring(5.april(2025).atTime(16, 59, 59)),
+            Kjøring(5.april(2025).atTime(17, 5)),
+        ) shouldBe listOf(
+            MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
+            MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
+            MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET,
+        )
+    }
+
+    /** Tirsdag 1. april 2025 kl 18 muligens er økonomisystemet åpent, og fristen er onsdag 2. april kl 17. */
+    @Test
+    fun `skal prøve korrigering på nytt når simuleringen feiler mens økonomisystemet muligens er åpent`() {
+        korrigerMeldekortAutomatisk(
+            førsteBehandlingstidspunkt = 1.april(2025).atTime(12, 0),
+            korrigeringMottatt = 1.april(2025).atTime(17, 55),
+            Kjøring(
+                tidspunkt = 1.april(2025).atTime(18, 0),
+                simulerFeil = KunneIkkeSimulere.UkjentFeil(httpKlientUventetStatus(statusCode = 500, body = "simulering feilet")),
+            ),
+            Kjøring(2.april(2025).atTime(8, 0)),
+        ) shouldBe listOf(
+            MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET,
+            MeldekortBehandletAutomatiskStatus.BEHANDLET,
+        )
+    }
+
+    private data class Kjøring(val tidspunkt: LocalDateTime, val simulerFeil: KunneIkkeSimulere? = null)
+
+    /**
+     * Behandler første meldekort automatisk og mottar så en korrigering av det.
+     * Kjører jobben for hver av [kjøringer] og gir statusen til korrigeringen etter hver kjøring.
+     */
     private fun korrigerMeldekortAutomatisk(
         førsteBehandlingstidspunkt: LocalDateTime,
-        korrigeringstidspunkt: LocalDateTime,
-    ): MeldekortBehandletAutomatiskStatus {
-        var status: MeldekortBehandletAutomatiskStatus? = null
+        korrigeringMottatt: LocalDateTime,
+        vararg kjøringer: Kjøring,
+    ): List<MeldekortBehandletAutomatiskStatus> {
+        val statuser = mutableListOf<MeldekortBehandletAutomatiskStatus>()
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
@@ -956,7 +1030,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     behandlesAutomatisk = true,
                     sakId = sak.id,
                     meldeperiode = meldeperiode,
-                    mottatt = korrigeringstidspunkt.minusHours(1),
+                    mottatt = korrigeringMottatt,
                 )
                 val førsteMeldekort = ObjectMother.brukersMeldekort(
                     behandlesAutomatisk = true,
@@ -974,11 +1048,14 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
 
                 brukersMeldekortRepo.lagre(korrigertMeldekort)
-                service.behandleBrukersMeldekort(fixedClockAt(korrigeringstidspunkt))
-                status = brukersMeldekortRepo.hentForMeldekortId(korrigertMeldekort.id)!!.behandletAutomatiskStatus
+                kjøringer.forEach { (tidspunkt, simulerFeil) ->
+                    tac.utbetalingFakeKlient.simulerFeil = simulerFeil
+                    service.behandleBrukersMeldekort(fixedClockAt(tidspunkt))
+                    statuser.add(brukersMeldekortRepo.hentForMeldekortId(korrigertMeldekort.id)!!.behandletAutomatiskStatus)
+                }
             }
         }
-        return status!!
+        return statuser
     }
 
     @Test
