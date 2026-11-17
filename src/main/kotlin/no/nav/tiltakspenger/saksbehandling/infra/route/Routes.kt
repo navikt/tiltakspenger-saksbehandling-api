@@ -95,6 +95,7 @@ fun Route.routes(
             clock = applicationContext.clock,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
             personService = applicationContext.personContext.personService,
+            erProd = applicationContext.erProd,
         )
         meldekortRoutes(
             iverksettMeldekortbehandlingService = applicationContext.meldekortContext.iverksettMeldekortbehandlingService,

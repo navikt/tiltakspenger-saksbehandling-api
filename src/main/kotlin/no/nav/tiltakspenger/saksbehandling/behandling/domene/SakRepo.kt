@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakDb
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import java.time.LocalDateTime
 
 interface SakRepo {
@@ -22,8 +23,10 @@ interface SakRepo {
     /**
      * Denne er kun tenkt kalt når man mottar en søknad og det ikke finnes noen sak fra før.
      * Senere endringer på saken gjøres via methoder og repoer.
+     *
+     * @param oppdragsversjon hvilken versjon av Hel Veds API saken sender utbetalinger med.
      */
-    fun opprettSak(sak: Sak)
+    fun opprettSak(sak: Sak, oppdragsversjon: Oppdragsversjon)
 
     fun hentForSakId(sakId: SakId): Sak?
 

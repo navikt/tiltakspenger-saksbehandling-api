@@ -28,7 +28,7 @@ class SakPostgresRepoNegativTest {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, _) = opprettSakOgSøknad(tac)
 
-            tac.sakContext.sakRepo.opprettSak(sak)
+            tac.sakContext.sakRepo.opprettSak(sak, tac.sakContext.oppdragsversjonForNyeSaker)
 
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.saksnummer shouldBe sak.saksnummer
         }

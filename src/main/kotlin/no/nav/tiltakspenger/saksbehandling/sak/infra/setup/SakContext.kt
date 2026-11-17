@@ -18,7 +18,7 @@ open class SakContext(
     personService: PersonService,
     environmentProfile: EnvironmentProfile,
     clock: Clock,
-    oppdragsversjonForNyeSaker: Oppdragsversjon,
+    val oppdragsversjonForNyeSaker: Oppdragsversjon,
 ) {
     val sakService: SakService by lazy {
         SakService(
@@ -26,6 +26,7 @@ open class SakContext(
             fellesSkjermingsklient = fellesSkjermingsklient,
             personService = personService,
             sessionFactory = sessionFactory,
+            oppdragsversjonForNyeSaker = oppdragsversjonForNyeSaker,
         )
     }
     open val saksnummerGenerator: SaksnummerGenerator by lazy {
@@ -40,7 +41,6 @@ open class SakContext(
             sessionFactory = sessionFactory as PostgresSessionFactory,
             saksnummerGenerator = saksnummerGenerator,
             clock = clock,
-            oppdragsversjonForNyeSaker = oppdragsversjonForNyeSaker,
         )
     }
 }

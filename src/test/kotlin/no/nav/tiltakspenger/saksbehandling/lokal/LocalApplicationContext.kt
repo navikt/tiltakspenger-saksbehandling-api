@@ -426,7 +426,7 @@ class LocalApplicationContext(
         val sak = sakRepo.hentForFnr(fnr) ?: ObjectMother.nySak(
             fnr = fnr,
             saksnummer = sakRepo.hentNesteSaksnummer(),
-        ).also { sakRepo.opprettSak(it) }
+        ).also { sakRepo.opprettSak(it, sakContext.oppdragsversjonForNyeSaker) }
         (sessionFactory as PostgresSessionFactory).hentSøknadForSøknadId(søknadId) ?: ObjectMother.nyInnvilgbarSøknad(
             fnr = fnr,
             id = søknadId,

@@ -15,48 +15,46 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.ForelderBarnRelasjonRolle
 import no.nav.tiltakspenger.libs.personklient.infra.skjerming.FellesSkjermingsklient
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.hentMeldeperiodeKjederMedKunRettIHelg
 import no.nav.tiltakspenger.saksbehandling.person.BarnMedSkjerming
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPersonMedSkjerming
+import no.nav.tiltakspenger.saksbehandling.sak.NySak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 
 class SakService(
     private val sakRepo: SakRepo,
     private val personService: PersonService,
     private val fellesSkjermingsklient: FellesSkjermingsklient,
     private val sessionFactory: SessionFactory,
+    /** Hvilken versjon av Hel Veds API nye saker sender utbetalinger med. */
+    private val oppdragsversjonForNyeSaker: Oppdragsversjon,
 ) {
     val logger = KotlinLogging.logger { }
 
+    /**
+     * @param oppdragsversjon se [NySak.opprett].
+     */
     fun hentEllerOpprettSak(
         fnr: Fnr,
         correlationId: CorrelationId,
+        oppdragsversjon: Oppdragsversjon? = null,
     ): Pair<Sak, Boolean> {
         sakRepo.hentForFnr(fnr)?.let { return it to false }
 
-        val sak = Sak(
-            id = SakId.random(),
+        val nySak = NySak.opprett(
             fnr = fnr,
             saksnummer = sakRepo.hentNesteSaksnummer(),
-            behandlinger = Behandlinger.empty(),
-            vedtaksliste = Vedtaksliste.empty(),
-            meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
-            brukersMeldekort = emptyList(),
-            søknader = emptyList(),
-            tilbakekrevinger = emptyList(),
-            kanSendeInnHelgForMeldekort = false,
-            tiltakshistorikk = emptyList(),
+            oppdragsversjonForNyeSaker = oppdragsversjonForNyeSaker,
+            valgtOppdragsversjon = oppdragsversjon,
         )
-        sakRepo.opprettSak(sak)
-        logger.info { "Opprettet ny sak med saksnummer ${sak.saksnummer}, correlationId $correlationId" }
-        return sak to true
+        sakRepo.opprettSak(nySak.sak, nySak.oppdragsversjon)
+        logger.info { "Opprettet ny sak med saksnummer ${nySak.sak.saksnummer}, correlationId $correlationId" }
+        return nySak.sak to true
     }
 
     fun hentForSaksnummer(

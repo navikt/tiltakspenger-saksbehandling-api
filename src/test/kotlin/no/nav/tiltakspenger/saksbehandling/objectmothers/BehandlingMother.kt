@@ -631,7 +631,7 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
     ),
     correlationId: CorrelationId = CorrelationId.generate(),
 ): Pair<Sak, Søknadsbehandling> {
-    this.sakContext.sakRepo.opprettSak(sak)
+    this.sakContext.sakRepo.opprettSak(sak, this.sakContext.oppdragsversjonForNyeSaker)
     this.nyInnvilgbarSøknad(
         periode = periode,
         fnr = fnr,

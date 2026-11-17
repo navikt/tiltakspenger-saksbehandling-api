@@ -21,7 +21,7 @@ class MottaMeldekortRouteTest {
         runTest {
             withTestApplicationContext { tac ->
                 val (sak) = nySakMedVedtak()
-                tac.sakContext.sakRepo.opprettSak(sak)
+                tac.sakContext.sakRepo.opprettSak(sak, tac.sakContext.oppdragsversjonForNyeSaker)
 
                 val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
                 tac.meldekortContext.meldeperiodeRepo.lagre(meldeperiode)
@@ -41,7 +41,7 @@ class MottaMeldekortRouteTest {
     fun `Skal lagre meldekort fra bruker og ignorere påfølgende requests med samme data, med ok-response`() {
         withTestApplicationContext { tac ->
             val (sak) = nySakMedVedtak()
-            tac.sakContext.sakRepo.opprettSak(sak)
+            tac.sakContext.sakRepo.opprettSak(sak, tac.sakContext.oppdragsversjonForNyeSaker)
 
             val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
             tac.meldekortContext.meldeperiodeRepo.lagre(meldeperiode)
@@ -73,7 +73,7 @@ class MottaMeldekortRouteTest {
         runTest {
             withTestApplicationContext { tac ->
                 val (sak) = nySakMedVedtak()
-                tac.sakContext.sakRepo.opprettSak(sak)
+                tac.sakContext.sakRepo.opprettSak(sak, tac.sakContext.oppdragsversjonForNyeSaker)
 
                 val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
                 tac.meldekortContext.meldeperiodeRepo.lagre(meldeperiode)

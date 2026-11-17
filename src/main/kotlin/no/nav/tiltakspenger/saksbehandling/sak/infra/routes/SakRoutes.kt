@@ -17,11 +17,12 @@ fun Route.sakRoutes(
     clock: Clock,
     tilgangskontrollService: TilgangskontrollService,
     personService: PersonService,
+    erProd: Boolean,
 ) {
     søkFnrSaksnummerOgSakIdRoute(sakService, auditService, clock, tilgangskontrollService)
     hentSakForSaksnummerRoute(sakService, auditService, clock, tilgangskontrollService)
     hentEllerOpprettSakSystembrukerRoute(sakService)
-    hentEllerOpprettSakRoute(sakService, auditService, tilgangskontrollService, personService)
+    hentEllerOpprettSakRoute(sakService, auditService, tilgangskontrollService, personService, erProd)
     toggleKanSendeHelgForMeldekortSakRoute(sakService, auditService, clock, tilgangskontrollService)
     // TODO jah: Denne føles litt malplassert.
     avbrytSøknadOgBehandling(auditService, avbrytSøknadOgBehandlingService, clock, tilgangskontrollService)

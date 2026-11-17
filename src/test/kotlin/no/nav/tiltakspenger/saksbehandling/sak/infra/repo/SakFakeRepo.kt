@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakshistorikkFakeRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakFakeRepo
@@ -56,7 +57,7 @@ class SakFakeRepo(
         return hentSak(sakId)
     }
 
-    override fun opprettSak(sak: Sak) {
+    override fun opprettSak(sak: Sak, oppdragsversjon: Oppdragsversjon) {
         data.get()[sak.id] = sak
     }
 

@@ -42,8 +42,6 @@ class SakPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val saksnummerGenerator: SaksnummerGenerator,
     private val clock: Clock,
-    /** Hvilken versjon av Hel Veds API nye saker sender utbetalinger med. */
-    private val oppdragsversjonForNyeSaker: Oppdragsversjon,
 ) : SakRepo {
     val logger = KotlinLogging.logger { }
 
@@ -137,7 +135,7 @@ class SakPostgresRepo(
         }
     }
 
-    override fun opprettSak(sak: Sak) {
+    override fun opprettSak(sak: Sak, oppdragsversjon: Oppdragsversjon) {
         logger.info { "Oppretter sak ${sak.id}" }
         val nå = nå(clock)
         sessionFactory.withSessionContext { sessionContext ->
@@ -177,7 +175,7 @@ class SakPostgresRepo(
                         "skal_sendes_til_meldekort_api" to false,
                         "skal_sende_meldeperioder_til_datadeling" to false,
                         "sendt_til_datadeling" to null,
-                        "oppdragsversjon" to oppdragsversjonForNyeSaker.tilDb(),
+                        "oppdragsversjon" to oppdragsversjon.tilDb(),
                     ).asUpdate,
                 )
             }

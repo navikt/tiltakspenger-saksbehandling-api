@@ -34,7 +34,7 @@ class OlderMottaSøknadTest {
     fun `søknad route + service`() {
         withTestApplicationContext { tac ->
             val sak = ObjectMother.nySak(fnr = IDENT)
-            tac.sakContext.sakRepo.opprettSak(sak)
+            tac.sakContext.sakRepo.opprettSak(sak, tac.sakContext.oppdragsversjonForNyeSaker)
             val søknadId = SøknadId.random()
 
             val jwt = tac.jwtGenerator.createJwtForSystembruker(

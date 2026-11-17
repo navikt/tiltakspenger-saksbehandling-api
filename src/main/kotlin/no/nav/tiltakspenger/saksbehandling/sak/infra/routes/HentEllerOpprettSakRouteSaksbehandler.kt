@@ -5,6 +5,7 @@ import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.put
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
+import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respond404NotFound
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withBody
@@ -19,13 +20,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.fantIkkeFnr
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
-import no.nav.tiltakspenger.saksbehandling.person.infra.route.FnrDTO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 
 fun Route.hentEllerOpprettSakRoute(
     sakService: SakService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
     personService: PersonService,
+    erProd: Boolean,
 ) {
     val logger = KotlinLogging.logger {}
 
@@ -35,8 +37,15 @@ fun Route.hentEllerOpprettSakRoute(
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@put
         krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
         val correlationId = call.correlationId()
-        call.withBody<FnrDTO> { body ->
-            val fnr: Fnr = body.toDomain()
+        call.withBody<HentEllerOpprettSakBody> { body ->
+            val fnr: Fnr = Fnr.fromString(body.fnr)
+            if (body.oppdragsversjon != null && erProd) {
+                call.respond400BadRequest(
+                    melding = "Oppdragsversjon kan bare velges utenfor prod.",
+                    kode = "oppdragsversjon_kan_ikke_velges",
+                )
+                return@withBody
+            }
             tilgangskontrollService.harTilgangTilPerson(
                 fnr = fnr,
                 saksbehandlerToken = token,
@@ -50,6 +59,7 @@ fun Route.hentEllerOpprettSakRoute(
                     val (sak, opprettet) = sakService.hentEllerOpprettSak(
                         fnr = fnr,
                         correlationId = correlationId,
+                        oppdragsversjon = body.oppdragsversjon,
                     )
                     auditService.logMedSakId(
                         sakId = sak.id,
@@ -68,6 +78,14 @@ fun Route.hentEllerOpprettSakRoute(
         }
     }
 }
+
+/**
+ * @param oppdragsversjon lar testere velge versjon av Hel Veds grensesnitt når saken opprettes, og avvises i prod.
+ */
+data class HentEllerOpprettSakBody(
+    val fnr: String,
+    val oppdragsversjon: Oppdragsversjon? = null,
+)
 
 data class HentEllerOpprettSakResponse(
     val saksnummer: String,

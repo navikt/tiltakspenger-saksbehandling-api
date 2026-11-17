@@ -27,7 +27,7 @@ class MottaBrukerutfyltMeldekortServiceTest {
 
             val sakRepo = tac.sakContext.sakRepo
             val (sak) = nySakMedVedtak()
-            sakRepo.opprettSak(sak)
+            sakRepo.opprettSak(sak, tac.sakContext.oppdragsversjonForNyeSaker)
 
             val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
             val meldekortId = MeldekortId.random()
@@ -67,7 +67,7 @@ class MottaBrukerutfyltMeldekortServiceTest {
 
             val sakRepo = tac.sakContext.sakRepo
             val (sak) = nySakMedVedtak()
-            sakRepo.opprettSak(sak)
+            sakRepo.opprettSak(sak, tac.sakContext.oppdragsversjonForNyeSaker)
 
             val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
             val meldekortId = MeldekortId.random()
@@ -125,7 +125,7 @@ class MottaBrukerutfyltMeldekortServiceTest {
 
             val sakRepo = tac.sakContext.sakRepo
             val (sak) = nySakMedVedtak()
-            sakRepo.opprettSak(sak)
+            sakRepo.opprettSak(sak, tac.sakContext.oppdragsversjonForNyeSaker)
 
             val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
             val meldekortId = MeldekortId.random()

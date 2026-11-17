@@ -436,7 +436,7 @@ class DelautomatiskBehandlingServiceTest {
     fun `behandleAutomatisk - har andre ytelser (søknad) - manuell behandling`() {
         withTestApplicationContext { tac ->
             val sak = ObjectMother.nySak()
-            tac.sakContext.sakRepo.opprettSak(sak)
+            tac.sakContext.sakRepo.opprettSak(sak, tac.sakContext.oppdragsversjonForNyeSaker)
             val periode = Periode(fraOgMed = 1.januar(2023), tilOgMed = 31.januar(2023))
             val sakOgBehandling = ObjectMother.sakMedOpprettetAutomatiskBehandling(
                 sakId = sak.id,
@@ -511,7 +511,7 @@ class DelautomatiskBehandlingServiceTest {
     fun `behandleAutomatisk - flere grunner til manuell behandling - manuell behandling, alle grunner ligger i listen`() {
         withTestApplicationContext { tac ->
             val sak = ObjectMother.nySak()
-            tac.sakContext.sakRepo.opprettSak(sak)
+            tac.sakContext.sakRepo.opprettSak(sak, tac.sakContext.oppdragsversjonForNyeSaker)
             val periode = Periode(fraOgMed = 1.januar(2023), tilOgMed = 31.januar(2023))
             val sakOgBehandling = ObjectMother.sakMedOpprettetAutomatiskBehandling(
                 sakId = sak.id,
