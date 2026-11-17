@@ -30,7 +30,7 @@ private fun LocalDate.erFastHelligdag(): Boolean {
     return monthDay in fasteHelligdager
 }
 
-/** Skjærtorsdag, langfredag, 2. påskedag og Kristi himmelfartsdag, som alle følger påskedagen. */
+/** Skjærtorsdag, langfredag, 2. påskedag, Kristi himmelfartsdag og 2. pinsedag, som alle følger påskedagen. */
 private fun LocalDate.erBevegeligHelligdag(): Boolean {
     val påskedag = påskedag(year)
     return this in listOf(
@@ -38,6 +38,7 @@ private fun LocalDate.erBevegeligHelligdag(): Boolean {
         påskedag.minusDays(2),
         påskedag.plusDays(1),
         påskedag.plusDays(39),
+        påskedag.plusDays(50),
     )
 }
 

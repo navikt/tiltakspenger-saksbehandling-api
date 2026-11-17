@@ -12,7 +12,7 @@ import java.time.LocalTime
 object Åpningstider {
     /**
      * Sier om tidspunktet er innenfor økonomisystemets ordinære åpningstid.
-     * Tar ikke høyde for 2. pinsedag, vedlikehold i helger eller åpning utenom ordinær tid.
+     * Tar ikke høyde for vedlikehold i helger eller åpning utenom ordinær tid.
      * https://helved-docs.intern.dev.nav.no/v3/doc/faq
      */
     fun erInnenforØkonomisystemetsÅpningstider(clock: Clock): Boolean = erÅpent(nå(clock))
@@ -20,7 +20,7 @@ object Åpningstider {
     /**
      * Sier om økonomisystemet antas å være åpent, muligens er åpent eller er stengt.
      * Økonomisystemet stenger av og til kl. 18 på hverdager, og er av og til åpent på lørdager kl. 07-18.
-     * Tar ikke høyde for 2. pinsedag eller vedlikehold.
+     * Tar ikke høyde for vedlikehold.
      */
     fun økonomisystemetsÅpningsstatus(clock: Clock): Åpningsstatus {
         val tidspunkt = nå(clock)
