@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test
 
 /**
  * Legger titler inn i de lagrede tiltaksdeltakelsene slik de ble lagret før V279, og kjører V279 på nytt.
+ * Innvilgelsesperiodene gjenskapes i formatet fra V278, som var formatet da V279 kjørte.
  * Etter migreringen skal titlene være borte, mens resten av json-en er urørt.
  */
 class TiltakstittelMigreringTest {
@@ -30,7 +31,7 @@ class TiltakstittelMigreringTest {
                 put("tiltaksdeltakelserSomFratarRett", JSONArray().put(JSONObject().put("id", "TA9").put("tittel", "Lønnstilskudd hos Bedrift AS")))
                 getJSONArray("tiltaksdeltagelse").forEachObject { it.put("tittel", "Sveisekurs hos Arrangør AS") }
             }
-            val innvilgelsesperioder = JSONObject(tac.hentJson(behandling.id, "innvilgelsesperioder")).apply {
+            val innvilgelsesperioder = JSONObject(tac.hentJson(behandling.id, "innvilgelsesperioder").tilFormatFraV278()).apply {
                 getJSONArray("value").forEachObject { periode ->
                     periode.getJSONArray("tiltaksdeltakelser").forEachObject {
                         it.getJSONObject("tiltaksdeltakelse").put("tittel", "Sveisekurs hos Arrangør AS")
@@ -71,6 +72,18 @@ class TiltakstittelMigreringTest {
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id) shouldBe behandling
         }
     }
+
+    /** Gjenskaper formatet fra V278, der hver tiltaksdeltakelse i perioden hadde sitt eget `antallDagerPerMeldeperiode`. */
+    private fun String.tilFormatFraV278(): String = JSONObject(this).apply {
+        getJSONArray("value").forEachObject { periode ->
+            val antallDager = periode.remove("antallDagerPerMeldeperiode").shouldNotBeNull()
+            val tiltaksdeltakelser = JSONArray()
+            periode.getJSONArray("tiltaksdeltakelser").forEachObject {
+                tiltaksdeltakelser.put(JSONObject().put("tiltaksdeltakelse", it).put("antallDagerPerMeldeperiode", antallDager))
+            }
+            periode.put("tiltaksdeltakelser", tiltaksdeltakelser)
+        }
+    }.toString()
 
     private fun JSONArray.forEachObject(block: (JSONObject) -> Unit) {
         for (i in 0 until length()) block(getJSONObject(i))

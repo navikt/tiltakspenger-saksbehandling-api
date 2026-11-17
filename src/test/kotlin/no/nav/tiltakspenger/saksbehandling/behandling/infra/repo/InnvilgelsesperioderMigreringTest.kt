@@ -31,7 +31,7 @@ class InnvilgelsesperioderMigreringTest {
             tac.hentInnvilgelsesperioderJson(behandling.id).contains("valgtTiltaksdeltakelse") shouldBe true
 
             tac.kjørMigrering("V278__innvilgelsesperioder_flere_tiltaksdeltakelser.sql")
-            tac.kjørMigrering("V279__innvilgelsesperioder_felles_antall_dager.sql")
+            tac.kjørMigrering("V280__innvilgelsesperioder_felles_antall_dager.sql")
 
             tac.hentInnvilgelsesperioderJson(behandling.id) shouldEqualJson nyttFormat
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).innvilgelsesperioder shouldBe behandling.innvilgelsesperioder
@@ -46,13 +46,13 @@ class InnvilgelsesperioderMigreringTest {
             val nyttFormat = tac.hentInnvilgelsesperioderJson(behandling.id)
 
             tac.lagreInnvilgelsesperioderJson(behandling.id, nyttFormat.tilFormatFraV278())
-            tac.kjørMigrering("V279__innvilgelsesperioder_felles_antall_dager.sql")
+            tac.kjørMigrering("V280__innvilgelsesperioder_felles_antall_dager.sql")
 
             tac.hentInnvilgelsesperioderJson(behandling.id) shouldEqualJson nyttFormat
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).innvilgelsesperioder shouldBe behandling.innvilgelsesperioder
 
             // Kjøres migreringen på nytt, beholdes perioden som den er.
-            tac.kjørMigrering("V279__innvilgelsesperioder_felles_antall_dager.sql")
+            tac.kjørMigrering("V280__innvilgelsesperioder_felles_antall_dager.sql")
             tac.hentInnvilgelsesperioderJson(behandling.id) shouldEqualJson nyttFormat
         }
     }
@@ -89,7 +89,7 @@ class InnvilgelsesperioderMigreringTest {
                 }
                 """.trimIndent(),
             )
-            tac.kjørMigrering("V279__innvilgelsesperioder_felles_antall_dager.sql")
+            tac.kjørMigrering("V280__innvilgelsesperioder_felles_antall_dager.sql")
 
             tac.hentInnvilgelsesperioderJson(behandling.id) shouldEqualJson """
                 {
