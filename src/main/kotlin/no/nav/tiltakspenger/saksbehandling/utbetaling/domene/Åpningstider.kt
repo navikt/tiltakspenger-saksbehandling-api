@@ -18,7 +18,7 @@ object Åpningstider {
     fun erInnenforØkonomisystemetsÅpningstider(clock: Clock): Boolean = erÅpent(nå(clock))
 
     /**
-     * Sier om økonomisystemet garantert er åpent, kanskje er åpent eller er stengt.
+     * Sier om økonomisystemet antas å være åpent, muligens er åpent eller er stengt.
      * Økonomisystemet stenger av og til kl. 18 på hverdager, og er av og til åpent på lørdager frem til kl. 18.
      * Tar ikke høyde for bevegelige helligdager eller vedlikehold.
      */
@@ -27,16 +27,16 @@ object Åpningstider {
         val dato = tidspunkt.toLocalDate()
         val klokkeslett = tidspunkt.toLocalTime()
         return when {
-            dato.erÅpenDag() && klokkeslett.erMellom(ÅPNINGSTIDSPUNKT, TIDLIG_STENGETIDSPUNKT) -> Åpningsstatus.GARANTERT_ÅPENT
-            erÅpent(tidspunkt) -> Åpningsstatus.KANSKJE_ÅPENT
-            dato.erLørdagSomKanVæreÅpen() && klokkeslett.erMellom(ÅPNINGSTIDSPUNKT, TIDLIG_STENGETIDSPUNKT) -> Åpningsstatus.KANSKJE_ÅPENT
+            dato.erÅpenDag() && klokkeslett.erMellom(ÅPNINGSTIDSPUNKT, TIDLIG_STENGETIDSPUNKT) -> Åpningsstatus.ANTATT_ÅPENT
+            erÅpent(tidspunkt) -> Åpningsstatus.MULIG_ÅPENT
+            dato.erLørdagSomKanVæreÅpen() && klokkeslett.erMellom(ÅPNINGSTIDSPUNKT, TIDLIG_STENGETIDSPUNKT) -> Åpningsstatus.MULIG_ÅPENT
             else -> Åpningsstatus.STENGT
         }
     }
 
     enum class Åpningsstatus {
-        GARANTERT_ÅPENT,
-        KANSKJE_ÅPENT,
+        ANTATT_ÅPENT,
+        MULIG_ÅPENT,
         STENGT,
     }
 

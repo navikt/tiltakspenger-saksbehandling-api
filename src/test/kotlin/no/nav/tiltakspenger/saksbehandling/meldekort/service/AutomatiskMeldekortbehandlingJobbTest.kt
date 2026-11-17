@@ -342,7 +342,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     @Test
-    fun `skal behandle meldekort automatisk når økonomisystemet kanskje er åpent og simuleringen går gjennom`() {
+    fun `skal behandle meldekort automatisk når økonomisystemet muligens er åpent og simuleringen går gjennom`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
@@ -358,7 +358,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 tac.meldekortContext.brukersMeldekortRepo.lagre(brukersMeldekort)
 
                 tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(
-                    clock = kanskjeÅpentKlokke(),
+                    clock = muligÅpentKlokke(),
                 )
 
                 tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!.sisteGodkjenteMeldekort!!
@@ -371,7 +371,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     @Test
-    fun `skal vente til neste kjøring uten å lagre forsøket når økonomisystemet kanskje er åpent og simuleringen svarer stengt`() {
+    fun `skal vente til neste kjøring uten å lagre forsøket når økonomisystemet muligens er åpent og simuleringen svarer stengt`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
@@ -391,7 +391,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     httpKlientUventetStatus(statusCode = 503, body = "simulering stengt"),
                 )
                 tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(
-                    clock = kanskjeÅpentKlokke(),
+                    clock = muligÅpentKlokke(),
                 )
 
                 tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
@@ -406,7 +406,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     @Test
-    fun `skal kreve simulering for førstegangsbehandling når økonomisystemet kanskje er åpent`() {
+    fun `skal kreve simulering for førstegangsbehandling når økonomisystemet muligens er åpent`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
@@ -426,7 +426,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     httpKlientUventetStatus(statusCode = 500, body = "simulering feilet"),
                 )
                 tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(
-                    clock = kanskjeÅpentKlokke(),
+                    clock = muligÅpentKlokke(),
                 )
 
                 tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
@@ -435,7 +435,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     it.behandlesAutomatisk shouldBe true
                 }
 
-                // I garantert åpningstid stopper vi ikke førstegangsbehandlingen selv om simuleringen feiler.
+                // I antatt åpningstid stopper vi ikke førstegangsbehandlingen selv om simuleringen feiler.
                 tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(
                     clock = fixedClockAt(2.april(2025).atTime(8, 0)),
                 )
@@ -447,8 +447,8 @@ class AutomatiskMeldekortbehandlingJobbTest {
         }
     }
 
-    /** Tirsdag kl 18, etter garantert stengetid, men før økonomisystemet senest stenger. */
-    private fun kanskjeÅpentKlokke() = fixedClockAt(1.april(2025).atTime(18, 0))
+    /** Tirsdag kl 18, etter antatt stengetid, men før økonomisystemet senest stenger. */
+    private fun muligÅpentKlokke() = fixedClockAt(1.april(2025).atTime(18, 0))
 
     @Test
     fun `skal prøve på nytt etter 1 minutt for første forsøk`() {

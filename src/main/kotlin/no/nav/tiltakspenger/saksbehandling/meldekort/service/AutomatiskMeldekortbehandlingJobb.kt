@@ -63,8 +63,8 @@ class AutomatiskMeldekortbehandlingJobb(
         if (åpningsstatus == Åpningsstatus.STENGT) {
             return
         }
-        // Utenfor garantert åpningstid vet vi ikke om økonomisystemet er åpent, så da må simuleringen gå gjennom.
-        val kreverSimulering = åpningsstatus == Åpningsstatus.KANSKJE_ÅPENT
+        // Utenfor antatt åpningstid vet vi ikke om økonomisystemet er åpent, så da må simuleringen gå gjennom.
+        val kreverSimulering = åpningsstatus == Åpningsstatus.MULIG_ÅPENT
 
         val meldekortListe = Either.catch {
             brukersMeldekortRepo.hentMeldekortSomSkalBehandlesAutomatisk()
@@ -75,17 +75,11 @@ class AutomatiskMeldekortbehandlingJobb(
 
         logger.debug { "Fant ${meldekortListe.size} meldekort som skal behandles automatisk" }
 
-        var økonomisystemetErStengt = false
-
         meldekortListe.forEach { meldekort ->
-            // Simuleringen vil feile for resten av meldekortene også, så vi venter til neste kjøring.
-            if (økonomisystemetErStengt) {
-                return@forEach
-            }
-            korrelasjon.medNyCorrelationId { correlationId ->
+            val økonomisystemetErStengt = korrelasjon.medNyCorrelationId { correlationId ->
                 Either.catch {
                     if (skalHoppeOverMeldekort(meldekort, clock)) {
-                        return@medNyCorrelationId
+                        return@catch false
                     }
 
                     val id = meldekort.id
@@ -97,25 +91,34 @@ class AutomatiskMeldekortbehandlingJobb(
                         "Fant ikke sak for mottatt meldekort med id $id, sakId $sakId"
                     }
 
-                    opprettMeldekortbehandling(meldekort, sak, kreverSimulering, clock)
-                        .onLeft { ikkeBehandlet ->
+                    opprettMeldekortbehandling(meldekort, sak, kreverSimulering, clock).fold(
+                        ifLeft = { ikkeBehandlet ->
                             when (ikkeBehandlet) {
-                                is IkkeBehandlet.Feilet -> håndterOpprettBehandlingFeil(ikkeBehandlet.status, meldekort, clock, correlationId)
-
-                                // Meldekortet oppdateres ikke, slik at forsøket ikke teller mot maksgrensen for nye forsøk.
-                                IkkeBehandlet.ØkonomisystemetErStengt -> {
-                                    logger.info { "Økonomisystemet er stengt utenfor garantert åpningstid - venter med automatisk behandling av meldekort til neste kjøring" }
-                                    økonomisystemetErStengt = true
+                                is IkkeBehandlet.Feilet -> {
+                                    håndterOpprettBehandlingFeil(ikkeBehandlet.status, meldekort, clock, correlationId)
+                                    false
                                 }
+
+                                IkkeBehandlet.ØkonomisystemetErStengt -> true
                             }
-                        }
-                        .onRight { behandling ->
+                        },
+                        ifRight = { behandling ->
                             logger.info { "Opprettet automatisk behandling ${behandling.id} for brukers meldekort $id på sak $sakId" }
-                        }
-                }.onLeft {
+                            false
+                        },
+                    )
+                }.getOrElse {
                     logger.error(it) { "Ukjent feil ved automatisk behandling av meldekort fra bruker ${meldekort.id} - ${it.message}" }
                     håndterOpprettBehandlingFeil(MeldekortBehandletAutomatiskStatus.UKJENT_FEIL, meldekort, clock, correlationId)
+                    false
                 }
+            }
+
+            // Simuleringen vil feile for resten av meldekortene også, så vi venter til neste kjøring.
+            // Meldekortet oppdateres ikke, slik at forsøket ikke teller mot maksgrensen for nye forsøk.
+            if (økonomisystemetErStengt) {
+                logger.info { "Økonomisystemet er stengt utenfor antatt åpningstid - venter med automatisk behandling av meldekort til neste kjøring" }
+                return
             }
         }
     }
@@ -308,7 +311,7 @@ class AutomatiskMeldekortbehandlingJobb(
     private sealed interface IkkeBehandlet {
         data class Feilet(val status: MeldekortBehandletAutomatiskStatus) : IkkeBehandlet
 
-        /** Simuleringen svarte at økonomisystemet er stengt, utenfor tidsrommet der det garantert er åpent. */
+        /** Simuleringen svarte at økonomisystemet er stengt, utenfor tidsrommet der det antas å være åpent. */
         data object ØkonomisystemetErStengt : IkkeBehandlet
     }
 
