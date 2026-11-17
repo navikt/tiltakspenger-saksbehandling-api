@@ -9,7 +9,6 @@ val fasteHelligdager = listOf<MonthDay>(
     MonthDay.of(Month.JANUARY, 1),
     MonthDay.of(Month.MAY, 1),
     MonthDay.of(Month.MAY, 17),
-    MonthDay.of(Month.DECEMBER, 24),
     MonthDay.of(Month.DECEMBER, 25),
     MonthDay.of(Month.DECEMBER, 26),
     MonthDay.of(Month.DECEMBER, 31),
