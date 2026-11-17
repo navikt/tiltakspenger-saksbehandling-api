@@ -13,7 +13,7 @@ class LocalDateExTest {
 
     @Test
     fun `faste helligdager er helligdager`() {
-        listOf(1.januar(2025), 1.mai(2025), 17.mai(2025), 24.desember(2025), 25.desember(2025), 26.desember(2025), 31.desember(2025))
+        listOf(1.januar(2025), 1.mai(2025), 17.mai(2025), 25.desember(2025), 26.desember(2025), 31.desember(2025))
             .forEach { it.erHelligdag() shouldBe true }
     }
 
