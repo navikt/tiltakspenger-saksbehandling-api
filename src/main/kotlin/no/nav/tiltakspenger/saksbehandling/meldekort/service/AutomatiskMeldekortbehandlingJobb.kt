@@ -38,6 +38,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.Åpni
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.økonomisystemetsÅpningsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
+import java.time.LocalDateTime
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
@@ -58,7 +59,17 @@ class AutomatiskMeldekortbehandlingJobb(
 ) {
     private val logger = KotlinLogging.logger { }
 
+    /**
+     * Settes når simuleringen svarer at økonomisystemet er stengt i mulig åpningstid, slik at vi ikke simulerer på nytt hvert minutt.
+     * Flagget ligger i minnet, så hver pod har sin egen pause, og pausen nullstilles ved omstart.
+     */
+    @Volatile
+    private var pauseTil: LocalDateTime? = null
+
     suspend fun behandleBrukersMeldekort(clock: Clock) {
+        if (pauseTil?.let { nå(clock) < it } == true) {
+            return
+        }
         val åpningsstatus = økonomisystemetsÅpningsstatus(clock)
         if (åpningsstatus == Åpningsstatus.STENGT) {
             return
@@ -114,10 +125,11 @@ class AutomatiskMeldekortbehandlingJobb(
                 }
             }
 
-            // Simuleringen vil feile for resten av meldekortene også, så vi venter til neste kjøring.
+            // Simuleringen vil feile for resten av meldekortene også, så vi setter jobben på pause.
             // Meldekortet oppdateres ikke, slik at forsøket ikke teller mot maksgrensen for nye forsøk.
             if (økonomisystemetErStengt) {
-                logger.info { "Økonomisystemet er stengt utenfor antatt åpningstid - venter med automatisk behandling av meldekort til neste kjøring" }
+                pauseTil = nå(clock) + PAUSE_NÅR_ØKONOMISYSTEMET_ER_STENGT
+                logger.info { "Økonomisystemet er stengt utenfor antatt åpningstid - setter automatisk behandling av meldekort på pause til $pauseTil" }
                 return
             }
         }
@@ -330,5 +342,7 @@ class AutomatiskMeldekortbehandlingJobb(
             venteIntervaller.withIndex().associate { (index, duration) -> index.toLong() + 1 to duration }
 
         val MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING = 2.days.toJavaDuration()
+
+        val PAUSE_NÅR_ØKONOMISYSTEMET_ER_STENGT = 15.minutes.toJavaDuration()
     }
 }

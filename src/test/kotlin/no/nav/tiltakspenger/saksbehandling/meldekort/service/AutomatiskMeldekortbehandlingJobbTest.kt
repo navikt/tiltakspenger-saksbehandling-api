@@ -371,7 +371,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     @Test
-    fun `skal vente til neste kjøring uten å lagre forsøket når økonomisystemet muligens er åpent og simuleringen svarer stengt`() {
+    fun `skal sette jobben på pause i 15 minutter uten å lagre forsøket når økonomisystemet muligens er åpent og simuleringen svarer stengt`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
@@ -401,6 +401,20 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     it.behandletAutomatiskStatus shouldBe brukersMeldekort.behandletAutomatiskStatus
                     it.behandletAutomatiskForsøkshistorikk shouldBe brukersMeldekort.behandletAutomatiskForsøkshistorikk
                 }
+
+                // Simuleringen virker igjen, men jobben står på pause til 15 minutter etter at den svarte stengt.
+                tac.utbetalingFakeKlient.simulerFeil = null
+                tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(
+                    clock = fixedClockAt(1.april(2025).atTime(18, 14, 59)),
+                )
+                tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+
+                tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(
+                    clock = fixedClockAt(1.april(2025).atTime(18, 15)),
+                )
+                tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!.sisteGodkjenteMeldekort!!
+                    .shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
+                    .brukersMeldekort.id shouldBe brukersMeldekort.id
             }
         }
     }
