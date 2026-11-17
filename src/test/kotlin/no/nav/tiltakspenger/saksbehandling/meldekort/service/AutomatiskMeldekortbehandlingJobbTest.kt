@@ -328,9 +328,9 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock = klokken2101)
                 }
 
-                // Lørdag kan økonomisystemet være åpent 06:10-17:50, så vi tester bare tidspunktene utenfor.
+                // Lørdag kan økonomisystemet være åpent 07:10-17:50, så vi tester bare tidspunktene utenfor.
                 val lørdag = mandag.with(DayOfWeek.SATURDAY)
-                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock = fixedClockAt(lørdag.atTime(6, 9)))
+                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock = fixedClockAt(lørdag.atTime(7, 9)))
                 automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock = fixedClockAt(lørdag.atTime(17, 50)))
 
                 val søndag = mandag.with(DayOfWeek.SUNDAY)

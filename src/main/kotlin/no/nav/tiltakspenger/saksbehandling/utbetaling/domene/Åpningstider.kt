@@ -19,7 +19,7 @@ object Åpningstider {
 
     /**
      * Sier om økonomisystemet antas å være åpent, muligens er åpent eller er stengt.
-     * Økonomisystemet stenger av og til kl. 18 på hverdager, og er av og til åpent på lørdager frem til kl. 18.
+     * Økonomisystemet stenger av og til kl. 18 på hverdager, og er av og til åpent på lørdager kl. 07-18.
      * Tar ikke høyde for bevegelige helligdager eller vedlikehold.
      */
     fun økonomisystemetsÅpningsstatus(clock: Clock): Åpningsstatus {
@@ -29,7 +29,7 @@ object Åpningstider {
         return when {
             dato.erÅpenDag() && klokkeslett.erMellom(ÅPNINGSTIDSPUNKT, TIDLIG_STENGETIDSPUNKT) -> Åpningsstatus.ANTATT_ÅPENT
             erÅpent(tidspunkt) -> Åpningsstatus.MULIG_ÅPENT
-            dato.erLørdagSomKanVæreÅpen() && klokkeslett.erMellom(ÅPNINGSTIDSPUNKT, TIDLIG_STENGETIDSPUNKT) -> Åpningsstatus.MULIG_ÅPENT
+            dato.erLørdagSomKanVæreÅpen() && klokkeslett.erMellom(LØRDAG_ÅPNINGSTIDSPUNKT, TIDLIG_STENGETIDSPUNKT) -> Åpningsstatus.MULIG_ÅPENT
             else -> Åpningsstatus.STENGT
         }
     }
@@ -76,6 +76,9 @@ object Åpningstider {
 
     private val ÅPNINGSTIDSPUNKT: LocalTime = LocalTime.of(6, 10)
     private val STENGETIDSPUNKT: LocalTime = LocalTime.of(20, 50)
+
+    /** Økonomisystemet åpner kl. 07 de lørdagene det er åpent. */
+    private val LØRDAG_ÅPNINGSTIDSPUNKT: LocalTime = LocalTime.of(7, 10)
 
     /**
      * Økonomisystemet stenger av og til kl. 18 på hverdager.

@@ -104,8 +104,8 @@ class ÅpningstiderTest {
         status(mandag, 20, 50) shouldBe Åpningsstatus.STENGT
 
         val lørdag = 10.mai(2025)
-        status(lørdag, 6, 9) shouldBe Åpningsstatus.STENGT
-        status(lørdag, 6, 10) shouldBe Åpningsstatus.MULIG_ÅPENT
+        status(lørdag, 7, 9) shouldBe Åpningsstatus.STENGT
+        status(lørdag, 7, 10) shouldBe Åpningsstatus.MULIG_ÅPENT
         status(lørdag, 17, 49) shouldBe Åpningsstatus.MULIG_ÅPENT
         status(lørdag, 17, 50) shouldBe Åpningsstatus.STENGT
 
