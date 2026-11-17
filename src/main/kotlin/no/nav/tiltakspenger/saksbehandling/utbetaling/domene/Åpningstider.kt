@@ -1,9 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.felles.erFastHelligdag
+import no.nav.tiltakspenger.saksbehandling.felles.erHelligdag
 import no.nav.tiltakspenger.saksbehandling.felles.erHverdag
 import java.time.Clock
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -11,10 +12,33 @@ import java.time.LocalTime
 object Åpningstider {
     /**
      * Sier om tidspunktet er innenfor økonomisystemets ordinære åpningstid.
-     * Tar ikke høyde for bevegelige helligdager, vedlikehold i helger eller åpning utenom ordinær tid.
+     * Tar ikke høyde for vedlikehold i helger eller åpning utenom ordinær tid.
      * https://helved-docs.intern.dev.nav.no/v3/doc/faq
      */
     fun erInnenforØkonomisystemetsÅpningstider(clock: Clock): Boolean = erÅpent(nå(clock))
+
+    /**
+     * Sier om økonomisystemet antas å være åpent, muligens er åpent eller er stengt.
+     * Økonomisystemet stenger av og til kl. 18 på hverdager, og er av og til åpent på lørdager kl. 07-18.
+     * Tar ikke høyde for vedlikehold.
+     */
+    fun økonomisystemetsÅpningsstatus(clock: Clock): Åpningsstatus {
+        val tidspunkt = nå(clock)
+        val dato = tidspunkt.toLocalDate()
+        val klokkeslett = tidspunkt.toLocalTime()
+        return when {
+            dato.erÅpenDag() && klokkeslett.erMellom(ÅPNINGSTIDSPUNKT, TIDLIG_STENGETIDSPUNKT) -> Åpningsstatus.ANTATT_ÅPENT
+            erÅpent(tidspunkt) -> Åpningsstatus.MULIG_ÅPENT
+            dato.erLørdagSomKanVæreÅpen() && klokkeslett.erMellom(LØRDAG_ÅPNINGSTIDSPUNKT, TIDLIG_STENGETIDSPUNKT) -> Åpningsstatus.MULIG_ÅPENT
+            else -> Åpningsstatus.STENGT
+        }
+    }
+
+    enum class Åpningsstatus {
+        ANTATT_ÅPENT,
+        MULIG_ÅPENT,
+        STENGT,
+    }
 
     /** Finner første tidspunkt fra og med [tidspunkt] der økonomisystemet er åpent. */
     fun førsteÅpneTidspunkt(tidspunkt: LocalDateTime): LocalDateTime {
@@ -40,12 +64,25 @@ object Åpningstider {
     fun nesteÅpneDag(etter: LocalDate): LocalDate = generateSequence(etter.plusDays(1)) { it.plusDays(1) }.first { it.erÅpenDag() }
 
     private fun erÅpent(tidspunkt: LocalDateTime): Boolean {
-        val klokkeslett = tidspunkt.toLocalTime()
-        return tidspunkt.toLocalDate().erÅpenDag() && !klokkeslett.isBefore(ÅPNINGSTIDSPUNKT) && klokkeslett.isBefore(STENGETIDSPUNKT)
+        return tidspunkt.toLocalDate().erÅpenDag() && tidspunkt.toLocalTime().erMellom(ÅPNINGSTIDSPUNKT, STENGETIDSPUNKT)
     }
 
-    private fun LocalDate.erÅpenDag(): Boolean = erHverdag() && !erFastHelligdag()
+    private fun LocalTime.erMellom(fraOgMed: LocalTime, tilOgMedEksklusiv: LocalTime): Boolean =
+        !isBefore(fraOgMed) && isBefore(tilOgMedEksklusiv)
+
+    private fun LocalDate.erÅpenDag(): Boolean = erHverdag() && !erHelligdag()
+
+    private fun LocalDate.erLørdagSomKanVæreÅpen(): Boolean = dayOfWeek == DayOfWeek.SATURDAY && !erHelligdag()
 
     private val ÅPNINGSTIDSPUNKT: LocalTime = LocalTime.of(6, 10)
     private val STENGETIDSPUNKT: LocalTime = LocalTime.of(20, 50)
+
+    /** Økonomisystemet åpner kl. 07 de lørdagene det er åpent. */
+    private val LØRDAG_ÅPNINGSTIDSPUNKT: LocalTime = LocalTime.of(7, 10)
+
+    /**
+     * Økonomisystemet stenger av og til kl. 18 på hverdager.
+     * Lørdagsåpningen varer også til kl. 18.
+     */
+    private val TIDLIG_STENGETIDSPUNKT: LocalTime = LocalTime.of(17, 50)
 }

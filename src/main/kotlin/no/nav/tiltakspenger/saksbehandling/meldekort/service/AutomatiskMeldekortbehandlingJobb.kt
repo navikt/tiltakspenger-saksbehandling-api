@@ -31,11 +31,14 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.tilStatistikkMeldekortDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.erInnenforØkonomisystemetsÅpningstider
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.Åpningsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.økonomisystemetsÅpningsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
+import java.time.LocalDateTime
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
@@ -56,10 +59,23 @@ class AutomatiskMeldekortbehandlingJobb(
 ) {
     private val logger = KotlinLogging.logger { }
 
+    /**
+     * Settes når simuleringen svarer at økonomisystemet er stengt i mulig åpningstid, slik at vi ikke simulerer på nytt hvert minutt.
+     * Flagget ligger i minnet, så hver pod har sin egen pause, og pausen nullstilles ved omstart.
+     */
+    @Volatile
+    private var pauseTil: LocalDateTime? = null
+
     suspend fun behandleBrukersMeldekort(clock: Clock) {
-        if (!erInnenforØkonomisystemetsÅpningstider(clock)) {
+        if (pauseTil?.let { nå(clock) < it } == true) {
             return
         }
+        val åpningsstatus = økonomisystemetsÅpningsstatus(clock)
+        if (åpningsstatus == Åpningsstatus.STENGT) {
+            return
+        }
+        // Utenfor antatt åpningstid vet vi ikke om økonomisystemet er åpent, så da må simuleringen gå gjennom.
+        val kreverSimulering = åpningsstatus == Åpningsstatus.MULIG_ÅPENT
 
         val meldekortListe = Either.catch {
             brukersMeldekortRepo.hentMeldekortSomSkalBehandlesAutomatisk()
@@ -71,10 +87,10 @@ class AutomatiskMeldekortbehandlingJobb(
         logger.debug { "Fant ${meldekortListe.size} meldekort som skal behandles automatisk" }
 
         meldekortListe.forEach { meldekort ->
-            korrelasjon.medNyCorrelationId { correlationId ->
+            val økonomisystemetErStengt = korrelasjon.medNyCorrelationId { correlationId ->
                 Either.catch {
                     if (skalHoppeOverMeldekort(meldekort, clock)) {
-                        return@medNyCorrelationId
+                        return@catch false
                     }
 
                     val id = meldekort.id
@@ -86,17 +102,35 @@ class AutomatiskMeldekortbehandlingJobb(
                         "Fant ikke sak for mottatt meldekort med id $id, sakId $sakId"
                     }
 
-                    opprettMeldekortbehandling(meldekort, sak, clock)
-                        .onLeft { status ->
-                            håndterOpprettBehandlingFeil(status, meldekort, clock, correlationId)
-                        }
-                        .onRight { behandling ->
+                    opprettMeldekortbehandling(meldekort, sak, kreverSimulering, clock).fold(
+                        ifLeft = { ikkeBehandlet ->
+                            when (ikkeBehandlet) {
+                                is IkkeBehandlet.Feilet -> {
+                                    håndterOpprettBehandlingFeil(ikkeBehandlet.status, meldekort, clock, correlationId)
+                                    false
+                                }
+
+                                IkkeBehandlet.ØkonomisystemetErStengt -> true
+                            }
+                        },
+                        ifRight = { behandling ->
                             logger.info { "Opprettet automatisk behandling ${behandling.id} for brukers meldekort $id på sak $sakId" }
-                        }
-                }.onLeft {
+                            false
+                        },
+                    )
+                }.getOrElse {
                     logger.error(it) { "Ukjent feil ved automatisk behandling av meldekort fra bruker ${meldekort.id} - ${it.message}" }
                     håndterOpprettBehandlingFeil(MeldekortBehandletAutomatiskStatus.UKJENT_FEIL, meldekort, clock, correlationId)
+                    false
                 }
+            }
+
+            // Simuleringen vil feile for resten av meldekortene også, så vi setter jobben på pause.
+            // Meldekortet oppdateres ikke, slik at forsøket ikke teller mot maksgrensen for nye forsøk.
+            if (økonomisystemetErStengt) {
+                pauseTil = nå(clock) + PAUSE_NÅR_ØKONOMISYSTEMET_ER_STENGT
+                logger.info { "Økonomisystemet er stengt utenfor antatt åpningstid - setter automatisk behandling av meldekort på pause til $pauseTil" }
+                return
             }
         }
     }
@@ -156,9 +190,11 @@ class AutomatiskMeldekortbehandlingJobb(
     private suspend fun opprettMeldekortbehandling(
         meldekort: BrukersMeldekort,
         sak: Sak,
+        kreverSimulering: Boolean,
         clock: Clock,
-    ): Either<MeldekortBehandletAutomatiskStatus, MeldekortBehandletAutomatisk> {
+    ): Either<IkkeBehandlet, MeldekortBehandletAutomatisk> {
         val meldekortId = meldekort.id
+        var simuleringenSvarteStengt = false
 
         val (meldekortbehandling, simulering) = sak.opprettAutomatiskMeldekortbehandling(
             brukersMeldekort = meldekort,
@@ -169,16 +205,20 @@ class AutomatiskMeldekortbehandlingJobb(
                 )
             },
             clock = clock,
+            kreverSimulering = kreverSimulering,
             simuler = { behandling, navkontor ->
                 simulerService.simulerMeldekort(
                     behandling,
                     sak.utbetalinger.lastOrNull(),
                     sak.meldeperiodeKjeder,
                     sak.kanSendeInnHelgForMeldekort,
-                ) { navkontor }
+                ) { navkontor }.onLeft { simuleringenSvarteStengt = it is KunneIkkeSimulere.Stengt }
             },
-        ).getOrElse {
-            return it.left()
+        ).getOrElse { status ->
+            if (kreverSimulering && simuleringenSvarteStengt) {
+                return IkkeBehandlet.ØkonomisystemetErStengt.left()
+            }
+            return IkkeBehandlet.Feilet(status).left()
         }
 
         meldekortbehandling.validerKanIverksetteUtbetaling().onLeft {
@@ -188,7 +228,7 @@ class AutomatiskMeldekortbehandlingJobb(
                     logger.at(status.loggnivå) {
                         message = "Behandling av brukers meldekort $meldekortId viser feilutbetaling i simuleringen - ${meldekortbehandling.loggkontekst()}"
                     }
-                    return status.left()
+                    return IkkeBehandlet.Feilet(status).left()
                 }
 
                 is KanIkkeIverksetteUtbetaling.JusteringStøttesIkke,
@@ -198,10 +238,11 @@ class AutomatiskMeldekortbehandlingJobb(
                     logger.at(status.loggnivå) {
                         message = "Behandling av brukers meldekort $meldekortId viser justeringer i simuleringen - ${meldekortbehandling.loggkontekst()}"
                     }
-                    return status.left()
+                    return IkkeBehandlet.Feilet(status).left()
                 }
 
-                // TODO: ikke implemenert for meldekort ennå
+                // For meldekort krever vi kun simulering i enkelte tilfeller.
+                // Dette håndteres i Sak.opprettAutomatiskMeldekortbehandling()
                 KanIkkeIverksetteUtbetaling.SimuleringMangler,
                 is KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer,
                 -> Unit
@@ -212,7 +253,7 @@ class AutomatiskMeldekortbehandlingJobb(
             sak.leggTilMeldekortbehandling(meldekortbehandling)
         }.onLeft {
             logger.error(it) { "Automatisk behandling av brukers meldekort $meldekortId kunne ikke legges til sak ${sak.id}" }
-            return MeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK.left()
+            return IkkeBehandlet.Feilet(MeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK).left()
         }
 
         val meldekortvedtak = meldekortbehandling.opprettVedtak(
@@ -224,7 +265,7 @@ class AutomatiskMeldekortbehandlingJobb(
             sak.leggTilMeldekortvedtak(meldekortvedtak)
         }.onLeft {
             logger.error(it) { "Vedtak for automatisk behandling av brukers meldekort $meldekortId kunne ikke legges til sak ${sak.id}" }
-            return MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK.left()
+            return IkkeBehandlet.Feilet(MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK).left()
         }
 
         val statistikkDTO = statistikkService.generer(
@@ -279,6 +320,13 @@ class AutomatiskMeldekortbehandlingJobb(
         return nyStatus.kanPrøvesPåNytt
     }
 
+    private sealed interface IkkeBehandlet {
+        data class Feilet(val status: MeldekortBehandletAutomatiskStatus) : IkkeBehandlet
+
+        /** Simuleringen svarte at økonomisystemet er stengt, utenfor tidsrommet der det antas å være åpent. */
+        data object ØkonomisystemetErStengt : IkkeBehandlet
+    }
+
     companion object {
         private val venteIntervaller: List<Duration> = listOf(
             1.minutes,
@@ -294,5 +342,7 @@ class AutomatiskMeldekortbehandlingJobb(
             venteIntervaller.withIndex().associate { (index, duration) -> index.toLong() + 1 to duration }
 
         val MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING = 2.days.toJavaDuration()
+
+        val PAUSE_NÅR_ØKONOMISYSTEMET_ER_STENGT = 15.minutes.toJavaDuration()
     }
 }
