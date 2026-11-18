@@ -74,6 +74,12 @@ enum class ManueltBehandlesGrunn {
 
     FORLENGELSE_OVERLAPPER_ANDRE_VEDTAK,
     FORLENGELSE_OVERLAPPENDE_TILTAK,
+
+    /**
+     * Det gjeldende vedtaket innvilget også andre tiltaksdeltakelser på siste innvilgede dag, med felles antall dager per meldeperiode.
+     * Vi vet ikke hvor mange av dagene som gjaldt deltakelsen som forlenges, så saksbehandler må vurdere antall dager.
+     */
+    FORLENGELSE_FLERE_TILTAK_I_GJELDENDE_VEDTAK,
     FORLENGELSE_ANDRE_YTELSER,
     FORLENGELSE_VEDTAK_I_ARENA,
     FORLENGELSE_UTBETALING_SIMULERING_MANGLER,
@@ -105,6 +111,12 @@ enum class ManueltBehandlesGrunn {
 
     /** De oppdaterte saksopplysningene endrer innvilgelsen av andre deltakelser enn den som har fått ny sluttdato. */
     OMGJORING_ANDRE_ENDRINGER_I_TILTAKSDELTAKELSENE,
+
+    /**
+     * Deltakelsen er innvilget sammen med andre tiltaksdeltakelser etter ny sluttdato, med felles antall dager per meldeperiode.
+     * Vi vet ikke hvor mange av dagene som gjaldt de andre deltakelsene, så saksbehandler må vurdere antall dager.
+     */
+    OMGJORING_AVKORTER_PERIODE_MED_FLERE_TILTAK,
 
     /** Vedtaksperioden til omgjøringen har perioder innvilget som reversert opphør, som ikke skal omgjøres automatisk. */
     OMGJORING_HAR_REVERSERT_OPPHOR,

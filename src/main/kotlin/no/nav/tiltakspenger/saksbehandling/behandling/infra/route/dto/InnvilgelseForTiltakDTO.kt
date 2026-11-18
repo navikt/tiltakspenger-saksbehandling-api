@@ -166,7 +166,7 @@ fun InnvilgelsesperioderDTO.tilKommando(): IkkeTomPeriodisering<Innvilgelsesperi
 /**
  * Antall dager per meldeperiode er periodene i domenet, der tilstøtende perioder med likt antall dager er slått sammen.
  *
- * Tiltakene har én innvilgelse per tiltaksdeltakelse, i rekkefølgen tiltaksdeltakelsene først forekommer i innvilgelsesperiodene.
+ * Tiltakene har én innvilgelse per tiltaksdeltakelse, i en rekkefølge som bevarer rekkefølgen i hver periode, se [tiltakIRekkefølge].
  * En tiltaksdeltakelse som både er innvilget med og uten reversert opphør, gir én innvilgelse for hver.
  * Tilstøtende perioder i domenet for samme tiltaksdeltakelse slås sammen, unntatt når periodene på hver side av grensen har de samme tiltaksdeltakelsene og ulikt antall dager.
  * Ved [tilKommando] deles det bare opp ved start- og sluttdatoer for periodene til tiltaksdeltakelsene, så hver grense for antall dager må også være en grense for en tiltaksdeltakelse.
@@ -176,19 +176,10 @@ fun InnvilgelsesperioderDTO.tilKommando(): IkkeTomPeriodisering<Innvilgelsesperi
  * @param tiltaksdeltakelser Tiltaksdeltakelsene fra saksopplysningene som innvilgelsesperiodene valideres mot.
  */
 fun Innvilgelsesperioder.tilDTO(tiltaksdeltakelser: Tiltaksdeltakelser): InnvilgelsesperioderDTO {
-    val perioderPerTiltak = linkedMapOf<Pair<TiltaksdeltakerId, Boolean>, MutableList<PeriodeMedVerdi<InnvilgelsesperiodeVerdi>>>()
-
-    this.periodisering.perioderMedVerdi.forEach { periodeMedVerdi ->
-        periodeMedVerdi.verdi.tiltaksdeltakelser.forEach {
-            perioderPerTiltak
-                .getOrPut(it.internDeltakelseId to periodeMedVerdi.verdi.erReversertOpphør) { mutableListOf() }
-                .add(periodeMedVerdi)
-        }
-    }
-
     return InnvilgelsesperioderDTO(
-        tiltak = perioderPerTiltak.map { (nøkkel, perioder) ->
+        tiltak = tiltakIRekkefølge().map { nøkkel ->
             val (internDeltakelseId, erReversertOpphør) = nøkkel
+            val perioder = this.periodisering.perioderMedVerdi.filter { nøkkel in it.verdi.tiltakNøkler() }
 
             InnvilgelseForTiltakDTO(
                 internDeltakelseId = internDeltakelseId.toString(),
@@ -215,6 +206,39 @@ fun Innvilgelsesperioder.tilDTO(tiltaksdeltakelser: Tiltaksdeltakelser): Innvilg
                 )
             },
     )
+}
+
+private data class TiltakNøkkel(
+    val internDeltakelseId: TiltaksdeltakerId,
+    val erReversertOpphør: Boolean,
+)
+
+private fun InnvilgelsesperiodeVerdi.tiltakNøkler(): List<TiltakNøkkel> {
+    return tiltaksdeltakelser.map { TiltakNøkkel(it.internDeltakelseId, erReversertOpphør) }
+}
+
+/**
+ * Rekkefølgen tiltakene sendes til frontend i, og som [tilKommando] bygger rekkefølgen i hver periode fra.
+ * Rekkefølgen i en periode bestemmer tiltakstypen dagene beregnes og utbetales med, se [InnvilgelsesperiodeVerdi.førsteTiltakstype].
+ * Den må derfor bevares, ellers kan en lagring uten endringer gi en annen tiltakstype.
+ * Har periodene motstridende rekkefølge, f.eks. fra ulike vedtak, kan ikke alle bevares, og da velges det første gjenstående tiltaket i tidslinjen.
+ */
+private fun Innvilgelsesperioder.tiltakIRekkefølge(): List<TiltakNøkkel> {
+    val rekkefølgePerPeriode = periodisering.perioderMedVerdi.map { it.verdi.tiltakNøkler() }
+    val gjenstående = rekkefølgePerPeriode.flatten().distinct().toMutableList()
+
+    // Et tiltak kan komme nå hvis det ikke står bak et gjenstående tiltak i noen periode.
+    fun kanKommeNå(tiltak: TiltakNøkkel): Boolean = rekkefølgePerPeriode.none { rekkefølge ->
+        tiltak in rekkefølge && rekkefølge.takeWhile { it != tiltak }.any { it in gjenstående }
+    }
+
+    return buildList {
+        while (gjenstående.isNotEmpty()) {
+            val neste = gjenstående.firstOrNull(::kanKommeNå) ?: gjenstående.first()
+            add(neste)
+            gjenstående.remove(neste)
+        }
+    }
 }
 
 /**

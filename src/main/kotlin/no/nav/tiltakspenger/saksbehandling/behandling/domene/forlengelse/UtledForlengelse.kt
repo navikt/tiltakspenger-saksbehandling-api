@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV1
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeForlenge
@@ -34,12 +35,14 @@ data class UtledetForlengelse(
 }
 
 /**
- * Utleder innvilgelsesperioden og barnetillegget til forlengelsen [revurdering] når saksbehandler har valgt [tilOgMed] og [tiltaksdeltakerId].
+ * Utleder innvilgelsesperioden og barnetillegget til forlengelsen [revurdering] når saksbehandler har valgt [tilOgMed], [tiltaksdeltakerId] og [antallDagerPerMeldeperiode].
  *
  * Innvilgelsesperioden går fra dagen etter vedtaket som forlenges, til og med [tilOgMed].
- * Tiltaksdeltakelsen må være en av [tiltaksdeltakelserSomKanForlenges], og antall dager per meldeperiode videreføres fra den siste perioden vedtaket innvilget for den.
+ * Tiltaksdeltakelsen må være en av [tiltaksdeltakelserSomKanForlenges].
  * Forlengelsen kan ikke overlappe andre vedtak, og tiltaksdeltakelsen i saksopplysningene må dekke hele forlengelsen.
  *
+ * @param antallDagerPerMeldeperiode Velges av saksbehandler.
+ * Antall dager i vedtaket som forlenges kan være felles for flere tiltaksdeltakelser, og sier da ikke hvor mange av dagene som gjaldt deltakelsen som forlenges.
  * @param barnetillegg Barnetillegget saksbehandler har valgt.
  * Er det null, utledes det fra vedtaket som forlenges, se [utledBarnetilleggForForlengelse].
  * Kan det ikke utledes, videreføres antall barn i vedtaket uendret, og saksbehandler må vurdere barnetillegget selv.
@@ -48,6 +51,7 @@ fun Sak.utledForlengelse(
     revurdering: Revurdering,
     tilOgMed: LocalDate,
     tiltaksdeltakerId: TiltaksdeltakerId,
+    antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
     barnetillegg: ValgtBarnetillegg?,
 ): Either<KanIkkeForlenge, UtledetForlengelse> {
     val resultat = revurdering.resultat
@@ -70,10 +74,10 @@ fun Sak.utledForlengelse(
     }
 
     val valgtTiltaksdeltakelse = tiltaksdeltakelserSomKanForlenges(forlenger, revurdering.saksopplysninger)
-        .find { it.tiltaksdeltakelse.internDeltakelseId == tiltaksdeltakerId }
+        .find { it.internDeltakelseId == tiltaksdeltakerId }
         ?: return KanIkkeForlenge.TiltaksdeltakelsenKanIkkeForlenges(tiltaksdeltakerId).left()
 
-    val deltakelsesperiode = valgtTiltaksdeltakelse.tiltaksdeltakelse.lukketPeriode
+    val deltakelsesperiode = valgtTiltaksdeltakelse.lukketPeriode
     if (deltakelsesperiode == null || !deltakelsesperiode.inneholderHele(forlengelsesperiode)) {
         return KanIkkeForlenge.TiltaksdeltakelsenDekkerIkkeForlengelsen(forlengelsesperiode).left()
     }
@@ -93,7 +97,7 @@ fun Sak.utledForlengelse(
             InnvilgelsesperiodeKommando(
                 periode = forlengelsesperiode,
                 internDeltakelseIder = nonEmptyListOf(tiltaksdeltakerId),
-                antallDagerPerMeldeperiode = valgtTiltaksdeltakelse.antallDagerPerMeldeperiode,
+                antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             ),
             forlengelsesperiode,
         ),

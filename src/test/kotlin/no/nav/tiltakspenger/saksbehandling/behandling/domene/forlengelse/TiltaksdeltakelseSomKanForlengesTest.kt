@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 class TiltaksdeltakelseSomKanForlengesTest {
 
     @Test
-    fun `gir tiltaksdeltakelsene som varer etter vedtaket, med antall dager fra siste periode de var innvilget, sist innvilget først`() {
+    fun `gir tiltaksdeltakelsene som varer etter vedtaket, sist innvilget først`() {
         val tidligInnvilget = ObjectMother.tiltaksdeltakelse(1.januar(2025) til 30.juni(2025))
         val forkortet = ObjectMother.tiltaksdeltakelse(1.januar(2025) til 30.juni(2025))
         val sistInnvilget = ObjectMother.tiltaksdeltakelse(1.januar(2025) til 30.juni(2025))
@@ -38,10 +38,7 @@ class TiltaksdeltakelseSomKanForlengesTest {
         innvilgelsesperioder.tiltaksdeltakelserSomKanForlenges(
             forlengesFraOgMed = 1.april(2025),
             saksopplysninger = saksopplysninger,
-        ) shouldBe listOf(
-            TiltaksdeltakelseSomKanForlenges(sistInnvilget, AntallDagerForMeldeperiode(10)),
-            TiltaksdeltakelseSomKanForlenges(tidligInnvilget, AntallDagerForMeldeperiode(6)),
-        )
+        ) shouldBe listOf(sistInnvilget, tidligInnvilget)
     }
 
     @Test

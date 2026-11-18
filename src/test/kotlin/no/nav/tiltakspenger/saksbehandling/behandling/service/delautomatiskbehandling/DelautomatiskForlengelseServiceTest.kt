@@ -584,6 +584,42 @@ class DelautomatiskForlengelseServiceTest {
         }
     }
 
+    /**
+     * Antall dager per meldeperiode er felles for deltakelsene i en periode.
+     * Vi vet derfor ikke hvor mange av dagene som gjaldt deltakelsen som forlenges.
+     */
+    @Test
+    fun `deltakelsen var innvilget sammen med en annen deltakelse - overlates til saksbehandler`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
+            val annenDeltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
+            )
+            iverksettSøknadsbehandling(
+                tac = tac,
+                sakId = sak.id,
+                fnr = sak.fnr,
+                tiltaksdeltakelse = annenDeltakelse,
+                innvilgelsesperioder = ObjectMother.innvilgelsesperioder(
+                    ObjectMother.innvilgelsesperiode(
+                        periode = deltakelse.lukketPeriode!!,
+                        tiltaksdeltakelser = nonEmptyListOf(deltakelse, annenDeltakelse),
+                        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(10),
+                    ),
+                ),
+            )
+            val forlenget = deltakelse.medPeriode(tilOgMed = 30.juni(2025))
+            val revurdering = tac.opprettAutomatiskForlengelse(sak = sak, tiltaksdeltakelse = deltakelse, nåtilstand = forlenget)
+
+            tac.behandleForlengelseAutomatisk(revurdering)
+
+            tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.FORLENGELSE_FLERE_TILTAK_I_GJELDENDE_VEDTAK)
+        }
+    }
+
     @Test
     fun `bruker kan melde i helg med uendret deltakelsesmengde - fylles ut og sendes til beslutning`() {
         withTestApplicationContextAndPostgres { tac ->

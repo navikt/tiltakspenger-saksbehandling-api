@@ -60,6 +60,8 @@ data class AutomatiskOmgjøringAvSluttdato(
  * Ny sluttdato kan altså være innvilget i et tidligere vedtak enn de avkortede dagene, og ny sluttdato kan være passert.
  * Deltakelsen innvilges til og med ny sluttdato, og resten av vedtaksperioden den var innvilget i, opphøres.
  * Innvilgelsene av andre deltakelser, antall dager per meldeperiode og barnetillegget videreføres uendret fra de gjeldende vedtakene.
+ * Er deltakelsen innvilget sammen med andre deltakelser etter ny sluttdato, overlates omgjøringen til saksbehandler.
+ * Antall dager per meldeperiode er da felles for deltakelsene, og vi vet ikke hvor mange av dagene som gjelder de som blir igjen.
  *
  * Deltakelsen slik den er registrert nå, hentes fra [saksopplysninger], slik at det er de samme opplysningene beslutter ser.
  * Endringer som har kommet etter at omgjøringen ble opprettet, fanges dermed opp her, og vedtaksperioden utledes på nytt fra dem.
@@ -123,6 +125,15 @@ fun Sak.utledAutomatiskOmgjøringAvSluttdato(
         tidligereDeltakelser.any { !it.tilDeltakelsestilstand().harSammeDeltakelsesmengde(nåtilstand.tilDeltakelsestilstand()) }
     ) {
         grunner.add(ManueltBehandlesGrunn.OMGJORING_ENDRET_DELTAKELSESMENGDE)
+    }
+
+    // Antall dager per meldeperiode er felles for deltakelsene i en periode, så vi vet ikke hvor mange av dagene som gjelder de som blir igjen.
+    if (gjeldendeInnvilgelse != null && nySluttdato != null &&
+        gjeldendeInnvilgelse.periodisering.perioderMedVerdi.any { (verdi, periode) ->
+            periode.tilOgMed.isAfter(nySluttdato) && verdi.innvilgerTiltaksdeltakelse(tiltaksdeltakerId) && verdi.tiltaksdeltakelser.size > 1
+        }
+    ) {
+        grunner.add(ManueltBehandlesGrunn.OMGJORING_AVKORTER_PERIODE_MED_FLERE_TILTAK)
     }
 
     val innvilgelsesperioder = if (gjeldendeInnvilgelse != null && nySluttdato != null) {

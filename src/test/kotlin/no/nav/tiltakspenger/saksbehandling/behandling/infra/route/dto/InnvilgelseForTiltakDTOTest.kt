@@ -276,15 +276,27 @@ class InnvilgelseForTiltakDTOTest {
     }
 
     @Test
-    fun `request til domene og tilbake til respons gir den samme requesten`() {
+    fun `request til domene og tilbake til respons gir den samme requesten, også når det første tiltaket starter senere`() {
         val request = request(
             tiltak(arbeidstrening, februar, april),
             tiltak(amo, 1.januar(2025) til 31.mars(2025)),
             antallDager = listOf((1.januar(2025) til 28.februar(2025)) to 5, mars to 8, april to 2),
         )
 
-        request.tilDomene().tilDTO(tiltaksdeltakelser) shouldBe request.copy(
-            tiltak = request.tiltak.sortedBy { it.internDeltakelseId != amo.internDeltakelseId.toString() },
+        val respons = request.tilDomene().tilDTO(tiltaksdeltakelser)
+
+        respons shouldBe request
+        respons.tilDomene() shouldBe request.tilDomene()
+    }
+
+    @Test
+    fun `respons med motstridende rekkefølge i periodene gir tiltakene i rekkefølgen de først forekommer`() {
+        val innvilgelsesperioder = ObjectMother.innvilgelsesperioder(
+            innvilgelsesperiode(januar, arbeidstrening, amo, dager = 5),
+            innvilgelsesperiode(februar, amo, arbeidstrening, dager = 5),
         )
+
+        innvilgelsesperioder.tilDTO(tiltaksdeltakelser).tiltak.map { it.internDeltakelseId } shouldBe
+            listOf(arbeidstrening, amo).map { it.internDeltakelseId.toString() }
     }
 }
