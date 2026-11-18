@@ -179,32 +179,33 @@ data class Innvilgelsesperioder(
 /**
  * @param tiltaksdeltakelser Tiltaksdeltakelsene det innvilges for i perioden, slik de var registrert da perioden ble innvilget.
  * Den første tiltaksdeltakelsen er den saksbehandler har valgt først, og den bestemmer tiltakstypen for perioden, se [førsteTiltakstype].
+ * @param antallDagerPerMeldeperiode Antall dager per meldeperiode som innvilges i perioden, felles for alle [tiltaksdeltakelser].
  * @param reversertOpphør Er satt dersom perioden er innvilget som [ReversertOpphør], altså på nytt etter å ha vært opphørt eller stanset, uten gyldig tiltaksdeltakelse i saksopplysningene.
  * Da er [tiltaksdeltakelser] tiltaksdeltakelsene fra det opprinnelige vedtaket.
  */
 data class InnvilgelsesperiodeVerdi(
-    val tiltaksdeltakelser: NonEmptyList<InnvilgetTiltaksdeltakelse>,
+    val tiltaksdeltakelser: NonEmptyList<TiltaksdeltakelseIntern>,
+    val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
     val reversertOpphør: ReversertOpphør?,
 ) {
     val erReversertOpphør: Boolean get() = reversertOpphør != null
 
-    val valgteTiltaksdeltakelser: NonEmptyList<TiltaksdeltakelseIntern> get() = tiltaksdeltakelser.map { it.tiltaksdeltakelse }
-
-    /**
-     * Summen av antall dager per meldeperiode for tiltaksdeltakelsene, se [summer].
-     * Regnes ut ved opprettelse, slik at en periode med mer enn [MAKS_DAGER_FOR_MELDEPERIODE] dager aldri kan opprettes.
-     */
-    val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode = tiltaksdeltakelser.map { it.antallDagerPerMeldeperiode }.summer()
+    val valgteTiltaksdeltakelser: NonEmptyList<TiltaksdeltakelseIntern> get() = tiltaksdeltakelser
 
     /**
      * Tiltakstypen dagene i perioden beregnes og utbetales med.
      * En dag kan bare utbetales med én tiltakstype, så når det innvilges for flere tiltaksdeltakelser, er det den første som gjelder.
      */
-    val førsteTiltakstype: TiltakstypeSomGirRett get() = tiltaksdeltakelser.head.tiltaksdeltakelse.tiltakstype
+    val førsteTiltakstype: TiltakstypeSomGirRett get() = tiltaksdeltakelser.head.tiltakstype
 
     init {
         require(tiltaksdeltakelser.map { it.internDeltakelseId }.distinct().size == tiltaksdeltakelser.size) {
             "En innvilgelsesperiode kan ikke ha samme tiltaksdeltakelse flere ganger: ${tiltaksdeltakelser.map { it.internDeltakelseId }}"
+        }
+        tiltaksdeltakelser.forEach {
+            require(it.periode is Periode) {
+                "Kan ikke innvilge for tiltaksdeltakelse med id ${it.internDeltakelseId} som mangler start- eller sluttdato"
+            }
         }
     }
 
@@ -212,18 +213,22 @@ data class InnvilgelsesperiodeVerdi(
         return tiltaksdeltakelser.any { it.internDeltakelseId == internDeltakelseId }
     }
 
-    fun hentTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): InnvilgetTiltaksdeltakelse? {
+    fun hentTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): TiltaksdeltakelseIntern? {
         return tiltaksdeltakelser.singleOrNull { it.internDeltakelseId == internDeltakelseId }
     }
 
-    /** @return perioden uten tiltaksdeltakelsen med [internDeltakelseId], eller null dersom det ikke er andre tiltaksdeltakelser igjen */
+    /**
+     * Antall dager per meldeperiode beholdes uendret.
+     * @return perioden uten tiltaksdeltakelsen med [internDeltakelseId], eller null dersom det ikke er andre tiltaksdeltakelser igjen
+     */
     fun utenTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): InnvilgelsesperiodeVerdi? {
         return tiltaksdeltakelser.filterNot { it.internDeltakelseId == internDeltakelseId }
             .toNonEmptyListOrNull()
             ?.let { medTiltaksdeltakelser(it) }
     }
 
-    fun medTiltaksdeltakelser(tiltaksdeltakelser: NonEmptyList<InnvilgetTiltaksdeltakelse>): InnvilgelsesperiodeVerdi {
+    /** Antall dager per meldeperiode beholdes uendret. */
+    fun medTiltaksdeltakelser(tiltaksdeltakelser: NonEmptyList<TiltaksdeltakelseIntern>): InnvilgelsesperiodeVerdi {
         return this.copy(tiltaksdeltakelser = tiltaksdeltakelser)
     }
 
@@ -235,34 +240,18 @@ data class InnvilgelsesperiodeVerdi(
     }
 }
 
-/**
- * @param tiltaksdeltakelse Tiltaksdeltakelsen det innvilges for, slik den var registrert da perioden ble innvilget.
- * @param antallDagerPerMeldeperiode Antall dager per meldeperiode det innvilges for denne tiltaksdeltakelsen.
- */
-data class InnvilgetTiltaksdeltakelse(
-    val tiltaksdeltakelse: TiltaksdeltakelseIntern,
-    val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
-) {
-    val internDeltakelseId: TiltaksdeltakerId get() = tiltaksdeltakelse.internDeltakelseId
-
-    init {
-        require(tiltaksdeltakelse.periode is Periode) {
-            "Kan ikke innvilge for tiltaksdeltakelse med id ${tiltaksdeltakelse.internDeltakelseId} som mangler start- eller sluttdato"
-        }
+/** Bytter ut tiltaksdeltakelsen med [oppdatert], som må ha samme id. */
+private fun TiltaksdeltakelseIntern.medOppdatertTiltaksdeltakelse(oppdatert: TiltaksdeltakelseIntern): TiltaksdeltakelseIntern {
+    require(oppdatert.internDeltakelseId == internDeltakelseId) {
+        "Kan ikke bytte tiltaksdeltakelse $internDeltakelseId med ${oppdatert.internDeltakelseId}"
     }
-
-    fun medOppdatertTiltaksdeltakelse(oppdatert: TiltaksdeltakelseIntern): InnvilgetTiltaksdeltakelse {
-        require(oppdatert.internDeltakelseId == internDeltakelseId) {
-            "Kan ikke bytte tiltaksdeltakelse $internDeltakelseId med ${oppdatert.internDeltakelseId}"
-        }
-        return this.copy(tiltaksdeltakelse = oppdatert)
-    }
+    return oppdatert
 }
 
-/** Periodene der tiltaksdeltakelsen med [internDeltakelseId] er innvilget, med antall dager som er innvilget for den. */
+/** Periodene der tiltaksdeltakelsen med [internDeltakelseId] er innvilget, med tiltaksdeltakelsen slik den var registrert da perioden ble innvilget. */
 fun Periodisering<InnvilgelsesperiodeVerdi>.forTiltaksdeltakelse(
     internDeltakelseId: TiltaksdeltakerId,
-): Periodisering<InnvilgetTiltaksdeltakelse> {
+): Periodisering<TiltaksdeltakelseIntern> {
     // Bruker ikke Periodisering.flatMap, siden den kaster når resultatet blir tomt eller får hull.
     return perioderMedVerdi
         .mapNotNull { (verdi, periode) -> verdi.hentTiltaksdeltakelse(internDeltakelseId)?.let { PeriodeMedVerdi(it, periode) } }

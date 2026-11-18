@@ -30,18 +30,26 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
     // Må settes når [innvilgelsesperioder] ikke overstyres; default-malen trenger deltakelsens faktiske id.
     internDeltakelseId: TiltaksdeltakerId? = null,
     innvilgelsesperioder: String = """
-        [
-            {
-                "internDeltakelseId": "${requireNotNull(internDeltakelseId) { "internDeltakelseId må settes når innvilgelsesperioder ikke overstyres" }}",
-                "ugyldigTiltaksdeltakelse": null,
-                "erReversertOpphør": false,
-                "periode": {
-                    "fraOgMed": "2023-01-01",
-                    "tilOgMed": "2023-03-31"
-                },
-                "antallDagerPerMeldeperiode": 10
-            }
-        ]
+        {
+            "tiltak": [
+                {
+                    "internDeltakelseId": "${requireNotNull(internDeltakelseId) { "internDeltakelseId må settes når innvilgelsesperioder ikke overstyres" }}",
+                    "erReversertOpphør": false,
+                    "perioder": [
+                        {
+                            "periode": {"fraOgMed": "2023-01-01", "tilOgMed": "2023-03-31"},
+                            "ugyldigTiltaksdeltakelse": null
+                        }
+                    ]
+                }
+            ],
+            "antallDagerPerMeldeperiode": [
+                {
+                    "periode": {"fraOgMed": "2023-01-01", "tilOgMed": "2023-03-31"},
+                    "antallDagerPerMeldeperiode": 10
+                }
+            ]
+        }
     """.trimIndent(),
     resultat: String = "INNVILGELSE",
     barnetillegg: String? = """

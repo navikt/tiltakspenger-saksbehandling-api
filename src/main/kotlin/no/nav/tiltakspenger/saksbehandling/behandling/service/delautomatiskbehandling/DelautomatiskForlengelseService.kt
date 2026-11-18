@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgetTiltaksdeltakelseKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
@@ -270,12 +269,8 @@ class DelautomatiskForlengelseService(
                 PeriodeMedVerdi(
                     verdi = InnvilgelsesperiodeKommando(
                         periode = automatiskForlengelse.innvilgelsesperiode,
-                        tiltaksdeltakelser = nonEmptyListOf(
-                            InnvilgetTiltaksdeltakelseKommando(
-                                internDeltakelseId = automatiskForlengelse.tiltaksdeltakerId,
-                                antallDagerPerMeldeperiode = automatiskForlengelse.antallDagerPerMeldeperiode,
-                            ),
-                        ),
+                        internDeltakelseIder = nonEmptyListOf(automatiskForlengelse.tiltaksdeltakerId),
+                        antallDagerPerMeldeperiode = automatiskForlengelse.antallDagerPerMeldeperiode,
                     ),
                     periode = automatiskForlengelse.innvilgelsesperiode,
                 ),

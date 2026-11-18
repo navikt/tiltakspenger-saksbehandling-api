@@ -6,8 +6,6 @@ import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgetTiltaksdeltakelseKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeOppdatereBehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSaksopplysningerForBehandlingId
@@ -15,7 +13,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import org.junit.jupiter.api.Test
 
-/** API-et støtter foreløpig bare én tiltaksdeltakelse per innvilgelsesperiode, så flere tiltaksdeltakelser testes mot servicen. */
 class OppdaterRammebehandlingServiceTest {
 
     @Test
@@ -35,10 +32,8 @@ class OppdaterRammebehandlingServiceTest {
                     innvilgelsesperioder = listOf(
                         InnvilgelsesperiodeKommando(
                             periode = periode,
-                            tiltaksdeltakelser = nonEmptyListOf(
-                                InnvilgetTiltaksdeltakelseKommando(andre.internDeltakelseId, AntallDagerForMeldeperiode(6)),
-                                InnvilgetTiltaksdeltakelseKommando(første.internDeltakelseId, AntallDagerForMeldeperiode(4)),
-                            ),
+                            internDeltakelseIder = nonEmptyListOf(andre.internDeltakelseId, første.internDeltakelseId),
+                            antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(10),
                         ),
                     ),
                     barnetillegg = Barnetillegg.utenBarnetillegg(),
@@ -48,36 +43,6 @@ class OppdaterRammebehandlingServiceTest {
             val innvilgelsesperiode = oppdatert.innvilgelsesperioder!!.periodisering.verdier.single()
             innvilgelsesperiode.valgteTiltaksdeltakelser shouldBe nonEmptyListOf(andre, første)
             innvilgelsesperiode.antallDagerPerMeldeperiode shouldBe AntallDagerForMeldeperiode(10)
-        }
-    }
-
-    @Test
-    fun `kan ikke innvilge for flere dager summert enn det er dager i en meldeperiode`() {
-        withTestApplicationContext { tac ->
-            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
-            opprettSøknadsbehandlingKlarTilBehandling(tac = tac, sakId = sak.id, fnr = sak.fnr)
-            val (_, medToDeltakelser) = oppdaterSaksopplysningerForBehandlingId(tac, sak.id, behandling.id)
-            val (første, andre) = medToDeltakelser.saksopplysninger.tiltaksdeltakelser.value.also { it.size shouldBe 2 }
-            val periode = første.lukketPeriode!!
-
-            tac.behandlingContext.oppdaterRammebehandlingService.oppdater(
-                ObjectMother.oppdaterSøknadsbehandlingInnvilgelseKommando(
-                    sakId = sak.id,
-                    behandlingId = behandling.id,
-                    innvilgelsesperioder = listOf(
-                        InnvilgelsesperiodeKommando(
-                            periode = periode,
-                            tiltaksdeltakelser = nonEmptyListOf(
-                                InnvilgetTiltaksdeltakelseKommando(første.internDeltakelseId, AntallDagerForMeldeperiode(10)),
-                                InnvilgetTiltaksdeltakelseKommando(andre.internDeltakelseId, AntallDagerForMeldeperiode(5)),
-                            ),
-                        ),
-                    ),
-                    barnetillegg = Barnetillegg.utenBarnetillegg(),
-                ),
-            ).leftOrNull() shouldBe KanIkkeOppdatereBehandling.ForMangeDagerPerMeldeperiode(nonEmptyListOf(periode))
-
-            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id) shouldBe medToDeltakelser
         }
     }
 }

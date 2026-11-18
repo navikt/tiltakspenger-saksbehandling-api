@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeVerdi
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgetTiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.ReversertOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.InnvilgelsesperioderDbJson.InnvilgelsesperiodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
@@ -23,13 +22,9 @@ private data class InnvilgelsesperioderDbJson(
     @JsonInclude(JsonInclude.Include.NON_NULL)
     data class InnvilgelsesperiodeDbJson(
         val periode: PeriodeDbJson,
-        val tiltaksdeltakelser: List<InnvilgetTiltaksdeltakelseDbJson>,
-        val reversertOpphør: ReversertOpphørDbJson? = null,
-    )
-
-    data class InnvilgetTiltaksdeltakelseDbJson(
-        val tiltaksdeltakelse: TiltaksdeltakelseDb,
+        val tiltaksdeltakelser: List<TiltaksdeltakelseDb>,
         val antallDagerPerMeldeperiode: Int,
+        val reversertOpphør: ReversertOpphørDbJson? = null,
     )
 
     data class ReversertOpphørDbJson(
@@ -40,12 +35,8 @@ private data class InnvilgelsesperioderDbJson(
         return Innvilgelsesperioder(
             value.map {
                 InnvilgelsesperiodeVerdi(
-                    tiltaksdeltakelser = it.tiltaksdeltakelser.map { innvilget ->
-                        InnvilgetTiltaksdeltakelse(
-                            tiltaksdeltakelse = innvilget.tiltaksdeltakelse.toDomain(),
-                            antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(innvilget.antallDagerPerMeldeperiode),
-                        )
-                    }.toNonEmptyListOrThrow(),
+                    tiltaksdeltakelser = it.tiltaksdeltakelser.map { tiltaksdeltakelse -> tiltaksdeltakelse.toDomain() }.toNonEmptyListOrThrow(),
+                    antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
                     reversertOpphør = it.reversertOpphør?.let { reversertOpphør ->
                         ReversertOpphør(opprinneligVedtakId = VedtakId.fromString(reversertOpphør.opprinneligVedtakId))
                     },
@@ -64,12 +55,8 @@ fun Innvilgelsesperioder.tilInnvilgelsesperioderDbJson(): String {
         this.periodisering.perioderMedVerdi.map {
             InnvilgelsesperiodeDbJson(
                 periode = it.periode.toDbJson(),
-                tiltaksdeltakelser = it.verdi.tiltaksdeltakelser.map { innvilget ->
-                    InnvilgelsesperioderDbJson.InnvilgetTiltaksdeltakelseDbJson(
-                        tiltaksdeltakelse = innvilget.tiltaksdeltakelse.toDbJson(),
-                        antallDagerPerMeldeperiode = innvilget.antallDagerPerMeldeperiode.value,
-                    )
-                },
+                tiltaksdeltakelser = it.verdi.tiltaksdeltakelser.map { tiltaksdeltakelse -> tiltaksdeltakelse.toDbJson() },
+                antallDagerPerMeldeperiode = it.verdi.antallDagerPerMeldeperiode.value,
                 reversertOpphør = it.verdi.reversertOpphør?.let { reversertOpphør ->
                     InnvilgelsesperioderDbJson.ReversertOpphørDbJson(
                         opprinneligVedtakId = reversertOpphør.opprinneligVedtakId.toString(),

@@ -146,18 +146,26 @@ fun String.shouldBeRevurderingDTO(
             """"innvilgelsesperioder": ${
                 if (innvilgelsesperiode) {
                     """
-                [
-            {
-                "internDeltakelseId": "$internDeltakelseId",
-                "ugyldigTiltaksdeltakelse": null,
-                "erReversertOpphør": false,
-                "periode": {
-                "fraOgMed": "$periodeFraOgMed",
-                "tilOgMed": "$periodeTilOgMed"
-                },
-                "antallDagerPerMeldeperiode": $antallDagerPerMeldeperiode
-            }
+                {
+            "tiltak": [
+                {
+                    "internDeltakelseId": "$internDeltakelseId",
+                    "erReversertOpphør": false,
+                    "perioder": [
+                        {
+                            "periode": {"fraOgMed": "$periodeFraOgMed", "tilOgMed": "$periodeTilOgMed"},
+                            "ugyldigTiltaksdeltakelse": null
+                        }
+                    ]
+                }
+            ],
+            "antallDagerPerMeldeperiode": [
+                {
+                    "periode": {"fraOgMed": "$periodeFraOgMed", "tilOgMed": "$periodeTilOgMed"},
+                    "antallDagerPerMeldeperiode": $antallDagerPerMeldeperiode
+                }
             ]
+        }
                     """.trimIndent()
                 } else {
                     null
@@ -385,18 +393,26 @@ fun String.shouldBeSøknadsbehandlingDTO(
           $avslagsgrunnerJson
           ${
         if (visInnvilgelsesperiode) {
-            """"innvilgelsesperioder": [
-            {
-                "internDeltakelseId": "$internDeltakelseId",
-                "ugyldigTiltaksdeltakelse": null,
-                "erReversertOpphør": false,
-                "periode": {
-                "fraOgMed": "$periodeFraOgMed",
-                "tilOgMed": "$periodeTilOgMed"
-                },
-                "antallDagerPerMeldeperiode": $antallDagerPerMeldeperiode
-            }
-            ],"""
+            """"innvilgelsesperioder": {
+            "tiltak": [
+                {
+                    "internDeltakelseId": "$internDeltakelseId",
+                    "erReversertOpphør": false,
+                    "perioder": [
+                        {
+                            "periode": {"fraOgMed": "$periodeFraOgMed", "tilOgMed": "$periodeTilOgMed"},
+                            "ugyldigTiltaksdeltakelse": null
+                        }
+                    ]
+                }
+            ],
+            "antallDagerPerMeldeperiode": [
+                {
+                    "periode": {"fraOgMed": "$periodeFraOgMed", "tilOgMed": "$periodeTilOgMed"},
+                    "antallDagerPerMeldeperiode": $antallDagerPerMeldeperiode
+                }
+            ]
+        },"""
         } else {
             ""
         }

@@ -1002,15 +1002,15 @@ fun Rammebehandling.tilBeslutning(
 fun List<InnvilgelsesperiodeKommando>.medDeltakelseFra(saksopplysninger: Saksopplysninger): List<InnvilgelsesperiodeKommando> {
     return map { kommando ->
         kommando.copy(
-            tiltaksdeltakelser = kommando.tiltaksdeltakelser.map { tiltaksdeltakelse ->
-                if (saksopplysninger.tiltaksdeltakelser.any { it.internDeltakelseId == tiltaksdeltakelse.internDeltakelseId }) {
-                    tiltaksdeltakelse
+            internDeltakelseIder = kommando.internDeltakelseIder.map { internDeltakelseId ->
+                if (saksopplysninger.tiltaksdeltakelser.any { it.internDeltakelseId == internDeltakelseId }) {
+                    internDeltakelseId
                 } else {
                     val dekkende = saksopplysninger.tiltaksdeltakelser.firstOrNull { deltakelse ->
                         deltakelse.lukketPeriode?.inneholderHele(kommando.periode) == true
                     }
                     val erstatning = dekkende ?: saksopplysninger.tiltaksdeltakelser.firstOrNull()
-                    if (erstatning == null) tiltaksdeltakelse else tiltaksdeltakelse.copy(internDeltakelseId = erstatning.internDeltakelseId)
+                    erstatning?.internDeltakelseId ?: internDeltakelseId
                 }
             },
         )

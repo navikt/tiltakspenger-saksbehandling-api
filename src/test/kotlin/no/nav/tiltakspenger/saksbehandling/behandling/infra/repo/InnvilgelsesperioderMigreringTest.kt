@@ -15,8 +15,8 @@ import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 /**
- * Skriver innvilgelsesperiodene tilbake til formatet fra før V278, og kjører V278 på nytt.
- * Etter migreringen skal den lagrede json-en være lik det som ble lagret før, både for behandlingen og stønadsstatistikken.
+ * Skriver innvilgelsesperiodene tilbake til et tidligere format, og kjører migreringene derfra på nytt.
+ * Etter migreringene skal den lagrede json-en være lik det som ble lagret før, både for behandlingen og stønadsstatistikken.
  */
 class InnvilgelsesperioderMigreringTest {
 
@@ -27,13 +27,87 @@ class InnvilgelsesperioderMigreringTest {
             val behandling = iverksettSøknadsbehandling(tac = tac).third.rammebehandling
             val nyttFormat = tac.hentInnvilgelsesperioderJson(behandling.id)
 
-            tac.lagreInnvilgelsesperioderJson(behandling.id, nyttFormat.tilGammeltFormat())
+            tac.lagreInnvilgelsesperioderJson(behandling.id, nyttFormat.tilFormatFørV278())
             tac.hentInnvilgelsesperioderJson(behandling.id).contains("valgtTiltaksdeltakelse") shouldBe true
 
             tac.kjørMigrering("V278__innvilgelsesperioder_flere_tiltaksdeltakelser.sql")
+            tac.kjørMigrering("V280__innvilgelsesperioder_felles_antall_dager.sql")
 
             tac.hentInnvilgelsesperioderJson(behandling.id) shouldEqualJson nyttFormat
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).innvilgelsesperioder shouldBe behandling.innvilgelsesperioder
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `flytter antall dager fra tiltaksdeltakelsene til perioden`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val behandling = iverksettSøknadsbehandling(tac = tac).third.rammebehandling
+            val nyttFormat = tac.hentInnvilgelsesperioderJson(behandling.id)
+
+            tac.lagreInnvilgelsesperioderJson(behandling.id, nyttFormat.tilFormatFraV278())
+            tac.kjørMigrering("V280__innvilgelsesperioder_felles_antall_dager.sql")
+
+            tac.hentInnvilgelsesperioderJson(behandling.id) shouldEqualJson nyttFormat
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).innvilgelsesperioder shouldBe behandling.innvilgelsesperioder
+
+            // Kjøres migreringen på nytt, beholdes perioden som den er.
+            tac.kjørMigrering("V280__innvilgelsesperioder_felles_antall_dager.sql")
+            tac.hentInnvilgelsesperioderJson(behandling.id) shouldEqualJson nyttFormat
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `summerer antall dager for flere tiltaksdeltakelser og beholder rekkefølgen`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val behandling = iverksettSøknadsbehandling(tac = tac).third.rammebehandling
+            val opprettet = JSONObject(tac.hentInnvilgelsesperioderJson(behandling.id)).getJSONArray("value").getJSONObject(0)
+            val første = opprettet.getJSONArray("tiltaksdeltakelser").getJSONObject(0)
+            val andre = JSONObject(første.toString()).put("eksternDeltagelseId", "en-annen-deltakelse")
+            val periode = opprettet.getJSONObject("periode")
+            val reversertOpphør = JSONObject().put("opprinneligVedtakId", "vedtak_01JQ0000000000000000000000")
+
+            tac.lagreInnvilgelsesperioderJson(
+                behandling.id,
+                """
+                {
+                  "value": [
+                    {
+                      "periode": $periode,
+                      "tiltaksdeltakelser": [
+                        {"tiltaksdeltakelse": $andre, "antallDagerPerMeldeperiode": 4},
+                        {"tiltaksdeltakelse": $første, "antallDagerPerMeldeperiode": 6}
+                      ]
+                    },
+                    {
+                      "periode": {"fraOgMed": "2030-01-01", "tilOgMed": "2030-01-31"},
+                      "tiltaksdeltakelser": [{"tiltaksdeltakelse": $første, "antallDagerPerMeldeperiode": 8}],
+                      "reversertOpphør": $reversertOpphør
+                    }
+                  ]
+                }
+                """.trimIndent(),
+            )
+            tac.kjørMigrering("V280__innvilgelsesperioder_felles_antall_dager.sql")
+
+            tac.hentInnvilgelsesperioderJson(behandling.id) shouldEqualJson """
+                {
+                  "value": [
+                    {
+                      "periode": $periode,
+                      "tiltaksdeltakelser": [$andre, $første],
+                      "antallDagerPerMeldeperiode": 10
+                    },
+                    {
+                      "periode": {"fraOgMed": "2030-01-01", "tilOgMed": "2030-01-31"},
+                      "tiltaksdeltakelser": [$første],
+                      "antallDagerPerMeldeperiode": 8,
+                      "reversertOpphør": $reversertOpphør
+                    }
+                  ]
+                }
+            """.trimIndent()
         }
     }
 
@@ -68,15 +142,31 @@ class InnvilgelsesperioderMigreringTest {
     }
 
     /** Gjenskaper formatet fra før V278, der hver periode hadde `valgtTiltaksdeltakelse` og `antallDagerPerMeldeperiode`. */
-    private fun String.tilGammeltFormat(): String {
+    private fun String.tilFormatFørV278(): String {
         val perioder = JSONObject(this).getJSONArray("value")
         val gamlePerioder = JSONArray()
         for (i in 0 until perioder.length()) {
             val periode = perioder.getJSONObject(i)
             val tiltaksdeltakelse = periode.getJSONArray("tiltaksdeltakelser").also { it.length() shouldBe 1 }.getJSONObject(0)
             periode.remove("tiltaksdeltakelser")
-            periode.put("valgtTiltaksdeltakelse", tiltaksdeltakelse.getJSONObject("tiltaksdeltakelse"))
-            periode.put("antallDagerPerMeldeperiode", tiltaksdeltakelse.getInt("antallDagerPerMeldeperiode"))
+            periode.put("valgtTiltaksdeltakelse", tiltaksdeltakelse)
+            gamlePerioder.put(periode)
+        }
+        return JSONObject().put("value", gamlePerioder).toString()
+    }
+
+    /** Gjenskaper formatet fra V278, der hver tiltaksdeltakelse i perioden hadde sitt eget `antallDagerPerMeldeperiode`. */
+    private fun String.tilFormatFraV278(): String {
+        val perioder = JSONObject(this).getJSONArray("value")
+        val gamlePerioder = JSONArray()
+        for (i in 0 until perioder.length()) {
+            val periode = perioder.getJSONObject(i)
+            val antallDager = periode.remove("antallDagerPerMeldeperiode").shouldNotBeNull()
+            val tiltaksdeltakelse = periode.getJSONArray("tiltaksdeltakelser").also { it.length() shouldBe 1 }.getJSONObject(0)
+            periode.put(
+                "tiltaksdeltakelser",
+                JSONArray().put(JSONObject().put("tiltaksdeltakelse", tiltaksdeltakelse).put("antallDagerPerMeldeperiode", antallDager)),
+            )
             gamlePerioder.put(periode)
         }
         return JSONObject().put("value", gamlePerioder).toString()

@@ -73,22 +73,7 @@ interface ForhåndsvisRammevedtaksbrevTestbuilder {
                 "tilOgMed": ${tilOgMed?.let { "\"$it\"" }},
                 "internDeltakelseId": ${internDeltakelseId?.let { "\"$it\"" }},
                 "avslagsgrunner": ${avslagsgrunner?.joinToString(prefix = "[", postfix = "]") { """"$it"""" }},
-                "innvilgelsesperioder": ${
-            innvilgelsesperioder?.let {
-                innvilgelsesperioder.joinToString(prefix = "[", postfix = "]") { periode ->
-                    """
-                    {
-                        "periode": {
-                            "fraOgMed": "${periode.periode.fraOgMed}",
-                            "tilOgMed": "${periode.periode.tilOgMed}"
-                        },
-                        "antallDagerPerMeldeperiode": ${periode.antallDagerPerMeldeperiode},
-                        "internDeltakelseId": "${periode.internDeltakelseId}"
-                    }
-                """
-                }
-            }
-        }
+                "innvilgelsesperioder": ${innvilgelsesperioder?.let { serialize(it) }}
         }
         """.trimIndent()
         val response = defaultRequestWithAssertions(

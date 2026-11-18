@@ -14,7 +14,10 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.lagreBarnetilleggSomV1
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnKildeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.OppdaterBarnMedBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.OppdaterBarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.AntallDagerPerMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelseForTiltakDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeForTiltakDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperioderDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -41,11 +44,15 @@ class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                 sakId = sak.id,
                 behandlingId = behandlingId,
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                innvilgelsesperioder = listOf(
-                    InnvilgelsesperiodeDTO(
-                        periode = behandling.saksopplysninger.tiltaksdeltakelser.first().lukketPeriode!!.toDTO(),
-                        antallDagerPerMeldeperiode = 10,
-                        internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
+                innvilgelsesperioder = InnvilgelsesperioderDTO(
+                    tiltak = listOf(
+                        InnvilgelseForTiltakDTO(
+                            internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
+                            perioder = listOf(InnvilgelsesperiodeForTiltakDTO(periode = behandling.saksopplysninger.tiltaksdeltakelser.first().lukketPeriode!!.toDTO())),
+                        ),
+                    ),
+                    antallDagerPerMeldeperiode = listOf(
+                        AntallDagerPerMeldeperiodeDTO(periode = behandling.saksopplysninger.tiltaksdeltakelser.first().lukketPeriode!!.toDTO(), antallDagerPerMeldeperiode = 10),
                     ),
                 ),
                 resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
@@ -70,11 +77,15 @@ class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                 sakId = sak.id,
                 behandlingId = behandlingId,
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                innvilgelsesperioder = listOf(
-                    InnvilgelsesperiodeDTO(
-                        periode = innvilgelsesperiode.toDTO(),
-                        antallDagerPerMeldeperiode = 10,
-                        internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
+                innvilgelsesperioder = InnvilgelsesperioderDTO(
+                    tiltak = listOf(
+                        InnvilgelseForTiltakDTO(
+                            internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
+                            perioder = listOf(InnvilgelsesperiodeForTiltakDTO(periode = innvilgelsesperiode.toDTO())),
+                        ),
+                    ),
+                    antallDagerPerMeldeperiode = listOf(
+                        AntallDagerPerMeldeperiodeDTO(periode = innvilgelsesperiode.toDTO(), antallDagerPerMeldeperiode = 10),
                     ),
                 ),
                 barnetillegg = OppdaterBarnetilleggDTO(
@@ -103,11 +114,15 @@ class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                 sakId = sak.id,
                 behandlingId = behandlingId,
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                innvilgelsesperioder = listOf(
-                    InnvilgelsesperiodeDTO(
-                        periode = innvilgelsesperiode.toDTO(),
-                        antallDagerPerMeldeperiode = 10,
-                        internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
+                innvilgelsesperioder = InnvilgelsesperioderDTO(
+                    tiltak = listOf(
+                        InnvilgelseForTiltakDTO(
+                            internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
+                            perioder = listOf(InnvilgelsesperiodeForTiltakDTO(periode = innvilgelsesperiode.toDTO())),
+                        ),
+                    ),
+                    antallDagerPerMeldeperiode = listOf(
+                        AntallDagerPerMeldeperiodeDTO(periode = innvilgelsesperiode.toDTO(), antallDagerPerMeldeperiode = 10),
                     ),
                 ),
                 barnetillegg = OppdaterBarnetilleggDTO(
@@ -190,12 +205,14 @@ class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
         }
     }
 
-    private fun innvilgelsesperioderDTO(periode: Periode, internDeltakelseId: String) = listOf(
-        InnvilgelsesperiodeDTO(
-            periode = periode.toDTO(),
-            antallDagerPerMeldeperiode = 10,
-            internDeltakelseId = internDeltakelseId,
+    private fun innvilgelsesperioderDTO(periode: Periode, internDeltakelseId: String) = InnvilgelsesperioderDTO(
+        tiltak = listOf(
+            InnvilgelseForTiltakDTO(
+                internDeltakelseId = internDeltakelseId,
+                perioder = listOf(InnvilgelsesperiodeForTiltakDTO(periode = periode.toDTO())),
+            ),
         ),
+        antallDagerPerMeldeperiode = listOf(AntallDagerPerMeldeperiodeDTO(periode = periode.toDTO(), antallDagerPerMeldeperiode = 10)),
     )
 
     private fun barnLagtTilAvSaksbehandler(fornavn: String, perioder: List<PeriodeDTO>?) = OppdaterBarnMedBarnetilleggDTO(

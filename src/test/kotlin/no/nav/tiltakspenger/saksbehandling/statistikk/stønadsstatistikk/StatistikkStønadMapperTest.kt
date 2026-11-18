@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgetTiltaksdeltakelseKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
@@ -23,10 +22,8 @@ class StatistikkStønadMapperTest {
         val innvilgelsesperioder = listOf(
             InnvilgelsesperiodeKommando(
                 periode = periode,
-                tiltaksdeltakelser = nonEmptyListOf(
-                    InnvilgetTiltaksdeltakelseKommando(første.internDeltakelseId, AntallDagerForMeldeperiode(6)),
-                    InnvilgetTiltaksdeltakelseKommando(andre.internDeltakelseId, AntallDagerForMeldeperiode(4)),
-                ),
+                internDeltakelseIder = nonEmptyListOf(første.internDeltakelseId, andre.internDeltakelseId),
+                antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(10),
             ),
         )
         val sakId = SakId.random()

@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater
 import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
 import io.kotest.assertions.json.shouldContainJsonKeyValue
+import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -33,10 +34,13 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetille
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSaksopplysningerForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingAvslag
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingIkkeValgt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
@@ -585,6 +589,133 @@ class OppdaterSøknadsbehandlingRouteTest {
                 response harKode "feil_resultattype"
                 oppdatertBehandling shouldBe behandling
             }
+        }
+    }
+
+    @Test
+    fun `godtar innvilgelsesperioder i det gamle formatet, med én tiltaksdeltakelse per periode`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+            val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.single()
+            val periode = tiltaksdeltakelse.lukketPeriode!!
+            val førstePeriode = periode.fraOgMed til periode.fraOgMed.plusDays(13)
+            val andrePeriode = førstePeriode.tilOgMed.plusDays(1) til periode.tilOgMed
+
+            val (_, oppdatert) = oppdaterBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                body = """
+                    {
+                      "resultat": "INNVILGELSE",
+                      "innvilgelsesperioder": [
+                        {
+                          "periode": {"fraOgMed": "${førstePeriode.fraOgMed}", "tilOgMed": "${førstePeriode.tilOgMed}"},
+                          "antallDagerPerMeldeperiode": 10,
+                          "internDeltakelseId": "${tiltaksdeltakelse.internDeltakelseId}",
+                          "erReversertOpphør": false,
+                          "ugyldigTiltaksdeltakelse": null
+                        },
+                        {
+                          "periode": {"fraOgMed": "${andrePeriode.fraOgMed}", "tilOgMed": "${andrePeriode.tilOgMed}"},
+                          "antallDagerPerMeldeperiode": 6,
+                          "internDeltakelseId": "${tiltaksdeltakelse.internDeltakelseId}",
+                          "erReversertOpphør": false,
+                          "ugyldigTiltaksdeltakelse": null
+                        }
+                      ],
+                      "barnetillegg": {"begrunnelse": null, "barn": []}
+                    }
+                """.trimIndent(),
+            )
+
+            oppdatert.innvilgelsesperioder!!.periodisering.perioderMedVerdi.map { (verdi, periode) ->
+                Triple(periode, verdi.tiltaksdeltakelser.map { it.internDeltakelseId }, verdi.antallDagerPerMeldeperiode.value)
+            } shouldBe listOf(
+                Triple(førstePeriode, listOf(tiltaksdeltakelse.internDeltakelseId), 10),
+                Triple(andrePeriode, listOf(tiltaksdeltakelse.internDeltakelseId), 6),
+            )
+        }
+    }
+
+    @Test
+    fun `kan innvilge flere overlappende tiltaksdeltakelser med antall dager per periode`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+            // En ny søknad for et annet, overlappende tiltak gjør at søknadsbehandlingen får med begge tiltaksdeltakelsene.
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac, sakId = sak.id, fnr = sak.fnr)
+            val (_, medToDeltakelser) = oppdaterSaksopplysningerForBehandlingId(tac, sak.id, behandling.id)
+            val (første, andre) = medToDeltakelser.saksopplysninger.tiltaksdeltakelser.value.also { it.size shouldBe 2 }
+            val periode = første.lukketPeriode!!
+            val førstePeriode = periode.minusTilOgMed(14)
+            val andrePeriode = periode.plusFraOgMed(14)
+            val overlapp = førstePeriode.overlappendePeriode(andrePeriode)!!
+
+            val førUtenOverlapp = førstePeriode.fraOgMed til overlapp.fraOgMed.minusDays(1)
+            val etterUtenOverlapp = overlapp.tilOgMed.plusDays(1) til andrePeriode.tilOgMed
+
+            val innvilgelsesperioder = """
+                {
+                  "tiltak": [
+                    {
+                      "internDeltakelseId": "${første.internDeltakelseId}",
+                      "erReversertOpphør": false,
+                      "perioder": [
+                        {
+                          "periode": {"fraOgMed": "${førstePeriode.fraOgMed}", "tilOgMed": "${førstePeriode.tilOgMed}"},
+                          "ugyldigTiltaksdeltakelse": null
+                        }
+                      ]
+                    },
+                    {
+                      "internDeltakelseId": "${andre.internDeltakelseId}",
+                      "erReversertOpphør": false,
+                      "perioder": [
+                        {
+                          "periode": {"fraOgMed": "${andrePeriode.fraOgMed}", "tilOgMed": "${andrePeriode.tilOgMed}"},
+                          "ugyldigTiltaksdeltakelse": null
+                        }
+                      ]
+                    }
+                  ],
+                  "antallDagerPerMeldeperiode": [
+                    {
+                      "periode": {"fraOgMed": "${førUtenOverlapp.fraOgMed}", "tilOgMed": "${førUtenOverlapp.tilOgMed}"},
+                      "antallDagerPerMeldeperiode": 4
+                    },
+                    {
+                      "periode": {"fraOgMed": "${overlapp.fraOgMed}", "tilOgMed": "${overlapp.tilOgMed}"},
+                      "antallDagerPerMeldeperiode": 10
+                    },
+                    {
+                      "periode": {"fraOgMed": "${etterUtenOverlapp.fraOgMed}", "tilOgMed": "${etterUtenOverlapp.tilOgMed}"},
+                      "antallDagerPerMeldeperiode": 6
+                    }
+                  ]
+                }
+            """.trimIndent()
+
+            val (_, oppdatert, responseJson) = oppdaterBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                body = """
+                    {
+                      "resultat": "INNVILGELSE",
+                      "innvilgelsesperioder": $innvilgelsesperioder,
+                      "barnetillegg": {"begrunnelse": null, "barn": []}
+                    }
+                """.trimIndent(),
+            )
+
+            oppdatert.innvilgelsesperioder!!.periodisering.perioderMedVerdi.map { (verdi, periode) ->
+                Triple(periode, verdi.tiltaksdeltakelser.map { it.internDeltakelseId }, verdi.antallDagerPerMeldeperiode.value)
+            } shouldBe listOf(
+                Triple(førUtenOverlapp, listOf(første.internDeltakelseId), 4),
+                Triple(overlapp, listOf(første.internDeltakelseId, andre.internDeltakelseId), 10),
+                Triple(etterUtenOverlapp, listOf(andre.internDeltakelseId), 6),
+            )
+            JSONObject(responseJson).getJSONObject("innvilgelsesperioder").toString().shouldEqualJson(innvilgelsesperioder)
         }
     }
 }

@@ -40,35 +40,36 @@ class InnvilgelsesperioderDbTest {
     private val innvilgelsesperioder = ObjectMother.innvilgelsesperioder(
         ObjectMother.innvilgelsesperiode(
             periode = 1.januar(2025) til 28.februar(2025),
-            tiltaksdeltakelser = nonEmptyListOf(
-                ObjectMother.innvilgetTiltaksdeltakelse(amo, AntallDagerForMeldeperiode(4)),
-                ObjectMother.innvilgetTiltaksdeltakelse(arbeidstrening, AntallDagerForMeldeperiode(6)),
-            ),
+            tiltaksdeltakelser = nonEmptyListOf(amo, arbeidstrening),
+            antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(10),
         ),
         ObjectMother.innvilgelsesperiode(
             periode = 1.mars(2025) til 31.mars(2025),
-            tiltaksdeltakelser = nonEmptyListOf(ObjectMother.innvilgetTiltaksdeltakelse(amo, AntallDagerForMeldeperiode(10))),
+            tiltaksdeltakelser = nonEmptyListOf(amo),
+            antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(8),
             reversertOpphør = ReversertOpphør(opprinneligVedtakId),
         ),
     )
 
     @Test
-    fun `lagres med en liste av tiltaksdeltakelser per periode`() {
+    fun `lagres med en liste av tiltaksdeltakelser og felles antall dager per periode`() {
         innvilgelsesperioder.tilInnvilgelsesperioderDbJson() shouldEqualJson """
             {
               "value": [
                 {
                   "periode": {"fraOgMed": "2025-01-01", "tilOgMed": "2025-02-28"},
                   "tiltaksdeltakelser": [
-                    {"tiltaksdeltakelse": ${tiltaksdeltakelseJson(amo.internDeltakelseId, "ekstern-amo", "GRUPPE_AMO", "Arbeidsmarkedsoppfølging gruppe", "2025-03-31")}, "antallDagerPerMeldeperiode": 4},
-                    {"tiltaksdeltakelse": ${tiltaksdeltakelseJson(arbeidstrening.internDeltakelseId, "ekstern-arbeidstrening", "ARBEIDSTRENING", "Arbeidstrening", "2025-02-28")}, "antallDagerPerMeldeperiode": 6}
-                  ]
+                    ${tiltaksdeltakelseJson(amo.internDeltakelseId, "ekstern-amo", "GRUPPE_AMO", "Arbeidsmarkedsoppfølging gruppe", "2025-03-31")},
+                    ${tiltaksdeltakelseJson(arbeidstrening.internDeltakelseId, "ekstern-arbeidstrening", "ARBEIDSTRENING", "Arbeidstrening", "2025-02-28")}
+                  ],
+                  "antallDagerPerMeldeperiode": 10
                 },
                 {
                   "periode": {"fraOgMed": "2025-03-01", "tilOgMed": "2025-03-31"},
                   "tiltaksdeltakelser": [
-                    {"tiltaksdeltakelse": ${tiltaksdeltakelseJson(amo.internDeltakelseId, "ekstern-amo", "GRUPPE_AMO", "Arbeidsmarkedsoppfølging gruppe", "2025-03-31")}, "antallDagerPerMeldeperiode": 10}
+                    ${tiltaksdeltakelseJson(amo.internDeltakelseId, "ekstern-amo", "GRUPPE_AMO", "Arbeidsmarkedsoppfølging gruppe", "2025-03-31")}
                   ],
+                  "antallDagerPerMeldeperiode": 8,
                   "reversertOpphør": {"opprinneligVedtakId": "vedtak_01JQ0000000000000000000000"}
                 }
               ]

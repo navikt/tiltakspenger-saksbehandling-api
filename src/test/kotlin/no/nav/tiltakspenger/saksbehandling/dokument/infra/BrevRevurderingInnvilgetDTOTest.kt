@@ -26,7 +26,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgetTiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import org.junit.jupiter.api.Test
@@ -561,10 +560,8 @@ class BrevRevurderingInnvilgetDTOTest {
             innvilgelsesperiode(1.januar(2025) til 31.januar(2025), arbeidstrening),
             innvilgelsesperiode(
                 1.mars(2025) til 31.mars(2025),
-                nonEmptyListOf(
-                    innvilgetTiltaksdeltakelse(amo, AntallDagerForMeldeperiode(4)),
-                    innvilgetTiltaksdeltakelse(arbeidstrening, AntallDagerForMeldeperiode(6)),
-                ),
+                nonEmptyListOf(amo, arbeidstrening),
+                AntallDagerForMeldeperiode(10),
             ),
         )
 

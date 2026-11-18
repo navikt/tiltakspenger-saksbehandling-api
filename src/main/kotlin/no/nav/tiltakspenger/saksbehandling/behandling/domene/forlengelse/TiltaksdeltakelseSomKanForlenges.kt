@@ -11,7 +11,7 @@ import java.time.LocalDate
  * En tiltaksdeltakelse saksbehandler kan forlenge vedtaket for.
  *
  * @param tiltaksdeltakelse Deltakelsen slik den er i saksopplysningene til forlengelsen.
- * @param antallDagerPerMeldeperiode Antall dager i den siste perioden vedtaket innvilget for deltakelsen, som videreføres i forlengelsen.
+ * @param antallDagerPerMeldeperiode Antall dager per meldeperiode i den siste perioden vedtaket innvilget for deltakelsen, som videreføres i forlengelsen.
  */
 data class TiltaksdeltakelseSomKanForlenges(
     val tiltaksdeltakelse: TiltaksdeltakelseIntern,
@@ -43,11 +43,11 @@ fun Innvilgelsesperioder.tiltaksdeltakelserSomKanForlenges(
 ): List<TiltaksdeltakelseSomKanForlenges> {
     return periodisering.perioderMedVerdi
         .sortedByDescending { it.periode.tilOgMed }
-        .flatMap { it.verdi.tiltaksdeltakelser }
-        .distinctBy { it.internDeltakelseId }
-        .mapNotNull { innvilget ->
-            saksopplysninger.getTiltaksdeltakelse(innvilget.internDeltakelseId)
+        .flatMap { (verdi) -> verdi.tiltaksdeltakelser.map { it.internDeltakelseId to verdi.antallDagerPerMeldeperiode } }
+        .distinctBy { (internDeltakelseId) -> internDeltakelseId }
+        .mapNotNull { (internDeltakelseId, antallDagerPerMeldeperiode) ->
+            saksopplysninger.getTiltaksdeltakelse(internDeltakelseId)
                 ?.takeIf { it.kanInnvilges && it.lukketPeriode?.inneholder(forlengesFraOgMed) == true }
-                ?.let { TiltaksdeltakelseSomKanForlenges(it, innvilget.antallDagerPerMeldeperiode) }
+                ?.let { TiltaksdeltakelseSomKanForlenges(it, antallDagerPerMeldeperiode) }
         }
 }
