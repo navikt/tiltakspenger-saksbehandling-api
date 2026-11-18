@@ -176,20 +176,10 @@ fun InnvilgelsesperioderDTO.tilKommando(): IkkeTomPeriodisering<Innvilgelsesperi
  * @param tiltaksdeltakelser Tiltaksdeltakelsene fra saksopplysningene som innvilgelsesperiodene valideres mot.
  */
 fun Innvilgelsesperioder.tilDTO(tiltaksdeltakelser: Tiltaksdeltakelser): InnvilgelsesperioderDTO {
-    val perioderPerTiltak = linkedMapOf<Pair<TiltaksdeltakerId, Boolean>, MutableList<PeriodeMedVerdi<InnvilgelsesperiodeVerdi>>>()
-
-    this.periodisering.perioderMedVerdi.forEach { periodeMedVerdi ->
-        periodeMedVerdi.verdi.tiltaksdeltakelser.forEach {
-            perioderPerTiltak
-                .getOrPut(it.internDeltakelseId to periodeMedVerdi.verdi.erReversertOpphør) { mutableListOf() }
-                .add(periodeMedVerdi)
-        }
-    }
-
     return InnvilgelsesperioderDTO(
         tiltak = tiltakIRekkefølge().map { nøkkel ->
             val (internDeltakelseId, erReversertOpphør) = nøkkel
-            val perioder = perioderPerTiltak.getValue(nøkkel)
+            val perioder = this.periodisering.perioderMedVerdi.filter { nøkkel in it.verdi.tiltakNøkler() }
 
             InnvilgelseForTiltakDTO(
                 internDeltakelseId = internDeltakelseId.toString(),
@@ -218,26 +208,33 @@ fun Innvilgelsesperioder.tilDTO(tiltaksdeltakelser: Tiltaksdeltakelser): Innvilg
     )
 }
 
-/**
- * Tiltaksdeltakelsene, med om de er reversert opphør, i en rekkefølge der en ny runde gjennom [tilKommando] gir samme rekkefølge i hver periode.
- * Rekkefølgen i en periode bestemmer tiltakstypen dagene beregnes og utbetales med, se [InnvilgelsesperiodeVerdi.førsteTiltakstype].
- * Velger hver gang den første gjenværende i tidslinjen som ikke kommer etter en annen gjenværende i noen periode.
- * Har periodene motstridende rekkefølge, f.eks. fra ulike vedtak, kan ikke alle bevares, og da velges den første gjenværende i tidslinjen.
- */
-private fun Innvilgelsesperioder.tiltakIRekkefølge(): List<Pair<TiltaksdeltakerId, Boolean>> {
-    val rekkefølger = periodisering.perioderMedVerdi.map { (verdi) ->
-        verdi.tiltaksdeltakelser.map { it.internDeltakelseId to verdi.erReversertOpphør }
-    }
-    val gjenstående = rekkefølger.flatten().distinct().toMutableList()
+private data class TiltakNøkkel(
+    val internDeltakelseId: TiltaksdeltakerId,
+    val erReversertOpphør: Boolean,
+)
 
-    fun kommerEtterEnGjenstående(kandidat: Pair<TiltaksdeltakerId, Boolean>): Boolean = rekkefølger.any { rekkefølge ->
-        val index = rekkefølge.indexOf(kandidat)
-        index > 0 && rekkefølge.subList(0, index).any { it in gjenstående }
+private fun InnvilgelsesperiodeVerdi.tiltakNøkler(): List<TiltakNøkkel> {
+    return tiltaksdeltakelser.map { TiltakNøkkel(it.internDeltakelseId, erReversertOpphør) }
+}
+
+/**
+ * Rekkefølgen tiltakene sendes til frontend i, og som [tilKommando] bygger rekkefølgen i hver periode fra.
+ * Rekkefølgen i en periode bestemmer tiltakstypen dagene beregnes og utbetales med, se [InnvilgelsesperiodeVerdi.førsteTiltakstype].
+ * Den må derfor bevares, ellers kan en lagring uten endringer gi en annen tiltakstype.
+ * Har periodene motstridende rekkefølge, f.eks. fra ulike vedtak, kan ikke alle bevares, og da velges det første gjenstående tiltaket i tidslinjen.
+ */
+private fun Innvilgelsesperioder.tiltakIRekkefølge(): List<TiltakNøkkel> {
+    val rekkefølgePerPeriode = periodisering.perioderMedVerdi.map { it.verdi.tiltakNøkler() }
+    val gjenstående = rekkefølgePerPeriode.flatten().distinct().toMutableList()
+
+    // Et tiltak kan komme nå hvis det ikke står bak et gjenstående tiltak i noen periode.
+    fun kanKommeNå(tiltak: TiltakNøkkel): Boolean = rekkefølgePerPeriode.none { rekkefølge ->
+        tiltak in rekkefølge && rekkefølge.takeWhile { it != tiltak }.any { it in gjenstående }
     }
 
     return buildList {
         while (gjenstående.isNotEmpty()) {
-            val neste = gjenstående.firstOrNull { !kommerEtterEnGjenstående(it) } ?: gjenstående.first()
+            val neste = gjenstående.firstOrNull(::kanKommeNå) ?: gjenstående.first()
             add(neste)
             gjenstående.remove(neste)
         }
