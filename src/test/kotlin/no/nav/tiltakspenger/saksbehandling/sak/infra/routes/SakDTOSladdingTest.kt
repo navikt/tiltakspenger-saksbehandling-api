@@ -31,6 +31,7 @@ class SakDTOSladdingTest {
             klagebehandlinger = sakDTO.klagebehandlinger.map { it.sladdet() },
             alleRammevedtak = sakDTO.alleRammevedtak.map { it.sladdet() },
             meldekortbehandlinger = sakDTO.meldekortbehandlinger.mapValues { (_, behandling) -> behandling.sladdet() },
+            meldeperiodeKjeder = sakDTO.meldeperiodeKjeder.map { it.sladdet() },
         )
     }
 

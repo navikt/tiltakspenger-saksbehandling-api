@@ -2,13 +2,19 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
 import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.ApplicationTestBuilder
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.PrioriteringDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.Companion.MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -230,20 +236,77 @@ class MeldeperiodeKjedeDTOTest {
         }
     }
 
+    /**
+     * Første meldekort behandles automatisk fredag 2. mai 2025, og korrigeringen med for mye godkjent fravær mottas samme dag.
+     * Prioriteringen vises på kjeden til saksbehandler starter behandlingen, og flyttes da over til behandlingen.
+     */
+    @Test
+    fun `korrigering som ikke kunne behandles automatisk er prioritert til saksbehandler starter behandlingen`() {
+        withTestApplicationContext(clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0)))) { tac ->
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 31.mai(2025)),
+            )
+            val kjede = sak.meldeperiodeKjeder.first()
+            val jobb = tac.meldekortContext.automatiskMeldekortbehandlingJobb
+
+            mottaMeldekortFraBruker(tac = tac, sak = sak, kjedeIndeks = 0)
+            jobb.behandleBrukersMeldekort(tac.clock)
+            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
+            tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
+            mottaMeldekortFraBruker(
+                tac = tac,
+                sak = sak,
+                kjedeIndeks = 0,
+                journalpostId = "4321",
+                medForMyeGodkjentFravær = true,
+            )
+            jobb.behandleBrukersMeldekort(tac.clock)
+
+            val kjeder = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.tilMeldeperiodeKjederDTO(tac.clock)
+            val prioritertKjede = kjeder.single { it.prioritering != null }
+            prioritertKjede.id shouldBe kjede.kjedeId.toString()
+            prioritertKjede.brukersMeldekortStatus shouldBe BrukersMeldekortStatusDTO.KORRIGERING_VENTER_BEHANDLING
+            prioritertKjede.sladdet() shouldBe prioritertKjede.copy(prioritering = PrioriteringDTO(SladdetVerdi))
+
+            val (sakMedÅpenBehandling) = opprettMeldekortbehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = kjede.kjedeId,
+            )!!
+
+            sakMedÅpenBehandling.tilMeldeperiodeKjederDTO(tac.clock).map { it.prioritering } shouldBe kjeder.map { null }
+        }
+    }
+
     private suspend fun ApplicationTestBuilder.mottaMeldekortFraBruker(
         tac: TestApplicationContext,
         sak: Sak,
         kjedeIndeks: Int,
         journalpostId: String = "1234",
+        medForMyeGodkjentFravær: Boolean = false,
     ) {
         val meldeperiode = sak.meldeperiodeKjeder[kjedeIndeks].hentSisteMeldeperiode()
+        val utfylt = meldeperiode.tilUtfyltFraBruker(
+            kanSendeInnHelgForMeldekort = sak.kanSendeInnHelgForMeldekort,
+        )
+        val fraværsdager = if (medForMyeGodkjentFravær) {
+            utfylt.keys
+                .filter { utfylt.getValue(it) != BrukerutfyltMeldekortDTO.Status.IKKE_BESVART }
+                .sorted()
+                .windowed(MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER + 1)
+                .first { vindu -> vindu.zipWithNext().all { (a, b) -> b == a.plusDays(1) } }
+                .toSet()
+        } else {
+            emptySet()
+        }
         mottaMeldekortRequest(
             tac = tac,
             meldeperiodeId = meldeperiode.id,
             sakId = sak.id,
-            dager = meldeperiode.tilUtfyltFraBruker(
-                kanSendeInnHelgForMeldekort = sak.kanSendeInnHelgForMeldekort,
-            ),
+            dager = utfylt.mapValues { (dato, status) ->
+                if (dato in fraværsdager) BrukerutfyltMeldekortDTO.Status.FRAVÆR_GODKJENT_AV_NAV else status
+            },
             journalpostId = journalpostId,
         )
     }

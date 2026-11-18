@@ -997,6 +997,50 @@ class BenkAggregatTest {
         }
     }
 
+    /**
+     * Første meldekort behandles automatisk fredag 2. mai 2025.
+     * Lørdagen er ikke en virkedag, så korrigeringen prioriteres om den mottas innen utgangen av mandag 5. mai.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `meldekortfanen prioriterer korrigering som ikke kunne behandles automatisk, og overfører prioriteringen til behandlingen`() {
+        withTestApplicationContextAndPostgres(
+            clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0))),
+            runIsolated = true,
+        ) { tac ->
+            val (sak) = iverksettSøknadsbehandling(tac = tac)
+            mottaAutomatiskMeldekortForKjede(tac, sak, kjedeIndeks = 0)
+            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
+            tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
+            val (_, korrigering) = mottaManueltMeldekortForKjede(tac, sak, kjedeIndeks = 0)
+            // Første innsending i en kjede er ikke en korrigering, og prioriteres ikke.
+            mottaManueltMeldekortForKjede(tac, sak, kjedeIndeks = 1)
+            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+            val repo = tac.benkContext.benkRepo
+            val forventetPrioritering = BenkPrioritering(
+                "Korrigert meldekort ble mottatt kort tid etter forrige meldekort for perioden, men kunne ikke behandles automatisk.",
+            )
+
+            // Synkende periode ville lagt den andre kjeden øverst, men prioriteringen går foran.
+            repo.hentMeldekort(
+                command(BenkMeldekortFiltrering(null, null, null), BenkMeldekortKolonne.PERIODE, BenkSorteringRetning.DESC),
+            ).behandlinger.map { it.type to it.prioritering } shouldBe listOf(
+                BenkMeldekortType.KORRIGERT_MELDEKORT to forventetPrioritering,
+                BenkMeldekortType.INNSENDT_MELDEKORT to null,
+            )
+
+            val (_, behandling, _) = opprettMeldekortbehandlingForSakId(tac = tac, sakId = sak.id, kjedeId = korrigering.kjedeId)!!
+
+            behandling.prioritering?.begrunnelse?.verdi shouldBe forventetPrioritering.begrunnelse
+            repo.hentMeldekort(meldekortCommand()).behandlinger.map { it.type to it.prioritering } shouldBe listOf(
+                BenkMeldekortType.MELDEKORTBEHANDLING to forventetPrioritering,
+                BenkMeldekortType.INNSENDT_MELDEKORT to null,
+            )
+        }
+    }
+
     @Test
     @IsolatedDatabaseTest
     fun `meldekortfanen viser ventestatus, og skjulPåVent tar bort raden`() {

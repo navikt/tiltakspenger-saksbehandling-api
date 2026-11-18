@@ -259,6 +259,7 @@ fun Sak.opprettManuellMeldekortbehandling(
 /**
  * Oppretter en manuell meldekortbehandling som omfatter én eller flere meldeperiodekjeder.
  * Meldeperiodene sorteres etter periode, og hver kjede får sin egen [MeldeperiodebehandlingType] basert på om kjeden er behandlet fra før.
+ * Behandlingen arver prioriteringen til en korrigering fra bruker som venter på behandling av en av kjedene, se [prioriteringFraKorrigeringSomVenterPåBehandling].
  * Krever at [saksbehandler] har rollen saksbehandler eller beslutter, og kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
  */
 fun Sak.opprettManuellMeldekortbehandling(
@@ -319,7 +320,7 @@ fun Sak.opprettManuellMeldekortbehandling(
         beslutterEndringer = MeldekortbehandlingBeslutterEndringer(
             skalJournalføreNotat = null,
         ),
-        prioritering = null,
+        prioritering = prioriteringFraKorrigeringSomVenterPåBehandling(kjedeIder),
         ventestatus = Ventestatus(),
         klagebehandling = klagebehandlingId?.let {
             val klagebehandling = hentKlagebehandling(it)

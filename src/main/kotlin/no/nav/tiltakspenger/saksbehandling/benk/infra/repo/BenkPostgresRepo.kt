@@ -502,13 +502,13 @@ class BenkPostgresRepo(
                 ) then 'KORRIGERT_MELDEKORT'::text else 'INNSENDT_MELDEKORT'::text end,
                 jsonb_build_array(mp.kjede_id),
                 null::int,
-                null::text,
+                siste.prioritering_begrunnelse,
                 siste.id
             from (
                 select apne.*
                 from (
                     select distinct on (sak_id, meldeperiode_kjede_id)
-                        id, sak_id, meldeperiode_id, meldeperiode_kjede_id, mottatt
+                        id, sak_id, meldeperiode_id, meldeperiode_kjede_id, mottatt, prioritering_begrunnelse
                     from meldekort_bruker
                     where behandlet_automatisk_status != 'BEHANDLET' and behandles_automatisk = false
                     order by sak_id, meldeperiode_kjede_id, mottatt desc

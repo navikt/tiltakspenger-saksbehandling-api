@@ -95,7 +95,7 @@ data class BenkMeldekort(
     val beløp: Int?,
     /**
      * null når behandlingen ikke er prioritert.
-     * Brukers meldekort kan ikke prioriteres, og er alltid null.
+     * Brukers meldekort er prioritert når det er en korrigering som ikke kunne behandles automatisk, og som må behandles raskt for å rekke utbetalingen.
      */
     val prioritering: BenkPrioritering?,
 ) : BenkBehandling

@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.Bru
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.opprettAutomatiskMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.utledPrioriteringAvKorrigering
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -88,25 +89,26 @@ class AutomatiskMeldekortbehandlingJobb(
 
         meldekortListe.forEach { meldekort ->
             val økonomisystemetErStengt = korrelasjon.medNyCorrelationId { correlationId ->
+                val id = meldekort.id
+                val sakId = meldekort.sakId
+
+                // Hentes utenfor catch-blokken, slik at feilhåndteringen kan prioritere meldekortet også ved ukjente feil.
+                val sak: Lazy<Sak> = lazy {
+                    requireNotNull(sakRepo.hentForSakId(sakId)) {
+                        "Fant ikke sak for mottatt meldekort med id $id, sakId $sakId"
+                    }
+                }
+
                 Either.catch {
                     if (skalHoppeOverMeldekort(meldekort, clock)) {
                         return@catch false
                     }
 
-                    val id = meldekort.id
-                    val sakId = meldekort.sakId
-
-                    val sak = sakRepo.hentForSakId(sakId)
-
-                    require(sak != null) {
-                        "Fant ikke sak for mottatt meldekort med id $id, sakId $sakId"
-                    }
-
-                    opprettMeldekortbehandling(meldekort, sak, kreverSimulering, clock).fold(
+                    opprettMeldekortbehandling(meldekort, sak.value, kreverSimulering, clock).fold(
                         ifLeft = { ikkeBehandlet ->
                             when (ikkeBehandlet) {
                                 is IkkeBehandlet.Feilet -> {
-                                    håndterOpprettBehandlingFeil(ikkeBehandlet.status, meldekort, clock, correlationId)
+                                    håndterOpprettBehandlingFeil(ikkeBehandlet.status, meldekort, sak, clock, correlationId)
                                     false
                                 }
 
@@ -120,7 +122,7 @@ class AutomatiskMeldekortbehandlingJobb(
                     )
                 }.getOrElse {
                     logger.error(it) { "Ukjent feil ved automatisk behandling av meldekort fra bruker ${meldekort.id} - ${it.message}" }
-                    håndterOpprettBehandlingFeil(MeldekortBehandletAutomatiskStatus.UKJENT_FEIL, meldekort, clock, correlationId)
+                    håndterOpprettBehandlingFeil(MeldekortBehandletAutomatiskStatus.UKJENT_FEIL, meldekort, sak, clock, correlationId)
                     false
                 }
             }
@@ -154,9 +156,15 @@ class AutomatiskMeldekortbehandlingJobb(
         return !kanPrøvePåNyttNå
     }
 
+    /**
+     * Når meldekortet gis opp og går til manuell behandling, prioriteres det i benken dersom det er en korrigering som må behandles raskt for å rekke utbetalingen.
+     * @param sak hentes bare dersom meldekortet gis opp.
+     * Kan ikke saken hentes, prioriteres ikke meldekortet.
+     */
     private suspend fun håndterOpprettBehandlingFeil(
         status: MeldekortBehandletAutomatiskStatus,
         meldekort: BrukersMeldekort,
+        sak: Lazy<Sak>,
         clock: Clock,
         correlationId: CorrelationId,
     ) {
@@ -164,11 +172,21 @@ class AutomatiskMeldekortbehandlingJobb(
             "Kunne ikke opprette automatisk behandling for brukers meldekort ${meldekort.id} på sak ${meldekort.sakId} - Status: $status"
 
         val skalPrøvePåNytt = meldekort.skalPrøvePåNytt(status, clock)
+        val prioritering = if (skalPrøvePåNytt) {
+            null
+        } else {
+            Either.catch { sak.value }
+                .getOrElse {
+                    logger.warn(it) { "Kunne ikke hente sak for å vurdere prioritering av brukers meldekort ${meldekort.id} på sak ${meldekort.sakId}" }
+                    null
+                }
+                ?.utledPrioriteringAvKorrigering(meldekort)
+        }
 
         if (skalPrøvePåNytt) {
             logger.info { "$logMsg - Denne vil prøves på nytt" }
         } else {
-            logger.at(status.loggnivå) { message = logMsg }
+            logger.at(status.loggnivå) { message = logMsg + if (prioritering != null) " - Prioriteres i benken" else "" }
 
             // Ved Left hopper vi over statusoppdateringen under, slik at meldekortet (og dermed gosysoppgaven) prøves på nytt neste kjøring.
             // Oppgaveopprettelsen har allerede logget.
@@ -184,6 +202,7 @@ class AutomatiskMeldekortbehandlingJobb(
                 delays = venteIntervaller,
                 clock = clock,
             ),
+            prioritering = prioritering,
         )
     }
 

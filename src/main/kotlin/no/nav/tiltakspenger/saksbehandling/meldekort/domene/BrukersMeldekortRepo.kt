@@ -2,11 +2,13 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
 
 interface BrukersMeldekortRepo {
+    /** Et nytt meldekort er aldri prioritert, så [BrukersMeldekort.prioritering] lagres ikke. */
     fun lagre(
         brukersMeldekort: BrukersMeldekort,
         sessionContext: SessionContext? = null,
@@ -22,11 +24,13 @@ interface BrukersMeldekortRepo {
         sessionContext: SessionContext? = null,
     ): List<BrukersMeldekort>
 
+    /** @param prioritering Erstatter prioriteringen meldekortet har fra før. */
     fun oppdaterAutomatiskBehandletStatus(
         meldekortId: MeldekortId,
         status: MeldekortBehandletAutomatiskStatus,
         behandlesAutomatisk: Boolean,
         metadata: Forsøkshistorikk,
+        prioritering: Prioritering?,
         sessionContext: SessionContext? = null,
     )
 

@@ -3,9 +3,12 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.PrioriteringDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.MeldeperiodeBeregningDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilMeldeperiodeBeregningDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingAvbrutt
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.prioriteringFraKorrigeringSomVenterPåBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.IKKE_MOTTATT
@@ -32,6 +35,8 @@ data class MeldeperiodeKjedeDTO(
     val kanBehandles: Boolean,
     val kanIkkeBehandlesGrunn: KanIkkeBehandlesGrunnDTO?,
     val åpenBehandlingId: String?,
+    /** Prioriteringen til en korrigering fra bruker som venter på behandling, slik den vises i benken. */
+    val prioritering: PrioriteringDTO?,
 )
 
 enum class KanIkkeBehandlesGrunnDTO {
@@ -120,5 +125,6 @@ private fun Sak.tilMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clo
         kanBehandles = kanIkkeBehandlesGrunn == null,
         kanIkkeBehandlesGrunn = kanIkkeBehandlesGrunn,
         åpenBehandlingId = åpenBehandling?.id?.toString(),
+        prioritering = prioriteringFraKorrigeringSomVenterPåBehandling(listOf(kjedeId))?.tilDTO(),
     )
 }

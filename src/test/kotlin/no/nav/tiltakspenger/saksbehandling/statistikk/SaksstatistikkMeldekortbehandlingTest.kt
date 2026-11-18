@@ -232,6 +232,7 @@ private suspend fun ApplicationTestBuilder.mottaMeldekortSomGikkTilManuellBehand
         status = MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING,
         behandlesAutomatisk = false,
         metadata = forsøk,
+        prioritering = null,
     )
     return forsøk
 }

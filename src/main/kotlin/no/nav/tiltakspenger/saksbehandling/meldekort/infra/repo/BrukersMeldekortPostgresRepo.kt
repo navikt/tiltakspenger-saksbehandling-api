@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toForsøkshistorikk
@@ -24,6 +25,7 @@ class BrukersMeldekortPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : BrukersMeldekortRepo {
 
+    /** Lagrer ikke [BrukersMeldekort.prioritering], siden et nytt meldekort aldri er prioritert. */
     override fun lagre(
         brukersMeldekort: BrukersMeldekort,
         sessionContext: SessionContext?,
@@ -107,6 +109,7 @@ class BrukersMeldekortPostgresRepo(
         status: MeldekortBehandletAutomatiskStatus,
         behandlesAutomatisk: Boolean,
         metadata: Forsøkshistorikk,
+        prioritering: Prioritering?,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSession(sessionContext) { session ->
@@ -116,13 +119,15 @@ class BrukersMeldekortPostgresRepo(
                     update meldekort_bruker set
                         behandlet_automatisk_status = :behandlet_automatisk_status,
                         behandles_automatisk = :behandles_automatisk,
-                        behandlet_automatisk_metadata = :behandlet_automatisk_metadata::jsonb
+                        behandlet_automatisk_metadata = :behandlet_automatisk_metadata::jsonb,
+                        prioritering_begrunnelse = :prioritering_begrunnelse
                     where id = :id
                     """,
                     "id" to meldekortId.toString(),
                     "behandlet_automatisk_status" to status.tilDb(),
                     "behandles_automatisk" to behandlesAutomatisk,
                     "behandlet_automatisk_metadata" to metadata.toDbJson(),
+                    "prioritering_begrunnelse" to prioritering?.begrunnelse?.verdi,
                 ).asUpdate,
             )
         }
@@ -202,6 +207,7 @@ class BrukersMeldekortPostgresRepo(
                     .tilMeldekortBehandletAutomatiskStatus(),
                 behandletAutomatiskForsøkshistorikk = row.string("behandlet_automatisk_metadata")
                     .toForsøkshistorikk(),
+                prioritering = row.stringOrNull("prioritering_begrunnelse")?.let { Prioritering.create(it) },
             )
         }
     }

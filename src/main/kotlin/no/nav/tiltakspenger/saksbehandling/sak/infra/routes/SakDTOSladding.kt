@@ -22,6 +22,7 @@ fun SakDTO.sladdet(): SakDTO = this.copy(
     klagebehandlinger = klagebehandlinger.map { it.sladdet() },
     alleRammevedtak = alleRammevedtak.map { it.sladdet() },
     meldekortbehandlinger = meldekortbehandlinger.mapValues { (_, meldekortbehandling) -> meldekortbehandling.sladdet() },
+    meldeperiodeKjeder = meldeperiodeKjeder.map { it.sladdet() },
 )
 
 fun SakDTO.sladdetFor(saksbehandler: Saksbehandler): SakDTO =
