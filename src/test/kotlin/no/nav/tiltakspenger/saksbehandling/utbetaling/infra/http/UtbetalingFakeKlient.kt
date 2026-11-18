@@ -31,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.V3Simuleringsklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.Clock
+import java.util.concurrent.ConcurrentHashMap
 
 class UtbetalingFakeKlient(
     private val sakRepo: SakRepo,
@@ -66,6 +67,13 @@ class UtbetalingFakeKlient(
 ) : Utbetalingsklient,
     V3Simuleringsklient {
 
+    /**
+     * Utbetalinger som skal starte tilbakekreving når oppdragssystemet har utbetalt dem.
+     * [iverksett] kalles inne i transaksjonen som markerer utbetalingen som sendt, og tilbakekrevingen åpner egne databasesesjoner.
+     * Den startes derfor først når statusen hentes, som skjer utenfor transaksjonen og etter at den er committet.
+     */
+    private val utbetalingerSomVenterPåTilbakekreving = ConcurrentHashMap<UtbetalingId, VedtattUtbetaling>()
+
     override suspend fun iverksett(
         utbetaling: VedtattUtbetaling,
         forrigeUtbetalingJson: String?,
@@ -81,7 +89,7 @@ class UtbetalingFakeKlient(
         )
 
         if (skalStarteTilbakekrevinger) {
-            tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(utbetaling)
+            utbetalingerSomVenterPåTilbakekreving[utbetaling.id] = utbetaling
         }
 
         return response.right()
@@ -90,6 +98,10 @@ class UtbetalingFakeKlient(
     override suspend fun hentUtbetalingsstatus(
         utbetaling: UtbetalingDetSkalHentesStatusFor,
     ): Either<HttpKlientError, Utbetalingsstatus> {
+        if (utbetalingsstatus.erOK()) {
+            utbetalingerSomVenterPåTilbakekreving.remove(utbetaling.utbetalingId)
+                ?.let { tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(it) }
+        }
         return utbetalingsstatus.right()
     }
 
