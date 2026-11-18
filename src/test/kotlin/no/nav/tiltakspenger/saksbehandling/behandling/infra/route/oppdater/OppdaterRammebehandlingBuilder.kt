@@ -11,12 +11,14 @@ import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SkalJournalføreNotat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.antallDagerIVedtaketSomForlenges
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.tiltaksdeltakelsenSomForlenges
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilOppdaterBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperioderDTO
@@ -302,6 +304,7 @@ interface OppdaterRammebehandlingBuilder {
     /**
      * @param tiltaksdeltakerId Null betyr tiltaksdeltakelsen på siste innvilgede dag i vedtaket som forlenges.
      * @param barnetillegg Null betyr at barnetillegget utledes fra vedtaket som forlenges.
+     * @param antallDagerPerMeldeperiode Null betyr antall dager på siste innvilgede dag i vedtaket som forlenges.
      */
     suspend fun ApplicationTestBuilder.oppdaterForlengelse(
         tac: TestApplicationContext,
@@ -310,6 +313,7 @@ interface OppdaterRammebehandlingBuilder {
         tilOgMed: LocalDate,
         tiltaksdeltakerId: TiltaksdeltakerId? = null,
         barnetillegg: Barnetillegg? = null,
+        antallDagerPerMeldeperiode: AntallDagerForMeldeperiode? = null,
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
@@ -323,6 +327,7 @@ interface OppdaterRammebehandlingBuilder {
               "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
               "tilOgMed": "$tilOgMed",
               "internDeltakelseId": "${tiltaksdeltakerId ?: tac.sakContext.sakRepo.hentForSakId(sakId)!!.tiltaksdeltakelsenSomForlenges(behandlingId)}",
+              "antallDagerPerMeldeperiode": ${(antallDagerPerMeldeperiode ?: tac.sakContext.sakRepo.hentForSakId(sakId)!!.antallDagerIVedtaketSomForlenges(behandlingId)).value},
               "barnetillegg": ${barnetillegg?.let { serialize(it.tilOppdaterBarnetilleggDTO()) }},
               "skalSendeVedtaksbrev": true,
               "skalJournalføreNotat": ${serialize(SkalJournalføreNotat.INGEN.tilDTO())}

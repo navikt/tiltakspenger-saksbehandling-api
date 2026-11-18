@@ -67,6 +67,7 @@ data class AutomatiskForlengelse(
  * Startdatoen må være uendret fra det gjeldende vedtaket, siden en forlengelse bare utvider perioden.
  *
  * Deltakelsesmengden må også være uendret, og antall dager per meldeperiode videreføres fra det gjeldende vedtaket.
+ * Antall dager per meldeperiode er felles for alle deltakelsene i en periode, så det videreføres bare når deltakelsen var eneste deltakelse på siste innvilgede dag.
  * En endret deltakelsesmengde overlates til saksbehandler, siden vi ikke vet fra hvilken dato den gjelder.
  * Den kan derfor også gjelde deler av perioden som allerede er innvilget, og da må den perioden omgjøres.
  * Barnetillegget videreføres fra det gjeldende vedtaket, se [utledBarnetilleggForForlengelse].
@@ -93,6 +94,11 @@ fun Sak.utledAutomatiskForlengelse(
         vedtak.innvilgelsesperioder!!.periodisering.hentVerdiForDag(periode.tilOgMed)!!
     }
     val tidligereDeltakelse = tidligereInnvilget?.hentTiltaksdeltakelse(tiltaksdeltakerId)
+
+    // Antall dager per meldeperiode er felles for alle deltakelsene i perioden, så vi vet ikke hvor mange av dagene som gjaldt denne.
+    if (tidligereInnvilget != null && tidligereInnvilget.tiltaksdeltakelser.size > 1) {
+        grunner.add(ManueltBehandlesGrunn.FORLENGELSE_FLERE_TILTAK_I_GJELDENDE_VEDTAK)
+    }
 
     // Er slutten av innvilgelsen erstattet av et senere vedtak, er vedtaket stanset, opphørt eller omgjort.
     val erStansetEllerOpphørt = gjeldende != null && gjeldende.periode.tilOgMed != gjeldende.verdi.innvilgelsesperioder!!.tilOgMed

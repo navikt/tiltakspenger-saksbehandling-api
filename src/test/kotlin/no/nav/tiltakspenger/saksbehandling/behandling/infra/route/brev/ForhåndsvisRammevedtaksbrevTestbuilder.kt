@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.antallDagerIVedtaketSomForlenges
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.tiltaksdeltakelsenSomForlenges
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.OppdaterBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.HjemmelForStansDTO
@@ -48,6 +49,11 @@ interface ForhåndsvisRammevedtaksbrevTestbuilder {
         } else {
             null
         },
+        antallDagerPerMeldeperiode: Int? = if (resultat == RammebehandlingResultatTypeDTO.FORLENGELSE) {
+            tac.sakContext.sakRepo.hentForSakId(sakId)!!.antallDagerIVedtaketSomForlenges(behandlingId).value
+        } else {
+            null
+        },
     ): Triple<Sak, Rammebehandling, String> {
         if (resultat in listOf(
                 RammebehandlingResultatTypeDTO.INNVILGELSE,
@@ -72,6 +78,7 @@ interface ForhåndsvisRammevedtaksbrevTestbuilder {
                 "resultat": "$resultat",
                 "tilOgMed": ${tilOgMed?.let { "\"$it\"" }},
                 "internDeltakelseId": ${internDeltakelseId?.let { "\"$it\"" }},
+                "antallDagerPerMeldeperiode": $antallDagerPerMeldeperiode,
                 "avslagsgrunner": ${avslagsgrunner?.joinToString(prefix = "[", postfix = "]") { """"$it"""" }},
                 "innvilgelsesperioder": ${innvilgelsesperioder?.let { serialize(it) }}
         }

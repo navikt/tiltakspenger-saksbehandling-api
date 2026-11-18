@@ -165,6 +165,7 @@ class ForhåndsvisRammevedtaksbrevService(
                 revurdering = behandling,
                 tilOgMed = kommando.tilOgMed,
                 tiltaksdeltakerId = kommando.tiltaksdeltakerId,
+                antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
                 barnetillegg = kommando.barnetillegg,
             ).getOrElse {
                 if (it is KanIkkeForlenge.UgyldigBarnetillegg) throw UgyldigBarnetilleggException(it.feil)

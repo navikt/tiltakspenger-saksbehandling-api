@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ValgtBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -23,5 +24,6 @@ data class ForhåndsvisVedtaksbrevForForlengelseKommando(
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val tilOgMed: LocalDate,
     val tiltaksdeltakerId: TiltaksdeltakerId,
+    val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
     val barnetillegg: ValgtBarnetillegg?,
 ) : ForhåndsvisVedtaksbrevForRevurderingKommando

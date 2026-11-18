@@ -166,6 +166,41 @@ class DelautomatiskOmgjøringServiceTest {
         }
     }
 
+    /**
+     * Antall dager per meldeperiode er felles for deltakelsene i en periode.
+     * Vi vet derfor ikke hvor mange av dagene som gjelder deltakelsen som blir igjen etter ny sluttdato.
+     */
+    @Test
+    fun `deltakelsen er innvilget sammen med en annen deltakelse etter ny sluttdato - overlates til saksbehandler`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 30.juni(2025))
+            val annenDeltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 30.juni(2025))
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.lukketPeriode!!, deltakelse),
+            )
+            val (_, _, vedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                sakId = sak.id,
+                fnr = sak.fnr,
+                tiltaksdeltakelse = annenDeltakelse,
+                innvilgelsesperioder = ObjectMother.innvilgelsesperioder(
+                    ObjectMother.innvilgelsesperiode(
+                        periode = deltakelse.lukketPeriode!!,
+                        tiltaksdeltakelser = nonEmptyListOf(deltakelse, annenDeltakelse),
+                        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(10),
+                    ),
+                ),
+            )
+            val revurdering = tac.opprettAutomatiskOmgjøring(sak, vedtak, deltakelse, deltakelse.medPeriode(tilOgMed = 15.mai(2025)))
+
+            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+
+            tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.OMGJORING_AVKORTER_PERIODE_MED_FLERE_TILTAK)
+        }
+    }
+
     @Test
     fun `deltakelsen er avbrutt før omgjøringen behandles - overlates til saksbehandler`() {
         withTestApplicationContextAndPostgres { tac ->

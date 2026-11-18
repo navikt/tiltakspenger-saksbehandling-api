@@ -233,7 +233,7 @@ fun Sak.tilRammebehandlingDTO(
             barnetilleggKandidater = kandidater,
             tiltaksdeltakelserSomKanForlenges = (behandling.resultat as? Revurderingsresultat.Forlengelse)?.let { resultat ->
                 tiltaksdeltakelserSomKanForlenges(resultat.forlenger, behandling.saksopplysninger)
-                    .map { it.tiltaksdeltakelse.internDeltakelseId }
+                    .map { it.internDeltakelseId }
             } ?: emptyList(),
             perioderForReversertOpphør = if (behandling.resultat is Omgjøringsresultat) {
                 rammevedtaksliste.perioderForReversertOpphør().tilPerioderForReversertOpphørDTO()

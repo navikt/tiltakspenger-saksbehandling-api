@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse
 
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -12,4 +13,11 @@ fun Sak.tiltaksdeltakelsenSomForlenges(behandlingId: RammebehandlingId): Tiltaks
         .hentVerdiForDag(forlenger.sisteInnvilgedeDag)!!
         .single()
         .internDeltakelseId
+}
+
+/** Antall dager per meldeperiode på siste innvilgede dag i vedtaket forlengelsen [behandlingId] forlenger. */
+fun Sak.antallDagerIVedtaketSomForlenges(behandlingId: RammebehandlingId): AntallDagerForMeldeperiode {
+    val forlenger = (hentRammebehandling(behandlingId)!!.resultat as Revurderingsresultat.Forlengelse).forlenger
+    return hentRammevedtakForId(forlenger.rammevedtakId).antallDagerPerMeldeperiode!!
+        .hentVerdiForDag(forlenger.sisteInnvilgedeDag)!!
 }

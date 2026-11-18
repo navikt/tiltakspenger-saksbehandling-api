@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.lagreBarnetilleggSomV1
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.BarnSomFyller16
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.ForlengerRammevedtak
@@ -191,6 +192,26 @@ class ForlengelseRouteTest {
             sakEtter.rammevedtaksliste.gyldigForlengelseskommando(forlengelsesvedtak).shouldNotBeNull().forlengesFraOgMed shouldBe 1.juni(2025)
 
             startForlengelse(tac, sak.id, vedtak.id, forventet = feil(400)).shouldBeNull()
+        }
+    }
+
+    @Test
+    fun `forlenger med antall dager per meldeperiode valgt av saksbehandler`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, vedtak) = iverksettVedtakSomKanForlenges(tac)
+            val (_, startet) = startForlengelse(tac, sak.id, vedtak.id)!!
+
+            val (_, oppdatert) = oppdaterForlengelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = startet.id,
+                tilOgMed = 31.mai(2025),
+                antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(6),
+            )
+
+            vedtak.antallDagerPerMeldeperiode.shouldNotBeNull().verdier.distinct() shouldBe listOf(AntallDagerForMeldeperiode.default)
+            oppdatert.antallDagerPerMeldeperiode.shouldNotBeNull().perioderMedVerdi.toList() shouldBe
+                listOf(PeriodeMedVerdi(AntallDagerForMeldeperiode(6), 1.april(2025) til 31.mai(2025)))
         }
     }
 

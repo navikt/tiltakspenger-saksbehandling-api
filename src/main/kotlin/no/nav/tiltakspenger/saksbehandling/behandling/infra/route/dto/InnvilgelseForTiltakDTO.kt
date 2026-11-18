@@ -166,7 +166,7 @@ fun InnvilgelsesperioderDTO.tilKommando(): IkkeTomPeriodisering<Innvilgelsesperi
 /**
  * Antall dager per meldeperiode er periodene i domenet, der tilstøtende perioder med likt antall dager er slått sammen.
  *
- * Tiltakene har én innvilgelse per tiltaksdeltakelse, i rekkefølgen tiltaksdeltakelsene først forekommer i innvilgelsesperiodene.
+ * Tiltakene har én innvilgelse per tiltaksdeltakelse, i en rekkefølge som bevarer rekkefølgen i hver periode, se [tiltakIRekkefølge].
  * En tiltaksdeltakelse som både er innvilget med og uten reversert opphør, gir én innvilgelse for hver.
  * Tilstøtende perioder i domenet for samme tiltaksdeltakelse slås sammen, unntatt når periodene på hver side av grensen har de samme tiltaksdeltakelsene og ulikt antall dager.
  * Ved [tilKommando] deles det bare opp ved start- og sluttdatoer for periodene til tiltaksdeltakelsene, så hver grense for antall dager må også være en grense for en tiltaksdeltakelse.
@@ -187,8 +187,9 @@ fun Innvilgelsesperioder.tilDTO(tiltaksdeltakelser: Tiltaksdeltakelser): Innvilg
     }
 
     return InnvilgelsesperioderDTO(
-        tiltak = perioderPerTiltak.map { (nøkkel, perioder) ->
+        tiltak = tiltakIRekkefølge().map { nøkkel ->
             val (internDeltakelseId, erReversertOpphør) = nøkkel
+            val perioder = perioderPerTiltak.getValue(nøkkel)
 
             InnvilgelseForTiltakDTO(
                 internDeltakelseId = internDeltakelseId.toString(),
@@ -215,6 +216,32 @@ fun Innvilgelsesperioder.tilDTO(tiltaksdeltakelser: Tiltaksdeltakelser): Innvilg
                 )
             },
     )
+}
+
+/**
+ * Tiltaksdeltakelsene, med om de er reversert opphør, i en rekkefølge der en ny runde gjennom [tilKommando] gir samme rekkefølge i hver periode.
+ * Rekkefølgen i en periode bestemmer tiltakstypen dagene beregnes og utbetales med, se [InnvilgelsesperiodeVerdi.førsteTiltakstype].
+ * Velger hver gang den første gjenværende i tidslinjen som ikke kommer etter en annen gjenværende i noen periode.
+ * Har periodene motstridende rekkefølge, f.eks. fra ulike vedtak, kan ikke alle bevares, og da velges den første gjenværende i tidslinjen.
+ */
+private fun Innvilgelsesperioder.tiltakIRekkefølge(): List<Pair<TiltaksdeltakerId, Boolean>> {
+    val rekkefølger = periodisering.perioderMedVerdi.map { (verdi) ->
+        verdi.tiltaksdeltakelser.map { it.internDeltakelseId to verdi.erReversertOpphør }
+    }
+    val gjenstående = rekkefølger.flatten().distinct().toMutableList()
+
+    fun kommerEtterEnGjenstående(kandidat: Pair<TiltaksdeltakerId, Boolean>): Boolean = rekkefølger.any { rekkefølge ->
+        val index = rekkefølge.indexOf(kandidat)
+        index > 0 && rekkefølge.subList(0, index).any { it in gjenstående }
+    }
+
+    return buildList {
+        while (gjenstående.isNotEmpty()) {
+            val neste = gjenstående.firstOrNull { !kommerEtterEnGjenstående(it) } ?: gjenstående.first()
+            add(neste)
+            gjenstående.remove(neste)
+        }
+    }
 }
 
 /**

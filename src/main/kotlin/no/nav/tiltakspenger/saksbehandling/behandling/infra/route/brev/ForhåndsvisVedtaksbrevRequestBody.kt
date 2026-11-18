@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev.Companion.toFritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.OppdaterBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.HjemmelForOpphørDTO
@@ -199,6 +200,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
         val fritekst: String?,
         val tilOgMed: LocalDate,
         val internDeltakelseId: String,
+        val antallDagerPerMeldeperiode: Int,
         val barnetillegg: OppdaterBarnetilleggDTO?,
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
@@ -215,6 +217,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
                 fritekstTilVedtaksbrev = fritekst?.toFritekstTilVedtaksbrev(),
                 tilOgMed = tilOgMed,
                 tiltaksdeltakerId = TiltaksdeltakerId.fromString(internDeltakelseId),
+                antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(antallDagerPerMeldeperiode),
                 barnetillegg = barnetillegg?.tilValgtBarnetillegg(),
             )
         }

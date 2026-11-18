@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
@@ -97,7 +98,7 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         OppdaterBehandlingKommando.Innvilgelse
 
     /**
-     * Saksbehandler velger bare ny til og med-dato og hvilken tiltaksdeltakelse vedtaket forlenges for.
+     * Saksbehandler velger bare ny til og med-dato, hvilken tiltaksdeltakelse vedtaket forlenges for og antall dager per meldeperiode.
      * Resten utledes fra vedtaket som forlenges, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.forlengelse.utledForlengelse].
      *
      * @param barnetillegg Null betyr at barnetillegget utledes på nytt fra vedtaket som forlenges.
@@ -111,6 +112,7 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         val tilOgMed: LocalDate,
         val tiltaksdeltakerId: TiltaksdeltakerId,
+        val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
         val barnetillegg: ValgtBarnetillegg?,
         override val skalSendeVedtaksbrev: Boolean,
         override val prioritering: Prioritering?,

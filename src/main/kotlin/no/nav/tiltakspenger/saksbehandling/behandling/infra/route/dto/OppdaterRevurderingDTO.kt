@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterOmgjøringKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando
@@ -70,6 +71,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         override val begrunnelseVilkårsvurdering: String?,
         val tilOgMed: LocalDate,
         val internDeltakelseId: String,
+        val antallDagerPerMeldeperiode: Int,
         val barnetillegg: OppdaterBarnetilleggDTO?,
         override val skalSendeVedtaksbrev: Boolean = true,
         override val prioritering: OppdaterPrioriteringDTO? = null,
@@ -92,6 +94,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
                 tilOgMed = tilOgMed,
                 tiltaksdeltakerId = TiltaksdeltakerId.fromString(internDeltakelseId),
+                antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(antallDagerPerMeldeperiode),
                 barnetillegg = barnetillegg?.tilValgtBarnetillegg(),
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                 prioritering = prioritering?.tilDomene(),

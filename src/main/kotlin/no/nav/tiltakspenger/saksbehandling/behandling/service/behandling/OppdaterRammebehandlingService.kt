@@ -104,6 +104,7 @@ class OppdaterRammebehandlingService(
                 revurdering = behandling as Revurdering,
                 tilOgMed = it.tilOgMed,
                 tiltaksdeltakerId = it.tiltaksdeltakerId,
+                antallDagerPerMeldeperiode = it.antallDagerPerMeldeperiode,
                 barnetillegg = it.barnetillegg,
             ).getOrElse { feil -> return feil.left() }
         }
