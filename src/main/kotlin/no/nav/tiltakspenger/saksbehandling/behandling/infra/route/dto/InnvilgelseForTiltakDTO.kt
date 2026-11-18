@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
-import com.fasterxml.jackson.annotation.JsonCreator
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.inneholderOverlapp
@@ -30,48 +29,10 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
  * @param antallDagerPerMeldeperiode Antall dager per meldeperiode for periodene.
  * Periodene kan ikke overlappe, og i requester må hver delperiode ligge helt innenfor én av dem, og de kan ikke dekke dager utenfor delperiodene.
  * I responser er tilstøtende perioder med likt antall dager slått sammen.
- *
- * Requester kan også ha det gamle formatet, se [fraGammeltFormat].
  */
-data class InnvilgelsesperioderDTO
-@JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
-constructor(
+data class InnvilgelsesperioderDTO(
     val tiltak: List<InnvilgelseForTiltakDTO>,
     val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO>,
-) {
-    companion object {
-        /**
-         * Bakoverkompatibilitet med frontend fra før flere tiltak per innvilgelsesperiode, som sender en liste med én tiltaksdeltakelse per innvilgelsesperiode.
-         * Periodene overlapper ikke, så hver periode blir en periode for tiltaksdeltakelsen, og en periode med antall dager.
-         * TODO: Fjern når frontend sender det nye formatet.
-         */
-        @JvmStatic
-        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-        fun fraGammeltFormat(perioder: List<GammelInnvilgelsesperiodeDTO>): InnvilgelsesperioderDTO {
-            return InnvilgelsesperioderDTO(
-                tiltak = perioder
-                    .groupBy { it.internDeltakelseId to it.erReversertOpphør }
-                    .map { (tiltak, perioderForTiltak) ->
-                        InnvilgelseForTiltakDTO(
-                            internDeltakelseId = tiltak.first,
-                            erReversertOpphør = tiltak.second,
-                            perioder = perioderForTiltak.map { InnvilgelsesperiodeForTiltakDTO(periode = it.periode) },
-                        )
-                    },
-                antallDagerPerMeldeperiode = perioder.map {
-                    AntallDagerPerMeldeperiodeDTO(periode = it.periode, antallDagerPerMeldeperiode = it.antallDagerPerMeldeperiode)
-                },
-            )
-        }
-    }
-}
-
-/** Formatet frontend sendte før flere tiltak per innvilgelsesperiode, se [InnvilgelsesperioderDTO.fraGammeltFormat]. */
-data class GammelInnvilgelsesperiodeDTO(
-    val periode: PeriodeDTO,
-    val antallDagerPerMeldeperiode: Int,
-    val internDeltakelseId: String,
-    val erReversertOpphør: Boolean = false,
 )
 
 /**

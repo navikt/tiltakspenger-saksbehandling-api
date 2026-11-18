@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
-import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periode.toDTO
@@ -286,33 +285,6 @@ class InnvilgelseForTiltakDTOTest {
 
         request.tilDomene().tilDTO(tiltaksdeltakelser) shouldBe request.copy(
             tiltak = request.tiltak.sortedBy { it.internDeltakelseId != amo.internDeltakelseId.toString() },
-        )
-    }
-
-    @Test
-    fun `gammelt format med én tiltaksdeltakelse per innvilgelsesperiode gir én innvilgelse per tiltaksdeltakelse og reversert opphør`() {
-        fun gammelPeriode(periode: Periode, tiltaksdeltakelse: TiltaksdeltakelseIntern, dager: Int, erReversertOpphør: Boolean = false) = """
-            {
-              "periode": {"fraOgMed": "${periode.fraOgMed}", "tilOgMed": "${periode.tilOgMed}"},
-              "antallDagerPerMeldeperiode": $dager,
-              "internDeltakelseId": "${tiltaksdeltakelse.internDeltakelseId}",
-              "erReversertOpphør": $erReversertOpphør,
-              "ugyldigTiltaksdeltakelse": null
-            }
-        """
-
-        val json = listOf(
-            gammelPeriode(januar, amo, dager = 5),
-            gammelPeriode(februar, arbeidstrening, dager = 8),
-            gammelPeriode(mars, amo, dager = 10),
-            gammelPeriode(april, amo, dager = 2, erReversertOpphør = true),
-        ).joinToString(prefix = "[", postfix = "]")
-
-        deserialize<InnvilgelsesperioderDTO>(json) shouldBe request(
-            tiltak(amo, januar, mars),
-            tiltak(arbeidstrening, februar),
-            tiltak(amo, april, erReversertOpphør = true),
-            antallDager = listOf(januar to 5, februar to 8, mars to 10, april to 2),
         )
     }
 }

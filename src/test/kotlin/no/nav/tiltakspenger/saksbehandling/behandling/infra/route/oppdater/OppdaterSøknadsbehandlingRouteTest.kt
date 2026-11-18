@@ -593,52 +593,6 @@ class OppdaterSøknadsbehandlingRouteTest {
     }
 
     @Test
-    fun `godtar innvilgelsesperioder i det gamle formatet, med én tiltaksdeltakelse per periode`() {
-        withTestApplicationContext { tac ->
-            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
-            val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.single()
-            val periode = tiltaksdeltakelse.lukketPeriode!!
-            val førstePeriode = periode.fraOgMed til periode.fraOgMed.plusDays(13)
-            val andrePeriode = førstePeriode.tilOgMed.plusDays(1) til periode.tilOgMed
-
-            val (_, oppdatert) = oppdaterBehandling(
-                tac = tac,
-                sakId = sak.id,
-                behandlingId = behandling.id,
-                body = """
-                    {
-                      "resultat": "INNVILGELSE",
-                      "innvilgelsesperioder": [
-                        {
-                          "periode": {"fraOgMed": "${førstePeriode.fraOgMed}", "tilOgMed": "${førstePeriode.tilOgMed}"},
-                          "antallDagerPerMeldeperiode": 10,
-                          "internDeltakelseId": "${tiltaksdeltakelse.internDeltakelseId}",
-                          "erReversertOpphør": false,
-                          "ugyldigTiltaksdeltakelse": null
-                        },
-                        {
-                          "periode": {"fraOgMed": "${andrePeriode.fraOgMed}", "tilOgMed": "${andrePeriode.tilOgMed}"},
-                          "antallDagerPerMeldeperiode": 6,
-                          "internDeltakelseId": "${tiltaksdeltakelse.internDeltakelseId}",
-                          "erReversertOpphør": false,
-                          "ugyldigTiltaksdeltakelse": null
-                        }
-                      ],
-                      "barnetillegg": {"begrunnelse": null, "barn": []}
-                    }
-                """.trimIndent(),
-            )
-
-            oppdatert.innvilgelsesperioder!!.periodisering.perioderMedVerdi.map { (verdi, periode) ->
-                Triple(periode, verdi.tiltaksdeltakelser.map { it.internDeltakelseId }, verdi.antallDagerPerMeldeperiode.value)
-            } shouldBe listOf(
-                Triple(førstePeriode, listOf(tiltaksdeltakelse.internDeltakelseId), 10),
-                Triple(andrePeriode, listOf(tiltaksdeltakelse.internDeltakelseId), 6),
-            )
-        }
-    }
-
-    @Test
     fun `kan innvilge flere overlappende tiltaksdeltakelser med antall dager per periode`() {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
