@@ -61,6 +61,10 @@ object Åpningstider {
             .atTime(STENGETIDSPUNKT)
     }
 
+    /**
+     * Neste dag etter [etter] som verken er lørdag, søndag eller helligdag.
+     * Lørdager regnes ikke som åpne dager, siden økonomisystemet kan være stengt da, selv om det av og til er åpent.
+     */
     fun nesteÅpneDag(etter: LocalDate): LocalDate = generateSequence(etter.plusDays(1)) { it.plusDays(1) }.first { it.erÅpenDag() }
 
     /** Det seneste tidspunktet økonomisystemet er åpent på en åpen [dag], med sikkerhetsmargin. */

@@ -65,7 +65,8 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
  * En korrigering fra bruker kan behandles automatisk dersom alle tidligere behandlinger av kjeden ble behandlet automatisk, og korrigeringen er mottatt etter innsendingene de behandlet.
  * Det er ikke et krav at de tidligere behandlingene gjaldt samme versjon av meldeperioden.
  * Korrigeringen må i tillegg behandles før det er 10 minutter igjen til stengetid neste virkedag etter at første behandling av kjeden ble iverksatt.
- * Lørdager regnes ikke som virkedager, selv om økonomisystemet av og til er åpent da, se [Åpningstider.nesteÅpneDag].
+ * Lørdager regnes ikke som virkedager, siden økonomisystemet kan være stengt da, se [Åpningstider.nesteÅpneDag].
+ * Økonomisystemet er likevel av og til åpent på lørdager.
  * Det gir en romsligere frist, som er trygt siden simuleringen fanger opp om meldeperioden likevel er utbetalt på lørdagen.
  * Fristen sparer oss for simuleringer som uansett ville vist at utbetalingen er utbetalt.
  * Om utbetalingen faktisk er utbetalt, avgjøres av simuleringen, se [no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering.harTidligereUtbetaling].

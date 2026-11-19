@@ -9,7 +9,8 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider
 /**
  * Utleder prioriteringen av en korrigering fra bruker som ikke kunne behandles automatisk, slik at saksbehandler kan rekke å behandle den før utbetalingen for meldeperioden er utbetalt.
  * Korrigeringen prioriteres dersom den ble mottatt innen utgangen av neste virkedag etter at siste behandling av meldeperioden ble iverksatt.
- * Lørdager, søndager og helligdager er ikke virkedager, siden økonomisystemet regnes som stengt da, se [Åpningstider.nesteÅpneDag].
+ * Lørdager, søndager og helligdager er ikke virkedager, se [Åpningstider.nesteÅpneDag].
+ * Økonomisystemet kan være åpent på lørdager, men er det ikke nødvendigvis.
  * Det er tidspunktet korrigeringen ble mottatt som teller, slik at den prioriteres også når jobben først gir den opp etter fristen.
  *
  * Fristen er romsligere enn fristen for automatisk korrigering i [validerAutomatiskMeldekortbehandling].
