@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.Bru
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider
 import java.time.Clock
+import java.time.LocalDateTime
 
 fun Sak.validerAutomatiskMeldekortbehandling(
     brukersMeldekort: BrukersMeldekort,
@@ -64,10 +65,7 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
 /**
  * En korrigering fra bruker kan behandles automatisk dersom alle tidligere behandlinger av kjeden ble behandlet automatisk, og korrigeringen er mottatt etter innsendingene de behandlet.
  * Det er ikke et krav at de tidligere behandlingene gjaldt samme versjon av meldeperioden.
- * Korrigeringen må i tillegg behandles før det er 10 minutter igjen til stengetid neste virkedag etter at første behandling av kjeden ble iverksatt.
- * Lørdager regnes ikke som virkedager, siden økonomisystemet kan være stengt da, se [Åpningstider.nesteÅpneDag].
- * Økonomisystemet er likevel av og til åpent på lørdager.
- * Det gir en romsligere frist, som er trygt siden simuleringen fanger opp om meldeperioden likevel er utbetalt på lørdagen.
+ * Korrigeringen må i tillegg behandles før [fristForKorrigering].
  * Fristen sparer oss for simuleringer som uansett ville vist at utbetalingen er utbetalt.
  * Om utbetalingen faktisk er utbetalt, avgjøres av simuleringen, se [no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering.harTidligereUtbetaling].
  * Vi sjekker ikke utbetalingsstatusen, siden den kun forteller om Oppdrag har tatt imot utbetalingen og ikke om den er utbetalt.
@@ -86,13 +84,22 @@ private fun validerKanKorrigeresAutomatisk(
     }
 
     val førsteIverksettelse = tidligereBehandlinger.minOf { it.iverksattTidspunkt }
-    val frist = Åpningstider.senesteÅpneTidspunkt(Åpningstider.nesteÅpneDag(førsteIverksettelse.toLocalDate()))
-    if (!nå(clock).isBefore(frist)) {
+    if (!nå(clock).isBefore(fristForKorrigering(førsteIverksettelse))) {
         return MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE.left()
     }
 
     return Unit.right()
 }
+
+/**
+ * Fristen for å korrigere en meldeperiode før utbetalingen kan ha gått gjennom, gitt tidspunktet første behandling av kjeden ble iverksatt.
+ * Fristen er 10 minutter før stengetid neste virkedag, se [Åpningstider.senesteÅpneTidspunkt].
+ * Lørdager regnes ikke som virkedager, siden økonomisystemet kan være stengt da, se [Åpningstider.nesteÅpneDag].
+ * Økonomisystemet er likevel av og til åpent på lørdager.
+ * Det gir en romsligere frist, som er trygt siden simuleringen fanger opp om meldeperioden likevel er utbetalt på lørdagen.
+ */
+fun fristForKorrigering(førsteIverksettelse: LocalDateTime): LocalDateTime =
+    Åpningstider.senesteÅpneTidspunkt(Åpningstider.nesteÅpneDag(førsteIverksettelse.toLocalDate()))
 
 /** Validering som kan gi midlertidige feil - kan prøves på nytt */
 private fun Sak.validerTilstanderSomKanPrøvesPåNytt(brukersMeldekort: BrukersMeldekort): Either<MeldekortBehandletAutomatiskStatus, Unit> {

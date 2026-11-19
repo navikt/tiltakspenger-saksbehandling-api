@@ -1069,13 +1069,13 @@ class AutomatiskMeldekortbehandlingJobbTest {
 
     /**
      * Første meldekort behandles fredag 4. april 2025, og fristen for automatisk korrigering går ut mandag 7. april kl 20:50.
-     * Mandagen er neste virkedag, så korrigeringen prioriteres om den mottas innen utgangen av mandagen.
+     * Prioriteringen bruker samme frist, men regnet fra når korrigeringen ble mottatt, siden jobben her først gir den opp tirsdag.
      */
     @Test
-    fun `skal prioritere korrigering som ikke kan behandles automatisk når den er mottatt innen utgangen av neste virkedag`() {
+    fun `skal prioritere korrigering som ikke kan behandles automatisk når den er mottatt før fristen for automatisk korrigering`() {
         korrigerMeldekort(
             førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
-            korrigeringMottatt = 7.april(2025).atTime(23, 59, 59),
+            korrigeringMottatt = 7.april(2025).atTime(20, 49, 59),
             Kjøring(8.april(2025).atTime(8, 0)),
         ).single().let {
             it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE
@@ -1085,22 +1085,22 @@ class AutomatiskMeldekortbehandlingJobbTest {
         }
         korrigerMeldekort(
             førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
-            korrigeringMottatt = 8.april(2025).atTime(0, 0),
+            korrigeringMottatt = 7.april(2025).atTime(20, 50),
             Kjøring(8.april(2025).atTime(8, 0)),
         ).single().prioritering shouldBe null
     }
 
-    /** Første meldekort behandles onsdag 16. april 2025, så påsken hoppes over og fristen for prioritering er utgangen av tirsdag 22. april. */
+    /** Første meldekort behandles onsdag 16. april 2025, så påsken hoppes over og fristen for prioritering er tirsdag 22. april kl 20:50. */
     @Test
     fun `skal hoppe over helligdager når fristen for prioritering av korrigering beregnes`() {
         korrigerMeldekort(
             førsteBehandlingstidspunkt = 16.april(2025).atTime(12, 0),
-            korrigeringMottatt = 22.april(2025).atTime(23, 59, 59),
+            korrigeringMottatt = 22.april(2025).atTime(20, 49, 59),
             Kjøring(23.april(2025).atTime(8, 0)),
         ).single().prioritering shouldNotBe null
         korrigerMeldekort(
             førsteBehandlingstidspunkt = 16.april(2025).atTime(12, 0),
-            korrigeringMottatt = 23.april(2025).atTime(0, 0),
+            korrigeringMottatt = 22.april(2025).atTime(20, 50),
             Kjøring(23.april(2025).atTime(8, 0)),
         ).single().prioritering shouldBe null
     }
@@ -1290,10 +1290,10 @@ class AutomatiskMeldekortbehandlingJobbTest {
     /**
      * Første meldekort behandles tirsdag 1. april 2025, så fristen for automatisk korrigering er onsdag 2. april kl 20:50.
      * Den første korrigeringen behandles onsdag, men flytter ikke fristen, så den andre korrigeringen torsdag er for sen.
-     * Fristen for prioritering regnes derimot fra siste iverksettelse, så den andre korrigeringen prioriteres.
+     * Fristen for prioritering er den samme, så den andre korrigeringen prioriteres heller ikke.
      */
     @Test
-    fun `skal regne fristen for automatisk korrigering fra første og fristen for prioritering fra siste behandling av kjeden`() {
+    fun `skal regne fristen for automatisk korrigering og prioritering fra første behandling av kjeden`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
@@ -1334,7 +1334,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 første.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
                 førsteKorrigering.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
                 andreKorrigering.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE
-                andreKorrigering.prioritering shouldNotBe null
+                andreKorrigering.prioritering shouldBe null
             }
         }
     }
@@ -1344,7 +1344,8 @@ class AutomatiskMeldekortbehandlingJobbTest {
         korrigerDagSomErMedIFørsteUtbetaling(utbetaltAvOppdrag = true).let {
             it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.HAR_TIDLIGERE_UTBETALING
             it.behandlesAutomatisk shouldBe false
-            it.prioritering shouldNotBe null
+            // Utbetalingen har allerede gått gjennom, så det er ingenting å rekke.
+            it.prioritering shouldBe null
         }
     }
 
