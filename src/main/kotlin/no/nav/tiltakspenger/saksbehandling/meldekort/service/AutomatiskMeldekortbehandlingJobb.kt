@@ -180,7 +180,7 @@ class AutomatiskMeldekortbehandlingJobb(
                     logger.warn(it) { "Kunne ikke hente sak for å vurdere prioritering av brukers meldekort ${meldekort.id} på sak ${meldekort.sakId}" }
                     null
                 }
-                ?.utledPrioriteringAvKorrigering(meldekort)
+                ?.utledPrioriteringAvKorrigering(meldekort, status)
         }
 
         if (skalPrøvePåNytt) {

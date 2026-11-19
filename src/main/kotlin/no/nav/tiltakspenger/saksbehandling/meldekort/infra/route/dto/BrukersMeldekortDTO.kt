@@ -28,6 +28,9 @@ enum class MeldekortBehandletAutomatiskStatusDTO {
     UTBETALING_FEILET_PÅ_SAK,
     SKAL_IKKE_BEHANDLES_AUTOMATISK,
     ALLEREDE_BEHANDLET,
+    FOR_SENT_Å_KORRIGERE,
+    TIDLIGERE_BEHANDLET_MANUELT,
+    NYERE_INNSENDING_ER_BEHANDLET,
     UTDATERT_MELDEPERIODE,
     ER_UNDER_REVURDERING,
     FOR_MANGE_DAGER_REGISTRERT,
@@ -38,6 +41,7 @@ enum class MeldekortBehandletAutomatiskStatusDTO {
     MÅ_BEHANDLE_NESTE_KJEDE,
     INGEN_DAGER_GIR_RETT,
     HAR_JUSTERING,
+    HAR_TIDLIGERE_UTBETALING,
     HAR_FEILUTBETALING,
     SIMULERING_FEILET,
 }
@@ -80,6 +84,9 @@ private fun MeldekortBehandletAutomatiskStatus.tilBehandletAutomatiskStatusDTO()
         MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK -> MeldekortBehandletAutomatiskStatusDTO.UTBETALING_FEILET_PÅ_SAK
         MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK -> MeldekortBehandletAutomatiskStatusDTO.SKAL_IKKE_BEHANDLES_AUTOMATISK
         MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET -> MeldekortBehandletAutomatiskStatusDTO.ALLEREDE_BEHANDLET
+        MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE -> MeldekortBehandletAutomatiskStatusDTO.FOR_SENT_Å_KORRIGERE
+        MeldekortBehandletAutomatiskStatus.TIDLIGERE_BEHANDLET_MANUELT -> MeldekortBehandletAutomatiskStatusDTO.TIDLIGERE_BEHANDLET_MANUELT
+        MeldekortBehandletAutomatiskStatus.NYERE_INNSENDING_ER_BEHANDLET -> MeldekortBehandletAutomatiskStatusDTO.NYERE_INNSENDING_ER_BEHANDLET
         MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE -> MeldekortBehandletAutomatiskStatusDTO.UTDATERT_MELDEPERIODE
         MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING -> MeldekortBehandletAutomatiskStatusDTO.ER_UNDER_REVURDERING
         MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatusDTO.FOR_MANGE_DAGER_REGISTRERT
@@ -91,6 +98,7 @@ private fun MeldekortBehandletAutomatiskStatus.tilBehandletAutomatiskStatusDTO()
         MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT -> MeldekortBehandletAutomatiskStatusDTO.INGEN_DAGER_GIR_RETT
         MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING -> MeldekortBehandletAutomatiskStatusDTO.HAR_FEILUTBETALING
         MeldekortBehandletAutomatiskStatus.HAR_JUSTERING -> MeldekortBehandletAutomatiskStatusDTO.HAR_JUSTERING
+        MeldekortBehandletAutomatiskStatus.HAR_TIDLIGERE_UTBETALING -> MeldekortBehandletAutomatiskStatusDTO.HAR_TIDLIGERE_UTBETALING
         MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET -> MeldekortBehandletAutomatiskStatusDTO.SIMULERING_FEILET
     }
 }

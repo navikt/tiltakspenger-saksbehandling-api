@@ -13,7 +13,22 @@ enum class MeldekortBehandletAutomatiskStatus(val loggnivå: Level, val kanPrøv
     VENTER_BEHANDLING(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
     BEHANDLET(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
     SKAL_IKKE_BEHANDLES_AUTOMATISK(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
+
+    /**
+     * Ikke lenger i bruk, men finnes på meldekort som er lagret med statusen tidligere.
+     * Erstattet av [FOR_SENT_Å_KORRIGERE], [TIDLIGERE_BEHANDLET_MANUELT] og [NYERE_INNSENDING_ER_BEHANDLET].
+     */
     ALLEREDE_BEHANDLET(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
+
+    /** Korrigeringen fra bruker kom etter fristen for automatisk korrigering. */
+    FOR_SENT_Å_KORRIGERE(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
+
+    /** Korrigeringen fra bruker kan ikke behandles automatisk, fordi en tidligere behandling av meldeperioden ble gjort manuelt. */
+    TIDLIGERE_BEHANDLET_MANUELT(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
+
+    /** Korrigeringen fra bruker kan ikke behandles automatisk, fordi en innsending for meldeperioden som er mottatt samtidig eller senere allerede er behandlet. */
+    NYERE_INNSENDING_ER_BEHANDLET(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
+
     ER_UNDER_REVURDERING(loggnivå = Level.INFO, kanPrøvesPåNytt = true),
     FOR_MANGE_DAGER_GODKJENT_FRAVÆR(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
     HAR_ÅPEN_BEHANDLING(loggnivå = Level.INFO, kanPrøvesPåNytt = true),
@@ -34,6 +49,9 @@ enum class MeldekortBehandletAutomatiskStatus(val loggnivå: Level, val kanPrøv
     /** Simuleringen viser feilutbetaling eller justering, som automatisk behandling ikke støtter. */
     HAR_FEILUTBETALING(loggnivå = Level.WARN, kanPrøvesPåNytt = false),
     HAR_JUSTERING(loggnivå = Level.WARN, kanPrøvesPåNytt = false),
+
+    /** Simuleringen viser at oppdragssystemet allerede har utbetalt minst en dag i meldeperioden, så korrigering kan ikke behandles automatisk. */
+    HAR_TIDLIGERE_UTBETALING(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
 
     /** Meldeperioden har fått en ny versjon etter at bruker sendte meldekortet, typisk fordi tiltaksdeltakelsen er endret. */
     UTDATERT_MELDEPERIODE(loggnivå = Level.WARN, kanPrøvesPåNytt = false),

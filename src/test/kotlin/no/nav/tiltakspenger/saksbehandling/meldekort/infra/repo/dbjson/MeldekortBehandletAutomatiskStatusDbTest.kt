@@ -28,6 +28,9 @@ class MeldekortBehandletAutomatiskStatusDbTest {
             MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK to "UTBETALING_FEILET_PÅ_SAK",
             MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK to "SKAL_IKKE_BEHANDLES_AUTOMATISK",
             MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET to "ALLEREDE_BEHANDLET",
+            MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE to "FOR_SENT_Å_KORRIGERE",
+            MeldekortBehandletAutomatiskStatus.TIDLIGERE_BEHANDLET_MANUELT to "TIDLIGERE_BEHANDLET_MANUELT",
+            MeldekortBehandletAutomatiskStatus.NYERE_INNSENDING_ER_BEHANDLET to "NYERE_INNSENDING_ER_BEHANDLET",
             MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE to "UTDATERT_MELDEPERIODE",
             MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING to "ER_UNDER_REVURDERING",
             MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT to "FOR_MANGE_DAGER_REGISTRERT",
@@ -38,6 +41,7 @@ class MeldekortBehandletAutomatiskStatusDbTest {
             MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE to "MÅ_BEHANDLE_NESTE_KJEDE",
             MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT to "INGEN_DAGER_GIR_RETT",
             MeldekortBehandletAutomatiskStatus.HAR_JUSTERING to "HAR_JUSTERING",
+            MeldekortBehandletAutomatiskStatus.HAR_TIDLIGERE_UTBETALING to "HAR_TIDLIGERE_UTBETALING",
             MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING to "HAR_FEILUTBETALING",
             MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET to "SIMULERING_FEILET",
         )

@@ -64,6 +64,11 @@ class UtbetalingFakeKlient(
      * Simuleringen kalles synkront, som for [simulerFeil], så testen trenger ikke kjøre isolert.
      */
     var sakUtbetaltAvOppdrag: Sak? = null,
+    /**
+     * Settes av tester som trenger et bestemt svar fra simuleringen, f.eks. et som vår egen beregning ikke kan gi opphav til.
+     * Simuleringen kalles synkront, som for [simulerFeil], så testen trenger ikke kjøre isolert.
+     */
+    var simulering: SimuleringMedMetadata? = null,
 ) : Utbetalingsklient,
     V3Simuleringsklient {
 
@@ -119,6 +124,7 @@ class UtbetalingFakeKlient(
         meldeperiodeKjeder: MeldeperiodeKjeder,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
         simulerFeil?.let { return it.left() }
+        simulering?.let { return it.right() }
 
         val sak = sakUtbetaltAvOppdrag ?: sakRepo.hentForSakId(sakId)!!
         return sak.genererSimuleringFraBeregning(

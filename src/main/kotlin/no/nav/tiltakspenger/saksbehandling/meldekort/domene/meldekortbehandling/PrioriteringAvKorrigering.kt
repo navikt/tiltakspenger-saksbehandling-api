@@ -2,32 +2,32 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
-import no.nav.tiltakspenger.saksbehandling.felles.erHelg
-import no.nav.tiltakspenger.saksbehandling.felles.erHelligdag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import java.time.LocalDate
 
 /**
  * Utleder prioriteringen av en korrigering fra bruker som ikke kunne behandles automatisk, slik at saksbehandler kan rekke å behandle den før utbetalingen for meldeperioden er utbetalt.
- * Korrigeringen prioriteres dersom den ble mottatt innen utgangen av neste virkedag etter at siste behandling av meldeperioden ble iverksatt.
- * Lørdager, søndager og helligdager er ikke virkedager, siden økonomisystemet er stengt da.
+ * Korrigeringen prioriteres dersom den ble mottatt før [fristForKorrigering], som er samme frist som for automatisk korrigering.
  * Det er tidspunktet korrigeringen ble mottatt som teller, slik at den prioriteres også når jobben først gir den opp etter fristen.
+ * Viser simuleringen at meldeperioden allerede er utbetalt, er det for sent å rekke utbetalingen, og korrigeringen prioriteres ikke.
  *
- * Fristen er romsligere enn fristen for automatisk korrigering i [validerAutomatiskMeldekortbehandling].
- * Den automatiske korrigeringen må være sikker på at utbetalingen ikke er utbetalt, mens en prioritering bare gir saksbehandler en mulighet til å rekke det.
- *
- * @return null dersom ingen behandling av meldeperioden er iverksatt, slik at meldekortet ikke er en korrigering, eller dersom korrigeringen ble mottatt etter fristen.
+ * @param status utfallet av forsøket på automatisk behandling.
+ * @return null dersom ingen behandling av meldeperioden er iverksatt, slik at meldekortet ikke er en korrigering, dersom korrigeringen ble mottatt etter fristen, eller dersom meldeperioden allerede er utbetalt.
  */
-fun Sak.utledPrioriteringAvKorrigering(brukersMeldekort: BrukersMeldekort): Prioritering? {
-    val sisteIverksettelse = meldekortbehandlinger.behandledeMeldekortPerKjede[brukersMeldekort.kjedeId]
+fun Sak.utledPrioriteringAvKorrigering(
+    brukersMeldekort: BrukersMeldekort,
+    status: MeldekortBehandletAutomatiskStatus,
+): Prioritering? {
+    if (status == MeldekortBehandletAutomatiskStatus.HAR_TIDLIGERE_UTBETALING) {
+        return null
+    }
+    val førsteIverksettelse = meldekortbehandlinger.behandledeMeldekortPerKjede[brukersMeldekort.kjedeId]
         .orEmpty()
         .mapNotNull { it.iverksattTidspunkt }
-        .maxOrNull()
+        .minOrNull()
         ?: return null
-    val frist = sisteIverksettelse.toLocalDate().nesteVirkedag()
 
-    if (brukersMeldekort.mottatt.toLocalDate().isAfter(frist)) {
+    if (!brukersMeldekort.mottatt.isBefore(fristForKorrigering(førsteIverksettelse))) {
         return null
     }
 
@@ -54,7 +54,3 @@ fun Sak.prioriteringFraKorrigeringSomVenterPåBehandling(kjedeIder: List<Meldepe
 
         sisteTilManuellBehandling.prioritering.takeUnless { erTattStillingTil }
     }
-
-private fun LocalDate.nesteVirkedag(): LocalDate =
-    generateSequence(plusDays(1)) { it.plusDays(1) }
-        .first { !it.erHelg() && !it.erHelligdag() }

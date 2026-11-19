@@ -24,6 +24,7 @@ class OppsummeringGeneratorYtelseTest {
         dag.totalTrekk shouldBe 0
         dag.totalJustering shouldBe 0
         dag.harJustering shouldBe false
+        dag.harTidligereUtbetaling shouldBe false
     }
 
     @Test
@@ -31,6 +32,7 @@ class OppsummeringGeneratorYtelseTest {
         val dag = simulerDag(ytelse(-312), ytelse(-112))
 
         dag.tidligereUtbetalt shouldBe 424
+        dag.harTidligereUtbetaling shouldBe true
         dag.nyUtbetaling shouldBe 0
         dag.totalEtterbetaling shouldBe 0
     }

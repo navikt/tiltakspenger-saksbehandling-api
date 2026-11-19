@@ -5,21 +5,11 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.saksbehandling.felles.erHelligdag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider
 import java.time.Clock
-import java.time.DayOfWeek
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
-
-/**
- * En korrigering fra bruker må behandles før dette klokkeslettet dagen etter at første meldekortbehandling ble iverksatt for å kunne behandles automatisk.
- * Søndager og helligdager hoppes over når vi finner dagen etter, siden økonomisystemet er stengt da.
- * Utbetalingen har én ventedag før den betales ut, så vi antar at den ikke er utbetalt før fristen.
- */
-private val FRIST_FOR_AUTOMATISK_KORRIGERING_DAGEN_ETTER: LocalTime = LocalTime.of(17, 0)
 
 fun Sak.validerAutomatiskMeldekortbehandling(
     brukersMeldekort: BrukersMeldekort,
@@ -43,8 +33,8 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
 
     val behandledeMeldekort = this.meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId] ?: emptyList()
 
-    if (behandledeMeldekort.isNotEmpty() && !kanKorrigeresAutomatisk(behandledeMeldekort, brukersMeldekort, clock)) {
-        return MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET.left()
+    if (behandledeMeldekort.isNotEmpty()) {
+        validerKanKorrigeresAutomatisk(behandledeMeldekort, brukersMeldekort, clock).onLeft { return it.left() }
     }
 
     if (brukersMeldekort.harRegistrertHelg() && !this.kanSendeInnHelgForMeldekort) {
@@ -73,31 +63,43 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
 }
 
 /**
- * En korrigering fra bruker kan behandles automatisk dersom kjeden kun har én behandling, og den ble behandlet automatisk på samme versjon av meldeperioden.
- * Korrigeringen må i tillegg behandles før kl. 17 dagen etter at første behandling ble iverksatt, slik at utbetalingen ennå ikke er utbetalt.
- * Søndager og helligdager regnes ikke som dagen etter.
+ * En korrigering fra bruker kan behandles automatisk dersom alle tidligere behandlinger av kjeden ble behandlet automatisk, og korrigeringen er mottatt etter innsendingene de behandlet.
+ * Det er ikke et krav at de tidligere behandlingene gjaldt samme versjon av meldeperioden.
+ * Korrigeringen må i tillegg behandles før [fristForKorrigering].
+ * Fristen sparer oss for simuleringer som uansett ville vist at utbetalingen er utbetalt.
+ * Om utbetalingen faktisk er utbetalt, avgjøres av simuleringen, se [no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering.harTidligereUtbetaling].
  * Vi sjekker ikke utbetalingsstatusen, siden den kun forteller om Oppdrag har tatt imot utbetalingen og ikke om den er utbetalt.
  */
-private fun kanKorrigeresAutomatisk(
+private fun validerKanKorrigeresAutomatisk(
     behandledeMeldekort: List<Meldekortbehandling.Behandlet>,
     brukersMeldekort: BrukersMeldekort,
     clock: Clock,
-): Boolean {
-    val førsteBehandling = behandledeMeldekort.singleOrNull() as? MeldekortBehandletAutomatisk ?: return false
-    val førsteInnsending = førsteBehandling.brukersMeldekort
-    val frist: LocalDateTime = førsteBehandling.iverksattTidspunkt.toLocalDate()
-        .nesteDagSomIkkeErSøndagEllerHelligdag()
-        .atTime(FRIST_FOR_AUTOMATISK_KORRIGERING_DAGEN_ETTER)
+): Either<MeldekortBehandletAutomatiskStatus, Unit> {
+    val tidligereBehandlinger = behandledeMeldekort.map {
+        it as? MeldekortBehandletAutomatisk ?: return MeldekortBehandletAutomatiskStatus.TIDLIGERE_BEHANDLET_MANUELT.left()
+    }
+    // Fanger også at korrigeringen selv er behandlet, siden den da har samme mottatt-tidspunkt som den behandlede innsendingen.
+    if (tidligereBehandlinger.any { it.brukersMeldekort.mottatt >= brukersMeldekort.mottatt }) {
+        return MeldekortBehandletAutomatiskStatus.NYERE_INNSENDING_ER_BEHANDLET.left()
+    }
 
-    return førsteInnsending.id != brukersMeldekort.id &&
-        førsteInnsending.mottatt < brukersMeldekort.mottatt &&
-        førsteInnsending.meldeperiode == brukersMeldekort.meldeperiode &&
-        nå(clock) < frist
+    val førsteIverksettelse = tidligereBehandlinger.minOf { it.iverksattTidspunkt }
+    if (!nå(clock).isBefore(fristForKorrigering(førsteIverksettelse))) {
+        return MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE.left()
+    }
+
+    return Unit.right()
 }
 
-private fun LocalDate.nesteDagSomIkkeErSøndagEllerHelligdag(): LocalDate =
-    generateSequence(plusDays(1)) { it.plusDays(1) }
-        .first { it.dayOfWeek != DayOfWeek.SUNDAY && !it.erHelligdag() }
+/**
+ * Fristen for å korrigere en meldeperiode før utbetalingen kan ha gått gjennom, gitt tidspunktet første behandling av kjeden ble iverksatt.
+ * Fristen er 10 minutter før stengetid neste virkedag, se [Åpningstider.senesteÅpneTidspunkt].
+ * Lørdager regnes ikke som virkedager, siden økonomisystemet kan være stengt da, se [Åpningstider.nesteÅpneDag].
+ * Økonomisystemet er likevel av og til åpent på lørdager.
+ * Det gir en romsligere frist, som er trygt siden simuleringen fanger opp om meldeperioden likevel er utbetalt på lørdagen.
+ */
+fun fristForKorrigering(førsteIverksettelse: LocalDateTime): LocalDateTime =
+    Åpningstider.senesteÅpneTidspunkt(Åpningstider.nesteÅpneDag(førsteIverksettelse.toLocalDate()))
 
 /** Validering som kan gi midlertidige feil - kan prøves på nytt */
 private fun Sak.validerTilstanderSomKanPrøvesPåNytt(brukersMeldekort: BrukersMeldekort): Either<MeldekortBehandletAutomatiskStatus, Unit> {
