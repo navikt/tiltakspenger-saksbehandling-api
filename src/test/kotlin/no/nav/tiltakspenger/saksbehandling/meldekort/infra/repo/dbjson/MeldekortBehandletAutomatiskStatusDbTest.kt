@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test
 class MeldekortBehandletAutomatiskStatusDbTest {
 
     @Test
-    @Suppress("DEPRECATION")
     fun `statusene lagres med sitt avtalte navn`() {
         MeldekortBehandletAutomatiskStatus.entries.associateWith { it.tilDb() } shouldBe mapOf(
             MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING to "VENTER_BEHANDLING",

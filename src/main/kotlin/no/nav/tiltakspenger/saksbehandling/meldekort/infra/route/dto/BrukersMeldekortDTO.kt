@@ -74,8 +74,6 @@ fun BrukersMeldekort.toBrukersMeldekortDTO(): BrukersMeldekortDTO {
     )
 }
 
-// ALLEREDE_BEHANDLET finnes fortsatt på eldre meldekort.
-@Suppress("DEPRECATION")
 private fun MeldekortBehandletAutomatiskStatus.tilBehandletAutomatiskStatusDTO(): MeldekortBehandletAutomatiskStatusDTO {
     return when (this) {
         MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING -> MeldekortBehandletAutomatiskStatusDTO.VENTER_BEHANDLING

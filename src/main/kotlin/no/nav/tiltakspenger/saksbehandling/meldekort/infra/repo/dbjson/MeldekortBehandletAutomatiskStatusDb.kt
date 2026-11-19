@@ -29,8 +29,6 @@ private enum class MeldekortBehandletAutomatiskStatusDb {
     SIMULERING_FEILET,
 }
 
-// ALLEREDE_BEHANDLET må fortsatt kunne lagres og leses for historikken.
-@Suppress("DEPRECATION")
 fun MeldekortBehandletAutomatiskStatus.tilDb(): String = when (this) {
     MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING -> MeldekortBehandletAutomatiskStatusDb.VENTER_BEHANDLING
     MeldekortBehandletAutomatiskStatus.BEHANDLET -> MeldekortBehandletAutomatiskStatusDb.BEHANDLET
@@ -58,7 +56,6 @@ fun MeldekortBehandletAutomatiskStatus.tilDb(): String = when (this) {
     MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET -> MeldekortBehandletAutomatiskStatusDb.SIMULERING_FEILET
 }.toString()
 
-@Suppress("DEPRECATION")
 fun String.tilMeldekortBehandletAutomatiskStatus(): MeldekortBehandletAutomatiskStatus =
     when (MeldekortBehandletAutomatiskStatusDb.valueOf(this)) {
         MeldekortBehandletAutomatiskStatusDb.VENTER_BEHANDLING -> MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING

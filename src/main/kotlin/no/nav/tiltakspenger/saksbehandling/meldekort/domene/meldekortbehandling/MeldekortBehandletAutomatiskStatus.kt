@@ -18,7 +18,6 @@ enum class MeldekortBehandletAutomatiskStatus(val loggnivå: Level, val kanPrøv
      * Ikke lenger i bruk, men finnes på meldekort som er lagret med statusen tidligere.
      * Erstattet av [FOR_SENT_Å_KORRIGERE], [TIDLIGERE_BEHANDLET_MANUELT] og [NYERE_INNSENDING_ER_BEHANDLET].
      */
-    @Deprecated("Ikke lenger i bruk, men beholdes for historikken. Bruk FOR_SENT_Å_KORRIGERE, TIDLIGERE_BEHANDLET_MANUELT eller NYERE_INNSENDING_ER_BEHANDLET.")
     ALLEREDE_BEHANDLET(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
 
     /** Korrigeringen fra bruker kom etter fristen for automatisk korrigering. */
