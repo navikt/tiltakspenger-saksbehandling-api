@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.mars
 import org.junit.jupiter.api.Test
+import java.time.Duration
 
 class LocalDateExTest {
 
@@ -29,5 +30,21 @@ class LocalDateExTest {
     fun `dagene rundt de bevegelige helligdagene er ikke helligdager`() {
         listOf(16.april(2025), 19.april(2025), 22.april(2025), 28.mai(2025), 30.mai(2025), 10.juni(2025))
             .forEach { it.erHelligdag() shouldBe false }
+    }
+
+    @Test
+    fun `plusVirkedagstid teller ikke med helg`() {
+        // Fredag 4. april 2025 kl 12 + 2 døgn er tirsdag 8. april kl 12.
+        4.april(2025).atTime(12, 0).plusVirkedagstid(Duration.ofDays(2)) shouldBe 8.april(2025).atTime(12, 0)
+        // Mottatt lørdag teller fra mandag kl 00.
+        5.april(2025).atTime(12, 0).plusVirkedagstid(Duration.ofDays(2)) shouldBe 9.april(2025).atStartOfDay()
+        // Uten helg i perioden er det vanlig tid.
+        1.april(2025).atTime(12, 0).plusVirkedagstid(Duration.ofDays(2)) shouldBe 3.april(2025).atTime(12, 0)
+    }
+
+    /** Påsken 2025 har helligdager 17., 18. og 21. april, med helg mellom. */
+    @Test
+    fun `plusVirkedagstid teller ikke med helligdager`() {
+        16.april(2025).atTime(12, 0).plusVirkedagstid(Duration.ofDays(2)) shouldBe 23.april(2025).atTime(12, 0)
     }
 }

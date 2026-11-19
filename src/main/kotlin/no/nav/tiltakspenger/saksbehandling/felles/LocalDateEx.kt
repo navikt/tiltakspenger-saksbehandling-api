@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.felles
 
 import java.time.DayOfWeek
+import java.time.Duration
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.Month
 import java.time.MonthDay
 
@@ -23,6 +25,29 @@ fun LocalDate.erHverdag(): Boolean {
 }
 
 fun LocalDate.erHelligdag(): Boolean = erFastHelligdag() || erBevegeligHelligdag()
+
+/** En hverdag som ikke er helligdag. */
+fun LocalDate.erVirkedag(): Boolean = erHverdag() && !erHelligdag()
+
+/**
+ * Legger [varighet] til tidspunktet, men teller bare med tid på virkedager.
+ * Lørdager, søndager og helligdager hoppes over.
+ */
+fun LocalDateTime.plusVirkedagstid(varighet: Duration): LocalDateTime {
+    var tidspunkt = this
+    var gjenstår = varighet
+    while (true) {
+        val nesteDøgn = tidspunkt.toLocalDate().plusDays(1).atStartOfDay()
+        if (tidspunkt.toLocalDate().erVirkedag()) {
+            val restenAvDøgnet = Duration.between(tidspunkt, nesteDøgn)
+            if (gjenstår <= restenAvDøgnet) {
+                return tidspunkt + gjenstår
+            }
+            gjenstår -= restenAvDøgnet
+        }
+        tidspunkt = nesteDøgn
+    }
+}
 
 private fun LocalDate.erFastHelligdag(): Boolean {
     val monthDay = MonthDay.of(this.month, this.dayOfMonth)

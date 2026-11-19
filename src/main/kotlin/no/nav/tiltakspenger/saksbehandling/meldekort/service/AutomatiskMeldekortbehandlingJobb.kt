@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Korrelasjon
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
+import no.nav.tiltakspenger.saksbehandling.felles.plusVirkedagstid
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
@@ -75,8 +76,8 @@ class AutomatiskMeldekortbehandlingJobb(
         if (åpningsstatus == Åpningsstatus.STENGT) {
             return
         }
-        // Utenfor antatt åpningstid vet vi ikke om økonomisystemet er åpent, så da må simuleringen gå gjennom.
-        val kreverSimulering = åpningsstatus == Åpningsstatus.MULIG_ÅPENT
+        // Utenfor antatt åpningstid vet vi ikke om økonomisystemet er åpent, så da setter et stengt-svar fra simuleringen jobben på pause.
+        val pauseVedStengt = åpningsstatus == Åpningsstatus.MULIG_ÅPENT
 
         val meldekortListe = Either.catch {
             brukersMeldekortRepo.hentMeldekortSomSkalBehandlesAutomatisk()
@@ -104,7 +105,7 @@ class AutomatiskMeldekortbehandlingJobb(
                         return@catch false
                     }
 
-                    opprettMeldekortbehandling(meldekort, sak.value, kreverSimulering, clock).fold(
+                    opprettMeldekortbehandling(meldekort, sak.value, pauseVedStengt, clock).fold(
                         ifLeft = { ikkeBehandlet ->
                             when (ikkeBehandlet) {
                                 is IkkeBehandlet.Feilet -> {
@@ -209,7 +210,7 @@ class AutomatiskMeldekortbehandlingJobb(
     private suspend fun opprettMeldekortbehandling(
         meldekort: BrukersMeldekort,
         sak: Sak,
-        kreverSimulering: Boolean,
+        pauseVedStengt: Boolean,
         clock: Clock,
     ): Either<IkkeBehandlet, MeldekortBehandletAutomatisk> {
         val meldekortId = meldekort.id
@@ -224,7 +225,6 @@ class AutomatiskMeldekortbehandlingJobb(
                 )
             },
             clock = clock,
-            kreverSimulering = kreverSimulering,
             simuler = { behandling, navkontor ->
                 simulerService.simulerMeldekort(
                     behandling,
@@ -234,7 +234,7 @@ class AutomatiskMeldekortbehandlingJobb(
                 ) { navkontor }.onLeft { simuleringenSvarteStengt = it is KunneIkkeSimulere.Stengt }
             },
         ).getOrElse { status ->
-            if (kreverSimulering && simuleringenSvarteStengt) {
+            if (pauseVedStengt && simuleringenSvarteStengt) {
                 return IkkeBehandlet.ØkonomisystemetErStengt.left()
             }
             return IkkeBehandlet.Feilet(status).left()
@@ -260,8 +260,7 @@ class AutomatiskMeldekortbehandlingJobb(
                     return IkkeBehandlet.Feilet(status).left()
                 }
 
-                // For meldekort krever vi kun simulering i enkelte tilfeller.
-                // Dette håndteres i Sak.opprettAutomatiskMeldekortbehandling()
+                // Simuleringen er påkrevd, og håndteres i Sak.opprettAutomatiskMeldekortbehandling().
                 KanIkkeIverksetteUtbetaling.SimuleringMangler,
                 is KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer,
                 -> Unit
@@ -332,7 +331,7 @@ class AutomatiskMeldekortbehandlingJobb(
     }
 
     private fun BrukersMeldekort.skalPrøvePåNytt(nyStatus: MeldekortBehandletAutomatiskStatus, clock: Clock): Boolean {
-        if (nå(clock) > mottatt + MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING) {
+        if (nå(clock) > mottatt.plusVirkedagstid(MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING)) {
             return false
         }
 
@@ -360,6 +359,7 @@ class AutomatiskMeldekortbehandlingJobb(
         private val venteIntervallerMap: Map<Long, Duration> =
             venteIntervaller.withIndex().associate { (index, duration) -> index.toLong() + 1 to duration }
 
+        /** Hvor lenge vi prøver på nytt etter at meldekortet ble mottatt, der bare tid på virkedager telles med. */
         val MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING = 2.days.toJavaDuration()
 
         val PAUSE_NÅR_ØKONOMISYSTEMET_ER_STENGT = 15.minutes.toJavaDuration()

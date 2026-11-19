@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.erHelligdag
-import no.nav.tiltakspenger.saksbehandling.felles.erHverdag
+import no.nav.tiltakspenger.saksbehandling.felles.erVirkedag
 import java.time.Clock
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -77,7 +77,7 @@ object Åpningstider {
     private fun LocalTime.erMellom(fraOgMed: LocalTime, tilOgMedEksklusiv: LocalTime): Boolean =
         !isBefore(fraOgMed) && isBefore(tilOgMedEksklusiv)
 
-    private fun LocalDate.erÅpenDag(): Boolean = erHverdag() && !erHelligdag()
+    private fun LocalDate.erÅpenDag(): Boolean = erVirkedag()
 
     private fun LocalDate.erLørdagSomKanVæreÅpen(): Boolean = dayOfWeek == DayOfWeek.SATURDAY && !erHelligdag()
 

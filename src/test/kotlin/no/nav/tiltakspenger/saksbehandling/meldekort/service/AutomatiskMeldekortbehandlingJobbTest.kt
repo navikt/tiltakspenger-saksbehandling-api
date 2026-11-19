@@ -33,7 +33,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandlingIverksatt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.nyOpprettetMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingJobb.Companion.MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.httpKlientUventetStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
@@ -429,7 +428,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     @Test
-    fun `skal kreve simulering for førstegangsbehandling når økonomisystemet muligens er åpent`() {
+    fun `skal kreve simulering for førstegangsbehandling både når økonomisystemet muligens og antatt er åpent`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
@@ -458,14 +457,24 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     it.behandlesAutomatisk shouldBe true
                 }
 
-                // I antatt åpningstid stopper vi ikke førstegangsbehandlingen selv om simuleringen feiler.
                 tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(
                     clock = fixedClockAt(2.april(2025).atTime(8, 0)),
                 )
 
+                tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+                brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.let {
+                    it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET
+                    it.behandlesAutomatisk shouldBe true
+                }
+
+                tac.utbetalingFakeKlient.simulerFeil = null
+                tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(
+                    clock = fixedClockAt(2.april(2025).atTime(9, 0)),
+                )
+
                 tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!.sisteGodkjenteMeldekort!!
                     .shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
-                    .simulering shouldBe null
+                    .simulering shouldNotBe null
             }
         }
     }
@@ -678,8 +687,12 @@ class AutomatiskMeldekortbehandlingJobbTest {
         }
     }
 
+    /**
+     * Meldekortet mottas fredag 4. april 2025 kl 12, og helgen telles ikke med.
+     * Fristen for nye forsøk går derfor ut tirsdag 8. april kl 12.
+     */
     @Test
-    fun `skal slutte å prøve på nytt etter MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING`() {
+    fun `skal slutte å prøve på nytt etter MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING uten å telle med helgen`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
@@ -691,7 +704,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 )
 
                 // Bruker andre kjede slik at behandlingen faller tilbake på en retry-bar status (MÅ_BEHANDLE_FØRSTE_KJEDE)
-                val mottatt = nå(clock)
+                val mottatt = 4.april(2025).atTime(12, 0)
                 val brukersMeldekort = ObjectMother.brukersMeldekort(
                     sakId = sak.id,
                     meldeperiode = sak.meldeperiodeKjeder[1].hentSisteMeldeperiode(),
@@ -700,16 +713,16 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 )
                 brukersMeldekortRepo.lagre(brukersMeldekort)
 
-                // Innenfor MAKS_DELAY (2 dager etter mottatt) -> skal forbli markert for automatisk retry
-                service.behandleBrukersMeldekort(clock = fixedClockAt(mottatt.plusHours(47)))
+                // Innenfor MAKS_DELAY (2 virkedager etter mottatt) -> skal forbli markert for automatisk retry
+                service.behandleBrukersMeldekort(clock = fixedClockAt(8.april(2025).atTime(11, 0)))
 
                 brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.let {
                     it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE
                     it.behandlesAutomatisk shouldBe true
                 }
 
-                // Etter MAKS_DELAY (mer enn 2 dager siden mottatt) -> skal ikke prøves automatisk på nytt
-                service.behandleBrukersMeldekort(clock = fixedClockAt(mottatt.plusSeconds(1) + MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING))
+                // Etter MAKS_DELAY (mer enn 2 virkedager siden mottatt) -> skal ikke prøves automatisk på nytt
+                service.behandleBrukersMeldekort(clock = fixedClockAt(8.april(2025).atTime(12, 0, 1)))
 
                 brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.let {
                     it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE
