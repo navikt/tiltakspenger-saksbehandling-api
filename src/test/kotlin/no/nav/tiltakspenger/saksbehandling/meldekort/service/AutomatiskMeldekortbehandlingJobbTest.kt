@@ -919,56 +919,63 @@ class AutomatiskMeldekortbehandlingJobbTest {
         }
     }
 
-    /** Første meldekort behandles lørdag 5. april 2025, så søndagen hoppes over og fristen er mandag 7. april kl 20:50. */
+    /**
+     * Første meldekort behandles fredag 4. april 2025.
+     * Lørdagen regnes ikke som virkedag, selv om økonomisystemet muligens er åpent da, så fristen er mandag 7. april kl 20:50.
+     */
     @Test
-    fun `skal hoppe over søndager når fristen for automatisk korrigering beregnes`() {
+    fun `skal hoppe over helgen når fristen for automatisk korrigering beregnes`() {
         korrigerMeldekortAutomatisk(
-            førsteBehandlingstidspunkt = 5.april(2025).atTime(12, 0),
+            førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
             korrigeringMottatt = 7.april(2025).atTime(10, 0),
             Kjøring(7.april(2025).atTime(20, 49, 59)),
         ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.BEHANDLET)
-    }
-
-    /**
-     * Første meldekort behandles onsdag 16. april 2025, så skjærtorsdag og langfredag hoppes over og fristen er lørdag 19. april kl 17:50.
-     * Økonomisystemet åpner ikke igjen før tirsdag 22. april, etter 2. påskedag.
-     */
-    @Test
-    fun `skal hoppe over helligdager når fristen for automatisk korrigering beregnes`() {
         korrigerMeldekortAutomatisk(
-            førsteBehandlingstidspunkt = 16.april(2025).atTime(12, 0),
-            korrigeringMottatt = 19.april(2025).atTime(10, 0),
-            Kjøring(19.april(2025).atTime(17, 49, 59)),
-        ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.BEHANDLET)
-        korrigerMeldekortAutomatisk(
-            førsteBehandlingstidspunkt = 16.april(2025).atTime(12, 0),
-            korrigeringMottatt = 19.april(2025).atTime(10, 0),
-            Kjøring(19.april(2025).atTime(17, 50)),
-            Kjøring(22.april(2025).atTime(8, 0)),
+            førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
+            korrigeringMottatt = 7.april(2025).atTime(10, 0),
+            Kjøring(7.april(2025).atTime(20, 50)),
+            Kjøring(8.april(2025).atTime(8, 0)),
         ) shouldBe listOf(
             MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
             MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE,
         )
     }
 
-    /** Første meldekort behandles fredag 4. april 2025, så fristen er lørdag 5. april kl 17:50, selv om økonomisystemet bare muligens er åpent da. */
+    /**
+     * Første meldekort behandles onsdag 16. april 2025.
+     * Skjærtorsdag, langfredag, påskeaftens lørdag, 1. og 2. påskedag hoppes over, så fristen er tirsdag 22. april kl 20:50.
+     */
     @Test
-    fun `skal ikke behandle korrigering automatisk etter fristen lørdagen etter at første meldekort ble behandlet en fredag`() {
+    fun `skal hoppe over helligdager når fristen for automatisk korrigering beregnes`() {
         korrigerMeldekortAutomatisk(
-            førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
-            korrigeringMottatt = 5.april(2025).atTime(10, 0),
-            Kjøring(5.april(2025).atTime(17, 49, 59)),
+            førsteBehandlingstidspunkt = 16.april(2025).atTime(12, 0),
+            korrigeringMottatt = 19.april(2025).atTime(10, 0),
+            Kjøring(22.april(2025).atTime(20, 49, 59)),
         ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.BEHANDLET)
         korrigerMeldekortAutomatisk(
-            førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
-            korrigeringMottatt = 5.april(2025).atTime(10, 0),
-            Kjøring(7.april(2025).atTime(8, 0)),
-        ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE)
+            førsteBehandlingstidspunkt = 16.april(2025).atTime(12, 0),
+            korrigeringMottatt = 19.april(2025).atTime(10, 0),
+            Kjøring(22.april(2025).atTime(20, 50)),
+            Kjøring(23.april(2025).atTime(8, 0)),
+        ) shouldBe listOf(
+            MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
+            MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE,
+        )
     }
 
-    /** Korrigeringen mottas søndag 6. april 2025, etter fristen lørdag kl 17:50, og jobben kjører ikke før mandag. */
+    /** Første meldekort behandles fredag 4. april 2025, og korrigeringen behandles lørdag 5. april mens økonomisystemet muligens er åpent, før fristen mandag. */
     @Test
-    fun `skal ikke behandle korrigering mottatt mens økonomisystemet er stengt når fristen har gått ut før det åpner`() {
+    fun `skal behandle korrigering automatisk på lørdagen etter at første meldekort ble behandlet en fredag`() {
+        korrigerMeldekortAutomatisk(
+            førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
+            korrigeringMottatt = 5.april(2025).atTime(10, 0),
+            Kjøring(5.april(2025).atTime(10, 0)),
+        ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.BEHANDLET)
+    }
+
+    /** Korrigeringen mottas søndag 6. april 2025, og jobben kjører ikke før økonomisystemet åpner mandag, før fristen mandag kl 20:50. */
+    @Test
+    fun `skal behandle korrigering mottatt mens økonomisystemet er stengt når det åpner før fristen`() {
         korrigerMeldekortAutomatisk(
             førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
             korrigeringMottatt = 6.april(2025).atTime(10, 0),
@@ -976,25 +983,25 @@ class AutomatiskMeldekortbehandlingJobbTest {
             Kjøring(7.april(2025).atTime(8, 0)),
         ) shouldBe listOf(
             MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
-            MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE,
+            MeldekortBehandletAutomatiskStatus.BEHANDLET,
         )
     }
 
     /**
-     * Fristen er lørdag 5. april 2025 kl 17:50, og pausen etter at simuleringen svarte stengt kl 17:40 varer til 17:55.
-     * Da er økonomisystemet stengt, og når det åpner mandag, har fristen gått ut.
+     * Fristen er mandag 7. april 2025 kl 20:50, og pausen etter at simuleringen svarte stengt kl 20:40 varer til 20:55.
+     * Da er økonomisystemet stengt, og når det åpner tirsdag, har fristen gått ut.
      */
     @Test
     fun `skal ikke behandle korrigering automatisk når pausen etter stengt simulering varer forbi fristen`() {
         korrigerMeldekortAutomatisk(
             førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
-            korrigeringMottatt = 5.april(2025).atTime(17, 40),
+            korrigeringMottatt = 7.april(2025).atTime(20, 40),
             Kjøring(
-                tidspunkt = 5.april(2025).atTime(17, 40),
+                tidspunkt = 7.april(2025).atTime(20, 40),
                 simulerFeil = KunneIkkeSimulere.Stengt(httpKlientUventetStatus(statusCode = 503, body = "simulering stengt")),
             ),
-            Kjøring(5.april(2025).atTime(17, 49, 59)),
-            Kjøring(7.april(2025).atTime(8, 0)),
+            Kjøring(7.april(2025).atTime(20, 49, 59)),
+            Kjøring(8.april(2025).atTime(8, 0)),
         ) shouldBe listOf(
             MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
             MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
@@ -1020,15 +1027,15 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     /**
-     * Første meldekort behandles fredag 4. april 2025, og fristen for automatisk korrigering går ut lørdag 5. april kl 17:50.
-     * Lørdagen er neste virkedag, så korrigeringen prioriteres om den mottas innen utgangen av lørdagen.
+     * Første meldekort behandles fredag 4. april 2025, og fristen for automatisk korrigering går ut mandag 7. april kl 20:50.
+     * Mandagen er neste virkedag, så korrigeringen prioriteres om den mottas innen utgangen av mandagen.
      */
     @Test
     fun `skal prioritere korrigering som ikke kan behandles automatisk når den er mottatt innen utgangen av neste virkedag`() {
         korrigerMeldekort(
             førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
-            korrigeringMottatt = 5.april(2025).atTime(23, 59, 59),
-            Kjøring(7.april(2025).atTime(8, 0)),
+            korrigeringMottatt = 7.april(2025).atTime(23, 59, 59),
+            Kjøring(8.april(2025).atTime(8, 0)),
         ).single().let {
             it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE
             it.behandlesAutomatisk shouldBe false
@@ -1037,23 +1044,23 @@ class AutomatiskMeldekortbehandlingJobbTest {
         }
         korrigerMeldekort(
             førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
-            korrigeringMottatt = 6.april(2025).atTime(0, 0),
-            Kjøring(7.april(2025).atTime(8, 0)),
+            korrigeringMottatt = 8.april(2025).atTime(0, 0),
+            Kjøring(8.april(2025).atTime(8, 0)),
         ).single().prioritering shouldBe null
     }
 
-    /** Første meldekort behandles onsdag 16. april 2025, så skjærtorsdag og langfredag hoppes over og fristen for prioritering er utgangen av lørdag 19. april. */
+    /** Første meldekort behandles onsdag 16. april 2025, så påsken hoppes over og fristen for prioritering er utgangen av tirsdag 22. april. */
     @Test
     fun `skal hoppe over helligdager når fristen for prioritering av korrigering beregnes`() {
         korrigerMeldekort(
             førsteBehandlingstidspunkt = 16.april(2025).atTime(12, 0),
-            korrigeringMottatt = 19.april(2025).atTime(23, 59, 59),
-            Kjøring(22.april(2025).atTime(8, 0)),
+            korrigeringMottatt = 22.april(2025).atTime(23, 59, 59),
+            Kjøring(23.april(2025).atTime(8, 0)),
         ).single().prioritering shouldNotBe null
         korrigerMeldekort(
             førsteBehandlingstidspunkt = 16.april(2025).atTime(12, 0),
-            korrigeringMottatt = 20.april(2025).atTime(0, 0),
-            Kjøring(22.april(2025).atTime(8, 0)),
+            korrigeringMottatt = 23.april(2025).atTime(0, 0),
+            Kjøring(23.april(2025).atTime(8, 0)),
         ).single().prioritering shouldBe null
     }
 

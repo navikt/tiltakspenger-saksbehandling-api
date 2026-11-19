@@ -63,19 +63,8 @@ object Åpningstider {
 
     fun nesteÅpneDag(etter: LocalDate): LocalDate = generateSequence(etter.plusDays(1)) { it.plusDays(1) }.first { it.erÅpenDag() }
 
-    /**
-     * Finner neste virkedag etter [etter], utledet optimistisk: lørdager regnes som virkedager, siden økonomisystemet av og til er åpent da.
-     * Søndager og helligdager er ikke virkedager.
-     */
-    fun nesteVirkedag(etter: LocalDate): LocalDate =
-        generateSequence(etter.plusDays(1)) { it.plusDays(1) }.first { it.dayOfWeek != DayOfWeek.SUNDAY && !it.erHelligdag() }
-
-    /**
-     * Det seneste tidspunktet økonomisystemet muligens er åpent på [virkedag], med sikkerhetsmargin.
-     * Lørdager stenger kl. 18 og andre dager kl. 21.
-     */
-    fun senesteMuligeÅpneTidspunkt(virkedag: LocalDate): LocalDateTime =
-        virkedag.atTime(if (virkedag.dayOfWeek == DayOfWeek.SATURDAY) TIDLIG_STENGETIDSPUNKT else STENGETIDSPUNKT)
+    /** Det seneste tidspunktet økonomisystemet er åpent på en åpen [dag], med sikkerhetsmargin. */
+    fun senesteÅpneTidspunkt(dag: LocalDate): LocalDateTime = dag.atTime(STENGETIDSPUNKT)
 
     private fun erÅpent(tidspunkt: LocalDateTime): Boolean {
         return tidspunkt.toLocalDate().erÅpenDag() && tidspunkt.toLocalTime().erMellom(ÅPNINGSTIDSPUNKT, STENGETIDSPUNKT)

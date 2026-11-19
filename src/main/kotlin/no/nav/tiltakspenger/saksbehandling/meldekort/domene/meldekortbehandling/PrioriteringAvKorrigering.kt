@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider
 /**
  * Utleder prioriteringen av en korrigering fra bruker som ikke kunne behandles automatisk, slik at saksbehandler kan rekke å behandle den før utbetalingen for meldeperioden er utbetalt.
  * Korrigeringen prioriteres dersom den ble mottatt innen utgangen av neste virkedag etter at siste behandling av meldeperioden ble iverksatt.
- * Virkedagen utledes optimistisk, se [Åpningstider.nesteVirkedag].
+ * Lørdager, søndager og helligdager er ikke virkedager, siden økonomisystemet regnes som stengt da, se [Åpningstider.nesteÅpneDag].
  * Det er tidspunktet korrigeringen ble mottatt som teller, slik at den prioriteres også når jobben først gir den opp etter fristen.
  *
  * Fristen er romsligere enn fristen for automatisk korrigering i [validerAutomatiskMeldekortbehandling].
@@ -23,7 +23,7 @@ fun Sak.utledPrioriteringAvKorrigering(brukersMeldekort: BrukersMeldekort): Prio
         .mapNotNull { it.iverksattTidspunkt }
         .maxOrNull()
         ?: return null
-    val frist = Åpningstider.nesteVirkedag(sisteIverksettelse.toLocalDate())
+    val frist = Åpningstider.nesteÅpneDag(sisteIverksettelse.toLocalDate())
 
     if (brukersMeldekort.mottatt.toLocalDate().isAfter(frist)) {
         return null
