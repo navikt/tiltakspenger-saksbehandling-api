@@ -36,12 +36,16 @@ interface MottaSøknadRouteBuilder {
     ): Pair<Sak, Søknad> {
         val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
         val saksnummer = hentEllerOpprettSakForSystembruker(tac, sak.fnr)
-        tac.tiltakContext.tiltaksdeltakerRepo.lagre(
-            id = tiltaksdeltakelse.internDeltakelseId,
-            eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-            tiltakskode = tiltaksdeltakelse.tiltakstype.name,
-            sakId = sak.id,
-        )
+        // En ny søknad på samme sak kan gjelde en deltakelse som allerede er lagret.
+        // Postgres avviser en ny rad med samme id, så vi lagrer bare når den mangler.
+        if (tac.tiltakContext.tiltaksdeltakerRepo.hentInternId(tiltaksdeltakelse.eksternDeltakelseId) == null) {
+            tac.tiltakContext.tiltaksdeltakerRepo.lagre(
+                id = tiltaksdeltakelse.internDeltakelseId,
+                eksternId = tiltaksdeltakelse.eksternDeltakelseId,
+                tiltakskode = tiltaksdeltakelse.tiltakstype.name,
+                sakId = sak.id,
+            )
+        }
         mottaSøknad(tac, sak.fnr, saksnummer, søknadId, tiltaksdeltakelse, barnetillegg)
         val oppdatertSak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
         return oppdatertSak to oppdatertSak.søknader.single { it.id == søknadId }

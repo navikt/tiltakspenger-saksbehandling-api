@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.person.Navn
@@ -27,6 +28,7 @@ interface GenererVedtaksbrevForAvslagKlient {
         forhåndsvisning: Boolean,
         harSøktBarnetillegg: Boolean,
         datoForUtsending: LocalDate,
+        tidligereInnvilgelse: PeriodeMedVerdi<Rammevedtak>?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 
     suspend fun genererAvslagsVedtaksbrev(
@@ -34,5 +36,6 @@ interface GenererVedtaksbrevForAvslagKlient {
         datoForUtsending: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        tidligereInnvilgelse: PeriodeMedVerdi<Rammevedtak>?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }

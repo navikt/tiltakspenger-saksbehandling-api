@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehan
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
@@ -149,6 +150,10 @@ data class Rammevedtaksliste(
         return innvilgelsesperioder.hentVerdiForDag(dato) != null
     }
 
+    fun gjeldendeInnvilgelseForPeriode(periode: Periode): PeriodeMedVerdi<Rammevedtak>? {
+        return innvilgetTidslinje.filter { it.periode.overlapperMed(periode) }.singleOrNull()
+    }
+
     fun harInnvilgetTiltakspengerEtterDato(dato: LocalDate): Boolean {
         return innvilgelsesperioder.any { it.periode.starterEtter(dato) }
     }
@@ -179,6 +184,19 @@ data class Rammevedtaksliste(
      */
     fun leggTil(vedtak: Rammevedtak): Rammevedtaksliste {
         return copy(verdi = this.verdi.leggTil(vedtak))
+    }
+
+    /**
+     * Vedtakslista slik den så ut rett før [tidspunkt], uten vedtak opprettet på eller etter tidspunktet.
+     * Et vanlig filter holder ikke, fordi eldre vedtak har [Rammevedtak.omgjortAvRammevedtak] som peker på senere vedtak.
+     * Vi nullstiller derfor omgjøringene og bygger lista opp igjen med [leggTil], slik at de regnes ut på nytt.
+     */
+    fun opprettetFør(tidspunkt: LocalDateTime): Rammevedtaksliste {
+        return verdi
+            .filter { it.opprettet.isBefore(tidspunkt) }
+            .fold(empty()) { acc, vedtak ->
+                acc.leggTil(vedtak.copy(omgjortAvRammevedtak = OmgjortAvRammevedtak.empty))
+            }
     }
 
     fun hentRammevedtakForId(rammevedtakId: VedtakId): Rammevedtak {

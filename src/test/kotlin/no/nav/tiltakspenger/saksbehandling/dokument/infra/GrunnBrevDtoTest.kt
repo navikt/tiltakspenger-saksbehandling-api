@@ -25,6 +25,7 @@ class GrunnBrevDtoTest {
             "IKKE_LOVLIG_OPPHOLD",
             "FREMMET_FOR_SENT",
             "RETT_TIL_DAGPENGER",
+            "INNVILGET_TILTAKSPENGER",
         )
     }
 
@@ -41,6 +42,7 @@ class GrunnBrevDtoTest {
             Avslagsgrunnlag.Institusjonsopphold to GrunnBrevDto.INSTITUSJONSOPPHOLD,
             Avslagsgrunnlag.FremmetForSent to GrunnBrevDto.FREMMET_FOR_SENT,
             Avslagsgrunnlag.RettTilDagpenger to GrunnBrevDto.RETT_TIL_DAGPENGER,
+            Avslagsgrunnlag.InnvilgetTiltakspenger to GrunnBrevDto.INNVILGET_TILTAKSPENGER,
         )
     }
 

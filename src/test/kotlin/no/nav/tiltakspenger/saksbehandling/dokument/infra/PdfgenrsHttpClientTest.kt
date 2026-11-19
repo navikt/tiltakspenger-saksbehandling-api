@@ -319,6 +319,7 @@ class PdfgenrsHttpClientTest {
                 forhåndsvisning = true,
                 harSøktBarnetillegg = false,
                 datoForUtsending = 2.januar(2025),
+                tidligereInnvilgelse = null,
             )
         }
     }
@@ -332,6 +333,7 @@ class PdfgenrsHttpClientTest {
                 datoForUtsending = 2.januar(2023),
                 hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                tidligereInnvilgelse = null,
             )
         }
     }

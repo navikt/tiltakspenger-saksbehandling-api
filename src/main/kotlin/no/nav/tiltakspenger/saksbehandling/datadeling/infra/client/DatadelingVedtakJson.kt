@@ -202,4 +202,5 @@ private fun Avslagsgrunnlag.toValgtHjemmelHarIkkeRettighetString(): DatadelingHj
         Avslagsgrunnlag.LønnFraAndre -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_ANDRE
         Avslagsgrunnlag.LønnFraTiltaksarrangør -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_TILTAKSARRANGOR
         Avslagsgrunnlag.RettTilDagpenger -> DatadelingHjemmelHarIkkeRettighet.RETT_TIL_DAGPENGER
+        Avslagsgrunnlag.InnvilgetTiltakspenger -> DatadelingHjemmelHarIkkeRettighet.LIVSOPPHOLDSYTELSER
     }

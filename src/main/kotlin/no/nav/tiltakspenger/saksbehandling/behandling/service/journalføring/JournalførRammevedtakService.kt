@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForInnvilgelseKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForOpphørKlient
@@ -19,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderin
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
 import no.nav.tiltakspenger.saksbehandling.felles.Korrelasjon
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.varsleHvisUtbetalingHarFeilet
@@ -32,6 +34,7 @@ import java.time.LocalDate
 class JournalførRammevedtakService(
     private val journalførRammevedtaksbrevKlient: JournalførRammevedtaksbrevKlient,
     private val rammevedtakRepo: RammevedtakRepo,
+    private val sakService: SakService,
     private val genererVedtaksbrevForInnvilgelseKlient: GenererVedtaksbrevForInnvilgelseKlient,
     private val genererVedtaksbrevForStansKlient: GenererVedtaksbrevForStansKlient,
     private val genererVedtaksbrevForOpphørKlient: GenererVedtaksbrevForOpphørKlient,
@@ -88,6 +91,13 @@ class JournalførRammevedtakService(
                                 datoForUtsending = vedtaksdato,
                                 hentBrukersNavn = personService::hentNavn,
                                 hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
+                                tidligereInnvilgelse = if (Avslagsgrunnlag.InnvilgetTiltakspenger in resultat.avslagsgrunner) {
+                                    sakService.hentForSakId(vedtak.sakId).rammevedtaksliste
+                                        .opprettetFør(tidspunkt = vedtak.opprettet)
+                                        .gjeldendeInnvilgelseForPeriode(vedtak.periode)
+                                } else {
+                                    null
+                                },
                             )
 
                             is Omgjøringsresultat.OmgjøringOpphør -> genererVedtaksbrevForOpphørKlient.genererOpphørBrev(
