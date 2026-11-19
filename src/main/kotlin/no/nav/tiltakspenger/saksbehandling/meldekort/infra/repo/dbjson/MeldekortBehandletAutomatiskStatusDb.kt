@@ -21,6 +21,7 @@ private enum class MeldekortBehandletAutomatiskStatusDb {
     MÅ_BEHANDLE_NESTE_KJEDE,
     INGEN_DAGER_GIR_RETT,
     HAR_JUSTERING,
+    HAR_TIDLIGERE_UTBETALING,
     HAR_FEILUTBETALING,
     SIMULERING_FEILET,
 }
@@ -45,6 +46,7 @@ fun MeldekortBehandletAutomatiskStatus.tilDb(): String = when (this) {
     MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT -> MeldekortBehandletAutomatiskStatusDb.INGEN_DAGER_GIR_RETT
     MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING -> MeldekortBehandletAutomatiskStatusDb.HAR_FEILUTBETALING
     MeldekortBehandletAutomatiskStatus.HAR_JUSTERING -> MeldekortBehandletAutomatiskStatusDb.HAR_JUSTERING
+    MeldekortBehandletAutomatiskStatus.HAR_TIDLIGERE_UTBETALING -> MeldekortBehandletAutomatiskStatusDb.HAR_TIDLIGERE_UTBETALING
     MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET -> MeldekortBehandletAutomatiskStatusDb.SIMULERING_FEILET
 }.toString()
 
@@ -68,6 +70,7 @@ fun String.tilMeldekortBehandletAutomatiskStatus(): MeldekortBehandletAutomatisk
         MeldekortBehandletAutomatiskStatusDb.MÅ_BEHANDLE_NESTE_KJEDE -> MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE
         MeldekortBehandletAutomatiskStatusDb.INGEN_DAGER_GIR_RETT -> MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT
         MeldekortBehandletAutomatiskStatusDb.HAR_JUSTERING -> MeldekortBehandletAutomatiskStatus.HAR_JUSTERING
+        MeldekortBehandletAutomatiskStatusDb.HAR_TIDLIGERE_UTBETALING -> MeldekortBehandletAutomatiskStatus.HAR_TIDLIGERE_UTBETALING
         MeldekortBehandletAutomatiskStatusDb.HAR_FEILUTBETALING -> MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING
         MeldekortBehandletAutomatiskStatusDb.SIMULERING_FEILET -> MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET
     }

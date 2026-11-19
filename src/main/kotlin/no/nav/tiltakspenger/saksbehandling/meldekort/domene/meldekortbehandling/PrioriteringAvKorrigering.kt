@@ -2,16 +2,14 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
-import no.nav.tiltakspenger.saksbehandling.felles.erHelg
-import no.nav.tiltakspenger.saksbehandling.felles.erHelligdag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import java.time.LocalDate
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider
 
 /**
  * Utleder prioriteringen av en korrigering fra bruker som ikke kunne behandles automatisk, slik at saksbehandler kan rekke å behandle den før utbetalingen for meldeperioden er utbetalt.
  * Korrigeringen prioriteres dersom den ble mottatt innen utgangen av neste virkedag etter at siste behandling av meldeperioden ble iverksatt.
- * Lørdager, søndager og helligdager er ikke virkedager, siden økonomisystemet er stengt da.
+ * Virkedagen utledes optimistisk, se [Åpningstider.nesteVirkedag].
  * Det er tidspunktet korrigeringen ble mottatt som teller, slik at den prioriteres også når jobben først gir den opp etter fristen.
  *
  * Fristen er romsligere enn fristen for automatisk korrigering i [validerAutomatiskMeldekortbehandling].
@@ -25,7 +23,7 @@ fun Sak.utledPrioriteringAvKorrigering(brukersMeldekort: BrukersMeldekort): Prio
         .mapNotNull { it.iverksattTidspunkt }
         .maxOrNull()
         ?: return null
-    val frist = sisteIverksettelse.toLocalDate().nesteVirkedag()
+    val frist = Åpningstider.nesteVirkedag(sisteIverksettelse.toLocalDate())
 
     if (brukersMeldekort.mottatt.toLocalDate().isAfter(frist)) {
         return null
@@ -54,7 +52,3 @@ fun Sak.prioriteringFraKorrigeringSomVenterPåBehandling(kjedeIder: List<Meldepe
 
         sisteTilManuellBehandling.prioritering.takeUnless { erTattStillingTil }
     }
-
-private fun LocalDate.nesteVirkedag(): LocalDate =
-    generateSequence(plusDays(1)) { it.plusDays(1) }
-        .first { !it.erHelg() && !it.erHelligdag() }

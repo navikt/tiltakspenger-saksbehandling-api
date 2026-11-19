@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.Companion.MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
@@ -245,7 +246,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     @Test
-    fun `skal ikke behandle korrigering automatisk kl 17 dagen etter at første meldekort ble behandlet eller senere`() {
+    fun `skal ikke behandle korrigering automatisk etter stengetid neste virkedag etter at første meldekort ble behandlet`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
@@ -268,7 +269,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 brukersMeldekortRepo.lagre(brukersMeldekort)
                 automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock)
 
-                // Første meldekort ble behandlet 1. april, så fristen for automatisk korrigering er 2. april kl 17.
+                // Første meldekort ble behandlet tirsdag 1. april, så fristen for automatisk korrigering er onsdag 2. april kl 20:50.
                 // Det er behandlingstidspunktet som teller, så korrigeringen avvises selv om den ble mottatt før fristen.
                 val brukersMeldekortDuplikat = ObjectMother.brukersMeldekort(
                     behandlesAutomatisk = true,
@@ -279,7 +280,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
 
                 brukersMeldekortRepo.lagre(brukersMeldekortDuplikat)
 
-                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(fixedClockAt(2.april(2025).atTime(17, 0)))
+                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(fixedClockAt(3.april(2025).atTime(8, 0)))
 
                 val meldekortbehandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)
 
@@ -915,47 +916,54 @@ class AutomatiskMeldekortbehandlingJobbTest {
         }
     }
 
-    /** Første meldekort behandles lørdag 5. april 2025, så søndagen hoppes over og fristen er mandag 7. april kl 17. */
+    /** Første meldekort behandles lørdag 5. april 2025, så søndagen hoppes over og fristen er mandag 7. april kl 20:50. */
     @Test
     fun `skal hoppe over søndager når fristen for automatisk korrigering beregnes`() {
         korrigerMeldekortAutomatisk(
             førsteBehandlingstidspunkt = 5.april(2025).atTime(12, 0),
             korrigeringMottatt = 7.april(2025).atTime(10, 0),
-            Kjøring(7.april(2025).atTime(16, 59, 59)),
+            Kjøring(7.april(2025).atTime(20, 49, 59)),
         ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.BEHANDLET)
     }
 
-    /** Første meldekort behandles onsdag 16. april 2025, så skjærtorsdag og langfredag hoppes over og fristen er lørdag 19. april kl 17. */
+    /**
+     * Første meldekort behandles onsdag 16. april 2025, så skjærtorsdag og langfredag hoppes over og fristen er lørdag 19. april kl 17:50.
+     * Økonomisystemet åpner ikke igjen før tirsdag 22. april, etter 2. påskedag.
+     */
     @Test
     fun `skal hoppe over helligdager når fristen for automatisk korrigering beregnes`() {
         korrigerMeldekortAutomatisk(
             førsteBehandlingstidspunkt = 16.april(2025).atTime(12, 0),
             korrigeringMottatt = 19.april(2025).atTime(10, 0),
-            Kjøring(19.april(2025).atTime(16, 59, 59)),
+            Kjøring(19.april(2025).atTime(17, 49, 59)),
         ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.BEHANDLET)
         korrigerMeldekortAutomatisk(
             førsteBehandlingstidspunkt = 16.april(2025).atTime(12, 0),
             korrigeringMottatt = 19.april(2025).atTime(10, 0),
-            Kjøring(19.april(2025).atTime(17, 0)),
-        ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET)
+            Kjøring(19.april(2025).atTime(17, 50)),
+            Kjøring(22.april(2025).atTime(8, 0)),
+        ) shouldBe listOf(
+            MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
+            MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET,
+        )
     }
 
-    /** Første meldekort behandles fredag 4. april 2025, så fristen er lørdag 5. april kl 17, selv om økonomisystemet bare muligens er åpent da. */
+    /** Første meldekort behandles fredag 4. april 2025, så fristen er lørdag 5. april kl 17:50, selv om økonomisystemet bare muligens er åpent da. */
     @Test
     fun `skal ikke behandle korrigering automatisk etter fristen lørdagen etter at første meldekort ble behandlet en fredag`() {
         korrigerMeldekortAutomatisk(
             førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
             korrigeringMottatt = 5.april(2025).atTime(10, 0),
-            Kjøring(5.april(2025).atTime(16, 59, 59)),
+            Kjøring(5.april(2025).atTime(17, 49, 59)),
         ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.BEHANDLET)
         korrigerMeldekortAutomatisk(
             førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
             korrigeringMottatt = 5.april(2025).atTime(10, 0),
-            Kjøring(5.april(2025).atTime(17, 0)),
+            Kjøring(7.april(2025).atTime(8, 0)),
         ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET)
     }
 
-    /** Korrigeringen mottas søndag 6. april 2025, etter fristen lørdag kl 17, og jobben kjører ikke før mandag. */
+    /** Korrigeringen mottas søndag 6. april 2025, etter fristen lørdag kl 17:50, og jobben kjører ikke før mandag. */
     @Test
     fun `skal ikke behandle korrigering mottatt mens økonomisystemet er stengt når fristen har gått ut før det åpner`() {
         korrigerMeldekortAutomatisk(
@@ -969,18 +977,21 @@ class AutomatiskMeldekortbehandlingJobbTest {
         )
     }
 
-    /** Fristen er lørdag 5. april 2025 kl 17, og pausen etter at simuleringen svarte stengt kl 16:50 varer til 17:05. */
+    /**
+     * Fristen er lørdag 5. april 2025 kl 17:50, og pausen etter at simuleringen svarte stengt kl 17:40 varer til 17:55.
+     * Da er økonomisystemet stengt, og når det åpner mandag, har fristen gått ut.
+     */
     @Test
     fun `skal ikke behandle korrigering automatisk når pausen etter stengt simulering varer forbi fristen`() {
         korrigerMeldekortAutomatisk(
             førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
-            korrigeringMottatt = 5.april(2025).atTime(16, 50),
+            korrigeringMottatt = 5.april(2025).atTime(17, 40),
             Kjøring(
-                tidspunkt = 5.april(2025).atTime(16, 50),
+                tidspunkt = 5.april(2025).atTime(17, 40),
                 simulerFeil = KunneIkkeSimulere.Stengt(httpKlientUventetStatus(statusCode = 503, body = "simulering stengt")),
             ),
-            Kjøring(5.april(2025).atTime(16, 59, 59)),
-            Kjøring(5.april(2025).atTime(17, 5)),
+            Kjøring(5.april(2025).atTime(17, 49, 59)),
+            Kjøring(7.april(2025).atTime(8, 0)),
         ) shouldBe listOf(
             MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
             MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
@@ -988,7 +999,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
         )
     }
 
-    /** Tirsdag 1. april 2025 kl 18 muligens er økonomisystemet åpent, og fristen er onsdag 2. april kl 17. */
+    /** Tirsdag 1. april 2025 kl 18 er økonomisystemet muligens åpent, og fristen er onsdag 2. april kl 20:50. */
     @Test
     fun `skal prøve korrigering på nytt når simuleringen feiler mens økonomisystemet muligens er åpent`() {
         korrigerMeldekortAutomatisk(
@@ -1006,15 +1017,15 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     /**
-     * Første meldekort behandles fredag 4. april 2025, og fristen for automatisk korrigering går ut lørdag 5. april kl 17.
-     * Lørdagen er ikke en virkedag, så korrigeringen prioriteres om den mottas innen utgangen av mandag 7. april.
+     * Første meldekort behandles fredag 4. april 2025, og fristen for automatisk korrigering går ut lørdag 5. april kl 17:50.
+     * Lørdagen er neste virkedag, så korrigeringen prioriteres om den mottas innen utgangen av lørdagen.
      */
     @Test
     fun `skal prioritere korrigering som ikke kan behandles automatisk når den er mottatt innen utgangen av neste virkedag`() {
         korrigerMeldekort(
             førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
-            korrigeringMottatt = 7.april(2025).atTime(23, 59, 59),
-            Kjøring(8.april(2025).atTime(8, 0)),
+            korrigeringMottatt = 5.april(2025).atTime(23, 59, 59),
+            Kjøring(7.april(2025).atTime(8, 0)),
         ).single().let {
             it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
             it.behandlesAutomatisk shouldBe false
@@ -1023,23 +1034,23 @@ class AutomatiskMeldekortbehandlingJobbTest {
         }
         korrigerMeldekort(
             førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
-            korrigeringMottatt = 8.april(2025).atTime(0, 0),
-            Kjøring(8.april(2025).atTime(8, 0)),
+            korrigeringMottatt = 6.april(2025).atTime(0, 0),
+            Kjøring(7.april(2025).atTime(8, 0)),
         ).single().prioritering shouldBe null
     }
 
-    /** Første meldekort behandles onsdag 16. april 2025, så påsken hoppes over og fristen for prioritering er utgangen av tirsdag 22. april. */
+    /** Første meldekort behandles onsdag 16. april 2025, så skjærtorsdag og langfredag hoppes over og fristen for prioritering er utgangen av lørdag 19. april. */
     @Test
     fun `skal hoppe over helligdager når fristen for prioritering av korrigering beregnes`() {
         korrigerMeldekort(
             førsteBehandlingstidspunkt = 16.april(2025).atTime(12, 0),
-            korrigeringMottatt = 22.april(2025).atTime(23, 59, 59),
-            Kjøring(23.april(2025).atTime(8, 0)),
+            korrigeringMottatt = 19.april(2025).atTime(23, 59, 59),
+            Kjøring(22.april(2025).atTime(8, 0)),
         ).single().prioritering shouldNotBe null
         korrigerMeldekort(
             førsteBehandlingstidspunkt = 16.april(2025).atTime(12, 0),
-            korrigeringMottatt = 23.april(2025).atTime(0, 0),
-            Kjøring(23.april(2025).atTime(8, 0)),
+            korrigeringMottatt = 20.april(2025).atTime(0, 0),
+            Kjøring(22.april(2025).atTime(8, 0)),
         ).single().prioritering shouldBe null
     }
 
@@ -1124,7 +1135,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     @Test
-    fun `skal behandle korrigert meldekort automatisk før kl 17 dagen etter at første meldekort ble behandlet`() {
+    fun `skal behandle korrigert meldekort automatisk før stengetid neste virkedag etter at første meldekort ble behandlet`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
@@ -1157,11 +1168,11 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     },
                 )
                 brukersMeldekortRepo.lagre(førsteMeldekort)
-                // Første meldekort mottas 1. april, men behandles først 2. april, så fristen er 3. april kl 17.
+                // Første meldekort mottas 1. april, men behandles først 2. april, så fristen er 3. april kl 20:50.
                 service.behandleBrukersMeldekort(fixedClockAt(2.april(2025).atTime(10, 0)))
 
                 brukersMeldekortRepo.lagre(korrigertMeldekort)
-                service.behandleBrukersMeldekort(fixedClockAt(3.april(2025).atTime(16, 59, 59)))
+                service.behandleBrukersMeldekort(fixedClockAt(3.april(2025).atTime(20, 49, 59)))
 
                 val behandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort
                 behandlinger.size shouldBe 2
@@ -1177,7 +1188,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     @Test
-    fun `skal ikke behandle en ny korrigering automatisk når kjeden allerede er korrigert`() {
+    fun `skal behandle flere korrigeringer av samme kjede automatisk så lenge utbetalingen ikke er utbetalt`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
@@ -1195,51 +1206,97 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     sakId = sak.id,
                     meldeperiode = meldeperiode,
                 ).dager
+                val (førsteGlemteDag, andreGlemteDag) = alleDagerDeltatt.filter { it.status == InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET }
 
-                // Bruker glemte å melde en dag i førstegangsinnsendingen, og korrigerer den til deltatt.
+                fun dagerMedGlemt(vararg glemteDager: BrukersMeldekortDag) =
+                    alleDagerDeltatt.map { if (it in glemteDager) it.copy(status = InnmeldtStatus.IKKE_TILTAKSDAG) else it }
+
+                // Bruker glemte å melde to dager i førstegangsinnsendingen, og korrigerer dem til deltatt én om gangen.
+                listOf(
+                    dagerMedGlemt(førsteGlemteDag, andreGlemteDag),
+                    dagerMedGlemt(andreGlemteDag),
+                    alleDagerDeltatt,
+                ).forEach { dager ->
+                    val brukersMeldekort = ObjectMother.brukersMeldekort(
+                        behandlesAutomatisk = true,
+                        sakId = sak.id,
+                        meldeperiode = meldeperiode,
+                        mottatt = nå(clock),
+                        dager = dager,
+                    )
+                    brukersMeldekortRepo.lagre(brukersMeldekort)
+                    service.behandleBrukersMeldekort(clock)
+
+                    brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!
+                        .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
+                }
+
+                meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 3
+            }
+        }
+    }
+
+    @Test
+    fun `skal ikke behandle korrigering automatisk når simuleringen viser at meldeperioden er utbetalt`() {
+        korrigerDagSomErMedIFørsteUtbetaling(utbetaltAvOppdrag = true).let {
+            it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.HAR_TIDLIGERE_UTBETALING
+            it.behandlesAutomatisk shouldBe false
+            it.prioritering shouldNotBe null
+        }
+    }
+
+    @Test
+    fun `skal behandle korrigering automatisk når simuleringen viser at meldeperioden ikke er utbetalt ennå`() {
+        korrigerDagSomErMedIFørsteUtbetaling(utbetaltAvOppdrag = false)
+            .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
+    }
+
+    /**
+     * Behandler første meldekort automatisk og mottar så en korrigering som fjerner en dag fra utbetalingen.
+     * Simuleringsfaken viser dagen som tidligere utbetalt, med mindre den simulerer mot saken slik den var før første meldekort.
+     */
+    private fun korrigerDagSomErMedIFørsteUtbetaling(utbetaltAvOppdrag: Boolean): BrukersMeldekort {
+        var lagret: BrukersMeldekort? = null
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+                val meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode()
+
                 val førsteMeldekort = ObjectMother.brukersMeldekort(
                     behandlesAutomatisk = true,
                     sakId = sak.id,
                     meldeperiode = meldeperiode,
                     mottatt = nå(clock),
-                    dager = alleDagerDeltatt.let { dager ->
-                        val glemtDag = dager.first { it.status == InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET }
-                        dager.map { if (it == glemtDag) it.copy(status = InnmeldtStatus.IKKE_TILTAKSDAG) else it }
-                    },
                 )
                 brukersMeldekortRepo.lagre(førsteMeldekort)
                 service.behandleBrukersMeldekort(clock)
-
-                val førsteKorrigering = ObjectMother.brukersMeldekort(
-                    behandlesAutomatisk = true,
-                    sakId = sak.id,
-                    meldeperiode = meldeperiode,
-                    mottatt = nå(clock),
-                    dager = alleDagerDeltatt,
-                )
-                brukersMeldekortRepo.lagre(førsteKorrigering)
-                service.behandleBrukersMeldekort(clock)
-
-                meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 2
-
-                // Den andre korrigeringen kommer også innenfor fristen, men kjeden har allerede en korrigering.
-                val andreKorrigering = ObjectMother.brukersMeldekort(
-                    behandlesAutomatisk = true,
-                    sakId = sak.id,
-                    meldeperiode = meldeperiode,
-                    mottatt = nå(clock),
-                )
-                brukersMeldekortRepo.lagre(andreKorrigering)
-                service.behandleBrukersMeldekort(clock)
-
-                meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 2
-
-                brukersMeldekortRepo.hentForMeldekortId(andreKorrigering.id)!!.let {
-                    it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
-                    it.behandlesAutomatisk shouldBe false
+                if (!utbetaltAvOppdrag) {
+                    tac.utbetalingFakeKlient.sakUtbetaltAvOppdrag = sak
                 }
+
+                // Bruker meldte en dag som deltatt ved en feil, og korrigerer den.
+                val korrigertMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = meldeperiode,
+                    mottatt = nå(clock),
+                    dager = førsteMeldekort.dager.let { dager ->
+                        val feilmeldtDag = dager.first { it.status == InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET }
+                        dager.map { if (it == feilmeldtDag) it.copy(status = InnmeldtStatus.IKKE_TILTAKSDAG) else it }
+                    },
+                )
+                brukersMeldekortRepo.lagre(korrigertMeldekort)
+                service.behandleBrukersMeldekort(clock)
+                lagret = brukersMeldekortRepo.hentForMeldekortId(korrigertMeldekort.id)!!
             }
         }
+        return lagret!!
     }
 
     @Test

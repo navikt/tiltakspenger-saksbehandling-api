@@ -35,6 +35,9 @@ enum class MeldekortBehandletAutomatiskStatus(val loggnivå: Level, val kanPrøv
     HAR_FEILUTBETALING(loggnivå = Level.WARN, kanPrøvesPåNytt = false),
     HAR_JUSTERING(loggnivå = Level.WARN, kanPrøvesPåNytt = false),
 
+    /** Simuleringen viser at oppdragssystemet allerede har utbetalt meldeperioden, så korrigeringen kan ikke behandles automatisk. */
+    HAR_TIDLIGERE_UTBETALING(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
+
     /** Meldeperioden har fått en ny versjon etter at bruker sendte meldekortet, typisk fordi tiltaksdeltakelsen er endret. */
     UTDATERT_MELDEPERIODE(loggnivå = Level.WARN, kanPrøvesPåNytt = false),
 }

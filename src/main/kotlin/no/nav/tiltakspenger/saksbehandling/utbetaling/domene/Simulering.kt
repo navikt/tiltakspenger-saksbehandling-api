@@ -21,6 +21,9 @@ sealed interface Simulering {
     val harJustering: Boolean get() = this is Endring && harJustering
     val harFeilutbetaling: Boolean get() = this is Endring && harFeilutbetaling
 
+    /** Se [Simuleringsdag.harTidligereUtbetaling]. */
+    val harTidligereUtbetaling: Boolean get() = this is Endring && harTidligereUtbetaling
+
     /**
      * Siste dag i en periode oppdragssystemet har postert feilutbetaling for, eller null dersom simuleringen ikke viser feilutbetaling.
      * Feilutbetaling betyr at dagen allerede er utbetalt av oppdragssystemet, og at utbetalingen reduseres.
@@ -55,6 +58,10 @@ sealed interface Simulering {
 
         override val harFeilutbetaling: Boolean by lazy {
             simuleringPerMeldeperiode.any { it.harFeilutbetaling }
+        }
+
+        override val harTidligereUtbetaling: Boolean by lazy {
+            simuleringPerMeldeperiode.any { it.harTidligereUtbetaling }
         }
 
         override val sisteDagMedFeilutbetaling: LocalDate? by lazy {
@@ -140,6 +147,11 @@ data class SimuleringForMeldeperiode(
     /** Se [Simuleringsflagg.harFeilutbetaling] for hvorfor bare positive posteringer teller. */
     val harFeilutbetaling: Boolean by lazy {
         flagg.harFeilutbetaling
+    }
+
+    /** Se [Simuleringsdag.harTidligereUtbetaling]. */
+    val harTidligereUtbetaling: Boolean by lazy {
+        simuleringsdager.any { it.harTidligereUtbetaling }
     }
 
     /**
@@ -247,6 +259,12 @@ data class Simuleringsdag(
 ) {
     @Suppress("unused")
     val harFeilutbetaling: Boolean by lazy { totalFeilutbetaling > 0 }
+
+    /**
+     * Oppdragssystemet har utbetalt dagen tidligere, så endringen fører til en ny utbetaling eller et krav i stedet for kun å oppdatere den eksisterende utbetalingen.
+     * En utbetaling som er sendt, men ikke utbetalt ennå, oppdateres uten å vises som tidligere utbetalt.
+     */
+    val harTidligereUtbetaling: Boolean by lazy { tidligereUtbetalt > 0 }
 
     @Suppress("unused")
     val harEtterbetaling: Boolean by lazy { totalEtterbetaling > 0 }

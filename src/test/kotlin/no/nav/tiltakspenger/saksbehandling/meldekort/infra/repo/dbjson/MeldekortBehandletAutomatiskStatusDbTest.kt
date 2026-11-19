@@ -38,6 +38,7 @@ class MeldekortBehandletAutomatiskStatusDbTest {
             MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE to "MÅ_BEHANDLE_NESTE_KJEDE",
             MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT to "INGEN_DAGER_GIR_RETT",
             MeldekortBehandletAutomatiskStatus.HAR_JUSTERING to "HAR_JUSTERING",
+            MeldekortBehandletAutomatiskStatus.HAR_TIDLIGERE_UTBETALING to "HAR_TIDLIGERE_UTBETALING",
             MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING to "HAR_FEILUTBETALING",
             MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET to "SIMULERING_FEILET",
         )

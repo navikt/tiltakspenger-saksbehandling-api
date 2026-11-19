@@ -80,6 +80,21 @@ class ÅpningstiderTest {
         Åpningstider.nesteÅpneDag(30.april(2025)) shouldBe 2.mai(2025)
     }
 
+    /** 4. april 2025 er en fredag, og 16. april en onsdag før skjærtorsdag, langfredag og 2. påskedag. */
+    @Test
+    fun `neste virkedag regner lørdag som virkedag og hopper over søndag og helligdager`() {
+        Åpningstider.nesteVirkedag(4.april(2025)) shouldBe 5.april(2025)
+        Åpningstider.nesteVirkedag(5.april(2025)) shouldBe 7.april(2025)
+        Åpningstider.nesteVirkedag(16.april(2025)) shouldBe 19.april(2025)
+        Åpningstider.nesteVirkedag(19.april(2025)) shouldBe 22.april(2025)
+    }
+
+    @Test
+    fun `seneste mulige åpne tidspunkt er tidlig stengetid på lørdager`() {
+        Åpningstider.senesteMuligeÅpneTidspunkt(5.april(2025)) shouldBe 5.april(2025).atTime(17, 50)
+        Åpningstider.senesteMuligeÅpneTidspunkt(7.april(2025)) shouldBe 7.april(2025).atTime(20, 50)
+    }
+
     /** Fredag 2. mai er sendedag, mandag 5. mai er ventedag, og tirsdag 6. mai 06:10 er første åpning etter det. */
     @Test
     fun `en utbetaling kan stå i reskontroen to åpne dager etter at den ble sendt`() {

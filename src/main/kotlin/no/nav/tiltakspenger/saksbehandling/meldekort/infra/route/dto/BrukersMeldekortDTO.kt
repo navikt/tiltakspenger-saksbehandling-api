@@ -38,6 +38,7 @@ enum class MeldekortBehandletAutomatiskStatusDTO {
     MÅ_BEHANDLE_NESTE_KJEDE,
     INGEN_DAGER_GIR_RETT,
     HAR_JUSTERING,
+    HAR_TIDLIGERE_UTBETALING,
     HAR_FEILUTBETALING,
     SIMULERING_FEILET,
 }
@@ -91,6 +92,7 @@ private fun MeldekortBehandletAutomatiskStatus.tilBehandletAutomatiskStatusDTO()
         MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT -> MeldekortBehandletAutomatiskStatusDTO.INGEN_DAGER_GIR_RETT
         MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING -> MeldekortBehandletAutomatiskStatusDTO.HAR_FEILUTBETALING
         MeldekortBehandletAutomatiskStatus.HAR_JUSTERING -> MeldekortBehandletAutomatiskStatusDTO.HAR_JUSTERING
+        MeldekortBehandletAutomatiskStatus.HAR_TIDLIGERE_UTBETALING -> MeldekortBehandletAutomatiskStatusDTO.HAR_TIDLIGERE_UTBETALING
         MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET -> MeldekortBehandletAutomatiskStatusDTO.SIMULERING_FEILET
     }
 }

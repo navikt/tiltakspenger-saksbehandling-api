@@ -5,21 +5,10 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.saksbehandling.felles.erHelligdag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider
 import java.time.Clock
-import java.time.DayOfWeek
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-
-/**
- * En korrigering fra bruker må behandles før dette klokkeslettet dagen etter at første meldekortbehandling ble iverksatt for å kunne behandles automatisk.
- * Søndager og helligdager hoppes over når vi finner dagen etter, siden økonomisystemet er stengt da.
- * Utbetalingen har én ventedag før den betales ut, så vi antar at den ikke er utbetalt før fristen.
- */
-private val FRIST_FOR_AUTOMATISK_KORRIGERING_DAGEN_ETTER: LocalTime = LocalTime.of(17, 0)
 
 fun Sak.validerAutomatiskMeldekortbehandling(
     brukersMeldekort: BrukersMeldekort,
@@ -73,9 +62,10 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
 }
 
 /**
- * En korrigering fra bruker kan behandles automatisk dersom kjeden kun har én behandling, og den ble behandlet automatisk på samme versjon av meldeperioden.
- * Korrigeringen må i tillegg behandles før kl. 17 dagen etter at første behandling ble iverksatt, slik at utbetalingen ennå ikke er utbetalt.
- * Søndager og helligdager regnes ikke som dagen etter.
+ * En korrigering fra bruker kan behandles automatisk dersom alle tidligere behandlinger av kjeden ble behandlet automatisk på samme versjon av meldeperioden, og korrigeringen er mottatt etter innsendingene de behandlet.
+ * Korrigeringen må i tillegg behandles før det er 10 minutter igjen til stengetid neste virkedag etter at første behandling av kjeden ble iverksatt, se [Åpningstider.nesteVirkedag].
+ * Fristen sparer oss for simuleringer som uansett ville vist at utbetalingen er utbetalt.
+ * Om utbetalingen faktisk er utbetalt, avgjøres av simuleringen, se [no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering.harTidligereUtbetaling].
  * Vi sjekker ikke utbetalingsstatusen, siden den kun forteller om Oppdrag har tatt imot utbetalingen og ikke om den er utbetalt.
  */
 private fun kanKorrigeresAutomatisk(
@@ -83,21 +73,18 @@ private fun kanKorrigeresAutomatisk(
     brukersMeldekort: BrukersMeldekort,
     clock: Clock,
 ): Boolean {
-    val førsteBehandling = behandledeMeldekort.singleOrNull() as? MeldekortBehandletAutomatisk ?: return false
-    val førsteInnsending = førsteBehandling.brukersMeldekort
-    val frist: LocalDateTime = førsteBehandling.iverksattTidspunkt.toLocalDate()
-        .nesteDagSomIkkeErSøndagEllerHelligdag()
-        .atTime(FRIST_FOR_AUTOMATISK_KORRIGERING_DAGEN_ETTER)
+    val tidligereBehandlinger = behandledeMeldekort.map { it as? MeldekortBehandletAutomatisk ?: return false }
+    val førsteIverksettelse = tidligereBehandlinger.minOf { it.iverksattTidspunkt }
+    val frist = Åpningstider.senesteMuligeÅpneTidspunkt(Åpningstider.nesteVirkedag(førsteIverksettelse.toLocalDate()))
 
-    return førsteInnsending.id != brukersMeldekort.id &&
-        førsteInnsending.mottatt < brukersMeldekort.mottatt &&
-        førsteInnsending.meldeperiode == brukersMeldekort.meldeperiode &&
-        nå(clock) < frist
+    return nå(clock).isBefore(frist) &&
+        tidligereBehandlinger.all {
+            val tidligereInnsending = it.brukersMeldekort
+            tidligereInnsending.id != brukersMeldekort.id &&
+                tidligereInnsending.mottatt < brukersMeldekort.mottatt &&
+                tidligereInnsending.meldeperiode == brukersMeldekort.meldeperiode
+        }
 }
-
-private fun LocalDate.nesteDagSomIkkeErSøndagEllerHelligdag(): LocalDate =
-    generateSequence(plusDays(1)) { it.plusDays(1) }
-        .first { it.dayOfWeek != DayOfWeek.SUNDAY && !it.erHelligdag() }
 
 /** Validering som kan gi midlertidige feil - kan prøves på nytt */
 private fun Sak.validerTilstanderSomKanPrøvesPåNytt(brukersMeldekort: BrukersMeldekort): Either<MeldekortBehandletAutomatiskStatus, Unit> {

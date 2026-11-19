@@ -168,7 +168,7 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
         ),
     )
 
-    return simuler(meldekortBehandletAutomatisk, navkontor).mapLeft {
+    val simulering = simuler(meldekortBehandletAutomatisk, navkontor).getOrElse {
         // Simuleringsklienten logger feil selv.
         // En korrigering kan redusere utbetalingen, så den krever en simulering som kan avdekke feilutbetaling.
         if (type == MeldeperiodebehandlingType.KORRIGERING || kreverSimulering) {
@@ -176,5 +176,12 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
         }
         // For førstegangsbehandlinger ønsker vi ellers ikke å stoppe utbetalingen selv om simuleringen feiler.
         return Pair(meldekortBehandletAutomatisk, null).right()
-    }.map { Pair(meldekortBehandletAutomatisk.copy(simulering = it.simulering), it) }
+    }
+
+    // En korrigering behandles bare automatisk så lenge den kun erstatter en utbetaling oppdragssystemet ikke har utbetalt ennå.
+    if (type == MeldeperiodebehandlingType.KORRIGERING && simulering.simulering.harTidligereUtbetaling) {
+        return MeldekortBehandletAutomatiskStatus.HAR_TIDLIGERE_UTBETALING.left()
+    }
+
+    return Pair(meldekortBehandletAutomatisk.copy(simulering = simulering.simulering), simulering).right()
 }
