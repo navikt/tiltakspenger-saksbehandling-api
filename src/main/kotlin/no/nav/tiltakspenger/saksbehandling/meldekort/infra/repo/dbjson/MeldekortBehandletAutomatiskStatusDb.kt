@@ -11,6 +11,8 @@ private enum class MeldekortBehandletAutomatiskStatusDb {
     UTBETALING_FEILET_PÅ_SAK,
     SKAL_IKKE_BEHANDLES_AUTOMATISK,
     ALLEREDE_BEHANDLET,
+    FOR_SENT_Å_KORRIGERE,
+    KAN_IKKE_KORRIGERES_AUTOMATISK,
     UTDATERT_MELDEPERIODE,
     ER_UNDER_REVURDERING,
     FOR_MANGE_DAGER_REGISTRERT,
@@ -26,6 +28,8 @@ private enum class MeldekortBehandletAutomatiskStatusDb {
     SIMULERING_FEILET,
 }
 
+// ALLEREDE_BEHANDLET må fortsatt kunne lagres og leses for historikken.
+@Suppress("DEPRECATION")
 fun MeldekortBehandletAutomatiskStatus.tilDb(): String = when (this) {
     MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING -> MeldekortBehandletAutomatiskStatusDb.VENTER_BEHANDLING
     MeldekortBehandletAutomatiskStatus.BEHANDLET -> MeldekortBehandletAutomatiskStatusDb.BEHANDLET
@@ -35,6 +39,8 @@ fun MeldekortBehandletAutomatiskStatus.tilDb(): String = when (this) {
     MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK -> MeldekortBehandletAutomatiskStatusDb.UTBETALING_FEILET_PÅ_SAK
     MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK -> MeldekortBehandletAutomatiskStatusDb.SKAL_IKKE_BEHANDLES_AUTOMATISK
     MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET -> MeldekortBehandletAutomatiskStatusDb.ALLEREDE_BEHANDLET
+    MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE -> MeldekortBehandletAutomatiskStatusDb.FOR_SENT_Å_KORRIGERE
+    MeldekortBehandletAutomatiskStatus.KAN_IKKE_KORRIGERES_AUTOMATISK -> MeldekortBehandletAutomatiskStatusDb.KAN_IKKE_KORRIGERES_AUTOMATISK
     MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE -> MeldekortBehandletAutomatiskStatusDb.UTDATERT_MELDEPERIODE
     MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING -> MeldekortBehandletAutomatiskStatusDb.ER_UNDER_REVURDERING
     MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatusDb.FOR_MANGE_DAGER_REGISTRERT
@@ -50,6 +56,7 @@ fun MeldekortBehandletAutomatiskStatus.tilDb(): String = when (this) {
     MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET -> MeldekortBehandletAutomatiskStatusDb.SIMULERING_FEILET
 }.toString()
 
+@Suppress("DEPRECATION")
 fun String.tilMeldekortBehandletAutomatiskStatus(): MeldekortBehandletAutomatiskStatus =
     when (MeldekortBehandletAutomatiskStatusDb.valueOf(this)) {
         MeldekortBehandletAutomatiskStatusDb.VENTER_BEHANDLING -> MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING
@@ -60,6 +67,8 @@ fun String.tilMeldekortBehandletAutomatiskStatus(): MeldekortBehandletAutomatisk
         MeldekortBehandletAutomatiskStatusDb.UTBETALING_FEILET_PÅ_SAK -> MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK
         MeldekortBehandletAutomatiskStatusDb.SKAL_IKKE_BEHANDLES_AUTOMATISK -> MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK
         MeldekortBehandletAutomatiskStatusDb.ALLEREDE_BEHANDLET -> MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
+        MeldekortBehandletAutomatiskStatusDb.FOR_SENT_Å_KORRIGERE -> MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE
+        MeldekortBehandletAutomatiskStatusDb.KAN_IKKE_KORRIGERES_AUTOMATISK -> MeldekortBehandletAutomatiskStatus.KAN_IKKE_KORRIGERES_AUTOMATISK
         MeldekortBehandletAutomatiskStatusDb.UTDATERT_MELDEPERIODE -> MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE
         MeldekortBehandletAutomatiskStatusDb.ER_UNDER_REVURDERING -> MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING
         MeldekortBehandletAutomatiskStatusDb.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT

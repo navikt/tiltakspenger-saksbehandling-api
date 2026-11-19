@@ -28,6 +28,8 @@ enum class MeldekortBehandletAutomatiskStatusDTO {
     UTBETALING_FEILET_PÅ_SAK,
     SKAL_IKKE_BEHANDLES_AUTOMATISK,
     ALLEREDE_BEHANDLET,
+    FOR_SENT_Å_KORRIGERE,
+    KAN_IKKE_KORRIGERES_AUTOMATISK,
     UTDATERT_MELDEPERIODE,
     ER_UNDER_REVURDERING,
     FOR_MANGE_DAGER_REGISTRERT,
@@ -71,6 +73,8 @@ fun BrukersMeldekort.toBrukersMeldekortDTO(): BrukersMeldekortDTO {
     )
 }
 
+// ALLEREDE_BEHANDLET finnes fortsatt på eldre meldekort.
+@Suppress("DEPRECATION")
 private fun MeldekortBehandletAutomatiskStatus.tilBehandletAutomatiskStatusDTO(): MeldekortBehandletAutomatiskStatusDTO {
     return when (this) {
         MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING -> MeldekortBehandletAutomatiskStatusDTO.VENTER_BEHANDLING
@@ -81,6 +85,8 @@ private fun MeldekortBehandletAutomatiskStatus.tilBehandletAutomatiskStatusDTO()
         MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK -> MeldekortBehandletAutomatiskStatusDTO.UTBETALING_FEILET_PÅ_SAK
         MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK -> MeldekortBehandletAutomatiskStatusDTO.SKAL_IKKE_BEHANDLES_AUTOMATISK
         MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET -> MeldekortBehandletAutomatiskStatusDTO.ALLEREDE_BEHANDLET
+        MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE -> MeldekortBehandletAutomatiskStatusDTO.FOR_SENT_Å_KORRIGERE
+        MeldekortBehandletAutomatiskStatus.KAN_IKKE_KORRIGERES_AUTOMATISK -> MeldekortBehandletAutomatiskStatusDTO.KAN_IKKE_KORRIGERES_AUTOMATISK
         MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE -> MeldekortBehandletAutomatiskStatusDTO.UTDATERT_MELDEPERIODE
         MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING -> MeldekortBehandletAutomatiskStatusDTO.ER_UNDER_REVURDERING
         MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatusDTO.FOR_MANGE_DAGER_REGISTRERT

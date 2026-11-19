@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test
 class MeldekortBehandletAutomatiskStatusDbTest {
 
     @Test
+    @Suppress("DEPRECATION")
     fun `statusene lagres med sitt avtalte navn`() {
         MeldekortBehandletAutomatiskStatus.entries.associateWith { it.tilDb() } shouldBe mapOf(
             MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING to "VENTER_BEHANDLING",
@@ -28,6 +29,8 @@ class MeldekortBehandletAutomatiskStatusDbTest {
             MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK to "UTBETALING_FEILET_PÅ_SAK",
             MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK to "SKAL_IKKE_BEHANDLES_AUTOMATISK",
             MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET to "ALLEREDE_BEHANDLET",
+            MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE to "FOR_SENT_Å_KORRIGERE",
+            MeldekortBehandletAutomatiskStatus.KAN_IKKE_KORRIGERES_AUTOMATISK to "KAN_IKKE_KORRIGERES_AUTOMATISK",
             MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE to "UTDATERT_MELDEPERIODE",
             MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING to "ER_UNDER_REVURDERING",
             MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT to "FOR_MANGE_DAGER_REGISTRERT",

@@ -13,7 +13,23 @@ enum class MeldekortBehandletAutomatiskStatus(val loggnivå: Level, val kanPrøv
     VENTER_BEHANDLING(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
     BEHANDLET(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
     SKAL_IKKE_BEHANDLES_AUTOMATISK(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
+
+    /**
+     * Ikke lenger i bruk, men finnes på meldekort som er lagret med statusen tidligere.
+     * Erstattet av [FOR_SENT_Å_KORRIGERE] og [KAN_IKKE_KORRIGERES_AUTOMATISK].
+     */
+    @Deprecated("Ikke lenger i bruk, men beholdes for historikken. Bruk FOR_SENT_Å_KORRIGERE eller KAN_IKKE_KORRIGERES_AUTOMATISK.")
     ALLEREDE_BEHANDLET(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
+
+    /** Korrigeringen fra bruker kom etter fristen for automatisk korrigering. */
+    FOR_SENT_Å_KORRIGERE(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
+
+    /**
+     * Korrigeringen fra bruker kan ikke behandles automatisk uavhengig av fristen.
+     * Det gjelder når en tidligere behandling av meldeperioden var manuell, gjaldt en annen versjon av meldeperioden, eller behandlet en innsending mottatt etter korrigeringen.
+     */
+    KAN_IKKE_KORRIGERES_AUTOMATISK(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
+
     ER_UNDER_REVURDERING(loggnivå = Level.INFO, kanPrøvesPåNytt = true),
     FOR_MANGE_DAGER_GODKJENT_FRAVÆR(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
     HAR_ÅPEN_BEHANDLING(loggnivå = Level.INFO, kanPrøvesPåNytt = true),
@@ -35,7 +51,7 @@ enum class MeldekortBehandletAutomatiskStatus(val loggnivå: Level, val kanPrøv
     HAR_FEILUTBETALING(loggnivå = Level.WARN, kanPrøvesPåNytt = false),
     HAR_JUSTERING(loggnivå = Level.WARN, kanPrøvesPåNytt = false),
 
-    /** Simuleringen viser at oppdragssystemet allerede har utbetalt meldeperioden, så korrigeringen kan ikke behandles automatisk. */
+    /** Simuleringen viser at oppdragssystemet allerede har utbetalt minst en dag i meldeperioden, så korrigering kan ikke behandles automatisk. */
     HAR_TIDLIGERE_UTBETALING(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
 
     /** Meldeperioden har fått en ny versjon etter at bruker sendte meldekortet, typisk fordi tiltaksdeltakelsen er endret. */

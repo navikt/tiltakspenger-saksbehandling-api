@@ -291,7 +291,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
                 brukersMeldekortRepo
                     .hentForMeldekortId(brukersMeldekortDuplikat.id)!!
-                    .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
+                    .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE
             }
         }
     }
@@ -594,7 +594,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     @Test
-    fun `skal ikke prøve på nytt ved status som ikke skal retries (feks ALLEREDE_BEHANDLET)`() {
+    fun `skal ikke prøve på nytt ved status som ikke skal retries (feks FOR_SENT_Å_KORRIGERE)`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
@@ -615,7 +615,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 brukersMeldekortRepo.lagre(brukersMeldekort)
                 service.behandleBrukersMeldekort(clock)
 
-                // Duplikat for samme meldeperiode etter at korrigeringsvinduet er omme -> vil feile med ALLEREDE_BEHANDLET
+                // Duplikat for samme meldeperiode etter at korrigeringsvinduet er omme -> vil feile med FOR_SENT_Å_KORRIGERE
                 val duplikat = ObjectMother.brukersMeldekort(
                     sakId = sak.id,
                     meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
@@ -627,7 +627,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 service.behandleBrukersMeldekort(etterKorrigeringsvinduet)
 
                 val lagretDuplikat = brukersMeldekortRepo.hentForMeldekortId(duplikat.id)!!
-                lagretDuplikat.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
+                lagretDuplikat.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE
                 // Skal være markert som ikke-automatisk, slik at den ikke plukkes opp igjen
                 lagretDuplikat.behandlesAutomatisk shouldBe false
 
@@ -944,7 +944,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
             Kjøring(22.april(2025).atTime(8, 0)),
         ) shouldBe listOf(
             MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
-            MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET,
+            MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE,
         )
     }
 
@@ -960,7 +960,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
             førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
             korrigeringMottatt = 5.april(2025).atTime(10, 0),
             Kjøring(7.april(2025).atTime(8, 0)),
-        ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET)
+        ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE)
     }
 
     /** Korrigeringen mottas søndag 6. april 2025, etter fristen lørdag kl 17:50, og jobben kjører ikke før mandag. */
@@ -973,7 +973,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
             Kjøring(7.april(2025).atTime(8, 0)),
         ) shouldBe listOf(
             MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
-            MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET,
+            MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE,
         )
     }
 
@@ -995,7 +995,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
         ) shouldBe listOf(
             MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
             MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
-            MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET,
+            MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE,
         )
     }
 
@@ -1027,7 +1027,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
             korrigeringMottatt = 5.april(2025).atTime(23, 59, 59),
             Kjøring(7.april(2025).atTime(8, 0)),
         ).single().let {
-            it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
+            it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE
             it.behandlesAutomatisk shouldBe false
             it.prioritering!!.begrunnelse.verdi shouldBe
                 "Korrigert meldekort ble mottatt kort tid etter forrige meldekort for perioden, men kunne ikke behandles automatisk."
@@ -1067,7 +1067,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
             Kjøring(3.april(2025).atTime(10, 0)),
         ).map { it.behandletAutomatiskStatus to (it.prioritering != null) } shouldBe listOf(
             MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET to false,
-            MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET to true,
+            MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE to true,
         )
     }
 
@@ -1378,7 +1378,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 1
 
                 brukersMeldekortRepo.hentForMeldekortId(korrigertMeldekort.id)!!.let {
-                    it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
+                    it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.KAN_IKKE_KORRIGERES_AUTOMATISK
                     it.behandlesAutomatisk shouldBe false
                 }
             }

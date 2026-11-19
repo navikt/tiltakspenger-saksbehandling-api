@@ -32,8 +32,8 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
 
     val behandledeMeldekort = this.meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId] ?: emptyList()
 
-    if (behandledeMeldekort.isNotEmpty() && !kanKorrigeresAutomatisk(behandledeMeldekort, brukersMeldekort, clock)) {
-        return MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET.left()
+    if (behandledeMeldekort.isNotEmpty()) {
+        validerKanKorrigeresAutomatisk(behandledeMeldekort, brukersMeldekort, clock).onLeft { return it.left() }
     }
 
     if (brukersMeldekort.harRegistrertHelg() && !this.kanSendeInnHelgForMeldekort) {
@@ -68,22 +68,31 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
  * Om utbetalingen faktisk er utbetalt, avgjøres av simuleringen, se [no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering.harTidligereUtbetaling].
  * Vi sjekker ikke utbetalingsstatusen, siden den kun forteller om Oppdrag har tatt imot utbetalingen og ikke om den er utbetalt.
  */
-private fun kanKorrigeresAutomatisk(
+private fun validerKanKorrigeresAutomatisk(
     behandledeMeldekort: List<Meldekortbehandling.Behandlet>,
     brukersMeldekort: BrukersMeldekort,
     clock: Clock,
-): Boolean {
-    val tidligereBehandlinger = behandledeMeldekort.map { it as? MeldekortBehandletAutomatisk ?: return false }
+): Either<MeldekortBehandletAutomatiskStatus, Unit> {
+    val tidligereBehandlinger = behandledeMeldekort.map {
+        it as? MeldekortBehandletAutomatisk ?: return MeldekortBehandletAutomatiskStatus.KAN_IKKE_KORRIGERES_AUTOMATISK.left()
+    }
+    val stemmerMedTidligereInnsendinger = tidligereBehandlinger.all {
+        val tidligereInnsending = it.brukersMeldekort
+        tidligereInnsending.id != brukersMeldekort.id &&
+            tidligereInnsending.mottatt < brukersMeldekort.mottatt &&
+            tidligereInnsending.meldeperiode == brukersMeldekort.meldeperiode
+    }
+    if (!stemmerMedTidligereInnsendinger) {
+        return MeldekortBehandletAutomatiskStatus.KAN_IKKE_KORRIGERES_AUTOMATISK.left()
+    }
+
     val førsteIverksettelse = tidligereBehandlinger.minOf { it.iverksattTidspunkt }
     val frist = Åpningstider.senesteMuligeÅpneTidspunkt(Åpningstider.nesteVirkedag(førsteIverksettelse.toLocalDate()))
+    if (!nå(clock).isBefore(frist)) {
+        return MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE.left()
+    }
 
-    return nå(clock).isBefore(frist) &&
-        tidligereBehandlinger.all {
-            val tidligereInnsending = it.brukersMeldekort
-            tidligereInnsending.id != brukersMeldekort.id &&
-                tidligereInnsending.mottatt < brukersMeldekort.mottatt &&
-                tidligereInnsending.meldeperiode == brukersMeldekort.meldeperiode
-        }
+    return Unit.right()
 }
 
 /** Validering som kan gi midlertidige feil - kan prøves på nytt */
