@@ -29,7 +29,8 @@ enum class MeldekortBehandletAutomatiskStatusDTO {
     SKAL_IKKE_BEHANDLES_AUTOMATISK,
     ALLEREDE_BEHANDLET,
     FOR_SENT_Å_KORRIGERE,
-    KAN_IKKE_KORRIGERES_AUTOMATISK,
+    TIDLIGERE_BEHANDLET_MANUELT,
+    NYERE_INNSENDING_ER_BEHANDLET,
     UTDATERT_MELDEPERIODE,
     ER_UNDER_REVURDERING,
     FOR_MANGE_DAGER_REGISTRERT,
@@ -86,7 +87,8 @@ private fun MeldekortBehandletAutomatiskStatus.tilBehandletAutomatiskStatusDTO()
         MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK -> MeldekortBehandletAutomatiskStatusDTO.SKAL_IKKE_BEHANDLES_AUTOMATISK
         MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET -> MeldekortBehandletAutomatiskStatusDTO.ALLEREDE_BEHANDLET
         MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE -> MeldekortBehandletAutomatiskStatusDTO.FOR_SENT_Å_KORRIGERE
-        MeldekortBehandletAutomatiskStatus.KAN_IKKE_KORRIGERES_AUTOMATISK -> MeldekortBehandletAutomatiskStatusDTO.KAN_IKKE_KORRIGERES_AUTOMATISK
+        MeldekortBehandletAutomatiskStatus.TIDLIGERE_BEHANDLET_MANUELT -> MeldekortBehandletAutomatiskStatusDTO.TIDLIGERE_BEHANDLET_MANUELT
+        MeldekortBehandletAutomatiskStatus.NYERE_INNSENDING_ER_BEHANDLET -> MeldekortBehandletAutomatiskStatusDTO.NYERE_INNSENDING_ER_BEHANDLET
         MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE -> MeldekortBehandletAutomatiskStatusDTO.UTDATERT_MELDEPERIODE
         MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING -> MeldekortBehandletAutomatiskStatusDTO.ER_UNDER_REVURDERING
         MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatusDTO.FOR_MANGE_DAGER_REGISTRERT

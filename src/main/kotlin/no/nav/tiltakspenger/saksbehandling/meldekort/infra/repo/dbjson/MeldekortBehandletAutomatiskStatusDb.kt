@@ -12,7 +12,8 @@ private enum class MeldekortBehandletAutomatiskStatusDb {
     SKAL_IKKE_BEHANDLES_AUTOMATISK,
     ALLEREDE_BEHANDLET,
     FOR_SENT_Å_KORRIGERE,
-    KAN_IKKE_KORRIGERES_AUTOMATISK,
+    TIDLIGERE_BEHANDLET_MANUELT,
+    NYERE_INNSENDING_ER_BEHANDLET,
     UTDATERT_MELDEPERIODE,
     ER_UNDER_REVURDERING,
     FOR_MANGE_DAGER_REGISTRERT,
@@ -40,7 +41,8 @@ fun MeldekortBehandletAutomatiskStatus.tilDb(): String = when (this) {
     MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK -> MeldekortBehandletAutomatiskStatusDb.SKAL_IKKE_BEHANDLES_AUTOMATISK
     MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET -> MeldekortBehandletAutomatiskStatusDb.ALLEREDE_BEHANDLET
     MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE -> MeldekortBehandletAutomatiskStatusDb.FOR_SENT_Å_KORRIGERE
-    MeldekortBehandletAutomatiskStatus.KAN_IKKE_KORRIGERES_AUTOMATISK -> MeldekortBehandletAutomatiskStatusDb.KAN_IKKE_KORRIGERES_AUTOMATISK
+    MeldekortBehandletAutomatiskStatus.TIDLIGERE_BEHANDLET_MANUELT -> MeldekortBehandletAutomatiskStatusDb.TIDLIGERE_BEHANDLET_MANUELT
+    MeldekortBehandletAutomatiskStatus.NYERE_INNSENDING_ER_BEHANDLET -> MeldekortBehandletAutomatiskStatusDb.NYERE_INNSENDING_ER_BEHANDLET
     MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE -> MeldekortBehandletAutomatiskStatusDb.UTDATERT_MELDEPERIODE
     MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING -> MeldekortBehandletAutomatiskStatusDb.ER_UNDER_REVURDERING
     MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatusDb.FOR_MANGE_DAGER_REGISTRERT
@@ -68,7 +70,8 @@ fun String.tilMeldekortBehandletAutomatiskStatus(): MeldekortBehandletAutomatisk
         MeldekortBehandletAutomatiskStatusDb.SKAL_IKKE_BEHANDLES_AUTOMATISK -> MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK
         MeldekortBehandletAutomatiskStatusDb.ALLEREDE_BEHANDLET -> MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
         MeldekortBehandletAutomatiskStatusDb.FOR_SENT_Å_KORRIGERE -> MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE
-        MeldekortBehandletAutomatiskStatusDb.KAN_IKKE_KORRIGERES_AUTOMATISK -> MeldekortBehandletAutomatiskStatus.KAN_IKKE_KORRIGERES_AUTOMATISK
+        MeldekortBehandletAutomatiskStatusDb.TIDLIGERE_BEHANDLET_MANUELT -> MeldekortBehandletAutomatiskStatus.TIDLIGERE_BEHANDLET_MANUELT
+        MeldekortBehandletAutomatiskStatusDb.NYERE_INNSENDING_ER_BEHANDLET -> MeldekortBehandletAutomatiskStatus.NYERE_INNSENDING_ER_BEHANDLET
         MeldekortBehandletAutomatiskStatusDb.UTDATERT_MELDEPERIODE -> MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE
         MeldekortBehandletAutomatiskStatusDb.ER_UNDER_REVURDERING -> MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING
         MeldekortBehandletAutomatiskStatusDb.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT

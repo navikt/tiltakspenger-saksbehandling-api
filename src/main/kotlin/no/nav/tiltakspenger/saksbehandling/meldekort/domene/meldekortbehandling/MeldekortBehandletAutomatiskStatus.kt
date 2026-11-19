@@ -16,19 +16,19 @@ enum class MeldekortBehandletAutomatiskStatus(val loggnivå: Level, val kanPrøv
 
     /**
      * Ikke lenger i bruk, men finnes på meldekort som er lagret med statusen tidligere.
-     * Erstattet av [FOR_SENT_Å_KORRIGERE] og [KAN_IKKE_KORRIGERES_AUTOMATISK].
+     * Erstattet av [FOR_SENT_Å_KORRIGERE], [TIDLIGERE_BEHANDLET_MANUELT] og [NYERE_INNSENDING_ER_BEHANDLET].
      */
-    @Deprecated("Ikke lenger i bruk, men beholdes for historikken. Bruk FOR_SENT_Å_KORRIGERE eller KAN_IKKE_KORRIGERES_AUTOMATISK.")
+    @Deprecated("Ikke lenger i bruk, men beholdes for historikken. Bruk FOR_SENT_Å_KORRIGERE, TIDLIGERE_BEHANDLET_MANUELT eller NYERE_INNSENDING_ER_BEHANDLET.")
     ALLEREDE_BEHANDLET(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
 
     /** Korrigeringen fra bruker kom etter fristen for automatisk korrigering. */
     FOR_SENT_Å_KORRIGERE(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
 
-    /**
-     * Korrigeringen fra bruker kan ikke behandles automatisk uavhengig av fristen.
-     * Det gjelder når en tidligere behandling av meldeperioden var manuell, gjaldt en annen versjon av meldeperioden, eller behandlet en innsending mottatt etter korrigeringen.
-     */
-    KAN_IKKE_KORRIGERES_AUTOMATISK(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
+    /** Korrigeringen fra bruker kan ikke behandles automatisk, fordi en tidligere behandling av meldeperioden ble gjort manuelt. */
+    TIDLIGERE_BEHANDLET_MANUELT(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
+
+    /** Korrigeringen fra bruker kan ikke behandles automatisk, fordi en innsending for meldeperioden som er mottatt samtidig eller senere allerede er behandlet. */
+    NYERE_INNSENDING_ER_BEHANDLET(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
 
     ER_UNDER_REVURDERING(loggnivå = Level.INFO, kanPrøvesPåNytt = true),
     FOR_MANGE_DAGER_GODKJENT_FRAVÆR(loggnivå = Level.INFO, kanPrøvesPåNytt = false),

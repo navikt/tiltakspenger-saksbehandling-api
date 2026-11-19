@@ -62,7 +62,8 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
 }
 
 /**
- * En korrigering fra bruker kan behandles automatisk dersom alle tidligere behandlinger av kjeden ble behandlet automatisk på samme versjon av meldeperioden, og korrigeringen er mottatt etter innsendingene de behandlet.
+ * En korrigering fra bruker kan behandles automatisk dersom alle tidligere behandlinger av kjeden ble behandlet automatisk, og korrigeringen er mottatt etter innsendingene de behandlet.
+ * Det er ikke et krav at de tidligere behandlingene gjaldt samme versjon av meldeperioden.
  * Korrigeringen må i tillegg behandles før det er 10 minutter igjen til stengetid neste virkedag etter at første behandling av kjeden ble iverksatt, se [Åpningstider.nesteVirkedag].
  * Fristen sparer oss for simuleringer som uansett ville vist at utbetalingen er utbetalt.
  * Om utbetalingen faktisk er utbetalt, avgjøres av simuleringen, se [no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering.harTidligereUtbetaling].
@@ -74,16 +75,11 @@ private fun validerKanKorrigeresAutomatisk(
     clock: Clock,
 ): Either<MeldekortBehandletAutomatiskStatus, Unit> {
     val tidligereBehandlinger = behandledeMeldekort.map {
-        it as? MeldekortBehandletAutomatisk ?: return MeldekortBehandletAutomatiskStatus.KAN_IKKE_KORRIGERES_AUTOMATISK.left()
+        it as? MeldekortBehandletAutomatisk ?: return MeldekortBehandletAutomatiskStatus.TIDLIGERE_BEHANDLET_MANUELT.left()
     }
-    val stemmerMedTidligereInnsendinger = tidligereBehandlinger.all {
-        val tidligereInnsending = it.brukersMeldekort
-        tidligereInnsending.id != brukersMeldekort.id &&
-            tidligereInnsending.mottatt < brukersMeldekort.mottatt &&
-            tidligereInnsending.meldeperiode == brukersMeldekort.meldeperiode
-    }
-    if (!stemmerMedTidligereInnsendinger) {
-        return MeldekortBehandletAutomatiskStatus.KAN_IKKE_KORRIGERES_AUTOMATISK.left()
+    // Fanger også at korrigeringen selv er behandlet, siden den da har samme mottatt-tidspunkt som den behandlede innsendingen.
+    if (tidligereBehandlinger.any { it.brukersMeldekort.mottatt >= brukersMeldekort.mottatt }) {
+        return MeldekortBehandletAutomatiskStatus.NYERE_INNSENDING_ER_BEHANDLET.left()
     }
 
     val førsteIverksettelse = tidligereBehandlinger.minOf { it.iverksattTidspunkt }
