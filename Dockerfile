@@ -1,7 +1,7 @@
 # Chainguard-image fra Navs speil: https://sikkerhet.nav.no/docs/verktoy/chainguard-dockerimages/
 # Bevisst uten digest: Chainguard backporter ikke fikser til eldre patch-versjoner, og Dependabot når ikke speilet.
 # Major-taggen gir nyeste bygg av Java 25 ved hvert image-bygg.
-FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jre:openjdk-25
+FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jre:openjdk-27
 
 ENV TZ='Europe/Oslo'
 ENV LC_ALL='nb_NO.UTF-8'
