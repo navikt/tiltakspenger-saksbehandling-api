@@ -94,7 +94,7 @@ class JournalførRammevedtakService(
                                 tidligereInnvilgelse = if (Avslagsgrunnlag.InnvilgetTiltakspenger in resultat.avslagsgrunner) {
                                     sakService.hentForSakId(vedtak.sakId).rammevedtaksliste
                                         .opprettetFør(tidspunkt = vedtak.opprettet)
-                                        .gjeldendeInnvilgelseForPeriode(vedtak.periode)
+                                        .innvilgelseMedNøyaktigPeriode(vedtak.periode)
                                 } else {
                                     null
                                 },

@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.json.lesTre
@@ -19,7 +18,6 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
@@ -234,37 +232,6 @@ class BrevSøknadAvslagDTOTest {
         }
     }
 
-    /**
-     * Barnetillegget gjelder bare mars, mens den gjeldende delen av innvilgelsen er januar.
-     * Brevet skal ikke si «og barnetillegg» for en del av vedtaket som ikke lenger gjelder.
-     */
-    @Test
-    fun `harBarnetillegg ser bare på barnetillegg innenfor den gjeldende perioden`() {
-        runTest {
-            val vedtaksperiode = 1.januar(2025) til 31.mars(2025)
-            val tidligereInnvilgelse = tidligereInnvilgelse(
-                periode = 1.januar(2025) til 31.januar(2025),
-                vedtaksperiode = vedtaksperiode,
-                barnetillegg = ObjectMother.barnetillegg(
-                    periodiseringAntallBarn = listOf(
-                        PeriodeMedVerdi(AntallBarn.ZERO, 1.januar(2025) til 28.februar(2025)),
-                        PeriodeMedVerdi(AntallBarn(1), 1.mars(2025) til 31.mars(2025)),
-                    ).tilIkkeTomPeriodisering(),
-                ),
-            )
-            // Forutsetning: vedtaket har barnetillegg, ellers beviser testen ingenting.
-            tidligereInnvilgelse.verdi.barnetilleggsperioder!!.any { it.verdi.value > 0 } shouldBe true
-
-            genererBrevJson(
-                avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.InnvilgetTiltakspenger),
-                harSøktBarnetillegg = false,
-                tidligereInnvilgelse = tidligereInnvilgelse,
-            ).also { avslagBrevJson ->
-                avslagBrevJson.get("tidligereInnvilgelse").get("harBarnetillegg").booleanValue() shouldBe false
-            }
-        }
-    }
-
     private suspend fun genererBrevJson(
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
         harSøktBarnetillegg: Boolean,
@@ -281,25 +248,24 @@ class BrevSøknadAvslagDTOTest {
             saksnummer = Saksnummer.genererSaknummer(LocalDate.now(fixedClock), "2000"),
             forhåndsvisning = true,
             harSøktBarnetillegg = harSøktBarnetillegg,
-            avslagsperiode = ObjectMother.vedtaksperiode(),
+            avslagsperiode = tidligereInnvilgelse?.periode ?: ObjectMother.vedtaksperiode(),
             tidligereInnvilgelse = tidligereInnvilgelse,
             datoForUtsending = LocalDate.now(fixedClock),
         ),
     )
 
     /**
-     * Bygger en tidligere innvilgelse slik [no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste.gjeldendeInnvilgelseForPeriode] gir den.
-     * [periode] er den gjeldende delen av vedtaket, og [vedtaksperiode] er hele vedtaket.
-     * Uten barnetillegg har vedtaket null barn i hele [vedtaksperiode].
+     * Bygger en tidligere innvilgelse slik [no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste.innvilgelseMedNøyaktigPeriode] gir den.
+     * [periode] er hele perioden i vedtaket.
+     * Uten barnetillegg har vedtaket null barn i hele [periode].
      */
     private fun tidligereInnvilgelse(
         periode: Periode = 1.januar(2025) til 31.mars(2025),
-        vedtaksperiode: Periode = periode,
         vedtaksdato: LocalDate? = 2.januar(2025),
-        barnetillegg: Barnetillegg = ObjectMother.barnetillegg(periode = vedtaksperiode, antallBarn = AntallBarn.ZERO),
+        barnetillegg: Barnetillegg = ObjectMother.barnetillegg(periode = periode, antallBarn = AntallBarn.ZERO),
     ): PeriodeMedVerdi<Rammevedtak> {
         val behandling = ObjectMother.nyVedtattSøknadsbehandling(
-            saksopplysningsperiode = vedtaksperiode,
+            saksopplysningsperiode = periode,
             barnetillegg = barnetillegg,
         )
         val vedtak = ObjectMother.nyRammevedtakInnvilgelse(

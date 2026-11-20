@@ -314,7 +314,7 @@ class ForhåndsvisRammevedtaksbrevService(
             harSøktBarnetillegg = behandling.søknad.barnetillegg.isNotEmpty(),
             datoForUtsending = LocalDate.now(clock),
             tidligereInnvilgelse = if (Avslagsgrunnlag.InnvilgetTiltakspenger in kommando.avslagsgrunner) {
-                sak.rammevedtaksliste.gjeldendeInnvilgelseForPeriode(avslagsperiode)
+                sak.rammevedtaksliste.innvilgelseMedNøyaktigPeriode(avslagsperiode)
             } else {
                 null
             },

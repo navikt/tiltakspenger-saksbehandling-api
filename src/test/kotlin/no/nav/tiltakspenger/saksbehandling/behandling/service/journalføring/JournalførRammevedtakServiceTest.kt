@@ -81,9 +81,8 @@ class JournalførRammevedtakServiceTest {
                 stansFraOgMed = 1.februar(2025),
                 jobber = utenJournalføring,
             )
-            // Forutsetning: i nåtilstanden gjelder bare januar, så uten opprettetFør ville brevet fått feil periode.
-            sakEtterStans.rammevedtaksliste.gjeldendeInnvilgelseForPeriode(avslag.periode)?.periode shouldBe
-                (1.januar(2025) til 31.januar(2025))
+            // Forutsetning: i nåtilstanden gjelder bare januar, så uten opprettetFør ville brevet ikke blitt forhåndsutfylt.
+            sakEtterStans.rammevedtaksliste.innvilgelseMedNøyaktigPeriode(avslag.periode) shouldBe null
 
             tac.behandlingContext.journalførRammevedtaksbrevService.journalfør()
 

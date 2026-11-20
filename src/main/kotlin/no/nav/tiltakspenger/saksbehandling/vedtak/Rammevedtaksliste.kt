@@ -150,8 +150,18 @@ data class Rammevedtaksliste(
         return innvilgelsesperioder.hentVerdiForDag(dato) != null
     }
 
-    fun gjeldendeInnvilgelseForPeriode(periode: Periode): PeriodeMedVerdi<Rammevedtak>? {
-        return innvilgetTidslinje.filter { it.periode.overlapperMed(periode) }.singleOrNull()
+    /**
+     * Innslaget i [innvilgetTidslinje] når [nySøknadsperiode] er lik hele perioden i ett innvilget vedtak, ellers null.
+     * Brukes til å forhåndsutfylle avslagsbrevet når brukeren allerede er innvilget tiltakspenger for perioden det søkes om.
+     * Innslaget må dekke hele vedtaket, så et vedtak med opphold, eller et vedtak som er stanset eller opphørt for en del av perioden, gir null.
+     * Det samme gjelder når søknaden dekker flere vedtak, eller bare delvis overlapper ett vedtak.
+     * Da skriver saksbehandler innvilgelsen i fritekst (avklart med fag).
+     */
+    fun innvilgelseMedNøyaktigPeriode(nySøknadsperiode: Periode): PeriodeMedVerdi<Rammevedtak>? {
+        return innvilgetTidslinje.filter { (rammevedtak, periode) ->
+            periode == nySøknadsperiode &&
+                rammevedtak.innvilgelsesperioder?.totalPeriode == nySøknadsperiode
+        }.singleOrNull()
     }
 
     fun harInnvilgetTiltakspengerEtterDato(dato: LocalDate): Boolean {
