@@ -31,6 +31,8 @@ data class Tiltakshistorikkinnslag(
     }
 
     val førteTilBehandlingEllerOppgave: Boolean = behandlingId != null || oppgaveId != null
+
+    val harRelevantEndring: Boolean = endring?.erRelevant == true
 }
 
 /**

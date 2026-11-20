@@ -12,6 +12,19 @@ sealed interface TiltaksdeltakerEndring {
     /** Beskrivelsene av endringene, i den rekkefølgen de vises i oppgaveteksten. */
     val beskrivelser: List<String>
 
+    /** Om endringen kan påvirke saken og krever oppfølging. */
+    val erRelevant: Boolean
+        get() = when (this) {
+            AvsluttetSomForventet -> false
+
+            AvbruttDeltakelse,
+            IkkeAktuellDeltakelse,
+            is Forlengelse,
+            is Avkortet,
+            is AndreEndringer,
+            -> true
+        }
+
     data object AvsluttetSomForventet : TiltaksdeltakerEndring {
         override val beskrivelser = listOf("Deltakelsen er avsluttet som forventet")
     }

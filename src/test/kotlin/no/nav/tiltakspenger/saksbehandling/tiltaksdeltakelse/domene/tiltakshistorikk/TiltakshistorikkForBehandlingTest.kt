@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -15,6 +16,7 @@ class TiltakshistorikkForBehandlingTest {
     private fun Rammebehandling.innslag(
         innhentet: LocalDateTime,
         tiltaksdeltakerId: TiltaksdeltakerId = saksopplysninger.tiltaksdeltakelser.single().internDeltakelseId,
+        endring: TiltaksdeltakerEndring? = TiltaksdeltakerEndring.AvbruttDeltakelse,
         behandlingId: RammebehandlingId? = null,
     ): Tiltakshistorikkinnslag {
         val deltakelse = saksopplysninger.tiltaksdeltakelser.single()
@@ -25,17 +27,17 @@ class TiltakshistorikkForBehandlingTest {
             eksternDeltakerId = deltakelse.eksternDeltakelseId,
             innhentet = innhentet,
             verdi = deltakelse.tilLibsDeltakelse(),
-            endring = null,
+            endring = endring,
             behandlingId = behandlingId,
             oppgaveId = null,
         )
     }
 
     @Test
-    fun `tar med innslag for behandlingens deltakelser fra den ble opprettet, og varsler om innslag etter at den sist ble endret`() {
+    fun `tar med innslag for behandlingens deltakelser fra den ble opprettet, og varsler om relevante endringer etter at den sist ble endret`() {
         val behandling = ObjectMother.nyOpprettetSøknadsbehandling()
         val førOpprettet = behandling.innslag(behandling.opprettet.minusSeconds(1))
-        val vedOpprettet = behandling.innslag(behandling.opprettet)
+        val vedOpprettet = behandling.innslag(behandling.opprettet, endring = null)
         val annenDeltaker = behandling.innslag(behandling.sistEndret.plusSeconds(1), tiltaksdeltakerId = TiltaksdeltakerId.random())
         val etterSistEndret = behandling.innslag(behandling.sistEndret.plusSeconds(2))
 
@@ -46,6 +48,21 @@ class TiltakshistorikkForBehandlingTest {
             utløsendeInnslag = null,
             harEndringEtterSistEndret = true,
         )
+    }
+
+    @Test
+    fun `varsler ikke om innslag etter siste endring uten relevante endringer`() {
+        val behandling = ObjectMother.nyOpprettetSøknadsbehandling()
+        val utenEndring = behandling.innslag(behandling.sistEndret.plusSeconds(1), endring = null)
+        val avsluttetSomForventet = behandling.innslag(
+            behandling.sistEndret.plusSeconds(2),
+            endring = TiltaksdeltakerEndring.AvsluttetSomForventet,
+        )
+
+        val historikk = listOf(utenEndring, avsluttetSomForventet).forBehandling(behandling)
+
+        historikk.innslag shouldBe listOf(utenEndring, avsluttetSomForventet)
+        historikk.harEndringEtterSistEndret shouldBe false
     }
 
     @Test

@@ -561,12 +561,24 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
 
     @Test
     @IsolatedDatabaseTest
-    fun `behandling under behandling varsler om tiltakshistorikk innhentet etter at den sist ble endret`() {
+    fun `behandling under behandling varsler kun ved relevante endringer etter at den sist ble endret`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, deltakelse) = opprettInnvilgetSak(tac)
             val (_, revurdering) = startRevurderingInnvilgelse(tac, sak.id).shouldNotBeNull()
 
             hentTiltakshistorikk(tac, sak, revurdering.id).getBoolean("harEndringEtterSistEndret") shouldBe false
+
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(typeNavn = "Nytt navn"))
+            tac.registrerEndring(sak, deltakelse)
+            tac.jobb().håndterUbehandledeEndringer()
+
+            hentTiltakshistorikk(tac, sak, revurdering.id).also { historikk ->
+                historikk.getBoolean("harEndringEtterSistEndret") shouldBe false
+                val innslag = historikk.getJSONArray("innslag")
+                innslag.length() shouldBe 1
+                innslag.getJSONObject(0).getJSONArray("endringer").length() shouldBe 0
+                innslag.getJSONObject(0).getJSONObject("verdi").getString("tiltakstypenavn") shouldBe "Nytt navn"
+            }
 
             tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.medPeriode(tilOgMed = 5.juni(2025)))
             tac.registrerEndring(sak, deltakelse)
@@ -575,9 +587,10 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
             hentTiltakshistorikk(tac, sak, revurdering.id).also { historikk ->
                 historikk.getBoolean("harEndringEtterSistEndret") shouldBe true
                 val innslag = historikk.getJSONArray("innslag")
-                innslag.length() shouldBe 1
-                innslag.getJSONObject(0).getBoolean("utløsteBehandlingen") shouldBe false
-                innslag.getJSONObject(0).getJSONObject("periode").getString("tilOgMed") shouldBe "2025-06-05"
+                innslag.length() shouldBe 2
+                innslag.getJSONObject(1).getBoolean("utløsteBehandlingen") shouldBe false
+                innslag.getJSONObject(1).getJSONObject("periode").getString("tilOgMed") shouldBe "2025-06-05"
+                innslag.getJSONObject(1).getJSONObject("verdi").getString("tilOgMed") shouldBe "2025-06-05"
             }
         }
     }

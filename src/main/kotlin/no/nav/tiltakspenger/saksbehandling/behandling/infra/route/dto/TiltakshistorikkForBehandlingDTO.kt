@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import no.nav.tiltakspenger.libs.tid.zoneIdOslo
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kometstatus
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.felles.lukketEllerÅpenPeriode
 import no.nav.tiltakspenger.saksbehandling.infra.route.toÅpenPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.ÅpenPeriodeDTO
@@ -12,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilTilta
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltakDeltakerstatusDto
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.toDto
 import java.time.Clock
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class TiltakshistorikkForBehandlingDTO(
@@ -22,7 +24,9 @@ data class TiltakshistorikkForBehandlingDTO(
 /**
  * [deltakelseStatus] er statusen tolket slik den ville blitt tolket da innslaget ble innhentet, og er null når vi ikke kjenner igjen statusen fra kilden.
  * [kildestatus] er statuskoden slik den står i kontrakten med kilden.
+ * [endringer] inneholder kun relevante endringer som kan påvirke saken, og er tom ved uendret tilstand eller forventet avslutning.
  * [utløsteBehandlingen] er true for innslaget som førte til at behandlingen ble opprettet automatisk.
+ * [verdi] er alle feltene i nå-tilstanden slik de er lagret i tiltakshistorikken.
  */
 data class TiltakshistorikkinnslagDTO(
     val id: String,
@@ -41,7 +45,29 @@ data class TiltakshistorikkinnslagDTO(
     val utløsteBehandlingen: Boolean,
     val behandlingId: String?,
     val oppgaveId: String?,
+    val verdi: TiltakshistorikkVerdiDTO,
 )
+
+data class TiltakshistorikkVerdiDTO(
+    val eksternDeltakelseId: String,
+    val gjennomføringId: String?,
+    val tiltakstype: String,
+    val tiltakstypenavn: String,
+    val tiltakskodeFraKilden: String,
+    val fraOgMed: LocalDate?,
+    val tilOgMed: LocalDate?,
+    val kildestatus: KildestatusDTO,
+    val deltakelsesprosent: Float?,
+    val dagerPerUke: Float?,
+    val deltidsprosentPåGjennomføring: Float?,
+) {
+    data class KildestatusDTO(
+        val kilde: String,
+        val kodeIKontrakten: String,
+        val årsak: String?,
+        val opprettet: LocalDateTime?,
+    )
+}
 
 fun TiltakshistorikkForBehandling.tilDTO(): TiltakshistorikkForBehandlingDTO = TiltakshistorikkForBehandlingDTO(
     innslag = innslag.map { it.tilDTO(utløsteBehandlingen = it == utløsendeInnslag) },
@@ -69,9 +95,32 @@ private fun Tiltakshistorikkinnslag.tilDTO(utløsteBehandlingen: Boolean): Tilta
         antallDagerPerUke = verdi.omfang.dagerPerUke,
         gjennomforingsprosent = verdi.omfang.deltidsprosentPåGjennomføring,
         kilde = kildestatus.kilde.tilLokalKilde().name,
-        endringer = endring?.toDTO() ?: emptyList(),
+        endringer = endring?.takeIf { it.erRelevant }?.toDTO() ?: emptyList(),
         utløsteBehandlingen = utløsteBehandlingen,
         behandlingId = behandlingId?.toString(),
         oppgaveId = oppgaveId?.toString(),
+        verdi = verdi.tilVerdiDTO(),
+    )
+}
+
+private fun Tiltaksdeltakelse.GirRett.tilVerdiDTO(): TiltakshistorikkVerdiDTO {
+    val kometstatus = kildestatus as? Kometstatus
+    return TiltakshistorikkVerdiDTO(
+        eksternDeltakelseId = id.verdi,
+        gjennomføringId = gjennomføringId?.verdi,
+        tiltakstype = tiltakstype.name,
+        tiltakstypenavn = tiltakstypenavn,
+        tiltakskodeFraKilden = tiltakskodeFraKilden,
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
+        kildestatus = TiltakshistorikkVerdiDTO.KildestatusDTO(
+            kilde = kildestatus.kilde.tilLokalKilde().name,
+            kodeIKontrakten = kildestatus.kodeIKontrakten,
+            årsak = kometstatus?.årsak?.kodeIKontrakten,
+            opprettet = kometstatus?.opprettet,
+        ),
+        deltakelsesprosent = omfang.deltakelsesprosent,
+        dagerPerUke = omfang.dagerPerUke,
+        deltidsprosentPåGjennomføring = omfang.deltidsprosentPåGjennomføring,
     )
 }

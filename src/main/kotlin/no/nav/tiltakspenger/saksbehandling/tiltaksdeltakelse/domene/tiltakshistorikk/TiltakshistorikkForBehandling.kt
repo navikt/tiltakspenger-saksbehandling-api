@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 /**
  * Tiltakshistorikken som er relevant for en rammebehandling.
  * [utløsendeInnslag] er innslaget som førte til at behandlingen ble opprettet automatisk, dersom det finnes.
- * [harEndringEtterSistEndret] er true når vi har innhentet tiltakshistorikk etter at behandlingen sist ble endret, mens behandlingen fortsatt er åpen.
+ * [harEndringEtterSistEndret] er true når vi har innhentet tiltakshistorikk med relevante endringer etter at behandlingen sist ble endret, mens behandlingen fortsatt er åpen.
  */
 data class TiltakshistorikkForBehandling(
     val innslag: List<Tiltakshistorikkinnslag>,
@@ -38,7 +38,7 @@ fun List<Tiltakshistorikkinnslag>.forBehandling(behandling: Rammebehandling): Ti
     }.sortedBy { it.innhentet }
     // Det utløsende innslaget lagres etter at behandlingen er opprettet, og skal ikke regnes som en ny endring.
     val harEndringEtterSistEndret = behandling.status in statuserSomKanFåNyeEndringer &&
-        innslag.any { it != utløsende && it.innhentet.isAfter(behandling.sistEndret) }
+        innslag.any { it != utløsende && it.harRelevantEndring && it.innhentet.isAfter(behandling.sistEndret) }
     return TiltakshistorikkForBehandling(
         innslag = innslag,
         utløsendeInnslag = utløsende,
