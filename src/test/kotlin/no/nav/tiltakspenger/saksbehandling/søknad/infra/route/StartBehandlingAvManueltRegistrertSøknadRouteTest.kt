@@ -18,6 +18,10 @@ import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
+import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
+import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
+import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.fraOgMedDatoSpm
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.periodeSpm
@@ -32,6 +36,8 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.StartBehandlingAvManueltRegistrertSøknadRouteBuilder.JournalpostISaf
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 
 /**
  * Rundturen for en manuelt registrert søknad, gjennom prodstien.
@@ -400,6 +406,49 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
 
             tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
                 .søknader.none { it.journalpostId == "journalpost-uten-oppholdssted" } shouldBe true
+        }
+    }
+
+    /**
+     * Manuelt registrerte søknader (papir og andre kanaler) oppretter ingen Gosys-oppgave fra oss i dag, uansett adressebeskyttelse og skjerming.
+     * For papirsøknader oppretter tiltakspenger-journalposthendelser allerede en BEH_SAK-oppgave når journalposten kommer inn.
+     * Testen pinner dagens oppførsel.
+     */
+    @ParameterizedTest
+    @CsvSource(
+        "UGRADERT, false",
+        "FORTROLIG, false",
+        "STRENGT_FORTROLIG, false",
+        "STRENGT_FORTROLIG_UTLAND, false",
+        "UGRADERT, true",
+    )
+    fun `manuelt registrert søknad oppretter ingen Gosys-oppgave`(
+        adressebeskyttelse: Adressebeskyttelse,
+        skjermet: Boolean,
+    ) = runTest {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _) = opprettSakOgSøknad(tac)
+
+            // Samme oppsett som i DelautomatiskSoknadsbehandlingJobbTest, der beskyttede og skjermede søkere får NY_SOKNAD-oppgave.
+            // Tilgangsmaskin-faken er uavhengig av disse fakene, så saksbehandleren har fortsatt tilgang til saken.
+            (tac.personContext.personKlient as PersonFakeKlient).leggTilPersonopplysning(
+                sak.fnr,
+                ObjectMother.personopplysningKjedeligFyr(
+                    fnr = sak.fnr,
+                    adressebeskyttelse = adressebeskyttelse,
+                ),
+            )
+            (tac.personContext.fellesSkjermingsklient as FellesFakeSkjermingsklient).leggTil(sak.fnr, skjermet)
+
+            startBehandlingAvManueltRegistrertSøknad(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                journalpostId = "journalpost-uten-gosys-oppgave",
+            )
+
+            // opprettSakOgSøknad lager også en digital søknad, men jobben som oppretter oppgaver for den kjøres ikke i denne testen.
+            // Ingen oppgaver i faken betyr derfor at den manuelle flyten ikke har opprettet noen.
+            (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaveIder shouldBe emptyList()
         }
     }
 }

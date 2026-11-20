@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.time.Clock
@@ -206,6 +207,138 @@ class OppgaveHttpClientTest {
               "prioritet": "NORM"
             }
         """.trimIndent()
+    }
+
+    /*
+     * Karakteriseringstester: de pinner hva vi sender til oppgavetjenesten (backend for Gosys) i dag, slik at endringer for #94 ikke endrer dette ved et uhell.
+     *
+     * Felt i OpprettOppgaveRequest som ikke forklarer seg selv:
+     * - opprettetAvEnhetsnr "9999": betyr «opprettet automatisk av et system», ikke av et Nav-kontor.
+     * - journalpostId: kobler oppgaven til søknaden eller meldekortet i arkivet.
+     *   Bare NY_SOKNAD og NYTT_MELDEKORT har journalpost, de andre sender null.
+     * - tema "IND": temaet «Individstønad», som tiltakspenger hører til.
+     * - oppgavetype: BEH_SAK = «Behandle sak», VURD_HENV = «Vurder henvendelse», VUR_KONS_YTE = «Vurder konsekvens for ytelse».
+     * - fristFerdigstillelse: i dag + 3 dager, flyttet til mandag hvis den havner i en helg.
+     *   Med klokka 2025-05-01 (torsdag) blir fristen søndag 4. mai, som flyttes til mandag 5. mai.
+     *
+     * Vi setter ikke tildeltEnhetsnr eller mappeId.
+     * Da finner oppgavetjenesten selv riktig enhet ut fra personen, og det er derfor kode 6/7 og skjermede havner hos spesialenhetene.
+     */
+
+    @Test
+    fun `opprettOppgave - ny søknad - søker etter åpen BEH_SAK på journalposten og sender samme body som før`() {
+        val transport = FakeHttpTransport().apply {
+            // Første svar: duplikatsøket finner ingen åpne oppgaver.
+            leggIKøFinnOppgaveResponse()
+            // Andre svar: oppgavetjenesten har opprettet oppgaven.
+            leggIKøJson(OpprettOppgaveResponse(id = 42), statusCode = 201)
+        }
+        val clock = fixedClockAt(LocalDateTime.of(2025, 5, 1, 12, 0))
+
+        runTest {
+            client(transport, clock).opprettOppgave(fnr, journalpostId, Oppgavebehov.NY_SOKNAD) shouldBe OppgaveId("42").right()
+        }
+
+        transport.mottatteKall.also { (finnKall, opprettKall) ->
+            // Duplikatsøket: finnes det allerede en åpen BEH_SAK-oppgave på denne journalposten?
+            // statuskategori=AAPEN betyr at bare oppgaver som ikke er ferdigstilt eller feilregistrert regnes som duplikat.
+            finnKall.metode shouldBe "GET"
+            finnKall.uri.toString() shouldBe
+                "$baseUrl/api/v1/oppgaver?tema=IND&oppgavetype=BEH_SAK&journalpostId=$journalpostId&statuskategori=AAPEN"
+
+            opprettKall.metode shouldBe "POST"
+            opprettKall.uri.toString() shouldBe "$baseUrl/api/v1/oppgaver"
+            opprettKall.bodyTekst.shouldNotBeNull() shouldEqualJson """
+                {
+                  "personident": "${fnr.verdi}",
+                  "opprettetAvEnhetsnr": "9999",
+                  "journalpostId": "$journalpostId",
+                  "behandlesAvApplikasjon": null,
+                  "beskrivelse": "Ny søknad om tiltakspenger. Behandles i ny løsning.",
+                  "tema": "IND",
+                  "oppgavetype": "BEH_SAK",
+                  "aktivDato": "2025-05-01",
+                  "fristFerdigstillelse": "2025-05-05",
+                  "prioritet": "NORM"
+                }
+            """.trimIndent()
+        }
+    }
+
+    @Test
+    fun `opprettOppgave - nytt meldekort - sender samme body som før`() {
+        val transport = FakeHttpTransport().apply {
+            leggIKøFinnOppgaveResponse()
+            leggIKøJson(OpprettOppgaveResponse(id = 42), statusCode = 201)
+        }
+        val clock = fixedClockAt(LocalDateTime.of(2025, 5, 1, 12, 0))
+
+        runTest {
+            client(transport, clock).opprettOppgave(fnr, journalpostId, Oppgavebehov.NYTT_MELDEKORT) shouldBe OppgaveId("42").right()
+        }
+
+        // Duplikatsøket for meldekort er allerede pinnet i `opprettOppgave - ingen eksisterende oppgave - søker og oppretter`.
+        // Her holder det å pinne opprettelsen.
+        transport.mottatteKall.also { (_, opprettKall) ->
+            opprettKall.metode shouldBe "POST"
+            opprettKall.uri.toString() shouldBe "$baseUrl/api/v1/oppgaver"
+            // Meldekort er en «henvendelse» i Gosys-språk, ikke en sak, derfor VURD_HENV og ikke BEH_SAK som for søknaden.
+            opprettKall.bodyTekst.shouldNotBeNull() shouldEqualJson """
+                {
+                  "personident": "${fnr.verdi}",
+                  "opprettetAvEnhetsnr": "9999",
+                  "journalpostId": "$journalpostId",
+                  "behandlesAvApplikasjon": null,
+                  "beskrivelse": "Nytt meldekort for tiltakspenger. Behandles i ny løsning.",
+                  "tema": "IND",
+                  "oppgavetype": "VURD_HENV",
+                  "aktivDato": "2025-05-01",
+                  "fristFerdigstillelse": "2025-05-05",
+                  "prioritet": "NORM"
+                }
+            """.trimIndent()
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "FATT_BARN, VUR_KONS_YTE, 'Mottaker av tiltakspenger har fått barn. Dette kan påvirke tiltakspengeytelsen.'",
+        "DOED, VUR_KONS_YTE, 'Mottaker av tiltakspenger er registrert som død.'",
+        "ADRESSEBESKYTTELSE, BEH_SAK, 'Mottaker av tiltakspenger har fått strengt fortrolig adresse og har en åpen tiltakspengesak som må følges opp i ny løsning.'",
+    )
+    fun `opprettOppgaveUtenDuplikatkontroll - personhendelse - sender samme body som før`(
+        behov: Oppgavebehov,
+        oppgavetype: String,
+        beskrivelse: String,
+    ) {
+        // Personhendelser (fra PDL via PersonhendelseJobb) har ingen journalpost, og vi sjekker ikke duplikater mot oppgavetjenesten.
+        // Duplikater unngås i stedet ved at oppgaveId lagres på personhendelsen i vår database.
+        val transport = FakeHttpTransport().apply { leggIKøJson(OpprettOppgaveResponse(id = 42), statusCode = 201) }
+        val clock = fixedClockAt(LocalDateTime.of(2025, 5, 1, 12, 0))
+
+        runTest {
+            client(transport, clock).opprettOppgaveUtenDuplikatkontroll(fnr, behov) shouldBe OppgaveId("42").right()
+        }
+
+        // Oppgavetype og beskrivelse varierer med behov og kommer inn som parametere fra CsvSource.
+        transport.mottatteKall.single().also { kall ->
+            kall.metode shouldBe "POST"
+            kall.uri.toString() shouldBe "$baseUrl/api/v1/oppgaver"
+            kall.bodyTekst.shouldNotBeNull() shouldEqualJson """
+                {
+                  "personident": "${fnr.verdi}",
+                  "opprettetAvEnhetsnr": "9999",
+                  "journalpostId": null,
+                  "behandlesAvApplikasjon": null,
+                  "beskrivelse": ${serialize(beskrivelse)},
+                  "tema": "IND",
+                  "oppgavetype": "$oppgavetype",
+                  "aktivDato": "2025-05-01",
+                  "fristFerdigstillelse": "2025-05-05",
+                  "prioritet": "NORM"
+                }
+            """.trimIndent()
+        }
     }
 
     @Test

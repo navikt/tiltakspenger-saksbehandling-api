@@ -19,9 +19,16 @@ class OppgaveFakeKlient(
 ) : OppgaveKlient {
     private val opprettedeUtenDuplikatkontroll = Atomic(mutableListOf<OppgaveUtenDuplikatkontroll>())
     private val oppgaverMedJournalpost = ConcurrentHashMap<Pair<JournalpostId, Oppgavebehov>, OppgaveId>()
+    private val opprettedeMedJournalpost = CopyOnWriteArrayList<OppgaveMedJournalpost>()
     private val oppgaveIder = CopyOnWriteArrayList<OppgaveId>()
 
     val opprettedeOppgaveIder: List<OppgaveId> get() = oppgaveIder.toList()
+
+    /**
+     * Oppgavene opprettet med duplikatkontroll, i rekkefølge.
+     * Et kall som treffer en eksisterende oppgave på samme journalpost og oppgavebehov, gir ingen ny oppføring, slik som hos oppgavetjenesten.
+     */
+    val opprettedeOppgaverMedJournalpost: List<OppgaveMedJournalpost> get() = opprettedeMedJournalpost.toList()
 
     var opprettOppgaveResponse: Either<HttpKlientError, OppgaveId>? = null
     var opprettOppgaveUtenDuplikatkontrollResponse: Either<HttpKlientError, OppgaveId>? = null
@@ -33,6 +40,7 @@ class OppgaveFakeKlient(
     override suspend fun opprettOppgave(fnr: Fnr, journalpostId: JournalpostId, oppgavebehov: Oppgavebehov): Either<HttpKlientError, OppgaveId> {
         opprettOppgaveResponse?.let { return it }
         return oppgaverMedJournalpost.computeIfAbsent(journalpostId to oppgavebehov) {
+            opprettedeMedJournalpost.add(OppgaveMedJournalpost(fnr, journalpostId, oppgavebehov))
             genererOppgaveId().also { oppgaveIder.add(it) }
         }.right()
     }
@@ -55,6 +63,12 @@ class OppgaveFakeKlient(
         return erFerdigstiltResponse.right()
     }
 }
+
+data class OppgaveMedJournalpost(
+    val fnr: Fnr,
+    val journalpostId: JournalpostId,
+    val oppgavebehov: Oppgavebehov,
+)
 
 private data class OppgaveUtenDuplikatkontroll(
     val fnr: Fnr,
