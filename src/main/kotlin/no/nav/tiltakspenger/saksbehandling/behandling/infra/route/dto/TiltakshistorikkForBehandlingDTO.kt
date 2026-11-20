@@ -25,6 +25,7 @@ data class TiltakshistorikkForBehandlingDTO(
  * [deltakelseStatus] er statusen tolket slik den ville blitt tolket da innslaget ble innhentet, og er null når vi ikke kjenner igjen statusen fra kilden.
  * [kildestatus] er statuskoden slik den står i kontrakten med kilden.
  * [endringer] inneholder kun relevante endringer som kan påvirke saken, og er tom ved uendret tilstand eller forventet avslutning.
+ * [harRelevantEndring] er true når innslaget inneholder endringer som kan påvirke saken.
  * [utløsteBehandlingen] er true for innslaget som førte til at behandlingen ble opprettet automatisk.
  * [verdi] er alle feltene i nå-tilstanden slik de er lagret i tiltakshistorikken.
  */
@@ -42,6 +43,7 @@ data class TiltakshistorikkinnslagDTO(
     val gjennomforingsprosent: Float?,
     val kilde: String,
     val endringer: List<TiltaksdeltakerEndringDTO>,
+    val harRelevantEndring: Boolean,
     val utløsteBehandlingen: Boolean,
     val behandlingId: String?,
     val oppgaveId: String?,
@@ -95,7 +97,8 @@ private fun Tiltakshistorikkinnslag.tilDTO(utløsteBehandlingen: Boolean): Tilta
         antallDagerPerUke = verdi.omfang.dagerPerUke,
         gjennomforingsprosent = verdi.omfang.deltidsprosentPåGjennomføring,
         kilde = kildestatus.kilde.tilLokalKilde().name,
-        endringer = endring?.takeIf { it.erRelevant }?.toDTO() ?: emptyList(),
+        endringer = if (harRelevantEndring) endring?.toDTO().orEmpty() else emptyList(),
+        harRelevantEndring = harRelevantEndring,
         utløsteBehandlingen = utløsteBehandlingen,
         behandlingId = behandlingId?.toString(),
         oppgaveId = oppgaveId?.toString(),

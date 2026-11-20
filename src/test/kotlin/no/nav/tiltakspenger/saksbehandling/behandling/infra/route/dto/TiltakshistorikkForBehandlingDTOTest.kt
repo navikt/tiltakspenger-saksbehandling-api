@@ -106,12 +106,17 @@ class TiltakshistorikkForBehandlingDTOTest {
     }
 
     @Test
-    fun `avsluttet som forventet tas ikke med som relevant endring i DTO-en`() {
+    fun `harRelevantEndring er kun true for endringer som kan påvirke saken`() {
         val verdi = testdeltakelse(id = "komet-1") as Tiltaksdeltakelse.GirRett
+        val utenEndring = tilDTO(innslag(verdi = verdi, endring = null))
         val avsluttetSomForventet = tilDTO(innslag(verdi = verdi, endring = TiltaksdeltakerEndring.AvsluttetSomForventet))
         val avbrutt = tilDTO(innslag(verdi = verdi, endring = TiltaksdeltakerEndring.AvbruttDeltakelse))
 
+        utenEndring.harRelevantEndring shouldBe false
+        utenEndring.endringer shouldBe emptyList()
+        avsluttetSomForventet.harRelevantEndring shouldBe false
         avsluttetSomForventet.endringer shouldBe emptyList()
+        avbrutt.harRelevantEndring shouldBe true
         avbrutt.endringer shouldBe listOf(TiltaksdeltakerEndringDTO.AvbruttDeltakelse)
     }
 

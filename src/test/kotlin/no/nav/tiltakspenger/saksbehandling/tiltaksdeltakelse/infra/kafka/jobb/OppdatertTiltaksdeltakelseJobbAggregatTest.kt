@@ -576,6 +576,7 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
                 historikk.getBoolean("harEndringEtterSistEndret") shouldBe false
                 val innslag = historikk.getJSONArray("innslag")
                 innslag.length() shouldBe 1
+                innslag.getJSONObject(0).getBoolean("harRelevantEndring") shouldBe false
                 innslag.getJSONObject(0).getJSONArray("endringer").length() shouldBe 0
                 innslag.getJSONObject(0).getJSONObject("verdi").getString("tiltakstypenavn") shouldBe "Nytt navn"
             }
@@ -588,6 +589,7 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
                 historikk.getBoolean("harEndringEtterSistEndret") shouldBe true
                 val innslag = historikk.getJSONArray("innslag")
                 innslag.length() shouldBe 2
+                innslag.getJSONObject(1).getBoolean("harRelevantEndring") shouldBe true
                 innslag.getJSONObject(1).getBoolean("utløsteBehandlingen") shouldBe false
                 innslag.getJSONObject(1).getJSONObject("periode").getString("tilOgMed") shouldBe "2025-06-05"
                 innslag.getJSONObject(1).getJSONObject("verdi").getString("tilOgMed") shouldBe "2025-06-05"
