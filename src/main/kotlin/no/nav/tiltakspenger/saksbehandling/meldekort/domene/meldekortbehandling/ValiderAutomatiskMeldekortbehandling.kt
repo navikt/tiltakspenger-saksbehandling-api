@@ -34,7 +34,12 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
     val behandledeMeldekort = this.meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId] ?: emptyList()
 
     if (behandledeMeldekort.isNotEmpty()) {
-        validerKanKorrigeresAutomatisk(behandledeMeldekort, brukersMeldekort, clock).onLeft { return it.left() }
+        validerKanKorrigeresAutomatisk(
+            behandledeMeldekort = behandledeMeldekort,
+            brukersMeldekort = brukersMeldekort,
+            erKorrigeringEtterEndretRett = erKorrigeringEtterEndretRett(brukersMeldekort),
+            clock = clock,
+        ).onLeft { return it.left() }
     }
 
     if (brukersMeldekort.harRegistrertHelg() && !this.kanSendeInnHelgForMeldekort) {
@@ -70,14 +75,16 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
  * Fristen sparer oss for simuleringer som uansett ville vist at utbetalingen er utbetalt.
  * Om utbetalingen faktisk er utbetalt, avgjøres av simuleringen, se [no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering.harTidligereUtbetaling].
  * Vi sjekker ikke utbetalingsstatusen, siden den kun forteller om Oppdrag har tatt imot utbetalingen og ikke om den er utbetalt.
+ * Fristen gjelder ikke en korrigering etter endret rett, se [erKorrigeringEtterEndretRett].
  */
 private fun validerKanKorrigeresAutomatisk(
     behandledeMeldekort: List<Meldekortbehandling.Behandlet>,
     brukersMeldekort: BrukersMeldekort,
+    erKorrigeringEtterEndretRett: Boolean,
     clock: Clock,
 ): Either<MeldekortBehandletAutomatiskStatus, Unit> {
     val førsteIverksettelse = behandledeMeldekort.mapNotNull { it.iverksattTidspunkt }.minOrNull()
-    if (førsteIverksettelse != null && !nå(clock).isBefore(fristForKorrigering(førsteIverksettelse))) {
+    if (!erKorrigeringEtterEndretRett && førsteIverksettelse != null && !nå(clock).isBefore(fristForKorrigering(førsteIverksettelse))) {
         return MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE.left()
     }
 
@@ -92,6 +99,28 @@ private fun validerKanKorrigeresAutomatisk(
     }
 
     return Unit.right()
+}
+
+/**
+ * Om meldekortet fra bruker korrigerer en meldeperiode som har fått en nyere versjon med flere dager med rett, eller nytt maks antall dager, siden forrige behandling av kjeden.
+ * Typisk fordi en revurdering har endret retten etter at meldeperioden ble behandlet, slik at bruker må kunne melde på nytt.
+ * En slik korrigering kan behandles automatisk etter [fristForKorrigering], og selv om simuleringen viser at meldeperioden allerede er utbetalt.
+ * De andre kravene til automatisk korrigering gjelder fortsatt, blant annet at simuleringen ikke kan vise feilutbetaling eller justering.
+ *
+ * @return false dersom kjeden ikke er behandlet før, slik at meldekortet ikke er en korrigering.
+ */
+fun Sak.erKorrigeringEtterEndretRett(brukersMeldekort: BrukersMeldekort): Boolean {
+    val kjedeId = brukersMeldekort.kjedeId
+    val forrigeMeldeperiode = meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId]
+        ?.last()
+        ?.meldeperioder
+        ?.single { it.kjedeId == kjedeId }
+        ?.meldeperiode
+        ?: return false
+    val meldeperiode = brukersMeldekort.meldeperiode
+
+    return meldeperiode.versjon > forrigeMeldeperiode.versjon &&
+        meldeperiode.harFlereDagerMedRettEllerNyttAntallDager(forrigeMeldeperiode)
 }
 
 /**

@@ -52,6 +52,15 @@ data class Meldeperiode(
             this.girRett == meldeperiode.girRett
     }
 
+    /**
+     * Om denne versjonen av meldeperioden gir rett på minst én dag som [forrige] ikke ga rett på, eller har et annet maks antall dager.
+     * Typisk fordi en revurdering har endret retten etter at [forrige] ble behandlet.
+     */
+    fun harFlereDagerMedRettEllerNyttAntallDager(forrige: Meldeperiode): Boolean {
+        return this.maksAntallDagerForMeldeperiode != forrige.maksAntallDagerForMeldeperiode ||
+            this.girRett.any { (dato, girRett) -> girRett && forrige.girRett[dato] != true }
+    }
+
     override fun compareTo(other: Meldeperiode): Int {
         require(!this.periode.overlapperMed(other.periode)) { "Meldeperiodene kan ikke overlappe" }
         return this.periode.fraOgMed.compareTo(other.periode.fraOgMed)
