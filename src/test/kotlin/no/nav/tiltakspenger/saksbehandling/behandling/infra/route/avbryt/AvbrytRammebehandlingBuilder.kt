@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.antallAutomatiskOpprettedeGrunner
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -52,6 +53,7 @@ interface AvbrytRammebehandlingBuilder {
 
     /**
      * Forventer at det allerede finnes en sak og en åpen rammebehandling under behanding.
+     * [antallVisteAutomatiskOpprettedeGrunner] er som standard antallet grunner behandlingen har, slik frontend sender det.
      */
     suspend fun ApplicationTestBuilder.avbrytRammebehandling(
         tac: TestApplicationContext,
@@ -75,7 +77,7 @@ interface AvbrytRammebehandlingBuilder {
                 {
                 "behandlingId": "$rammebehandlingId",
                 "begrunnelse": "$begrunnelse",
-                "antallVisteAutomatiskOpprettedeGrunner": $antallVisteAutomatiskOpprettedeGrunner
+                "antallVisteAutomatiskOpprettedeGrunner": ${antallVisteAutomatiskOpprettedeGrunner ?: tac.antallAutomatiskOpprettedeGrunner(rammebehandlingId)}
                 }
             """.trimIndent(),
         ).apply {

@@ -5,14 +5,17 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.infra.route.rammebehandlingJson
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettUbestemtRevurdering
@@ -194,6 +197,36 @@ class UbestemtRevurderingRouteTest {
                 antallVisteAutomatiskOpprettedeGrunner = 2,
             )!!
             avbrutt!!.status shouldBe Rammebehandlingsstatus.AVBRUTT
+        }
+    }
+
+    @Test
+    fun `konvertering og avbryting avvises når antallet viste grunner mangler`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, revurdering) = iverksettSøknadsbehandlingOgOpprettUbestemtRevurdering(tac)
+            taRammebehandlinger(tac, listOf(sak.id to revurdering.id))!!
+            val saksbehandler = ObjectMother.saksbehandler()
+            val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
+            tac.leggTilBruker(jwt, saksbehandler)
+            val forventet = ForventetRespons(status = 400, contentType = "application/json; charset=UTF-8")
+
+            defaultRequestWithAssertions(
+                HttpMethod.POST,
+                "/sak/${sak.id}/behandling/${revurdering.id}/konverter",
+                jwt = jwt,
+                forventet = forventet,
+                body = """{"revurderingType": "STANS"}""",
+            )
+            defaultRequestWithAssertions(
+                HttpMethod.POST,
+                "/sak/${sak.saksnummer}/avbryt-aktiv-behandling",
+                jwt = jwt,
+                forventet = forventet,
+                body = """{"behandlingId": "${revurdering.id}", "begrunnelse": "begrunnelse"}""",
+            )
+            val lagret = tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id) as Revurdering
+            lagret.resultat shouldBe Revurderingsresultat.Ubestemt
+            lagret.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
         }
     }
 

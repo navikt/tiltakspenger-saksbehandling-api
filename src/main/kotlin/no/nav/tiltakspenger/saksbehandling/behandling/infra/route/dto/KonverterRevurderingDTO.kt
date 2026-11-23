@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.konverter.Konverter
 data class KonverterRevurderingDTO(
     val revurderingType: StartRevurderingTypeDTO,
     val rammevedtakIdSomForlenges: String? = null,
-    val antallVisteAutomatiskOpprettedeGrunner: Int? = null,
+    val antallVisteAutomatiskOpprettedeGrunner: Int,
 ) {
     fun tilKommando(
         sakId: SakId,

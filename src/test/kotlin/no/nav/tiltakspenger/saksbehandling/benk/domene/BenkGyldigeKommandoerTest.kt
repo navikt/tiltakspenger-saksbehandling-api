@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.benk.domene
 
 import io.kotest.assertions.withClue
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
@@ -72,6 +73,32 @@ class BenkGyldigeKommandoerTest {
         }
     }
 
+    @Test
+    fun `avbryting tilbys aldri fra benken`() {
+        listOf(saksbehandler, beslutter).forEach { innlogget ->
+            listOf(
+                felles(),
+                felles(saksbehandler = innlogget.navIdent),
+                felles(beslutter = innlogget.navIdent),
+                felles(saksbehandler = innlogget.navIdent, erSattPåVent = true),
+            ).forEach { felles ->
+                BenkBehandlingsstatus.entries.forEach { status ->
+                    withClue("Roller: ${innlogget.roller}, status: $status") {
+                        søknadsbehandling(status, felles).finnGyldigeKommandoer(innlogget) shouldNotContain Avbryt
+                        BenkRevurdering(
+                            felles = felles,
+                            id = RammebehandlingId.random(),
+                            status = status,
+                            resultat = BenkRevurderingResultat.STANS,
+                            prioritering = null,
+                        ).finnGyldigeKommandoer(innlogget) shouldNotContain Avbryt
+                        meldekort(status, felles).finnGyldigeKommandoer(innlogget) shouldNotContain Avbryt
+                    }
+                }
+            }
+        }
+    }
+
     private fun felles(
         saksbehandler: String? = null,
         beslutter: String? = null,
@@ -132,23 +159,23 @@ class BenkGyldigeKommandoerTest {
     inner class Rammebehandlinger {
 
         @Test
-        fun `klar til behandling kan tildeles og avbrytes`() {
+        fun `klar til behandling kan tildeles`() {
             søknadsbehandling(BenkBehandlingsstatus.KLAR_TIL_BEHANDLING, felles())
-                .finnGyldigeKommandoer(saksbehandler) shouldBe listOf(TildelSaksbehandler, Avbryt)
+                .finnGyldigeKommandoer(saksbehandler) shouldBe listOf(TildelSaksbehandler)
         }
 
         @Test
         fun `klar til behandling kan ikke tildeles en ren beslutter`() {
             søknadsbehandling(BenkBehandlingsstatus.KLAR_TIL_BEHANDLING, felles())
-                .finnGyldigeKommandoer(beslutter) shouldBe listOf(Avbryt)
+                .finnGyldigeKommandoer(beslutter) shouldBe emptyList()
         }
 
         @Test
-        fun `under behandling kan legges tilbake, settes på vent og avbrytes av saksbehandleren på saken`() {
+        fun `under behandling kan legges tilbake og settes på vent av saksbehandleren på saken`() {
             søknadsbehandling(
                 BenkBehandlingsstatus.UNDER_BEHANDLING,
                 felles(saksbehandler = saksbehandler.navIdent),
-            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(Saksbehandle, LeggTilbakeSaksbehandler, SettPåVent, Avbryt)
+            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(Saksbehandle, LeggTilbakeSaksbehandler, SettPåVent)
         }
 
         @Test
@@ -156,7 +183,7 @@ class BenkGyldigeKommandoerTest {
             søknadsbehandling(
                 BenkBehandlingsstatus.UNDER_BEHANDLING,
                 felles(saksbehandler = "Z999999"),
-            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(OvertaSaksbehandler, Avbryt)
+            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(OvertaSaksbehandler)
         }
 
         @Test
@@ -168,19 +195,19 @@ class BenkGyldigeKommandoerTest {
         }
 
         @Test
-        fun `klar til beslutning kan ikke tildeles saksbehandleren på saken, men kan avbrytes av hen`() {
+        fun `klar til beslutning kan ikke tildeles saksbehandleren på saken, men kan angres av hen`() {
             søknadsbehandling(
                 BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
                 felles(saksbehandler = saksbehandler.navIdent),
-            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(AngreSendTilBeslutning, Avbryt)
+            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(AngreSendTilBeslutning)
         }
 
         @Test
-        fun `under beslutning kan legges tilbake, settes på vent og avbrytes av beslutteren på saken`() {
+        fun `under beslutning kan legges tilbake og settes på vent av beslutteren på saken`() {
             søknadsbehandling(
                 BenkBehandlingsstatus.UNDER_BESLUTNING,
                 felles(saksbehandler = "Z999999", beslutter = beslutter.navIdent),
-            ).finnGyldigeKommandoer(beslutter) shouldBe listOf(Beslutte, LeggTilbakeBeslutter, SettPåVent, Avbryt)
+            ).finnGyldigeKommandoer(beslutter) shouldBe listOf(Beslutte, LeggTilbakeBeslutter, SettPåVent)
         }
 
         @Test
@@ -196,7 +223,7 @@ class BenkGyldigeKommandoerTest {
             søknadsbehandling(
                 BenkBehandlingsstatus.UNDER_BEHANDLING,
                 felles(saksbehandler = saksbehandler.navIdent, erSattPåVent = true),
-            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(LeggTilbakeSaksbehandler, Gjenoppta, Avbryt)
+            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(LeggTilbakeSaksbehandler, Gjenoppta)
         }
 
         @Test
@@ -204,7 +231,7 @@ class BenkGyldigeKommandoerTest {
             søknadsbehandling(
                 BenkBehandlingsstatus.KLAR_TIL_BEHANDLING,
                 felles(erSattPåVent = true),
-            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(TildelSaksbehandler, OppdaterSettPåVent, Gjenoppta, Avbryt)
+            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(TildelSaksbehandler, OppdaterSettPåVent, Gjenoppta)
         }
 
         @Test
@@ -220,13 +247,13 @@ class BenkGyldigeKommandoerTest {
             søknadsbehandling(
                 BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
                 felles(saksbehandler = saksbehandler.navIdent, erSattPåVent = true),
-            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(Avbryt)
+            ).finnGyldigeKommandoer(saksbehandler) shouldBe emptyList()
         }
 
         @Test
-        fun `under automatisk behandling kan settes på vent og avbrytes`() {
+        fun `under automatisk behandling kan settes på vent`() {
             søknadsbehandling(BenkBehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING, felles())
-                .finnGyldigeKommandoer(saksbehandler) shouldBe listOf(SettPåVent, Avbryt)
+                .finnGyldigeKommandoer(saksbehandler) shouldBe listOf(SettPåVent)
         }
 
         @Test
@@ -302,19 +329,19 @@ class BenkGyldigeKommandoerTest {
         }
 
         @Test
-        fun `under behandling kan legges tilbake, settes på vent og avbrytes av saksbehandleren på saken`() {
+        fun `under behandling kan legges tilbake og settes på vent av saksbehandleren på saken`() {
             meldekort(
                 BenkBehandlingsstatus.UNDER_BEHANDLING,
                 felles(saksbehandler = saksbehandler.navIdent),
-            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(Saksbehandle, LeggTilbakeSaksbehandler, SettPåVent, Avbryt)
+            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(Saksbehandle, LeggTilbakeSaksbehandler, SettPåVent)
         }
 
         @Test
-        fun `klar til beslutning kan avbrytes og angres av saksbehandleren på saken`() {
+        fun `klar til beslutning kan angres av saksbehandleren på saken`() {
             meldekort(
                 BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
                 felles(saksbehandler = saksbehandler.navIdent),
-            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(Avbryt, AngreSendTilBeslutning)
+            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(AngreSendTilBeslutning)
         }
 
         @Test
@@ -363,7 +390,7 @@ class BenkGyldigeKommandoerTest {
             meldekort(
                 BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
                 felles(saksbehandler = saksbehandler.navIdent, erSattPåVent = true),
-            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(Avbryt, AngreSendTilBeslutning)
+            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(AngreSendTilBeslutning)
         }
     }
 

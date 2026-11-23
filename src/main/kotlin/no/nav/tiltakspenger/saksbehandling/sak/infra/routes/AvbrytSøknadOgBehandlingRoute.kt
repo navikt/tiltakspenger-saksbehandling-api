@@ -114,7 +114,7 @@ private fun KunneIkkeAvbryteBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCo
 data class AvsluttSøknadOgBehandlingBody(
     val behandlingId: String,
     val begrunnelse: String,
-    val antallVisteAutomatiskOpprettedeGrunner: Int? = null,
+    val antallVisteAutomatiskOpprettedeGrunner: Int,
 ) {
     fun tilKommando(
         saksnummer: Saksnummer,

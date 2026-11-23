@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.antallAutomatiskOpprettedeGrunner
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -22,6 +23,7 @@ interface KonverterRevurderingBuilder {
 
     /**
      * [revurderingType] er verdien til `StartRevurderingTypeDTO`, f.eks. `STANS` eller `REVURDERING_INNVILGELSE`.
+     * [antallVisteAutomatiskOpprettedeGrunner] er som standard antallet grunner revurderingen har, slik frontend sender det.
      * Returnerer null dersom responsen ikke er 200 OK.
      */
     suspend fun ApplicationTestBuilder.konverterRevurdering(
@@ -45,7 +47,9 @@ interface KonverterRevurderingBuilder {
                 mapOf(
                     "revurderingType" to revurderingType,
                     "rammevedtakIdSomForlenges" to rammevedtakIdSomForlenges?.toString(),
-                    "antallVisteAutomatiskOpprettedeGrunner" to antallVisteAutomatiskOpprettedeGrunner,
+                    "antallVisteAutomatiskOpprettedeGrunner" to (
+                        antallVisteAutomatiskOpprettedeGrunner ?: tac.antallAutomatiskOpprettedeGrunner(behandlingId)
+                        ),
                 ),
             ),
         )

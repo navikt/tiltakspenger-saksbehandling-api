@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 /**
  * Avbryter kun tilhørende søknad dersom dette er den første søknadsbehandlingen som vurderer den søknaden.
  * @param antallVisteAutomatiskOpprettedeGrunner Antallet automatisk opprettede grunner saksbehandler fikk vist da behandlingen ble avbrutt.
- * Er null når klienten ikke oppgir det.
+ * Er 0 for behandlinger uten slike grunner.
  */
 data class AvbrytRammebehandlingKommando(
     val saksnummer: Saksnummer,
@@ -17,5 +17,5 @@ data class AvbrytRammebehandlingKommando(
     val avsluttetAv: Saksbehandler,
     val correlationId: CorrelationId,
     val begrunnelse: NonBlankString,
-    val antallVisteAutomatiskOpprettedeGrunner: Int?,
+    val antallVisteAutomatiskOpprettedeGrunner: Int,
 )

@@ -94,7 +94,7 @@ class HentBenkRouteTest {
                         "kravtidspunkt": "${søknad.mottatt}",
                         "resultat": "IKKE_VALGT",
                         "prioritering": null,
-                        "gyldigeKommandoer": ["TildelSaksbehandler", "Avbryt"]
+                        "gyldigeKommandoer": ["TildelSaksbehandler"]
                       }
                     ],
                     "totalAntall": 1,
@@ -152,7 +152,7 @@ class HentBenkRouteTest {
             val respons = hentBenk(tac, "/benk/soknader", """{}""")
 
             objectMapper.readTree(respons)["oversikt"]["behandlinger"].single()["gyldigeKommandoer"]
-                .toString() shouldEqualJson """["Saksbehandle", "LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"]"""
+                .toString() shouldEqualJson """["Saksbehandle", "LeggTilbakeSaksbehandler", "SettPåVent"]"""
         }
     }
 

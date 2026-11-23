@@ -173,7 +173,7 @@ data class Sak(
         if (rammebehandling is Revurdering && rammebehandling.harNyeAutomatiskOpprettedeGrunner(command.antallVisteAutomatiskOpprettedeGrunner)) {
             return KunneIkkeAvbryteBehandling.HarNyeAutomatiskOpprettedeGrunner(
                 behandlingId = rammebehandling.id,
-                antallViste = command.antallVisteAutomatiskOpprettedeGrunner!!,
+                antallViste = command.antallVisteAutomatiskOpprettedeGrunner,
                 antall = rammebehandling.automatiskOpprettedeGrunner!!.grunner.size,
             ).left()
         }

@@ -35,7 +35,7 @@ fun Sak.konverterRevurdering(
 
     if (behandling.harNyeAutomatiskOpprettedeGrunner(kommando.antallVisteAutomatiskOpprettedeGrunner)) {
         return KanIkkeKonvertereRevurdering.HarNyeAutomatiskOpprettedeGrunner(
-            antallViste = kommando.antallVisteAutomatiskOpprettedeGrunner!!,
+            antallViste = kommando.antallVisteAutomatiskOpprettedeGrunner,
             antall = behandling.automatiskOpprettedeGrunner!!.grunner.size,
         ).left()
     }

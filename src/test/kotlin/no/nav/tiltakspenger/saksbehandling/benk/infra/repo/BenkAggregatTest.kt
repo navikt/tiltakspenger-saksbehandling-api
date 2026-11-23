@@ -245,7 +245,7 @@ class BenkAggregatTest {
             rad.resultat shouldBe BenkSøknadsbehandlingResultat.INNVILGELSE
             // Kommandoene på raden er de samme reglene som på selve behandlingen — dette pinner speilingen.
             rad.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe
-                underBehandling.finnGyldigeKommandoer(ObjectMother.saksbehandler())
+                underBehandling.finnGyldigeKommandoer(ObjectMother.saksbehandler()) - SaksbehandlerBehandlingKommando.Avbryt
         }
     }
 
@@ -628,7 +628,7 @@ class BenkAggregatTest {
             rad.felles.beslutter shouldBe null
             rad.felles.ventestatus.erSattPåVent shouldBe false
             rad.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(SaksbehandlerBehandlingKommando.HentTilbake)
-            rad.finnGyldigeKommandoer(saksbehandler) shouldBe behandling.finnGyldigeKommandoer(saksbehandler)
+            rad.finnGyldigeKommandoer(saksbehandler) shouldBe behandling.finnGyldigeKommandoer(saksbehandler) - SaksbehandlerBehandlingKommando.Avbryt
         }
     }
 
@@ -689,7 +689,7 @@ class BenkAggregatTest {
                 it.status shouldBe BenkBehandlingsstatus.UNDER_BEHANDLING
                 it.resultat shouldBe BenkRevurderingResultat.STANS
                 it.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe
-                    revurdering.finnGyldigeKommandoer(ObjectMother.saksbehandler()) - SaksbehandlerBehandlingKommando.KonverterRevurdering
+                    revurdering.finnGyldigeKommandoer(ObjectMother.saksbehandler()) - SaksbehandlerBehandlingKommando.KonverterRevurdering - SaksbehandlerBehandlingKommando.Avbryt
             }
 
             repo.hentRevurderinger(revurderingerCommand(resultat = BenkRevurderingResultat.STANS)).totalAntall shouldBe 1
@@ -735,7 +735,7 @@ class BenkAggregatTest {
             rad.status shouldBe BenkBehandlingsstatus.KLAR_TIL_BESLUTNING
             rad.felles.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
             rad.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(SaksbehandlerBehandlingKommando.HentTilbake)
-            rad.finnGyldigeKommandoer(saksbehandler) shouldBe revurdering.finnGyldigeKommandoer(saksbehandler)
+            rad.finnGyldigeKommandoer(saksbehandler) shouldBe revurdering.finnGyldigeKommandoer(saksbehandler) - SaksbehandlerBehandlingKommando.Avbryt
         }
     }
 
@@ -762,7 +762,7 @@ class BenkAggregatTest {
                     it.resultat shouldBe BenkRevurderingResultat.STANS
                     // Kommandoene på raden er de samme reglene som på selve behandlingen — dette pinner speilingen.
                     it.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe
-                        revurdering.finnGyldigeKommandoer(ObjectMother.saksbehandler())
+                        revurdering.finnGyldigeKommandoer(ObjectMother.saksbehandler()) - SaksbehandlerBehandlingKommando.Avbryt
                 }
             }
             repo.hentRevurderinger(
@@ -876,13 +876,13 @@ class BenkAggregatTest {
                 it.beløp shouldBe null
                 it.felles.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
                 it.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe
-                    meldekortbehandling.finnGyldigeKommandoer(ObjectMother.saksbehandler())
+                    meldekortbehandling.finnGyldigeKommandoer(ObjectMother.saksbehandler()) - SaksbehandlerBehandlingKommando.Avbryt
             }
             oversikt.behandlinger.single { it.felles.sakId == sakMedBeregning.id }.let {
                 it.status shouldBe BenkBehandlingsstatus.KLAR_TIL_BESLUTNING
                 (it.beløp!! > 0) shouldBe true
                 it.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe
-                    meldekortbehandlingMedBeregning.finnGyldigeKommandoer(ObjectMother.saksbehandler())
+                    meldekortbehandlingMedBeregning.finnGyldigeKommandoer(ObjectMother.saksbehandler()) - SaksbehandlerBehandlingKommando.Avbryt
             }
 
             repo.hentMeldekort(meldekortCommand(type = BenkMeldekortType.MELDEKORTBEHANDLING)).totalAntall shouldBe 2

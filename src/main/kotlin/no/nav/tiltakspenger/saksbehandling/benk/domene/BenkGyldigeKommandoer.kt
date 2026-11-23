@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingStatus.
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.AngreSendTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Avbryt
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Beslutte
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Gjenoppta
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.HentTilbake
@@ -34,7 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
  *
  * Reglene speiler `Rammebehandling.finnGyldigeKommandoer`, `Meldekortbehandling.finnGyldigeKommandoer` og `TilbakekrevingBehandling.gyldigeKommandoer`, men regnes ut fra radens felter — benken laster ikke de fulle behandlingene.
  * Speilingen er pinnet mot de ekte reglene i `BenkAggregatTest`; endres reglene der, skal testene si ifra.
- * Unntaket er [SaksbehandlerBehandlingKommando.KonverterRevurdering], som bare tilbys inne i behandlingen.
+ * Unntakene er [SaksbehandlerBehandlingKommando.KonverterRevurdering] og [SaksbehandlerBehandlingKommando.Avbryt], som bare tilbys inne i behandlingen og i personoversikten.
  *
  * Rader uten behandling — innsendte eller korrigerte meldekort som venter på at noen starter en behandling — har ingen kommandoer, fordi kommandoene alle er handlinger på en behandling.
  *
@@ -160,14 +159,6 @@ private fun finnGyldigeRammebehandlingKommandoer(
         ) {
             add(Gjenoppta)
         }
-        if (when (status) {
-                UNDER_AUTOMATISK_BEHANDLING, KLAR_TIL_BEHANDLING, BenkBehandlingsstatus.UNDER_BEHANDLING -> true
-                KLAR_TIL_BESLUTNING -> felles.saksbehandler == navIdent
-                UNDER_BESLUTNING -> felles.beslutter == navIdent
-            }
-        ) {
-            add(Avbryt)
-        }
     }
 }
 
@@ -234,14 +225,6 @@ private fun finnGyldigeMeldekortKommandoer(
             }
         ) {
             add(Gjenoppta)
-        }
-        if (when (status) {
-                BenkBehandlingsstatus.UNDER_BEHANDLING, KLAR_TIL_BESLUTNING -> felles.saksbehandler == navIdent
-                UNDER_BESLUTNING -> felles.beslutter == navIdent
-                else -> false
-            }
-        ) {
-            add(Avbryt)
         }
         if ((status == KLAR_TIL_BESLUTNING || (status == UNDER_BESLUTNING && !erSattPåVent)) && felles.saksbehandler == navIdent) {
             add(AngreSendTilBeslutning)

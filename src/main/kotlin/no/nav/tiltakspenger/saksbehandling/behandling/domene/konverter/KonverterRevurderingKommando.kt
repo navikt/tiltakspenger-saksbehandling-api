@@ -16,22 +16,21 @@ sealed interface KonverterRevurderingKommando {
 
     /**
      * Antallet automatisk opprettede grunner saksbehandler fikk vist da konverteringen ble valgt.
-     * Er null når klienten ikke oppgir det.
      */
-    val antallVisteAutomatiskOpprettedeGrunner: Int?
+    val antallVisteAutomatiskOpprettedeGrunner: Int
 
     data class TilStans(
         override val sakId: SakId,
         override val behandlingId: RammebehandlingId,
         override val saksbehandler: Saksbehandler,
-        override val antallVisteAutomatiskOpprettedeGrunner: Int?,
+        override val antallVisteAutomatiskOpprettedeGrunner: Int,
     ) : KonverterRevurderingKommando
 
     data class TilInnvilgelse(
         override val sakId: SakId,
         override val behandlingId: RammebehandlingId,
         override val saksbehandler: Saksbehandler,
-        override val antallVisteAutomatiskOpprettedeGrunner: Int?,
+        override val antallVisteAutomatiskOpprettedeGrunner: Int,
     ) : KonverterRevurderingKommando
 
     /** Under-resultatet til omgjøringen velges av saksbehandler i behandlingen, slik som når en omgjøring startes. */
@@ -39,14 +38,14 @@ sealed interface KonverterRevurderingKommando {
         override val sakId: SakId,
         override val behandlingId: RammebehandlingId,
         override val saksbehandler: Saksbehandler,
-        override val antallVisteAutomatiskOpprettedeGrunner: Int?,
+        override val antallVisteAutomatiskOpprettedeGrunner: Int,
     ) : KonverterRevurderingKommando
 
     data class TilForlengelse(
         override val sakId: SakId,
         override val behandlingId: RammebehandlingId,
         override val saksbehandler: Saksbehandler,
-        override val antallVisteAutomatiskOpprettedeGrunner: Int?,
+        override val antallVisteAutomatiskOpprettedeGrunner: Int,
         val vedtakIdSomForlenges: VedtakId,
     ) : KonverterRevurderingKommando
 }
