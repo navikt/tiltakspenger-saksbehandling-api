@@ -185,9 +185,6 @@ data class RevurderingDTO(
     override val klagebehandlingId: String?,
     override val tilbakekrevingId: String?,
     @get:JsonUnwrapped val resultatDTO: RevurderingResultatDTO,
-    // Den første av automatiskOpprettedeGrunner.
-    // Erstattes av automatiskOpprettedeGrunner, og fjernes når frontend har tatt det i bruk.
-    val automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunnDTO?,
     val automatiskOpprettedeGrunner: List<AutomatiskOpprettetRevurderingGrunnDTO>,
     val manueltBehandlesGrunner: List<String>,
     override val skalSendeVedtaksbrev: Boolean,
@@ -348,7 +345,6 @@ fun Revurdering.tilRevurderingDTO(
         resultatDTO = this.resultat.tilRevurderingResultatDTO(saksopplysninger.tiltaksdeltakelser, tiltaksdeltakelserSomKanForlenges),
         klagebehandlingId = this.klagebehandling?.id?.toString(),
         tilbakekrevingId = tilbakekrevingId?.toString(),
-        automatiskOpprettetGrunn = this.automatiskOpprettetGrunn?.toDTO(sistEndret),
         automatiskOpprettedeGrunner = this.automatiskOpprettedeGrunner?.grunner?.map { it.toDTO(sistEndret) } ?: emptyList(),
         manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
         skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,

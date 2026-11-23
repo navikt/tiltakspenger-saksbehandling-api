@@ -50,7 +50,6 @@ class UbestemtRevurderingRouteTest {
 
             val behandlingJson = hentSakForSaksnummer(tac, sak.saksnummer)!!.rammebehandling(revurdering.id)
             behandlingJson.getString("resultat") shouldBe "UBESTEMT"
-            behandlingJson.getJSONObject("automatiskOpprettetGrunn").getJSONArray("endringer").length() shouldBe 1
             behandlingJson.getJSONArray("automatiskOpprettedeGrunner").length() shouldBe 1
         }
     }
