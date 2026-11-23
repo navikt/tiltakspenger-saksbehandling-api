@@ -15,7 +15,9 @@ import no.nav.tiltakspenger.saksbehandling.person.AdressebeskyttelseOgSkjermingS
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonHttpklient
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.EntraProxyClient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.infra.EntraProxyHttpClient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.infra.MicrosoftGraphApiClient
 import java.time.Clock
 
@@ -52,6 +54,16 @@ open class PersonContext(
             authTokenProvider = TexasSystemTokenProvider(
                 texasClient = texasClient,
                 audienceTarget = Configuration.microsoftScope,
+            ),
+            clock = clock,
+        )
+    }
+    open val entraProxyClient: EntraProxyClient by lazy {
+        EntraProxyHttpClient(
+            baseUrl = Configuration.entraProxyUrl,
+            authTokenProvider = TexasSystemTokenProvider(
+                texasClient = texasClient,
+                audienceTarget = Configuration.entraProxyScope,
             ),
             clock = clock,
         )

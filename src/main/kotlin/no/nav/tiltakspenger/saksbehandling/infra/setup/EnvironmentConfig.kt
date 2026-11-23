@@ -88,6 +88,9 @@ sealed interface EnvironmentConfig {
     val tilgangsmaskinenScope: String
     val tilgangsmaskinenUrl: String
 
+    val entraProxyScope: String
+    val entraProxyUrl: String
+
     val tiltakspengerArenaScope: String
     val tiltakspengerArenaUrl: String
 
@@ -192,6 +195,9 @@ data object LocalConfig : EnvironmentConfig {
     override val tilgangsmaskinenUrl = WIREMOCK_URL
     override val tilgangsmaskinenScope = "localhost"
 
+    override val entraProxyUrl = WIREMOCK_URL
+    override val entraProxyScope = "localhost"
+
     override val tiltakspengerArenaUrl = WIREMOCK_URL
     override val tiltakspengerArenaScope = "localhost"
 
@@ -285,6 +291,9 @@ data object DevConfig : EnvironmentConfig {
     override val tilgangsmaskinenUrl = "http://populasjonstilgangskontroll.tilgangsmaskin"
     override val tilgangsmaskinenScope = "api://dev-gcp.tilgangsmaskin.populasjonstilgangskontroll/.default"
 
+    override val entraProxyUrl = "http://entra-proxy.sikkerhetstjenesten"
+    override val entraProxyScope = "api://dev-gcp.sikkerhetstjenesten.entra-proxy/.default"
+
     override val tiltakspengerArenaUrl = "https://tiltakspenger-arena.dev-fss-pub.nais.io"
     override val tiltakspengerArenaScope = "dev-fss:tpts:tiltakspenger-arena"
 
@@ -377,6 +386,9 @@ data object ProdConfig : EnvironmentConfig {
 
     override val tilgangsmaskinenUrl = "http://populasjonstilgangskontroll.tilgangsmaskin"
     override val tilgangsmaskinenScope = "api://prod-gcp.tilgangsmaskin.populasjonstilgangskontroll/.default"
+
+    override val entraProxyUrl = "http://entra-proxy.sikkerhetstjenesten"
+    override val entraProxyScope = "api://prod-gcp.sikkerhetstjenesten.entra-proxy/.default"
 
     override val tiltakspengerArenaUrl = "https://tiltakspenger-arena.prod-fss-pub.nais.io"
     override val tiltakspengerArenaScope = "prod-fss:tpts:tiltakspenger-arena"
