@@ -4,6 +4,7 @@ import arrow.core.Either
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments
 import io.ktor.http.toURI
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient
 import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlientConfig
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
@@ -31,6 +32,7 @@ import kotlin.time.Duration.Companion.seconds
  *
  * Kallene gjøres med systemtoken (client credentials), siden oppslaget gjelder en vilkårlig ansatt og ikke den innloggede saksbehandleren.
  * Navidenten ligger i stien, så URI-en logges bare til sikkerlogg (defaulten i [HttpKlientConfig]).
+ * Klienten logger aldri, og svaret fra entra-proxy fjernes fra feilene den returnerer; se [utenResponsinnhold].
  */
 class EntraProxyHttpClient(
     private val baseUrl: String,
@@ -59,7 +61,33 @@ class EntraProxyHttpClient(
             godta = Statusregel.Eksakt(200),
         )
             .map { response -> response.body.mapTo(mutableSetOf()) { it.tilDomene() } }
-            .mapLeft { KanIkkeHenteGrupper.KallFeilet(it) }
+            .mapLeft { KanIkkeHenteGrupper.KallFeilet(it.utenResponsinnhold()) }
+
+    /**
+     * Gruppemedlemskap kan avsløre at en ident er fiktiv, og skal derfor aldri logges, heller ikke til sikkerlogg.
+     * Klienten logger ikke selv, men feilen bærer svaret videre, og `loggFeil` skriver det til sikkerlogg.
+     * Derfor fjernes svaret fra feilen før den slipper ut av klienten.
+     * Exceptionen fra Jackson byttes også ut, siden meldingen kan sitere verdier fra svaret og havner i vanlig logg.
+     * Statuskode, headere og den maskerte requesten beholdes, slik at feilen fortsatt kan feilsøkes.
+     */
+    private fun HttpKlientError.utenResponsinnhold(): HttpKlientError =
+        when (this) {
+            is HttpKlientError.DeserializationError -> copy(
+                throwable = IllegalStateException(
+                    "${throwable::class.simpleName} ved deserialisering av svar fra entra-proxy. $FJERNET_RESPONSINNHOLD",
+                ),
+                body = FJERNET_RESPONSINNHOLD,
+                metadata = metadata.copy(rawResponseString = FJERNET_RESPONSINNHOLD),
+            )
+
+            is HttpKlientError.UventetStatus -> copy(
+                body = FJERNET_RESPONSINNHOLD,
+                metadata = metadata.copy(rawResponseString = FJERNET_RESPONSINNHOLD),
+            )
+
+            // De øvrige variantene har ikke mottatt noe svar, og har derfor ikke noe svarinnhold å fjerne.
+            else -> this
+        }
 
     /**
      * Identen kommer utenfra, så den legges inn som ett stisegment der også `/` encodes.
@@ -70,6 +98,10 @@ class EntraProxyHttpClient(
             .appendPathSegments(listOf("api", "v1", "ansatt", "tilganger", navIdent), encodeSlash = true)
             .build()
             .toURI()
+
+    private companion object {
+        const val FJERNET_RESPONSINNHOLD = "<svar fra entra-proxy fjernet, kan inneholde gruppemedlemskap>"
+    }
 }
 
 /**
