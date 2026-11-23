@@ -1547,6 +1547,19 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.TIDLIGERE_BEHANDLET_MANUELT
                     it.behandlesAutomatisk shouldBe false
                 }
+
+                // Fristen regnes også fra en manuell behandling, og sjekkes før om tidligere behandlinger var manuelle.
+                val forSenKorrigering = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = kjede.hentSisteMeldeperiode(),
+                    mottatt = 3.april(2025).atTime(9, 0),
+                )
+                brukersMeldekortRepo.lagre(forSenKorrigering)
+                service.behandleBrukersMeldekort(fixedClockAt(3.april(2025).atTime(10, 0)))
+
+                brukersMeldekortRepo.hentForMeldekortId(forSenKorrigering.id)!!
+                    .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE
             }
         }
     }
@@ -1587,11 +1600,23 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     meldeperiode = kjede.hentSisteMeldeperiode(),
                     mottatt = nå(clock),
                 )
+                // Nyere innsending sjekkes før om tidligere behandlinger var manuelle.
+                val eldreKorrigering = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = kjede.hentSisteMeldeperiode(),
+                    mottatt = førsteMeldekort.mottatt.minusMinutes(1),
+                )
                 brukersMeldekortRepo.lagre(korrigertMeldekort)
+                brukersMeldekortRepo.lagre(eldreKorrigering)
+                // Jobben behandler ett meldekort per sak om gangen.
+                service.behandleBrukersMeldekort(clock)
                 service.behandleBrukersMeldekort(clock)
 
                 brukersMeldekortRepo.hentForMeldekortId(korrigertMeldekort.id)!!
                     .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.TIDLIGERE_BEHANDLET_MANUELT
+                brukersMeldekortRepo.hentForMeldekortId(eldreKorrigering.id)!!
+                    .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.NYERE_INNSENDING_ER_BEHANDLET
             }
         }
     }
@@ -1613,6 +1638,12 @@ class AutomatiskMeldekortbehandlingJobbTest {
             korrigeringMottatt = 1.april(2025).atTime(11, 0),
             Kjøring(1.april(2025).atTime(12, 5)),
         ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.NYERE_INNSENDING_ER_BEHANDLET)
+        // Fristen sjekkes før om en nyere innsending er behandlet.
+        korrigerMeldekortAutomatisk(
+            førsteBehandlingstidspunkt = 1.april(2025).atTime(12, 0),
+            korrigeringMottatt = 1.april(2025).atTime(10, 0),
+            Kjøring(3.april(2025).atTime(10, 0)),
+        ) shouldBe listOf(MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE)
     }
 
     /** Revurderingen gir meldeperioden en ny versjon etter at førstegangsinnsendingen er behandlet, og korrigeringen sendes inn på den nye versjonen. */

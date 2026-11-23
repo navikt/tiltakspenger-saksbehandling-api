@@ -63,9 +63,10 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
 }
 
 /**
- * En korrigering fra bruker kan behandles automatisk dersom alle tidligere behandlinger av kjeden ble behandlet automatisk, og korrigeringen er mottatt etter innsendingene de behandlet.
+ * En korrigering fra bruker kan behandles automatisk dersom den behandles før [fristForKorrigering], regnet fra første iverksatte behandling av kjeden.
+ * Den må i tillegg være mottatt etter innsendingene som er behandlet automatisk, og alle tidligere behandlinger av kjeden må være automatiske.
+ * Sjekkene gjøres i den rekkefølgen, slik at statusen sier om det er for sent før den sier noe om de tidligere behandlingene.
  * Det er ikke et krav at de tidligere behandlingene gjaldt samme versjon av meldeperioden.
- * Korrigeringen må i tillegg behandles før [fristForKorrigering].
  * Fristen sparer oss for simuleringer som uansett ville vist at utbetalingen er utbetalt.
  * Om utbetalingen faktisk er utbetalt, avgjøres av simuleringen, se [no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering.harTidligereUtbetaling].
  * Vi sjekker ikke utbetalingsstatusen, siden den kun forteller om Oppdrag har tatt imot utbetalingen og ikke om den er utbetalt.
@@ -75,17 +76,19 @@ private fun validerKanKorrigeresAutomatisk(
     brukersMeldekort: BrukersMeldekort,
     clock: Clock,
 ): Either<MeldekortBehandletAutomatiskStatus, Unit> {
-    val tidligereBehandlinger = behandledeMeldekort.map {
-        it as? MeldekortBehandletAutomatisk ?: return MeldekortBehandletAutomatiskStatus.TIDLIGERE_BEHANDLET_MANUELT.left()
+    val førsteIverksettelse = behandledeMeldekort.mapNotNull { it.iverksattTidspunkt }.minOrNull()
+    if (førsteIverksettelse != null && !nå(clock).isBefore(fristForKorrigering(førsteIverksettelse))) {
+        return MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE.left()
     }
+
+    val automatiskeBehandlinger = behandledeMeldekort.filterIsInstance<MeldekortBehandletAutomatisk>()
     // Fanger også at korrigeringen selv er behandlet, siden den da har samme mottatt-tidspunkt som den behandlede innsendingen.
-    if (tidligereBehandlinger.any { it.brukersMeldekort.mottatt >= brukersMeldekort.mottatt }) {
+    if (automatiskeBehandlinger.any { it.brukersMeldekort.mottatt >= brukersMeldekort.mottatt }) {
         return MeldekortBehandletAutomatiskStatus.NYERE_INNSENDING_ER_BEHANDLET.left()
     }
 
-    val førsteIverksettelse = tidligereBehandlinger.minOf { it.iverksattTidspunkt }
-    if (!nå(clock).isBefore(fristForKorrigering(førsteIverksettelse))) {
-        return MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE.left()
+    if (automatiskeBehandlinger.size < behandledeMeldekort.size) {
+        return MeldekortBehandletAutomatiskStatus.TIDLIGERE_BEHANDLET_MANUELT.left()
     }
 
     return Unit.right()
