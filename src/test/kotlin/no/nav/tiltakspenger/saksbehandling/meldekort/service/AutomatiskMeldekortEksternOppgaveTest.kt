@@ -45,6 +45,9 @@ class AutomatiskMeldekortEksternOppgaveTest {
                 runIsolated = true,
             ) { tac ->
                 val (sak) = iverksettSøknadsbehandling(tac = tac, fnr = ObjectMother.gyldigFnr(), jobber = JobberEtterIverksettelse.ingen)
+                val klient = tac.oppgaveKlient as OppgaveFakeKlient
+                val antallFørMeldekort = klient.opprettedeOppgaveIder.size
+                val antallMedJournalpostFørMeldekort = klient.opprettedeOppgaverMedJournalpost.size
                 val meldekort = mottaMeldekortMedForMyeFravær(tac, sak)
                 (tac.personContext.personKlient as PersonFakeKlient).leggTilPersonopplysning(
                     sak.fnr,
@@ -57,8 +60,8 @@ class AutomatiskMeldekortEksternOppgaveTest {
 
                 tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
 
-                (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaveIder.size shouldBe 1
-                (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaverMedJournalpost.single().also {
+                klient.opprettedeOppgaveIder.size shouldBe antallFørMeldekort + 1
+                klient.opprettedeOppgaverMedJournalpost.drop(antallMedJournalpostFørMeldekort).single().also {
                     it.oppgavebehov shouldBe Oppgavebehov.NYTT_MELDEKORT
                     it.fnr shouldBe sak.fnr
                     it.journalpostId shouldBe meldekort.journalpostId
@@ -84,6 +87,8 @@ class AutomatiskMeldekortEksternOppgaveTest {
             runIsolated = true,
         ) { tac ->
             val (sak) = iverksettSøknadsbehandling(tac = tac, fnr = ObjectMother.gyldigFnr(), jobber = JobberEtterIverksettelse.ingen)
+            val klient = tac.oppgaveKlient as OppgaveFakeKlient
+            val oppgaveIderFørMeldekort = klient.opprettedeOppgaveIder
             val meldekort = mottaMeldekortMedForMyeFravær(tac, sak)
 
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
@@ -93,7 +98,7 @@ class AutomatiskMeldekortEksternOppgaveTest {
                 it.behandlesAutomatisk shouldBe false
                 it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR
             }
-            (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaveIder shouldBe emptyList()
+            klient.opprettedeOppgaveIder shouldBe oppgaveIderFørMeldekort
         }
     }
 
@@ -105,9 +110,10 @@ class AutomatiskMeldekortEksternOppgaveTest {
             runIsolated = true,
         ) { tac ->
             val (sak) = iverksettSøknadsbehandling(tac = tac, fnr = ObjectMother.gyldigFnr(), jobber = JobberEtterIverksettelse.ingen)
+            val klient = tac.oppgaveKlient as OppgaveFakeKlient
+            val oppgaveIderFørMeldekort = klient.opprettedeOppgaveIder
             val meldekort = mottaMeldekortMedForMyeFravær(tac, sak)
             (tac.personContext.fellesSkjermingsklient as FellesFakeSkjermingsklient).leggTil(sak.fnr, true)
-            val klient = tac.oppgaveKlient as OppgaveFakeKlient
             klient.opprettOppgaveResponse = ObjectMother.httpKlientUventetStatus().left()
 
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
@@ -115,11 +121,12 @@ class AutomatiskMeldekortEksternOppgaveTest {
             tac.eksternOppgaveRepo.hentForSakId(sak.id) shouldBe emptyList()
             tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(meldekort.id) shouldBe meldekort
             tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+            klient.opprettedeOppgaveIder shouldBe oppgaveIderFørMeldekort
 
             klient.opprettOppgaveResponse = null
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
 
-            klient.opprettedeOppgaveIder.size shouldBe 1
+            klient.opprettedeOppgaveIder.size shouldBe oppgaveIderFørMeldekort.size + 1
             tac.eksternOppgaveRepo.hentForSakId(sak.id) shouldBe emptyList()
             tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(meldekort.id)!!.behandlesAutomatisk shouldBe false
         }

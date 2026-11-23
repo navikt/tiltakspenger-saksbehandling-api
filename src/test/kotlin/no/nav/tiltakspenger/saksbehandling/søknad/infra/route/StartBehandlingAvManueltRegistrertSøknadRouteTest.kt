@@ -160,9 +160,11 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
      * DIGITAL settes av `mottaSøknadRoute` og dekkes av de øvrige testene; resten kan kun oppstå her.
      */
     @Test
-    fun `alle søknadstypene lagres og leses tilbake`() = runTest {
+    fun `alle manuelle søknadstyper lagres og leses tilbake uten å opprette Gosys-oppgave`() = runTest {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, _) = opprettSakOgSøknad(tac)
+            val klient = tac.oppgaveKlient as OppgaveFakeKlient
+            val oppgaveIderFørRegistrering = klient.opprettedeOppgaveIder
 
             listOf(
                 Søknadstype.PAPIR_SKJEMA,
@@ -182,6 +184,7 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
                 tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
                     .søknader.single { it.journalpostId == journalpostId }
                     .søknadstype shouldBe søknadstype
+                klient.opprettedeOppgaveIder shouldBe oppgaveIderFørRegistrering
             }
         }
     }
@@ -410,9 +413,7 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
     }
 
     /**
-     * Manuelt registrerte søknader (papir og andre kanaler) oppretter ingen Gosys-oppgave fra oss i dag, uansett adressebeskyttelse og skjerming.
      * For papirsøknader oppretter tiltakspenger-journalposthendelser allerede en BEH_SAK-oppgave når journalposten kommer inn.
-     * Testen pinner dagens oppførsel.
      */
     @ParameterizedTest
     @CsvSource(
@@ -422,7 +423,7 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
         "STRENGT_FORTROLIG_UTLAND, false",
         "UGRADERT, true",
     )
-    fun `manuelt registrert søknad oppretter ingen Gosys-oppgave`(
+    fun `registrering av papirskjema oppretter ingen Gosys-oppgave uansett adressebeskyttelse og skjerming`(
         adressebeskyttelse: Adressebeskyttelse,
         skjermet: Boolean,
     ) = runTest {
@@ -440,15 +441,16 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
             )
             (tac.personContext.fellesSkjermingsklient as FellesFakeSkjermingsklient).leggTil(sak.fnr, skjermet)
 
+            val klient = tac.oppgaveKlient as OppgaveFakeKlient
+            val oppgaveIderFørRegistrering = klient.opprettedeOppgaveIder
             startBehandlingAvManueltRegistrertSøknad(
                 tac = tac,
                 saksnummer = sak.saksnummer,
+                søknadstype = Søknadstype.PAPIR_SKJEMA.name,
                 journalpostId = "journalpost-uten-gosys-oppgave",
             )
 
-            // opprettSakOgSøknad lager også en digital søknad, men jobben som oppretter oppgaver for den kjøres ikke i denne testen.
-            // Ingen oppgaver i faken betyr derfor at den manuelle flyten ikke har opprettet noen.
-            (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaveIder shouldBe emptyList()
+            klient.opprettedeOppgaveIder shouldBe oppgaveIderFørRegistrering
         }
     }
 }

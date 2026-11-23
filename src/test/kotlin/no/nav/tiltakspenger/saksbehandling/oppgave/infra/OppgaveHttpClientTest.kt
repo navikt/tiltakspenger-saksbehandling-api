@@ -24,6 +24,7 @@ import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 class OppgaveHttpClientTest {
@@ -225,15 +226,22 @@ class OppgaveHttpClientTest {
      * Da finner oppgavetjenesten selv riktig enhet ut fra personen, og det er derfor kode 6/7 og skjermede havner hos spesialenhetene.
      */
 
-    @Test
-    fun `opprettOppgave - ny søknad - søker etter åpen BEH_SAK på journalposten og sender samme body som før`() {
+    @ParameterizedTest
+    @CsvSource(
+        "2025-05-01, 2025-05-05",
+        "2025-05-05, 2025-05-08",
+    )
+    fun `opprettOppgave - ny søknad - søker etter åpen BEH_SAK på journalposten og sender samme body som før`(
+        aktivDato: LocalDate,
+        forventetFrist: LocalDate,
+    ) {
         val transport = FakeHttpTransport().apply {
             // Første svar: duplikatsøket finner ingen åpne oppgaver.
             leggIKøFinnOppgaveResponse()
             // Andre svar: oppgavetjenesten har opprettet oppgaven.
             leggIKøJson(OpprettOppgaveResponse(id = 42), statusCode = 201)
         }
-        val clock = fixedClockAt(LocalDateTime.of(2025, 5, 1, 12, 0))
+        val clock = fixedClockAt(aktivDato.atTime(12, 0))
 
         runTest {
             client(transport, clock).opprettOppgave(fnr, journalpostId, Oppgavebehov.NY_SOKNAD) shouldBe OppgaveId("42").right()
@@ -257,8 +265,8 @@ class OppgaveHttpClientTest {
                   "beskrivelse": "Ny søknad om tiltakspenger. Behandles i ny løsning.",
                   "tema": "IND",
                   "oppgavetype": "BEH_SAK",
-                  "aktivDato": "2025-05-01",
-                  "fristFerdigstillelse": "2025-05-05",
+                  "aktivDato": "$aktivDato",
+                  "fristFerdigstillelse": "$forventetFrist",
                   "prioritet": "NORM"
                 }
             """.trimIndent()
