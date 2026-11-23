@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
+import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalføringsnotat
@@ -39,6 +40,8 @@ data class Meldekortvedtak(
     override val utbetaling: VedtattUtbetaling,
     val meldekortbehandling: Meldekortbehandling.Behandlet,
     val journalføringsnotat: Journalføringsnotat?,
+    val distribusjonId: DistribusjonId?,
+    val distribusjonstidspunkt: LocalDateTime?,
 ) : Vedtak,
     Periodiserbar {
     override val behandlingId: MeldekortId = meldekortbehandling.id
@@ -56,7 +59,8 @@ data class Meldekortvedtak(
 
     val beregningsperiode: Periode = meldekortbehandling.beregning.periode
 
-    val skalSendeVedtaksbrev: Boolean = meldekortbehandling.skalSendeVedtaksbrev
+    val skalJournalføreVedtaksbrev: Boolean = meldekortbehandling.skalJournalføreVedtaksbrev
+    val skalDistribuereVedtaksbrev: Boolean = meldekortbehandling.skalDistribuereVedtaksbrev
     val skalJournalføreNotat: Boolean = meldekortbehandling.skalJournalføreNotat
     val erAutomatiskBehandlet: Boolean = meldekortbehandling.erAutomatiskBehandling
     val harKorrigering: Boolean = meldekortbehandling.harKorrigering
@@ -115,5 +119,7 @@ fun Meldekortbehandling.Behandlet.opprettVedtak(
         meldekortbehandling = this,
         utbetaling = utbetaling,
         journalføringsnotat = null,
+        distribusjonId = null,
+        distribusjonstidspunkt = null,
     )
 }

@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
+import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.Utbetalingsmålinger
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.MdcKorrelasjon
@@ -37,6 +38,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostg
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingskvitteringPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.utbetalingsoversikt.UtbetalingsoversiktPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.BehandleUtbetalingskvitteringerJobb
+import no.nav.tiltakspenger.saksbehandling.utbetaling.service.DistribuerMeldekortvedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.JournalførMeldekortvedtakService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsoversiktJobb
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsstatusService
@@ -49,6 +51,7 @@ open class UtbetalingContext(
     sessionFactory: SessionFactory,
     genererVedtaksbrevForMeldekortKlient: GenererVedtaksbrevForMeldekortKlient,
     journalførMeldekortKlient: JournalførMeldekortKlient,
+    dokumentdistribusjonsklient: Dokumentdistribusjonsklient,
     navIdentClient: NavIdentClient,
     personService: PersonService,
     texasClient: TexasClient,
@@ -147,6 +150,15 @@ open class UtbetalingContext(
             navIdentClient = navIdentClient,
             personService = personService,
             sakRepo = sakRepo,
+            clock = clock,
+            korrelasjon = MdcKorrelasjon(),
+        )
+    }
+
+    val distribuerMeldekortvedtaksbrevService by lazy {
+        DistribuerMeldekortvedtaksbrevService(
+            dokumentdistribusjonsklient = dokumentdistribusjonsklient,
+            meldekortvedtakRepo = meldekortvedtakRepo,
             clock = clock,
             korrelasjon = MdcKorrelasjon(),
         )

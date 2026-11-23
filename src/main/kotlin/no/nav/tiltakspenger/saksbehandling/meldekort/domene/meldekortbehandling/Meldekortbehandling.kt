@@ -50,7 +50,13 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val begrunnelse: Begrunnelse?
     val ventestatus: Ventestatus
     val sistEndret: LocalDateTime
-    val skalSendeVedtaksbrev: Boolean
+    val skalJournalføreVedtaksbrev: Boolean
+
+    /**
+     * Om vedtaksbrevet også skal distribueres til bruker etter journalføring.
+     * Kan kun være true for manuelle behandlinger der vedtaksbrevet journalføres.
+     */
+    val skalDistribuereVedtaksbrev: Boolean
     val skalJournalføreNotat: Boolean
     val beslutterEndringer: MeldekortbehandlingBeslutterEndringer
 

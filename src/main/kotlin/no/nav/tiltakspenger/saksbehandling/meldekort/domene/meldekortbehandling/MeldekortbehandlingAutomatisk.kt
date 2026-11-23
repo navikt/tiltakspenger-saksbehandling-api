@@ -61,10 +61,12 @@ data class MeldekortBehandletAutomatisk(
 
     override val attesteringer = Attesteringer.empty()
     override val avbrutt: Avbrutt? = null
-    override val skalSendeVedtaksbrev: Boolean = true
+    override val skalJournalføreVedtaksbrev: Boolean = true
+    override val skalDistribuereVedtaksbrev: Boolean = false
     override val skalJournalføreNotat: Boolean = false
     override val beslutterEndringer: MeldekortbehandlingBeslutterEndringer = MeldekortbehandlingBeslutterEndringer(
         skalJournalføreNotat = null,
+        skalDistribuereVedtaksbrev = null,
     )
     override val prioritering: Prioritering? = null
 

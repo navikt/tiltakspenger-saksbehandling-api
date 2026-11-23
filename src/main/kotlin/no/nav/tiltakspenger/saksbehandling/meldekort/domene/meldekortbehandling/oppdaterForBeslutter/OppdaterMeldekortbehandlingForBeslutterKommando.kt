@@ -10,6 +10,8 @@ data class OppdaterMeldekortbehandlingForBeslutterKommando(
     val sakId: SakId,
     val meldekortId: MeldekortId,
     val skalJournalføreNotat: Boolean,
+    val skalJournalføreVedtaksbrev: Boolean,
+    val skalDistribuereVedtaksbrev: Boolean,
     override val saksbehandler: Saksbehandler,
     override val correlationId: CorrelationId,
 ) : ServiceCommand

@@ -6,11 +6,13 @@ import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalføringsnotat
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
+import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
 import java.time.LocalDateTime
 
 class MeldekortvedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : MeldekortvedtakRepo {
@@ -40,6 +42,23 @@ class MeldekortvedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : Meldekor
 
     override fun hentDeSomSkalJournalføres(limit: Int): List<Meldekortvedtak> {
         return data.get().values.filter { it.journalpostId == null }.take(limit)
+    }
+
+    override fun hentMeldekortvedtakSomSkalDistribueres(limit: Int): List<VedtakSomSkalDistribueres> {
+        return data.get().values
+            .filter { it.skalDistribuereVedtaksbrev && it.journalpostId != null && it.distribusjonId == null }
+            .sortedBy { it.opprettet }
+            .take(limit)
+            .map { VedtakSomSkalDistribueres(id = it.id, journalpostId = it.journalpostId!!) }
+    }
+
+    override fun markerDistribuert(
+        vedtakId: VedtakId,
+        distribusjonId: DistribusjonId,
+        tidspunkt: LocalDateTime,
+    ) {
+        data.get()[vedtakId] =
+            data.get()[vedtakId]!!.copy(distribusjonId = distribusjonId, distribusjonstidspunkt = tidspunkt)
     }
 
     override fun hentMeldekortvedtakIderMedNotatSomSkalJournalføres(limit: Int): List<VedtakId> {

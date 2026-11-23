@@ -81,7 +81,8 @@ class MeldekortbehandlingPostgresRepo(
                         attesteringer,
                         ventestatus,
                         sist_endret,
-                        skal_sende_vedtaksbrev,
+                        skal_journalfore_vedtaksbrev,
+                        skal_distribuere_vedtaksbrev,
                         skal_journalfore_notat,
                         beslutter_endringer,
                         prioritering_begrunnelse,
@@ -104,7 +105,8 @@ class MeldekortbehandlingPostgresRepo(
                         :attesteringer::jsonb,
                         :ventestatus::jsonb,
                         :sist_endret,
-                        :skal_sende_vedtaksbrev,
+                        :skal_journalfore_vedtaksbrev,
+                        :skal_distribuere_vedtaksbrev,
                         :skal_journalfore_notat,
                         :beslutter_endringer::jsonb,
                         :prioritering_begrunnelse,
@@ -129,7 +131,8 @@ class MeldekortbehandlingPostgresRepo(
                     "attesteringer" to meldekortbehandling.attesteringer.toDbJson(),
                     "ventestatus" to meldekortbehandling.ventestatus.toDbJson(),
                     "sist_endret" to meldekortbehandling.sistEndret,
-                    "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
+                    "skal_journalfore_vedtaksbrev" to meldekortbehandling.skalJournalføreVedtaksbrev,
+                    "skal_distribuere_vedtaksbrev" to meldekortbehandling.skalDistribuereVedtaksbrev,
                     "skal_journalfore_notat" to meldekortbehandling.skalJournalføreNotat,
                     "beslutter_endringer" to meldekortbehandling.beslutterEndringer.toDbJson(),
                     "prioritering_begrunnelse" to meldekortbehandling.prioritering?.begrunnelse?.verdi,
@@ -169,6 +172,8 @@ class MeldekortbehandlingPostgresRepo(
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
                     "utbetalingskontroll" to meldekortbehandling.utbetalingskontroll?.tilUtbetalingskontrollDbJson(),
+                    "skal_journalfore_vedtaksbrev" to meldekortbehandling.skalJournalføreVedtaksbrev,
+                    "skal_distribuere_vedtaksbrev" to meldekortbehandling.skalDistribuereVedtaksbrev,
                     "skal_journalfore_notat" to meldekortbehandling.skalJournalføreNotat,
                     "beslutter_endringer" to meldekortbehandling.beslutterEndringer.toDbJson(),
                 ).asUpdate,
@@ -211,7 +216,8 @@ class MeldekortbehandlingPostgresRepo(
                         sist_endret = :sist_endret,
                         utbetalingskontroll = :utbetalingskontroll::jsonb,
                         tekst_til_vedtaksbrev = :tekst_til_vedtaksbrev,
-                        skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev,
+                        skal_journalfore_vedtaksbrev = :skal_journalfore_vedtaksbrev,
+                        skal_distribuere_vedtaksbrev = :skal_distribuere_vedtaksbrev,
                         skal_journalfore_notat = :skal_journalfore_notat,
                         beslutter_endringer = :beslutter_endringer::jsonb,
                         prioritering_begrunnelse = :prioritering_begrunnelse,
@@ -235,7 +241,8 @@ class MeldekortbehandlingPostgresRepo(
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "utbetalingskontroll" to meldekortbehandling.utbetalingskontroll?.tilUtbetalingskontrollDbJson(),
                     "tekst_til_vedtaksbrev" to meldekortbehandling.fritekstTilVedtaksbrev?.verdi,
-                    "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
+                    "skal_journalfore_vedtaksbrev" to meldekortbehandling.skalJournalføreVedtaksbrev,
+                    "skal_distribuere_vedtaksbrev" to meldekortbehandling.skalDistribuereVedtaksbrev,
                     "skal_journalfore_notat" to meldekortbehandling.skalJournalføreNotat,
                     "beslutter_endringer" to meldekortbehandling.beslutterEndringer.toDbJson(),
                     "prioritering_begrunnelse" to meldekortbehandling.prioritering?.begrunnelse?.verdi,
@@ -484,6 +491,8 @@ class MeldekortbehandlingPostgresRepo(
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
                     "utbetalingskontroll" to meldekortbehandling.utbetalingskontroll?.tilUtbetalingskontrollDbJson(),
+                    "skal_journalfore_vedtaksbrev" to meldekortbehandling.skalJournalføreVedtaksbrev,
+                    "skal_distribuere_vedtaksbrev" to meldekortbehandling.skalDistribuereVedtaksbrev,
                     "skal_journalfore_notat" to meldekortbehandling.skalJournalføreNotat,
                     "beslutter_endringer" to meldekortbehandling.beslutterEndringer.toDbJson(),
                 ).asUpdate,
@@ -555,6 +564,8 @@ class MeldekortbehandlingPostgresRepo(
                 utbetalingskontroll = :utbetalingskontroll::jsonb,
                 klagebehandling_id = :klagebehandling_id,
                 skal_journalfore_notat = :skal_journalfore_notat,
+                skal_journalfore_vedtaksbrev = :skal_journalfore_vedtaksbrev,
+                skal_distribuere_vedtaksbrev = :skal_distribuere_vedtaksbrev,
                 beslutter_endringer = :beslutter_endringer::jsonb
         """
 
@@ -654,7 +665,8 @@ class MeldekortbehandlingPostgresRepo(
                 FritekstTilVedtaksbrev.create(it)
             }
 
-            val skalSendeVedtaksbrev = row.boolean("skal_sende_vedtaksbrev")
+            val skalJournalføreVedtaksbrev = row.boolean("skal_journalfore_vedtaksbrev")
+            val skalDistribuereVedtaksbrev = row.boolean("skal_distribuere_vedtaksbrev")
             val skalJournalføreNotat = row.boolean("skal_journalfore_notat")
             val beslutterEndringer = row.string("beslutter_endringer").toMeldekortbehandlingBeslutterEndringer()
             val prioritering = row.stringOrNull("prioritering_begrunnelse")?.let { Prioritering.create(it) }
@@ -700,7 +712,8 @@ class MeldekortbehandlingPostgresRepo(
                         sistEndret = sistEndret,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         meldeperioder = meldeperioder,
-                        skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                        skalJournalføreVedtaksbrev = skalJournalføreVedtaksbrev,
+                        skalDistribuereVedtaksbrev = skalDistribuereVedtaksbrev,
                         skalJournalføreNotat = skalJournalføreNotat,
                         beslutterEndringer = beslutterEndringer,
                         prioritering = prioritering,
@@ -728,7 +741,8 @@ class MeldekortbehandlingPostgresRepo(
                         sistEndret = sistEndret,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         meldeperioder = meldeperioder,
-                        skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                        skalJournalføreVedtaksbrev = skalJournalføreVedtaksbrev,
+                        skalDistribuereVedtaksbrev = skalDistribuereVedtaksbrev,
                         skalJournalføreNotat = skalJournalføreNotat,
                         beslutterEndringer = beslutterEndringer,
                         prioritering = prioritering,
@@ -753,7 +767,8 @@ class MeldekortbehandlingPostgresRepo(
                         sistEndret = sistEndret,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         meldeperioder = meldeperioder,
-                        skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                        skalJournalføreVedtaksbrev = skalJournalføreVedtaksbrev,
+                        skalDistribuereVedtaksbrev = skalDistribuereVedtaksbrev,
                         skalJournalføreNotat = skalJournalføreNotat,
                         beslutterEndringer = beslutterEndringer,
                         prioritering = prioritering,

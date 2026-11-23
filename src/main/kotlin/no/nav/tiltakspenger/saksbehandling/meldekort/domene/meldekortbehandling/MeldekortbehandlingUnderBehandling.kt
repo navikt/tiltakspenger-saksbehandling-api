@@ -64,7 +64,8 @@ data class MeldekortUnderBehandling(
     override val status: MeldekortbehandlingStatus,
     override val sistEndret: LocalDateTime,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-    override val skalSendeVedtaksbrev: Boolean,
+    override val skalJournalføreVedtaksbrev: Boolean,
+    override val skalDistribuereVedtaksbrev: Boolean,
     override val skalJournalføreNotat: Boolean,
     override val beslutterEndringer: MeldekortbehandlingBeslutterEndringer,
     override val prioritering: Prioritering?,
@@ -90,11 +91,16 @@ data class MeldekortUnderBehandling(
             return it.tilKanIkkeOppdatereMeldekort().left()
         }
 
+        if (kommando.skalDistribuereVedtaksbrev && !kommando.skalJournalføreVedtaksbrev) {
+            return KanIkkeOppdatereMeldekortbehandling.KanIkkeDistribuereVedtaksbrevUtenJournalføring.left()
+        }
+
         val oppdatertBehandling = this.copy(
             meldeperioder = oppdatertePerioder,
             begrunnelse = kommando.begrunnelse,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
+            skalJournalføreVedtaksbrev = kommando.skalJournalføreVedtaksbrev,
+            skalDistribuereVedtaksbrev = kommando.skalDistribuereVedtaksbrev,
             skalJournalføreNotat = kommando.skalJournalføreNotat,
             prioritering = kommando.prioritering,
             sistEndret = nå(clock),
@@ -145,11 +151,13 @@ data class MeldekortUnderBehandling(
             attesteringer = this.attesteringer,
             sistEndret = nå(clock),
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
-            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreVedtaksbrev = skalJournalføreVedtaksbrev,
+            skalDistribuereVedtaksbrev = skalDistribuereVedtaksbrev,
             skalJournalføreNotat = skalJournalføreNotat,
             // Ved å sende til beslutning på nytt har saksbehandler akseptert beslutters endringer.
             beslutterEndringer = MeldekortbehandlingBeslutterEndringer(
                 skalJournalføreNotat = null,
+                skalDistribuereVedtaksbrev = null,
             ),
             prioritering = prioritering,
             meldeperioder = this.meldeperioder,
@@ -314,10 +322,12 @@ fun Sak.opprettManuellMeldekortbehandling(
             meldeperioder = meldeperiodebehandlinger,
             beregning = null,
         ),
-        skalSendeVedtaksbrev = true,
+        skalJournalføreVedtaksbrev = false,
+        skalDistribuereVedtaksbrev = false,
         skalJournalføreNotat = false,
         beslutterEndringer = MeldekortbehandlingBeslutterEndringer(
             skalJournalføreNotat = null,
+            skalDistribuereVedtaksbrev = null,
         ),
         prioritering = null,
         ventestatus = Ventestatus(),

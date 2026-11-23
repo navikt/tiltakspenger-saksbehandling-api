@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalføringsnotat
 import no.nav.tiltakspenger.saksbehandling.journalnotat.infra.repo.toDbJson
@@ -21,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meld
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
+import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
 import java.time.LocalDateTime
 
 class MeldekortvedtakPostgresRepo(
@@ -108,7 +110,7 @@ class MeldekortvedtakPostgresRepo(
                     from meldekortvedtak v
                         join sak s on s.id = v.sak_id
                         join meldekortbehandling mb on mb.id = v.meldekort_id
-                    where v.journalpost_id is null and mb.skal_sende_vedtaksbrev = true
+                    where v.journalpost_id is null and mb.skal_journalfore_vedtaksbrev = true
                     order by v.opprettet
                     limit :limit
                     """,
@@ -116,6 +118,53 @@ class MeldekortvedtakPostgresRepo(
                 ).map { row ->
                     row.toVedtak(session)
                 }.asList,
+            )
+        }
+    }
+
+    override fun hentMeldekortvedtakSomSkalDistribueres(limit: Int): List<VedtakSomSkalDistribueres> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select v.id, v.journalpost_id
+                    from meldekortvedtak v
+                        join meldekortbehandling mb on mb.id = v.meldekort_id
+                    where v.journalpost_id is not null
+                      and v.distribusjon_id is null
+                      and mb.skal_distribuere_vedtaksbrev = true
+                    order by v.opprettet
+                    limit :limit
+                    """,
+                    "limit" to limit,
+                ).map { row ->
+                    VedtakSomSkalDistribueres(
+                        id = VedtakId.fromString(row.string("id")),
+                        journalpostId = JournalpostId(row.string("journalpost_id")),
+                    )
+                }.asList,
+            )
+        }
+    }
+
+    override fun markerDistribuert(
+        vedtakId: VedtakId,
+        distribusjonId: DistribusjonId,
+        tidspunkt: LocalDateTime,
+    ) {
+        sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    update meldekortvedtak
+                    set distribusjon_id = :distribusjon_id,
+                    distribusjonstidspunkt = :tidspunkt
+                    where id = :id
+                    """,
+                    "id" to vedtakId.toString(),
+                    "distribusjon_id" to distribusjonId.toString(),
+                    "tidspunkt" to tidspunkt,
+                ).asUpdate,
             )
         }
     }
@@ -253,6 +302,8 @@ class MeldekortvedtakPostgresRepo(
                 meldekortbehandling = meldekortbehandling,
                 utbetaling = utbetaling,
                 journalføringsnotat = stringOrNull("journalføringsnotat")?.toJournalføringsnotat(),
+                distribusjonId = stringOrNull("distribusjon_id")?.let { DistribusjonId(it) },
+                distribusjonstidspunkt = localDateTimeOrNull("distribusjonstidspunkt"),
             )
         }
     }

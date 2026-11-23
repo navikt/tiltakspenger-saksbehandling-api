@@ -38,6 +38,25 @@ class OpprettMeldekortbehandlingTest {
     }
 
     @Test
+    fun `ny meldekortbehandling verken journalfører eller sender vedtaksbrevet før saksbehandler velger det`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, _) = this.iverksettSøknadsbehandling(
+                tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 10.april(2025)),
+            )
+            val (oppdatertSak) = opprettMeldekortbehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = sak.meldeperiodeKjeder.sisteMeldeperiodePerKjede.first().kjedeId,
+            )!!
+
+            val meldekortbehandling = oppdatertSak.meldekortbehandlinger.single()
+            meldekortbehandling.skalJournalføreVedtaksbrev shouldBe false
+            meldekortbehandling.skalDistribuereVedtaksbrev shouldBe false
+        }
+    }
+
+    @Test
     fun `kan opprette meldekortbehandling for meldeperiode som ikke gir rett`() {
         // 1. Iverksetter innvilget søknadsbehandling for jan 2025
         // 2. Iverksetter omgjøring som opphører alt bortsett fra 1. jan 2025

@@ -3,15 +3,23 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.felles.MeldekortbehandlingBeslutterEndringer
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.distribuereVedtaksbrev.MeldekortbehandlingSkalDistribuereVedtaksbrevEndring
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.journalføreNotat.MeldekortbehandlingSkalJournalføreNotatEndring
 import java.time.LocalDateTime
 
 /**
  * Lagres i `beslutter_endringer`-kolonnen på `meldekortbehandling`.
- * Eksempel: `{"skalJournalføreNotat": {"tidspunkt": "…", "saksbehandler": true, "beslutter": false}}`.
+ * Eksempel: `{"skalJournalføreNotat": {"tidspunkt": "…", "saksbehandler": true, "beslutter": false}, "skalDistribuereVedtaksbrev": null}`.
  */
 private data class BeslutterEndringerDbJson(
     val skalJournalføreNotat: SkalJournalføreNotatEndringDbJson? = null,
+    val skalDistribuereVedtaksbrev: SkalDistribuereVedtaksbrevEndringDbJson? = null,
+)
+
+private data class SkalDistribuereVedtaksbrevEndringDbJson(
+    val tidspunkt: String,
+    val saksbehandler: Boolean,
+    val beslutter: Boolean,
 )
 
 private data class SkalJournalføreNotatEndringDbJson(
@@ -29,6 +37,13 @@ fun MeldekortbehandlingBeslutterEndringer.toDbJson(): String = serialize(
                 beslutter = it.beslutter,
             )
         },
+        skalDistribuereVedtaksbrev = skalDistribuereVedtaksbrev?.let {
+            SkalDistribuereVedtaksbrevEndringDbJson(
+                tidspunkt = it.tidspunkt.toString(),
+                saksbehandler = it.saksbehandler,
+                beslutter = it.beslutter,
+            )
+        },
     ),
 )
 
@@ -37,6 +52,13 @@ fun String.toMeldekortbehandlingBeslutterEndringer(): MeldekortbehandlingBeslutt
     return MeldekortbehandlingBeslutterEndringer(
         skalJournalføreNotat = json.skalJournalføreNotat?.let {
             MeldekortbehandlingSkalJournalføreNotatEndring(
+                tidspunkt = LocalDateTime.parse(it.tidspunkt),
+                saksbehandler = it.saksbehandler,
+                beslutter = it.beslutter,
+            )
+        },
+        skalDistribuereVedtaksbrev = json.skalDistribuereVedtaksbrev?.let {
+            MeldekortbehandlingSkalDistribuereVedtaksbrevEndring(
                 tidspunkt = LocalDateTime.parse(it.tidspunkt),
                 saksbehandler = it.saksbehandler,
                 beslutter = it.beslutter,

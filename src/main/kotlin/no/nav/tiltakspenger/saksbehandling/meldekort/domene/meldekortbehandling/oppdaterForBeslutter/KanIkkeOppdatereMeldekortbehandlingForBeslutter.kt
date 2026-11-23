@@ -9,5 +9,7 @@ sealed interface KanIkkeOppdatereMeldekortbehandlingForBeslutter {
 
     data object MåHaBegrunnelseForÅJournalføreNotat : KanIkkeOppdatereMeldekortbehandlingForBeslutter
 
+    data object KanIkkeDistribuereVedtaksbrevUtenJournalføring : KanIkkeOppdatereMeldekortbehandlingForBeslutter
+
     data object BehandlingenErIkkeLengerUnderBeslutning : KanIkkeOppdatereMeldekortbehandlingForBeslutter
 }

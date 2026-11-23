@@ -64,7 +64,8 @@ data class MeldekortbehandlingManuell(
     override val utbetalingskontroll: Utbetalingskontroll?,
     override val sistEndret: LocalDateTime,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-    override val skalSendeVedtaksbrev: Boolean,
+    override val skalJournalføreVedtaksbrev: Boolean,
+    override val skalDistribuereVedtaksbrev: Boolean,
     override val skalJournalføreNotat: Boolean,
     override val beslutterEndringer: MeldekortbehandlingBeslutterEndringer,
     override val prioritering: Prioritering?,
@@ -82,6 +83,10 @@ data class MeldekortbehandlingManuell(
 
         require(meldeperioder.tilOgMed <= beregningPeriode.tilOgMed) {
             "Til og med dato for beregningsperioden må være nyere eller lik meldeperioden"
+        }
+
+        require(!skalDistribuereVedtaksbrev || skalJournalføreVedtaksbrev) {
+            "Vedtaksbrevet kan kun distribueres når det journalføres. sakId: $sakId, id: $id"
         }
 
         when (status) {
@@ -240,7 +245,8 @@ data class MeldekortbehandlingManuell(
             status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
             sistEndret = nå(clock),
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
-            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreVedtaksbrev = skalJournalføreVedtaksbrev,
+            skalDistribuereVedtaksbrev = skalDistribuereVedtaksbrev,
             skalJournalføreNotat = skalJournalføreNotat,
             beslutterEndringer = beslutterEndringer,
             prioritering = prioritering,
@@ -306,7 +312,8 @@ data class MeldekortbehandlingManuell(
             sistEndret = tidspunkt,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
             meldeperioder = nyeMeldeperioder,
-            skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
+            skalJournalføreVedtaksbrev = this.skalJournalføreVedtaksbrev,
+            skalDistribuereVedtaksbrev = this.skalDistribuereVedtaksbrev,
             skalJournalføreNotat = this.skalJournalføreNotat,
             beslutterEndringer = this.beslutterEndringer,
             prioritering = this.prioritering,

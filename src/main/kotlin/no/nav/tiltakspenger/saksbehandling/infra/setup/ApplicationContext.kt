@@ -439,6 +439,7 @@ open class ApplicationContext(
             sessionFactory = sessionFactory,
             genererVedtaksbrevForMeldekortKlient = dokumentContext.genererVedtaksbrevForMeldekortKlient,
             journalførMeldekortKlient = dokumentContext.journalførMeldekortKlient,
+            dokumentdistribusjonsklient = dokumentContext.dokumentdistribusjonsklient,
             texasClient = texasClient,
             navIdentClient = personContext.navIdentClient,
             personService = personContext.personService,

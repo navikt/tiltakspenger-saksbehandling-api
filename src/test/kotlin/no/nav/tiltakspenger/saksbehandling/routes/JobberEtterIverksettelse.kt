@@ -11,10 +11,7 @@ data class JobberEtterIverksettelse(
     val sendUtbetalinger: Boolean = true,
     val oppdaterUtbetalingsstatus: Boolean = true,
     val journalførVedtaksbrev: Boolean = true,
-    /**
-     * Kun rammevedtaksbrev distribueres av en egen jobb.
-     * Meldekortvedtak har ingen distribusjonsjobb, så byggeren for meldekortbehandling ser bort fra feltet.
-     */
+    /** Meldekortvedtaksbrev distribueres kun når saksbehandler har valgt det; ellers er jobben en no-op for meldekort. */
     val distribuerVedtaksbrev: Boolean = true,
     /** Journalfører notatet kun når saksbehandler har valgt det; ellers er jobben en no-op. */
     val journalførNotat: Boolean = true,

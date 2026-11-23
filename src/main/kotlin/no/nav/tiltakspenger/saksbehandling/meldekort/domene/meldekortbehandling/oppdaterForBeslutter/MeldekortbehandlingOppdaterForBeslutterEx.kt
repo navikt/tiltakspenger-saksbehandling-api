@@ -10,28 +10,49 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import java.time.Clock
 
+/**
+ * Frontend lar saksbehandler og beslutter velge journalføring og utsending av vedtaksbrevet samlet.
+ * Beslutters endring av det samlede valget spores derfor kun som en endring av utsendingen.
+ */
 fun MeldekortbehandlingManuell.oppdaterForBeslutter(
     kommando: OppdaterMeldekortbehandlingForBeslutterKommando,
     clock: Clock,
 ): Either<KanIkkeOppdatereMeldekortbehandlingForBeslutter, MeldekortbehandlingManuell> {
-    kanOppdatereForBeslutter(kommando.saksbehandler, kommando.skalJournalføreNotat).onLeft { return it.left() }
+    val nyttJournalføringsvalg = kommando.skalJournalføreVedtaksbrev
+    val nyttDistribusjonsvalg = kommando.skalDistribuereVedtaksbrev
+    kanOppdatereForBeslutter(
+        utøvendeBeslutter = kommando.saksbehandler,
+        nyttNotatvalg = kommando.skalJournalføreNotat,
+        nyttJournalføringsvalg = nyttJournalføringsvalg,
+        nyttDistribusjonsvalg = nyttDistribusjonsvalg,
+    ).onLeft { return it.left() }
 
     val tidspunkt = nå(clock)
 
     return this.copy(
         skalJournalføreNotat = kommando.skalJournalføreNotat,
-        beslutterEndringer = beslutterEndringer.oppdater(
-            gjeldendeValg = skalJournalføreNotat,
-            besluttersValg = kommando.skalJournalføreNotat,
-            tidspunkt = tidspunkt,
-        ),
+        skalJournalføreVedtaksbrev = nyttJournalføringsvalg,
+        skalDistribuereVedtaksbrev = nyttDistribusjonsvalg,
+        beslutterEndringer = beslutterEndringer
+            .oppdaterSkalJournalføreNotat(
+                gjeldendeValg = skalJournalføreNotat,
+                besluttersValg = kommando.skalJournalføreNotat,
+                tidspunkt = tidspunkt,
+            )
+            .oppdaterSkalDistribuereVedtaksbrev(
+                gjeldendeValg = skalDistribuereVedtaksbrev,
+                besluttersValg = nyttDistribusjonsvalg,
+                tidspunkt = tidspunkt,
+            ),
         sistEndret = tidspunkt,
     ).right()
 }
 
 private fun MeldekortbehandlingManuell.kanOppdatereForBeslutter(
     utøvendeBeslutter: Saksbehandler,
-    nyttValg: Boolean,
+    nyttNotatvalg: Boolean,
+    nyttJournalføringsvalg: Boolean,
+    nyttDistribusjonsvalg: Boolean,
 ): Either<KanIkkeOppdatereMeldekortbehandlingForBeslutter, Unit> {
     krevBeslutterRolle(utøvendeBeslutter)
     if (status != MeldekortbehandlingStatus.UNDER_BESLUTNING) {
@@ -43,8 +64,11 @@ private fun MeldekortbehandlingManuell.kanOppdatereForBeslutter(
     if (ventestatus.erSattPåVent) {
         return KanIkkeOppdatereMeldekortbehandlingForBeslutter.BehandlingenErSattPåVent.left()
     }
-    if (nyttValg && begrunnelse == null) {
+    if (nyttNotatvalg && begrunnelse == null) {
         return KanIkkeOppdatereMeldekortbehandlingForBeslutter.MåHaBegrunnelseForÅJournalføreNotat.left()
+    }
+    if (nyttDistribusjonsvalg && !nyttJournalføringsvalg) {
+        return KanIkkeOppdatereMeldekortbehandlingForBeslutter.KanIkkeDistribuereVedtaksbrevUtenJournalføring.left()
     }
     return Unit.right()
 }

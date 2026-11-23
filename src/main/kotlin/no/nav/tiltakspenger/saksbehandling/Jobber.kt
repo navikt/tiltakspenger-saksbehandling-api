@@ -67,6 +67,13 @@ private fun utbetalingJobber(
         },
     ),
     Task(
+        navn = "saksbehandling-jobb-distribuer-meldekortvedtaksbrev",
+        utfør = { _ ->
+            applicationContext.utbetalingContext.distribuerMeldekortvedtaksbrevService.distribuer()
+            TaskResultat.Ferdig
+        },
+    ),
+    Task(
         navn = "saksbehandling-jobb-send-utbetalinger",
         utfør = { _ ->
             applicationContext.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()

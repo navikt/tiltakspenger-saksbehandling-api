@@ -2,9 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalføringsnotat
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
 import java.time.LocalDateTime
 
 interface MeldekortvedtakRepo {
@@ -19,6 +21,14 @@ interface MeldekortvedtakRepo {
     )
 
     fun hentDeSomSkalJournalføres(limit: Int = 10): List<Meldekortvedtak>
+
+    fun hentMeldekortvedtakSomSkalDistribueres(limit: Int = 10): List<VedtakSomSkalDistribueres>
+
+    fun markerDistribuert(
+        vedtakId: VedtakId,
+        distribusjonId: DistribusjonId,
+        tidspunkt: LocalDateTime,
+    )
 
     /**
      * Meldekortvedtak der saksbehandler har valgt å journalføre notatet, men hvor notatet ikke er journalført ennå.
