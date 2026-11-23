@@ -150,8 +150,16 @@ data class Rammevedtaksliste(
         return innvilgelsesperioder.hentVerdiForDag(dato) != null
     }
 
-    fun gjeldendeInnvilgelseForPeriode(periode: Periode): PeriodeMedVerdi<Rammevedtak>? {
-        return innvilgetTidslinje.filter { it.periode.overlapperMed(periode) }.singleOrNull()
+    /**
+     * Innslaget i [innvilgetTidslinje] når [nySøknadsperiode] er lik hele perioden i ett innvilget vedtak, ellers null.
+     * Brukes til å forhåndsutfylle avslagsbrevet når brukeren allerede er innvilget tiltakspenger for perioden det søkes om.
+     * Et omgjøringsvedtak kan både innvilge og opphøre dager, så det er ikke nok at søknaden er lik den innvilgede delen.
+     * Uten treff beskriver saksbehandler den tidligere innvilgelsen i fritekst.
+     */
+    fun innvilgelseMedNøyaktigPeriode(nySøknadsperiode: Periode): PeriodeMedVerdi<Rammevedtak>? {
+        return innvilgetTidslinje.filter { (rammevedtak, gjeldendeInnvilgetPeriode) ->
+            gjeldendeInnvilgetPeriode == nySøknadsperiode && rammevedtak.periode == nySøknadsperiode
+        }.singleOrNull()
     }
 
     fun harInnvilgetTiltakspengerEtterDato(dato: LocalDate): Boolean {

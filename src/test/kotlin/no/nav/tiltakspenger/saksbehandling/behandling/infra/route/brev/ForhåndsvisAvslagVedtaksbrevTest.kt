@@ -38,7 +38,7 @@ class ForhåndsvisAvslagVedtaksbrevTest {
     }
 
     @Test
-    fun `forhåndsvisning av avslag med grunn InnvilgetTiltakspenger får den gjeldende innvilgelsen`() {
+    fun `forhåndsvisning av avslag med grunn InnvilgetTiltakspenger får innvilgelsen med lik periode`() {
         withTestApplicationContext { tac ->
             val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
             val tiltaksdeltakelse = tac.tiltaksdeltakelse(innvilgelsesperiode)
