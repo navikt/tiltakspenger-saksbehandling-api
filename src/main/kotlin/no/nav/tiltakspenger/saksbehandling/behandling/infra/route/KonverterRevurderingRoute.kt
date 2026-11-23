@@ -115,6 +115,8 @@ fun KanIkkeKonvertereRevurdering.tilStatusOgErrorJson(): Pair<HttpStatusCode, Er
         "har_klagebehandling",
     )
 
+    is KanIkkeKonvertereRevurdering.HarNyeAutomatiskOpprettedeGrunner -> HttpStatusCode.Conflict to Standardfeil.harNyeAutomatiskOpprettedeGrunner()
+
     KanIkkeKonvertereRevurdering.HarAlleredeTypen -> HttpStatusCode.BadRequest to ErrorJson(
         "Revurderingen er allerede av denne typen.",
         "har_allerede_typen",

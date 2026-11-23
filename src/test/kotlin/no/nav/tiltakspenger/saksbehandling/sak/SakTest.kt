@@ -53,6 +53,7 @@ class SakTest {
                 avsluttetAv = ObjectMother.saksbehandler(),
                 correlationId = CorrelationId.generate(),
                 begrunnelse = "begrunnelse".toNonBlankString(),
+                antallVisteAutomatiskOpprettedeGrunner = null,
             ),
             avbruttTidspunkt = 1.november(2024).atStartOfDay(),
         ).getOrFail()

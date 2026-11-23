@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
@@ -40,6 +41,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.AndreEndringer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.AvbruttDeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.Avkortet
@@ -51,6 +53,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.Tiltaksd
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.Forlengelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.IkkeAktuellDeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.VurdertTiltaksdeltakerEndring.Endret
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.VurdertTiltaksdeltakerEndring.EndretMedÅpenUbestemtRevurdering
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.VurdertTiltaksdeltakerEndring.IngenEndring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
@@ -623,16 +626,57 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
     }
 
     @Test
-    fun `ikke aktuell, avsluttet som forventet og ren statusendring følges opp manuelt`() {
+    fun `ikke aktuell gir ubestemt revurdering`() {
+        sakMedInnvilgelse().vurder(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell)) shouldBeEksakt
+            Endret(IkkeAktuellDeltakelse, AutomatiskRevurderingAvEndring.Ubestemt)
+    }
+
+    @Test
+    fun `avsluttet som forventet og ren statusendring følges opp manuelt`() {
         val opprinnelig = deltakelse.medPeriode(tilOgMed = iDag.minusDays(1))
 
-        sakMedInnvilgelse().vurder(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell)).automatiskRevurdering
-            .shouldBeNull()
         sakMedInnvilgelse().vurder(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.HarSluttet)).automatiskRevurdering
             .shouldBeNull()
         sakMedInnvilgelse(opprinnelig = opprinnelig)
             .vurder(opprinnelig.copy(deltakelseStatus = TiltakDeltakerstatus.Fullført))
             .automatiskRevurdering.shouldBeNull()
+    }
+
+    @Test
+    fun `relevant endring med åpen ubestemt revurdering legges til som grunn i den`() {
+        val sak = sakMedInnvilgelse()
+        val ubestemtRevurdering = sak.nyUbestemtRevurdering(grunnFor = deltakelse.internDeltakelseId)
+        val forlenget = deltakelse.medPeriode(tilOgMed = deltakelse.periode.tilOgMed!!.plusMonths(1))
+        val medUbestemtRevurdering = sak.leggTilRevurdering(ubestemtRevurdering)
+
+        (
+            medUbestemtRevurdering.vurderMotGjeldendeVedtak(forlenget) ==
+                EndretMedÅpenUbestemtRevurdering(Forlengelse(forlenget.periode.tilOgMed!!), ubestemtRevurdering)
+            ) shouldBe true
+        medUbestemtRevurdering.vurderMotGjeldendeVedtak(deltakelse) shouldBe IngenEndring
+    }
+
+    @Test
+    fun `med åpen ubestemt revurdering gir samme endring som sist tillagte grunn for deltakelsen ingen endringer`() {
+        val sak = sakMedInnvilgelse()
+        val ikkeAktuell = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell)
+        val grunnForDeltakelsen = sak.nyUbestemtRevurdering(grunnFor = deltakelse.internDeltakelseId)
+        val grunnForAnnenDeltakelse = sak.nyUbestemtRevurdering(grunnFor = TiltaksdeltakerId.random())
+
+        sak.leggTilRevurdering(grunnForDeltakelsen).vurderMotGjeldendeVedtak(ikkeAktuell) shouldBe IngenEndring
+        (
+            sak.leggTilRevurdering(grunnForAnnenDeltakelse).vurderMotGjeldendeVedtak(ikkeAktuell) ==
+                EndretMedÅpenUbestemtRevurdering(IkkeAktuellDeltakelse, grunnForAnnenDeltakelse)
+            ) shouldBe true
+    }
+
+    @Test
+    fun `med åpen ubestemt revurdering legges ikke deltakelse avsluttet som forventet til som grunn`() {
+        val opprinnelig = deltakelse.medPeriode(tilOgMed = iDag.minusDays(1))
+        val sak = sakMedInnvilgelse(opprinnelig = opprinnelig)
+        val medUbestemtRevurdering = sak.leggTilRevurdering(sak.nyUbestemtRevurdering(grunnFor = deltakelse.internDeltakelseId))
+
+        medUbestemtRevurdering.vurder(opprinnelig.copy(deltakelseStatus = TiltakDeltakerstatus.Fullført)).endring shouldBe AvsluttetSomForventet
     }
 
     @Test
@@ -879,6 +923,23 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
 
     private fun Sak.utledStans(nåtilstand: TiltaksdeltakelseIntern): Either<NonEmptyList<ManueltBehandlesGrunn>, AutomatiskStans> =
         utledAutomatiskStans(deltakelse.internDeltakelseId, nåtilstand, iDag)
+
+    /** En ubestemt revurdering opprettet for at deltakelsen ble ikke aktuell, med saksopplysningene fra før endringen. */
+    private fun Sak.nyUbestemtRevurdering(grunnFor: TiltaksdeltakerId): Revurdering {
+        val opprettet = nå(Clock.offset(clock, Duration.ofSeconds(30)))
+        return Revurdering.opprettUbestemt(
+            sakId = id,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            saksopplysninger = ObjectMother.saksopplysninger(
+                tiltaksdeltakelse = listOf(deltakelse),
+                oppslagsperiode = deltakelse.lukketPeriode!!,
+                clock = clock,
+            ),
+            opprettet = opprettet,
+            automatiskOpprettetGrunn = AutomatiskOpprettetRevurderingGrunn(IkkeAktuellDeltakelse, grunnFor, lagtTil = opprettet),
+        )
+    }
 
     private fun sakMedInnvilgelse(
         opprinnelig: TiltaksdeltakelseIntern = deltakelse,

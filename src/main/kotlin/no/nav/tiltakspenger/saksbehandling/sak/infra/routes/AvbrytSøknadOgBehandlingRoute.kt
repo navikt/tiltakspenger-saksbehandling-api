@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.avbryt.AvbrytRammeb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.avbryt.KunneIkkeAvbryteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withSaksnummer
 import java.time.Clock
@@ -106,11 +107,14 @@ private fun KunneIkkeAvbryteBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCo
         melding = "Behandlingen tilhører en annen beslutter. Overta behandlingen og prøv igjen.",
         kode = "behandlingen_tildelt_annen_beslutter",
     )
+
+    is KunneIkkeAvbryteBehandling.HarNyeAutomatiskOpprettedeGrunner -> HttpStatusCode.Conflict to Standardfeil.harNyeAutomatiskOpprettedeGrunner()
 }
 
 data class AvsluttSøknadOgBehandlingBody(
     val behandlingId: String,
     val begrunnelse: String,
+    val antallVisteAutomatiskOpprettedeGrunner: Int? = null,
 ) {
     fun tilKommando(
         saksnummer: Saksnummer,
@@ -123,6 +127,7 @@ data class AvsluttSøknadOgBehandlingBody(
             avsluttetAv = avsluttetAv,
             correlationId = correlationId,
             begrunnelse = saniterBeholdNewline(begrunnelse).toNonBlankString(),
+            antallVisteAutomatiskOpprettedeGrunner = antallVisteAutomatiskOpprettedeGrunner,
         )
     }
 }

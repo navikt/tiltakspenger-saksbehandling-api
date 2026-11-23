@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import java.time.LocalDateTime
 
@@ -146,6 +147,21 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
         }
 
         data.get()[behandlingId] = rammebehandling
+        return true
+    }
+
+    override fun lagreAutomatiskOpprettedeGrunner(
+        revurdering: Revurdering,
+        transactionContext: TransactionContext?,
+    ): Boolean {
+        val behandling = data.get()[revurdering.id]
+        if (behandling !is Revurdering ||
+            behandling.resultat !is Revurderingsresultat.Ubestemt ||
+            (behandling.status != Rammebehandlingsstatus.KLAR_TIL_BEHANDLING && behandling.status != Rammebehandlingsstatus.UNDER_BEHANDLING)
+        ) {
+            return false
+        }
+        data.get()[revurdering.id] = behandling.copy(automatiskOpprettedeGrunner = revurdering.automatiskOpprettedeGrunner)
         return true
     }
 

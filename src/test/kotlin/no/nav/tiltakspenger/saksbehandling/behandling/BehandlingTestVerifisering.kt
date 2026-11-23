@@ -130,6 +130,7 @@ fun String.shouldBeRevurderingDTO(
           "fritekstTilVedtaksbrev": ${ikkeSladdetTekst(fritekstTilVedtaksbrev)},
           "resultat": "$resultat",
           "automatiskOpprettetGrunn": ${automatiskOpprettetGrunn?.let { "\"$it\"" }},
+          "automatiskOpprettedeGrunner": [],
           "perioderForReversertOpphør": [],
           "manueltBehandlesGrunner": [${manueltBehandlesGrunner.joinToString(",") { "\"$it\"" }}],
           "type": "REVURDERING",

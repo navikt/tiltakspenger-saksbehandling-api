@@ -74,6 +74,19 @@ interface RammebehandlingRepo {
         transactionContext: TransactionContext?,
     ): Boolean
 
+    /**
+     * Lagrer de automatisk opprettede grunnene til [revurdering], og ingenting annet.
+     * [Rammebehandling.sistEndret] oppdateres ikke, se [Revurdering.leggTilAutomatiskOpprettetGrunn].
+     * Lagres bare hvis den lagrede revurderingen fortsatt er ubestemt og klar til eller under behandling.
+     * Grunnene lagres ikke av [lagre], slik at en samtidig lagring fra saksbehandler ikke overskriver dem.
+     *
+     * @return true dersom grunnene ble lagret, false dersom revurderingen er endret til noe annet siden den ble lastet.
+     */
+    fun lagreAutomatiskOpprettedeGrunner(
+        revurdering: Revurdering,
+        transactionContext: TransactionContext?,
+    ): Boolean
+
     /** Åpne automatiske søknadsbehandlinger som ikke venter (venter_til er null eller passert). */
     fun hentAutomatiskeSoknadsbehandlingIder(limit: Int): List<RammebehandlingId>
 

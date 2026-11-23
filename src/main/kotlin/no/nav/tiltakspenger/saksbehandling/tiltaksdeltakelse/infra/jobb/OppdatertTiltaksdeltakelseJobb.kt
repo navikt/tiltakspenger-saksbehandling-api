@@ -52,10 +52,11 @@ import java.time.LocalDateTime
  * Nå-tilstanden sammenlignes med saken, og relevante endringer fører til at en revurdering opprettes automatisk.
  * Automatiske søknadsbehandlinger og forlengelser på vent får fremskyndet ny vurdering når deltakelsen endres.
  * Endringer som ikke kan revurderes automatisk fører til en Gosys-oppgave inntil erstatteren er på plass.
+ * Har saken en åpen ubestemt revurdering, legges endringen i stedet til som en ny grunn i den.
  * Referansen til oppgaven lagres som en [EksternOppgave] før markøren nullstilles.
  * Nå-tilstanden lagres i tiltakshistorikken når den er endret siden forrige innslag for deltakeren, eller når den førte til en revurdering eller en oppgave.
  * Den lagres i samme transaksjon som markøren nullstilles.
- * En automatisk revurdering lagres også i den transaksjonen, slik at revurderingen, tiltakshistorikken og kvitteringen lagres samlet eller ikke i det hele tatt.
+ * En automatisk revurdering eller en ny grunn i en ubestemt revurdering lagres også i den transaksjonen, slik at revurderingen, tiltakshistorikken og kvitteringen lagres samlet eller ikke i det hele tatt.
  * En automatisk stans, forlengelse eller omgjøring ved avkortet sluttdato opprettes under automatisk behandling og behandles videre av [DelautomatiskRevurderingJobb].
  */
 class OppdatertTiltaksdeltakelseJobb(
@@ -123,8 +124,19 @@ class OppdatertTiltaksdeltakelseJobb(
 
     private fun lagreSomBehandlet(deltaker: Tiltaksdeltaker, resultat: TiltaksdeltakelseEndringBehandlet) {
         sessionFactory.withTransactionContext { tx ->
-            if (resultat is TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet) {
-                startRevurderingService.lagre(resultat.forberedtRevurdering, tx)
+            when (resultat) {
+                is TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet -> startRevurderingService.lagre(resultat.forberedtRevurdering, tx)
+
+                // Markøren står igjen dersom revurderingen er konvertert eller avsluttet siden saken ble hentet, slik at endringen vurderes på nytt ved neste kjøring.
+                is TiltaksdeltakelseEndringBehandlet.GrunnLagtTilUbestemtRevurdering -> check(rammebehandlingRepo.lagreAutomatiskOpprettedeGrunner(resultat.revurdering, tx)) {
+                    "Revurdering ${resultat.revurderingId} er ikke lenger en åpen ubestemt revurdering, prøver igjen ved neste kjøring"
+                }
+
+                is TiltaksdeltakelseEndringBehandlet.IngenLesbarNåtilstand,
+                is TiltaksdeltakelseEndringBehandlet.IngenRelevantEndring,
+                is TiltaksdeltakelseEndringBehandlet.AvsluttetSomForventet,
+                is TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet,
+                -> Unit
             }
             lagreTiltakshistorikk(deltaker, resultat, tx)
             tiltaksdeltakerRepo.markerEndringSomBehandlet(
@@ -153,7 +165,11 @@ class OppdatertTiltaksdeltakelseJobb(
             innhentet = nå(clock),
             verdi = nåtilstand,
             endring = resultat.endring,
-            behandlingId = (resultat as? TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet)?.revurderingId,
+            behandlingId = when (resultat) {
+                is TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet -> resultat.revurderingId
+                is TiltaksdeltakelseEndringBehandlet.GrunnLagtTilUbestemtRevurdering -> resultat.revurderingId
+                else -> null
+            },
             oppgaveId = (resultat as? TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet)?.oppgaveId,
         )
         val forrigeVerdi = tiltakshistorikkRepo.hentSisteVerdi(deltaker.id, tx)
@@ -200,6 +216,17 @@ class OppdatertTiltaksdeltakelseJobb(
                 return TiltaksdeltakelseEndringBehandlet.IngenRelevantEndring(oppdatertDeltakelse).right()
             }
 
+            is VurdertTiltaksdeltakerEndring.EndretMedÅpenUbestemtRevurdering -> {
+                log.info { "Tiltaksdeltakelse er endret mens saken har en åpen ubestemt revurdering, legger endringen til som grunn i revurdering ${vurdering.revurdering.id} ($logIder)" }
+                return TiltaksdeltakelseEndringBehandlet.GrunnLagtTilUbestemtRevurdering(
+                    revurdering = vurdering.revurdering.leggTilAutomatiskOpprettetGrunn(
+                        AutomatiskOpprettetRevurderingGrunn(endring = vurdering.endring, tiltaksdeltakerId = deltaker.id, lagtTil = nå(clock)),
+                    ),
+                    nåtilstand = oppdatertDeltakelse,
+                    endring = vurdering.endring,
+                ).right()
+            }
+
             is VurdertTiltaksdeltakerEndring.Endret -> vurdering
         }
 
@@ -217,7 +244,7 @@ class OppdatertTiltaksdeltakelseJobb(
             forberedRevurdering(
                 sak,
                 revurderingSomSkalOpprettes,
-                AutomatiskOpprettetRevurderingGrunn(endring = endring, tiltaksdeltakerId = deltaker.id),
+                AutomatiskOpprettetRevurderingGrunn(endring = endring, tiltaksdeltakerId = deltaker.id, lagtTil = nå(clock)),
                 oppdatertDeltakelse,
                 logIder,
                 correlationId,
@@ -256,7 +283,7 @@ class OppdatertTiltaksdeltakelseJobb(
 
     /**
      * En stans, forlengelse eller omgjøring ved avkortet sluttdato opprettes under automatisk behandling og behandles videre av [DelautomatiskRevurderingJobb].
-     * Andre omgjøringer opprettes klare til behandling for en saksbehandler.
+     * Andre omgjøringer og ubestemte revurderinger opprettes klare til behandling for en saksbehandler.
      * En stans kan i stedet bli en omgjøring klar til behandling, der saksbehandler fyller ut opphøret, se [DelautomatiskStansService.opprettStansEllerOpphør].
      *
      * @return null dersom revurderingen ikke kan opprettes, og endringen må følges opp med en oppgave.
@@ -295,6 +322,20 @@ class OppdatertTiltaksdeltakelseJobb(
             ).getOrElse { feil ->
                 throw IllegalStateException(
                     "Uventet feil ved automatisk start av revurdering: ${feil.loggkontekst.melding} " +
+                        "(saksnummer ${sak.saksnummer} / correlationId $correlationId / $logIder)",
+                )
+            }
+
+            AutomatiskRevurderingAvEndring.Ubestemt -> startRevurderingService.forberedRevurdering(
+                StartRevurderingKommando.Ubestemt(
+                    sakId = sak.id,
+                    correlationId = correlationId,
+                    automatiskOpprettetGrunn = automatiskOpprettetGrunn,
+                ),
+                sak,
+            ).getOrElse { feil ->
+                throw IllegalStateException(
+                    "Uventet feil ved automatisk start av ubestemt revurdering: ${feil.loggkontekst.melding} " +
                         "(saksnummer ${sak.saksnummer} / correlationId $correlationId / $logIder)",
                 )
             }
@@ -388,6 +429,15 @@ sealed interface TiltaksdeltakelseEndringBehandlet {
         override val endring: TiltaksdeltakerEndring,
     ) : TiltaksdeltakelseEndringBehandlet {
         val revurderingId: RammebehandlingId get() = forberedtRevurdering.revurdering.id
+    }
+
+    /** Revurderingen i [revurdering] har fått endringen som ny grunn, og grunnene lagres i samme transaksjon som markøren nullstilles. */
+    data class GrunnLagtTilUbestemtRevurdering(
+        val revurdering: Revurdering,
+        override val nåtilstand: Tiltaksdeltakelse.GirRett,
+        override val endring: TiltaksdeltakerEndring,
+    ) : TiltaksdeltakelseEndringBehandlet {
+        val revurderingId: RammebehandlingId get() = revurdering.id
     }
 
     data class OppgaveOpprettet(

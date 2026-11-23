@@ -93,7 +93,7 @@ interface StartRevurderingBuilder {
             StartRevurderingKommando.Ubestemt(
                 sakId = sak.id,
                 correlationId = CorrelationId.generate(),
-                automatiskOpprettetGrunn = AutomatiskOpprettetRevurderingGrunn(endring, tiltaksdeltakerId),
+                automatiskOpprettetGrunn = AutomatiskOpprettetRevurderingGrunn(endring, tiltaksdeltakerId, lagtTil = nå(tac.clock)),
             ),
         ).getOrNull()!!
     }

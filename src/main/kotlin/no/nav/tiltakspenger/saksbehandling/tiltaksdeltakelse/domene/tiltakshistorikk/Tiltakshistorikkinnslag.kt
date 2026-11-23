@@ -14,6 +14,7 @@ import java.time.LocalDateTime
  * [eksternDeltakerId] er id-en deltakelsen ble slått opp med.
  * [endring] er endringen som ble utledet mot saken, og er null når det ikke fantes noen relevant endring.
  * [behandlingId] og [oppgaveId] er satt når endringen førte til en automatisk opprettet revurdering eller en Gosys-oppgave.
+ * [behandlingId] er også satt når endringen ble lagt til som grunn i en åpen ubestemt revurdering.
  */
 data class Tiltakshistorikkinnslag(
     val id: TiltakshistorikkId,

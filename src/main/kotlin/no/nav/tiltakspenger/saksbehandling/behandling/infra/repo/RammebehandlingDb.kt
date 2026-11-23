@@ -45,7 +45,7 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toOmgjørRammev
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toAutomatiskOpprettetRevurderingGrunn
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toAutomatiskOpprettedeRevurderingGrunner
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toSimuleringFraDbJson
@@ -249,7 +249,7 @@ fun Row.toBehandling(session: Session): Rammebehandling {
                 },
                 utbetaling = utbetaling,
                 utbetalingskontroll = utbetalingskontroll,
-                automatiskOpprettetGrunn = stringOrNull("automatisk_opprettet_grunn")?.toAutomatiskOpprettetRevurderingGrunn(),
+                automatiskOpprettedeGrunner = stringOrNull("automatisk_opprettet_grunn")?.toAutomatiskOpprettedeRevurderingGrunner(opprettet),
                 manueltBehandlesGrunner = manueltBehandlesGrunner,
                 skalSendeVedtaksbrev = boolean("skal_sende_vedtaksbrev"),
                 prioritering = prioritering,
@@ -314,7 +314,7 @@ fun Rammebehandling.tilDbParams(): Array<Pair<String, Any?>> {
         "navkontor_navn" to this.utbetaling?.let { it.navkontor.kontornavn },
         "klagebehandling_id" to this.klagebehandling?.let { it.id.toString() },
         "automatisk_opprettet_grunn" to when (this) {
-            is Revurdering -> this.automatiskOpprettetGrunn?.toDbJson()
+            is Revurdering -> this.automatiskOpprettedeGrunner?.toDbJson()
             is Søknadsbehandling -> null
         },
         "skal_sende_vedtaksbrev" to this.skalSendeVedtaksbrev,

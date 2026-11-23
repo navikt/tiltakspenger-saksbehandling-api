@@ -60,6 +60,7 @@ interface AvbrytRammebehandlingBuilder {
         rammebehandlingId: RammebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         begrunnelse: String = "begrunnelse for avbryt søknad og/eller rammebehandling",
+        antallVisteAutomatiskOpprettedeGrunner: Int? = null,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple4<Sak, Søknad, Rammebehandling?, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
@@ -73,7 +74,8 @@ interface AvbrytRammebehandlingBuilder {
             """
                 {
                 "behandlingId": "$rammebehandlingId",
-                "begrunnelse": "$begrunnelse"
+                "begrunnelse": "$begrunnelse",
+                "antallVisteAutomatiskOpprettedeGrunner": $antallVisteAutomatiskOpprettedeGrunner
                 }
             """.trimIndent(),
         ).apply {

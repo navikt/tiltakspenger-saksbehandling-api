@@ -19,5 +19,6 @@ fun Route.localDevRoutes(applicationContext: ApplicationContext) {
     nyUbestemtRevurderingDevRoute(
         sakService = applicationContext.sakContext.sakService,
         startRevurderingService = applicationContext.behandlingContext.startRevurderingService,
+        clock = applicationContext.clock,
     )
 }
