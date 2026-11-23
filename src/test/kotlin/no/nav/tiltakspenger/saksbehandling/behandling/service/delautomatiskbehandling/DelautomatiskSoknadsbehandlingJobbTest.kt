@@ -9,10 +9,12 @@ import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
@@ -62,6 +64,15 @@ class DelautomatiskSoknadsbehandlingJobbTest {
             tac.eksternOppgaveRepo.hentForSakId(sak.id) shouldBe emptyList()
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.single().status shouldBe
                 Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+
+            // Kode 6/7 og skjermede behandles av egne enheter som jobber i Gosys og ikke følger med på benken i TP-sak.
+            // Oppgaven er derfor varselet deres om at det har kommet en søknad.
+            // Vi setter ikke enhet, så oppgavetjenesten ruter oppgaven til riktig spesialenhet ut fra personen.
+            (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaverMedJournalpost.single().also {
+                it.oppgavebehov shouldBe Oppgavebehov.NY_SOKNAD
+                it.fnr shouldBe søknad.fnr
+                it.journalpostId shouldBe JournalpostId(søknad.journalpostId)
+            }
         }
     }
 
@@ -101,6 +112,27 @@ class DelautomatiskSoknadsbehandlingJobbTest {
             behandling.søknad.id shouldBe søknad.id
             behandling.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
             tac.eksternOppgaveRepo.hentForSakId(sak.id) shouldBe emptyList()
+        }
+    }
+
+    /**
+     * Søkere uten adressebeskyttelse og skjerming behandles på benken i TP-sak, så vi oppretter ingen Gosys-oppgave for dem i dag.
+     * Testen pinner dagens oppførsel og forventes å feile når #94 innfører statusoppgave for alle søknader.
+     * Da må den oppdateres til den nye oppførselen.
+     */
+    @Test
+    fun `opprettSøknadsbehandlingForSøknad - vanlig søker - oppretter ingen Gosys-oppgave`() {
+        withTestApplicationContextAndPostgres { tac ->
+            // opprettSakOgSøknad legger søkeren inn som ugradert, og skjermingsfaken svarer ikke skjermet som standard.
+            val (sak, søknad) = opprettSakOgSøknad(tac = tac)
+
+            tac.delautomatiskSøknadsbehandlingJobb.opprettSøknadsbehandlingForSøknad(søknad.id)
+
+            // Behandlingen opprettes som vanlig, slik at testen ikke består fordi jobben stoppet tidlig.
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.single().status shouldBe
+                Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+
+            (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaveIder shouldBe emptyList()
         }
     }
 

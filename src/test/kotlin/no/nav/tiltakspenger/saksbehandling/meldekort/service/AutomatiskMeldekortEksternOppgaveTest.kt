@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -44,6 +45,9 @@ class AutomatiskMeldekortEksternOppgaveTest {
                 runIsolated = true,
             ) { tac ->
                 val (sak) = iverksettSøknadsbehandling(tac = tac, fnr = ObjectMother.gyldigFnr(), jobber = JobberEtterIverksettelse.ingen)
+                val klient = tac.oppgaveKlient as OppgaveFakeKlient
+                val antallFørMeldekort = klient.opprettedeOppgaveIder.size
+                val antallMedJournalpostFørMeldekort = klient.opprettedeOppgaverMedJournalpost.size
                 val meldekort = mottaMeldekortMedForMyeFravær(tac, sak)
                 (tac.personContext.personKlient as PersonFakeKlient).leggTilPersonopplysning(
                     sak.fnr,
@@ -56,13 +60,45 @@ class AutomatiskMeldekortEksternOppgaveTest {
 
                 tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
 
-                (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaveIder.size shouldBe 1
+                klient.opprettedeOppgaveIder.size shouldBe antallFørMeldekort + 1
+                klient.opprettedeOppgaverMedJournalpost.drop(antallMedJournalpostFørMeldekort).single().also {
+                    it.oppgavebehov shouldBe Oppgavebehov.NYTT_MELDEKORT
+                    it.fnr shouldBe sak.fnr
+                    it.journalpostId shouldBe meldekort.journalpostId
+                }
                 tac.eksternOppgaveRepo.hentForSakId(sak.id) shouldBe emptyList()
                 val lagret = tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(meldekort.id)!!
                 lagret.behandlesAutomatisk shouldBe false
                 lagret.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR
                 tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
             }
+        }
+    }
+
+    /**
+     * Brukere uten adressebeskyttelse og skjerming behandles på benken i TP-sak, så meldekortet gir ingen Gosys-oppgave i dag.
+     * Testen pinner dagens oppførsel.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `manuelt meldekort for vanlig bruker gir ingen Gosys-oppgave`() {
+        withTestApplicationContextAndPostgres(
+            clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0))),
+            runIsolated = true,
+        ) { tac ->
+            val (sak) = iverksettSøknadsbehandling(tac = tac, fnr = ObjectMother.gyldigFnr(), jobber = JobberEtterIverksettelse.ingen)
+            val klient = tac.oppgaveKlient as OppgaveFakeKlient
+            val oppgaveIderFørMeldekort = klient.opprettedeOppgaveIder
+            val meldekort = mottaMeldekortMedForMyeFravær(tac, sak)
+
+            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+
+            // Meldekortet er sendt til manuell behandling, slik at testen ikke består fordi jobben stoppet før oppgavesjekken.
+            tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(meldekort.id)!!.also {
+                it.behandlesAutomatisk shouldBe false
+                it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR
+            }
+            klient.opprettedeOppgaveIder shouldBe oppgaveIderFørMeldekort
         }
     }
 
@@ -74,9 +110,10 @@ class AutomatiskMeldekortEksternOppgaveTest {
             runIsolated = true,
         ) { tac ->
             val (sak) = iverksettSøknadsbehandling(tac = tac, fnr = ObjectMother.gyldigFnr(), jobber = JobberEtterIverksettelse.ingen)
+            val klient = tac.oppgaveKlient as OppgaveFakeKlient
+            val oppgaveIderFørMeldekort = klient.opprettedeOppgaveIder
             val meldekort = mottaMeldekortMedForMyeFravær(tac, sak)
             (tac.personContext.fellesSkjermingsklient as FellesFakeSkjermingsklient).leggTil(sak.fnr, true)
-            val klient = tac.oppgaveKlient as OppgaveFakeKlient
             klient.opprettOppgaveResponse = ObjectMother.httpKlientUventetStatus().left()
 
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
@@ -84,11 +121,12 @@ class AutomatiskMeldekortEksternOppgaveTest {
             tac.eksternOppgaveRepo.hentForSakId(sak.id) shouldBe emptyList()
             tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(meldekort.id) shouldBe meldekort
             tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+            klient.opprettedeOppgaveIder shouldBe oppgaveIderFørMeldekort
 
             klient.opprettOppgaveResponse = null
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
 
-            klient.opprettedeOppgaveIder.size shouldBe 1
+            klient.opprettedeOppgaveIder.size shouldBe oppgaveIderFørMeldekort.size + 1
             tac.eksternOppgaveRepo.hentForSakId(sak.id) shouldBe emptyList()
             tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(meldekort.id)!!.behandlesAutomatisk shouldBe false
         }

@@ -18,6 +18,10 @@ import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
+import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
+import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
+import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.fraOgMedDatoSpm
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.periodeSpm
@@ -32,6 +36,8 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.StartBehandlingAvManueltRegistrertSøknadRouteBuilder.JournalpostISaf
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 
 /**
  * Rundturen for en manuelt registrert søknad, gjennom prodstien.
@@ -154,9 +160,11 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
      * DIGITAL settes av `mottaSøknadRoute` og dekkes av de øvrige testene; resten kan kun oppstå her.
      */
     @Test
-    fun `alle søknadstypene lagres og leses tilbake`() = runTest {
+    fun `alle manuelle søknadstyper lagres og leses tilbake uten å opprette Gosys-oppgave`() = runTest {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, _) = opprettSakOgSøknad(tac)
+            val klient = tac.oppgaveKlient as OppgaveFakeKlient
+            val oppgaveIderFørRegistrering = klient.opprettedeOppgaveIder
 
             listOf(
                 Søknadstype.PAPIR_SKJEMA,
@@ -176,6 +184,7 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
                 tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
                     .søknader.single { it.journalpostId == journalpostId }
                     .søknadstype shouldBe søknadstype
+                klient.opprettedeOppgaveIder shouldBe oppgaveIderFørRegistrering
             }
         }
     }
@@ -400,6 +409,48 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
 
             tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
                 .søknader.none { it.journalpostId == "journalpost-uten-oppholdssted" } shouldBe true
+        }
+    }
+
+    /**
+     * For papirsøknader oppretter tiltakspenger-journalposthendelser allerede en BEH_SAK-oppgave når journalposten kommer inn.
+     */
+    @ParameterizedTest
+    @CsvSource(
+        "UGRADERT, false",
+        "FORTROLIG, false",
+        "STRENGT_FORTROLIG, false",
+        "STRENGT_FORTROLIG_UTLAND, false",
+        "UGRADERT, true",
+    )
+    fun `registrering av papirskjema oppretter ingen Gosys-oppgave uansett adressebeskyttelse og skjerming`(
+        adressebeskyttelse: Adressebeskyttelse,
+        skjermet: Boolean,
+    ) = runTest {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _) = opprettSakOgSøknad(tac)
+
+            // Samme oppsett som i DelautomatiskSoknadsbehandlingJobbTest, der beskyttede og skjermede søkere får NY_SOKNAD-oppgave.
+            // Tilgangsmaskin-faken er uavhengig av disse fakene, så saksbehandleren har fortsatt tilgang til saken.
+            (tac.personContext.personKlient as PersonFakeKlient).leggTilPersonopplysning(
+                sak.fnr,
+                ObjectMother.personopplysningKjedeligFyr(
+                    fnr = sak.fnr,
+                    adressebeskyttelse = adressebeskyttelse,
+                ),
+            )
+            (tac.personContext.fellesSkjermingsklient as FellesFakeSkjermingsklient).leggTil(sak.fnr, skjermet)
+
+            val klient = tac.oppgaveKlient as OppgaveFakeKlient
+            val oppgaveIderFørRegistrering = klient.opprettedeOppgaveIder
+            startBehandlingAvManueltRegistrertSøknad(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                søknadstype = Søknadstype.PAPIR_SKJEMA.name,
+                journalpostId = "journalpost-uten-gosys-oppgave",
+            )
+
+            klient.opprettedeOppgaveIder shouldBe oppgaveIderFørRegistrering
         }
     }
 }
