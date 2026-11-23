@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
+import arrow.core.left
 import arrow.core.right
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -12,6 +14,9 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsmigrering
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragstilstand
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
@@ -49,7 +54,7 @@ class SimulerServiceOppdragsversjonTest {
 
     @Test
     fun `første og senere simulering i V3-sak bruker direkte V3-klient`() = runTest {
-        every { utbetalingRepo.hentOppdragsversjon(utbetaling.sakId) } returns Oppdragsversjon.V3
+        every { utbetalingRepo.hentOppdragstilstand(utbetaling.sakId) } returns Oppdragstilstand(Oppdragsversjon.V3, Oppdragsmigrering.FERDIG)
         every { utbetalingRepo.hentUtbetalingJson(forrigeUtbetaling.id) } returns "forrige-request"
         coEvery {
             v3Simuleringsklient.simuler(any(), any(), any(), any(), any(), any(), any(), any(), any())
@@ -90,7 +95,7 @@ class SimulerServiceOppdragsversjonTest {
 
     @Test
     fun `V2-sak fortsetter å bruke den eksisterende utsjekk-klienten`() = runTest {
-        every { utbetalingRepo.hentOppdragsversjon(utbetaling.sakId) } returns Oppdragsversjon.V2
+        every { utbetalingRepo.hentOppdragstilstand(utbetaling.sakId) } returns Oppdragstilstand(Oppdragsversjon.V2, null)
         every { utbetalingRepo.hentUtbetalingJson(forrigeUtbetaling.id) } returns "forrige-request"
         coEvery {
             utbetalingsklient.simuler(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
@@ -114,6 +119,17 @@ class SimulerServiceOppdragsversjonTest {
             )
         }
         coVerify(exactly = 0) { v3Simuleringsklient.simuler(any(), any(), any(), any(), any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `sak under migrering simuleres ikke`() {
+        runTest {
+            every { utbetalingRepo.hentOppdragstilstand(utbetaling.sakId) } returns Oppdragstilstand(Oppdragsversjon.V3, Oppdragsmigrering.MIGRERT_HOS_HEL_VED)
+
+            simuler(forrige = forrigeUtbetaling) shouldBe KunneIkkeSimulere.SakenMigreres.left()
+
+            coVerify(exactly = 0) { v3Simuleringsklient.simuler(any(), any(), any(), any(), any(), any(), any(), any(), any()) }
+        }
     }
 
     private suspend fun simuler(forrige: VedtattUtbetaling?) =

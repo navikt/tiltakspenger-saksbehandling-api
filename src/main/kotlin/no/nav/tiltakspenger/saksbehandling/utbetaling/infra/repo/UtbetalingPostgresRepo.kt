@@ -1,5 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import kotliquery.Row
 import kotliquery.Session
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -21,6 +24,9 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toForsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KvitteringsstatusLagring
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsmigrering
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.OppdragsmigreringenStårIEnAnnenTilstand
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragstilstand
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.ProdusertUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
@@ -233,9 +239,11 @@ class UtbetalingPostgresRepo(
                 sqlQuery(
                     """
                     select u.* from utbetaling_full u
+                    join sak s on s.id = u.sak_id
                     left join utbetaling parent on parent.id = u.forrige_utbetaling_id
                       and parent.sak_id = u.sak_id
                     where u.sendt_til_utbetaling_tidspunkt is null
+                      and (s.oppdragsmigrering is null or s.oppdragsmigrering = 'FERDIG')
                       and (u.forrige_utbetaling_id is null or (parent.sendt_til_utbetaling_tidspunkt is not null and parent.status IN ('OK','OK_UTEN_UTBETALING')))
                     order by u.opprettet
                     limit :limit
@@ -308,6 +316,109 @@ class UtbetalingPostgresRepo(
             ).map { it.int("oppdragsversjon").tilOppdragsversjon() }.asSingle,
         )
     } ?: throw IllegalStateException("Fant ikke sak $sakId")
+
+    override fun hentOppdragstilstand(sakId: SakId): Oppdragstilstand {
+        return sessionFactory.withSession {
+            hentOppdragstilstand(it, sakId, låsRaden = false)
+        }
+    }
+
+    override fun låsOppdragstilstand(
+        sakId: SakId,
+        context: TransactionContext,
+    ): Oppdragstilstand {
+        return sessionFactory.withSession(context) { hentOppdragstilstand(it, sakId, låsRaden = true) }
+    }
+
+    private fun hentOppdragstilstand(session: Session, sakId: SakId, låsRaden: Boolean): Oppdragstilstand {
+        return session.run(
+            sqlQuery(
+                "select oppdragsversjon, oppdragsmigrering, migrert_hos_hel_ved_tidspunkt from sak where id = :id${if (låsRaden) " for update" else ""}",
+                "id" to sakId.toString(),
+            ).map {
+                Oppdragstilstand(
+                    versjon = it.int("oppdragsversjon").tilOppdragsversjon(),
+                    migrering = it.stringOrNull("oppdragsmigrering")?.let(Oppdragsmigrering::valueOf),
+                    migrertHosHelVedTidspunkt = it.localDateTimeOrNull("migrert_hos_hel_ved_tidspunkt"),
+                )
+            }.asList,
+        ).single()
+    }
+
+    override fun oppdaterTilOppdragsversjon3(
+        sakId: SakId,
+        tidspunkt: LocalDateTime,
+        context: TransactionContext?,
+    ): Either<OppdragsmigreringenStårIEnAnnenTilstand, Unit> {
+        return settOppdragsmigrering(
+            sakId,
+            fra = Oppdragsmigrering.SPERRET,
+            til = Oppdragsmigrering.MIGRERT_HOS_HEL_VED,
+            context,
+            tidspunkt,
+        )
+    }
+
+    override fun sperrUtbetalinger(
+        sakId: SakId,
+        context: TransactionContext,
+    ): Boolean {
+        return sessionFactory.withSession(context) { session ->
+            val alleredeSperret = hentOppdragstilstand(session, sakId, låsRaden = true).migrering != null
+            session.run(
+                sqlQuery(
+                    "update sak set oppdragsmigrering = 'SPERRET' where id = :id and oppdragsmigrering is null",
+                    "id" to sakId.toString(),
+                ).asUpdate,
+            )
+            alleredeSperret
+        }
+    }
+
+    override fun hentSakerMigrertHosHelVed(): List<SakId> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery("select id from sak where oppdragsmigrering = 'MIGRERT_HOS_HEL_VED'")
+                    .map { SakId.fromString(it.string("id")) }.asList,
+            )
+        }
+    }
+
+    override fun opphevUtbetalingssperre(sakId: SakId): Either<OppdragsmigreringenStårIEnAnnenTilstand, Unit> {
+        return settOppdragsmigrering(sakId, fra = Oppdragsmigrering.MIGRERT_HOS_HEL_VED, til = Oppdragsmigrering.FERDIG)
+    }
+
+    /** Oppdragsversjonen følger tilstanden, og databasen avviser kombinasjoner som ikke passer, se Oppdragsmigrering. */
+    private fun settOppdragsmigrering(
+        sakId: SakId,
+        fra: Oppdragsmigrering,
+        til: Oppdragsmigrering,
+        context: TransactionContext? = null,
+        migrertHosHelVedTidspunkt: LocalDateTime? = null,
+    ): Either<OppdragsmigreringenStårIEnAnnenTilstand, Unit> {
+        return sessionFactory.withTransaction(context) { tx ->
+            val antall = tx.run(
+                sqlQuery(
+                    """
+                    update sak set oppdragsmigrering = :til, oppdragsversjon = :versjon,
+                        migrert_hos_hel_ved_tidspunkt = coalesce(:tidspunkt::timestamptz, migrert_hos_hel_ved_tidspunkt)
+                    where id = :id and oppdragsmigrering = :fra
+                    """,
+                    "tidspunkt" to migrertHosHelVedTidspunkt,
+                    "til" to til.name,
+                    "fra" to fra.name,
+                    "versjon" to Oppdragsversjon.V3.tilDb(),
+                    "id" to sakId.toString(),
+                ).asUpdate,
+            )
+            // En update som ikke traff saken, har ikke endret noe, så transaksjonen trenger ikke rulles tilbake.
+            if (antall == 1) {
+                Unit.right()
+            } else {
+                OppdragsmigreringenStårIEnAnnenTilstand(sakId, fra, til, hentOppdragstilstand(tx, sakId, låsRaden = false)).left()
+            }
+        }
+    }
 
     override fun lagreKvitteringsstatus(
         utbetalingId: UtbetalingId,

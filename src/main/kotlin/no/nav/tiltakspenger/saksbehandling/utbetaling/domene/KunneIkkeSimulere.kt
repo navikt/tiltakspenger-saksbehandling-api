@@ -25,6 +25,9 @@ sealed interface KunneIkkeSimulere {
     data class Timeout(val feil: HttpKlientError) : KunneIkkeSimulere
 
     data class UgyldigSimulering(val feil: Simuleringsfeil) : KunneIkkeSimulere
+
+    /** Saken er midt i en migrering fra [Oppdragsversjon.V2] til [Oppdragsversjon.V3], se [Oppdragsmigrering]. */
+    data object SakenMigreres : KunneIkkeSimulere
 }
 
 /**
@@ -42,6 +45,8 @@ fun KunneIkkeSimulere.logg(logger: KLogger, kontekst: String) {
         }
 
         is KunneIkkeSimulere.Timeout -> feil.loggFeil(logger, "simulering mot helved (timeout)", kontekst)
+
+        KunneIkkeSimulere.SakenMigreres -> logger.info { "Simulerer ikke fordi saken migreres til oppdragsversjon 3. $kontekst - KunneIkkeSimulere.SakenMigreres" }
 
         is KunneIkkeSimulere.UkjentFeil -> feil.loggFeil(logger, "ukjent feil ved simulering mot helved", kontekst)
 

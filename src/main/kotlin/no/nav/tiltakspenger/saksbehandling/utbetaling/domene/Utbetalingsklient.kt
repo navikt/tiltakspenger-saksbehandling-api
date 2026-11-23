@@ -36,6 +36,14 @@ interface Utbetalingsklient {
         forrigeUtbetalingId: UtbetalingId?,
         meldeperiodeKjeder: MeldeperiodeKjeder,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata>
+
+    /**
+     * Ber Hel Ved videreføre alle kjedene i saken på [Oppdragsversjon.V3].
+     * Hel Ved svarer OK også når saken allerede er migrert.
+     */
+    suspend fun migrerTilOppdragsversjon3(
+        saksnummer: Saksnummer,
+    ): Either<HttpKlientError, Unit>
 }
 
 sealed interface UtbetalingResponse {

@@ -299,6 +299,31 @@ class UtbetalingHttpKlientTest {
         UtbetalingHttpKlient.simuleringstidspunkt(null, fixedClock) shouldBe nå(fixedClock)
     }
 
+    @Test
+    fun `migrerTilOppdragsversjon3 - sender saksnummeret som sakId og godtar 200`() {
+        val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 200, body = "", contentType = "text/plain") }
+        val saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = fixedClock)
+
+        runTest {
+            client(transport).migrerTilOppdragsversjon3(saksnummer) shouldBe Unit.right()
+        }
+
+        val kall = transport.mottatteKall.single()
+        kall.metode shouldBe "POST"
+        kall.uri.toString() shouldBe "$baseUrl/api/iverksetting/v2/migrate"
+        kall.bodyTekst shouldBe """{"sakId":"${saksnummer.verdi}"}"""
+    }
+
+    @Test
+    fun `migrerTilOppdragsversjon3 - 423 gir UventetStatus`() {
+        val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 423, body = "låst", contentType = "text/plain") }
+
+        runTest {
+            client(transport).migrerTilOppdragsversjon3(Saksnummer.genererSaknummer(løpenr = "1001", clock = fixedClock))
+                .leftOrNull().shouldBeInstanceOf<HttpKlientError.UventetStatus>().statusCode shouldBe 423
+        }
+    }
+
     private suspend fun simuler(transport: FakeHttpTransport): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
         return client(transport).simuler(
             sakId = SakId.random(),

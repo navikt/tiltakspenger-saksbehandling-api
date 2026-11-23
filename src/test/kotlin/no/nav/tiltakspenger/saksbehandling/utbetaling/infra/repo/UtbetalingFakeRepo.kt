@@ -1,11 +1,17 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk.Companion.opprett
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KvitteringsstatusLagring
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsmigrering
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.OppdragsmigreringenStårIEnAnnenTilstand
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragstilstand
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
@@ -25,6 +31,8 @@ class UtbetalingFakeRepo : UtbetalingRepo {
     private val response = arrow.atomic.Atomic(mutableMapOf<UtbetalingId, UtbetalingResponse>())
     private val requestSnapshots = arrow.atomic.Atomic(mutableMapOf<UtbetalingId, String>())
     private val oppdragsversjoner = arrow.atomic.Atomic(mutableMapOf<SakId, Oppdragsversjon>())
+    private val migreringer = arrow.atomic.Atomic(mutableMapOf<SakId, Oppdragsmigrering>())
+    private val migrertHosHelVed = arrow.atomic.Atomic(mutableMapOf<SakId, java.time.LocalDateTime>())
 
     fun settOppdragsversjon(sakId: SakId, oppdragsversjon: Oppdragsversjon) {
         oppdragsversjoner.get()[sakId] = oppdragsversjon
@@ -103,7 +111,7 @@ class UtbetalingFakeRepo : UtbetalingRepo {
     }
 
     override fun hentForUtsjekk(limit: Int): List<VedtattUtbetaling> {
-        return data.get().values.filter { it.sendtTilUtbetaling == null }.take(limit)
+        return data.get().values.filter { it.sendtTilUtbetaling == null && migreringer.get()[it.sakId]?.sperrerUtbetalinger != true }.take(limit)
     }
 
     override fun oppdaterUtbetalingsstatus(
@@ -145,6 +153,50 @@ class UtbetalingFakeRepo : UtbetalingRepo {
         context: TransactionContext?,
     ): Oppdragsversjon {
         return oppdragsversjoner.get()[sakId] ?: Oppdragsversjon.V2
+    }
+
+    override fun oppdaterTilOppdragsversjon3(
+        sakId: SakId,
+        tidspunkt: java.time.LocalDateTime,
+        context: TransactionContext?,
+    ): Either<OppdragsmigreringenStårIEnAnnenTilstand, Unit> {
+        if (migreringer.get()[sakId] != Oppdragsmigrering.SPERRET) {
+            return OppdragsmigreringenStårIEnAnnenTilstand(sakId, Oppdragsmigrering.SPERRET, Oppdragsmigrering.MIGRERT_HOS_HEL_VED, hentOppdragstilstand(sakId)).left()
+        }
+        migrertHosHelVed.get()[sakId] = tidspunkt
+        migreringer.get()[sakId] = Oppdragsmigrering.MIGRERT_HOS_HEL_VED
+        settOppdragsversjon(sakId, Oppdragsversjon.V3)
+        return Unit.right()
+    }
+
+    override fun hentOppdragstilstand(sakId: SakId): Oppdragstilstand {
+        return Oppdragstilstand(hentOppdragsversjon(sakId), migreringer.get()[sakId], migrertHosHelVed.get()[sakId])
+    }
+
+    override fun sperrUtbetalinger(
+        sakId: SakId,
+        context: TransactionContext,
+    ): Boolean {
+        return migreringer.get().putIfAbsent(sakId, Oppdragsmigrering.SPERRET) != null
+    }
+
+    override fun låsOppdragstilstand(
+        sakId: SakId,
+        context: TransactionContext,
+    ): Oppdragstilstand {
+        return hentOppdragstilstand(sakId)
+    }
+
+    override fun hentSakerMigrertHosHelVed(): List<SakId> {
+        return migreringer.get().filterValues { it == Oppdragsmigrering.MIGRERT_HOS_HEL_VED }.keys.toList()
+    }
+
+    override fun opphevUtbetalingssperre(sakId: SakId): Either<OppdragsmigreringenStårIEnAnnenTilstand, Unit> {
+        if (migreringer.get()[sakId] != Oppdragsmigrering.MIGRERT_HOS_HEL_VED) {
+            return OppdragsmigreringenStårIEnAnnenTilstand(sakId, Oppdragsmigrering.MIGRERT_HOS_HEL_VED, Oppdragsmigrering.FERDIG, hentOppdragstilstand(sakId)).left()
+        }
+        migreringer.get()[sakId] = Oppdragsmigrering.FERDIG
+        return Unit.right()
     }
 
     override fun lagreKvitteringsstatus(

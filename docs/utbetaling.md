@@ -48,6 +48,38 @@ Klienten har 130 sekunders timeout for å gi rom for tjenestens ventetid på inn
 Ukjente svar og feil blir ikke tolket som ingen endring, og det finnes ingen automatisk overgang til V2 ved feil.
 Versjon 2 beholder eksisterende endepunkt og flyt.
 
+## Migrering fra versjon 2 til versjon 3
+
+`POST /sak/{sakId}/migrer-til-oppdragsversjon-3` flytter en sak fra versjon 2 til versjon 3.
+Rutene er åpne for alle saksbehandlerroller, men `MigrerTilOppdragsversjon3Service` avviser kallene i prod.
+Alle utbetalingene i saken må være sendt og kvittert OK; ellers svarer ruten 409 og saken er uendret.
+Kolonnen `sak.oppdragsmigrering` viser hvor langt migreringen har kommet:
+
+| Tilstand | Oppdragsversjon | Betydning |
+| --- | --- | --- |
+| tom | 2 eller 3 | Ingen migrering; ny sak på versjon 3 har også tom tilstand. |
+| `SPERRET` | 2 | Utbetalingene er sperret, og Hel Ved har ikke svart OK på migreringen. |
+| `MIGRERT_HOS_HEL_VED` | 3 | Hel Ved har svart OK, men kontrollsimuleringen har ikke vist at kjedene er tatt opp. |
+| `FERDIG` | 3 | Sperren er opphevet. |
+
+`SPERRET` og `MIGRERT_HOS_HEL_VED` gjør at `SendUtbetalingerService` hopper over saken og at simuleringen svarer 409 med koden `saken_migreres`.
+Sendingen leser tilstanden på nytt under lås på sakraden, så en utbetaling hentet før sperren eller byttet sendes ikke på feil versjon.
+Ruten setter først `SPERRET`.
+Deretter kaller den Hel Veds `POST /api/iverksetting/v2/migrate` og bytter saken til versjon 3.
+Feiler Hel Ved, står saken sperret på versjon 2: 423 gir 409, og andre feil gir 502.
+En sak uten utbetalinger byttes bare hos oss, siden Hel Ved ikke har noen kjeder å videreføre.
+Hel Ved svarer OK også når saken allerede er migrert hos dem, så migreringen kan kjøres på nytt etter en feil.
+
+Jobben `saksbehandling-jobb-opphev-utbetalingssperrer` opphever sperren.
+Hel Ved sender de migrerte kjedene videre asynkront og sier ikke fra når de er tatt opp, så jobben simulerer den siste sendte utbetalingen på nytt på versjon 3 med sakstilstanden vi sendte den med.
+Har Hel Ved tatt opp kjedene, svarer abetal `OK_UTEN_ENDRING`; mangler de, simuleres utbetalingen som nye kjeder, og svaret viser en ny utbetaling.
+Bare ingen endring opphever sperren; ved endring eller feil i simuleringen står sperren til neste kjøring.
+Har saken ventet lengre enn `Oppdragstilstand.FORVENTET_TID_HOS_HEL_VED` (én time) siden Hel Ved svarte OK, logges det som feil.
+En sak uten sendte utbetalinger simuleres ikke.
+Gir Hel Ved oss en status for migreringen, kan jobben bruke den i stedet for simuleringen.
+I dev kan du kalle migreringsruten med `?opphevSperrenStraks=true` for å sette tilstanden `FERDIG` rett etter OK fra Hel Ved, uten kontrollsimulering.
+Migreringen er fortsatt avslått i prod, også når parameteren er satt.
+
 ## Kvitteringer og nye forsøk
 
 `RåUtbetalingskvittering` representerer innboksmeldingen, med rå nøkkel og innhold, behandlingstilstand og eventuelle koblinger.

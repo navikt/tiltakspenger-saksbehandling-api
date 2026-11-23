@@ -25,5 +25,10 @@ fun KunneIkkeSimulere.tilSimuleringErrorJson(): Pair<HttpStatusCode, ErrorJson> 
             this.feil.beskrivelse,
             "kunne_ikke_tolke_simulering",
         )
+
+        KunneIkkeSimulere.SakenMigreres -> HttpStatusCode.Conflict to ErrorJson(
+            "Saken flyttes til ny versjon hos Hel Ved, og kan ikke simuleres før flyttingen er ferdig. Prøv igjen senere.",
+            "saken_migreres",
+        )
     }
 }

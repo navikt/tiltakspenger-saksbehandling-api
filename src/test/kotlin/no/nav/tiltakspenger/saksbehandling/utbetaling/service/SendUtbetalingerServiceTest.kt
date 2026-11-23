@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import arrow.core.Either
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.justRun
@@ -19,6 +20,8 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelse
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsmigrering
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragstilstand
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingProducer
@@ -50,6 +53,7 @@ class SendUtbetalingerServiceTest {
     init {
         every { utbetalingRepo.hentForUtsjekk() } returns listOf(utbetaling)
         every { utbetalingRepo.hentOppdragsversjon(utbetaling.sakId) } returns Oppdragsversjon.V2
+        every { utbetalingRepo.låsOppdragstilstand(utbetaling.sakId, any()) } returns Oppdragstilstand(Oppdragsversjon.V2, null)
         coEvery { statistikkService.generer(*anyVararg<Statistikkhendelse>()) } returns statistikk
         justRun { statistikkService.lagre(statistikk, tx) }
         justRun { utbetalingRepo.markerSendtTilUtbetaling(utbetaling.id, any(), tx) }
@@ -80,5 +84,24 @@ class SendUtbetalingerServiceTest {
         sendUtbetalingerService.sendUtbetalingerTilHelved()
 
         verify(exactly = 1) { utbetalingRepo.lagreUtbetalingsrespons(utbetaling.id, kunneIkkeUtbetale, null) }
+    }
+
+    @Test
+    fun `sak som er sperret eller migrert etter utvalget sendes ikke`() {
+        runTest {
+            every { utbetalingRepo.låsOppdragstilstand(utbetaling.sakId, any()) } returnsMany listOf(
+                Oppdragstilstand(Oppdragsversjon.V2, Oppdragsmigrering.SPERRET),
+                Oppdragstilstand(Oppdragsversjon.V3, Oppdragsmigrering.FERDIG),
+                Oppdragstilstand(Oppdragsversjon.V2, null),
+            )
+
+            sendUtbetalingerService.sendUtbetalingerTilHelved()
+
+            sendUtbetalingerService.sendUtbetalingerTilHelved()
+
+            verify(exactly = 0) { statistikkService.lagre(statistikk, tx) }
+            verify(exactly = 0) { utbetalingRepo.markerSendtTilUtbetaling(any(), any(), any()) }
+            coVerify(exactly = 0) { utbetalingsklient.iverksett(any(), any(), any()) }
+        }
     }
 }

@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 
+import arrow.core.left
+import arrow.core.right
 import io.kotest.assertions.withClue
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
@@ -11,9 +13,13 @@ import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsmigrering
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.OppdragsmigreringenStårIEnAnnenTilstand
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragstilstand
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 
 /**
  * Aggregat-test for de to køene på utbetaling, jf. testtaksonomien i `AGENTS.md`.
@@ -144,6 +150,40 @@ class UtbetalingAggregatTest {
             tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
 
             repo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = 10).shouldBeEmpty()
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `utsjekkskøen utelater saker med utbetalingssperre til sperren er opphevet`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val sakA = sakMedUtbetaling(tac)
+            val sakB = sakMedUtbetaling(tac)
+            val repo = tac.utbetalingContext.utbetalingRepo
+
+            tac.sessionFactory.withTransactionContext { repo.sperrUtbetalinger(sakA.id, it) } shouldBe false
+            tac.sessionFactory.withTransactionContext { repo.sperrUtbetalinger(sakA.id, it) } shouldBe true
+            repo.hentForUtsjekk(limit = 10).map { it.sakId } shouldBe listOf(sakB.id)
+            tac.sessionFactory.withTransactionContext { repo.låsOppdragstilstand(sakA.id, it) } shouldBe Oppdragstilstand(Oppdragsversjon.V2, Oppdragsmigrering.SPERRET)
+            tac.sessionFactory.withTransactionContext { repo.låsOppdragstilstand(sakB.id, it) } shouldBe Oppdragstilstand(Oppdragsversjon.V2, null)
+            repo.opphevUtbetalingssperre(sakA.id) shouldBe OppdragsmigreringenStårIEnAnnenTilstand(
+                sakA.id,
+                fra = Oppdragsmigrering.MIGRERT_HOS_HEL_VED,
+                til = Oppdragsmigrering.FERDIG,
+                faktisk = Oppdragstilstand(Oppdragsversjon.V2, Oppdragsmigrering.SPERRET),
+            ).left()
+
+            val migrertHosHelVed = LocalDateTime.of(2026, 1, 1, 12, 0)
+            repo.oppdaterTilOppdragsversjon3(sakA.id, migrertHosHelVed) shouldBe Unit.right()
+            repo.hentOppdragstilstand(sakA.id) shouldBe Oppdragstilstand(Oppdragsversjon.V3, Oppdragsmigrering.MIGRERT_HOS_HEL_VED, migrertHosHelVed)
+            repo.hentForUtsjekk(limit = 10).map { it.sakId } shouldBe listOf(sakB.id)
+            tac.sessionFactory.withTransactionContext { repo.sperrUtbetalinger(sakA.id, it) } shouldBe true
+            repo.hentSakerMigrertHosHelVed() shouldBe listOf(sakA.id)
+
+            repo.opphevUtbetalingssperre(sakA.id) shouldBe Unit.right()
+            repo.hentSakerMigrertHosHelVed() shouldBe emptyList()
+            repo.hentOppdragstilstand(sakA.id) shouldBe Oppdragstilstand(Oppdragsversjon.V3, Oppdragsmigrering.FERDIG, migrertHosHelVed)
+            repo.hentForUtsjekk(limit = 10).map { it.sakId } shouldBe listOf(sakA.id, sakB.id)
         }
     }
 

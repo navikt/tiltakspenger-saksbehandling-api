@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import arrow.core.Either
+import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -101,7 +102,9 @@ class SimulerService(
         kanSendeInnHelgForMeldekort: Boolean,
         brukersNavkontor: (suspend () -> Navkontor)?,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
-        val oppdragsversjon = utbetalingRepo.hentOppdragsversjon(sakId)
+        val oppdragstilstand = utbetalingRepo.hentOppdragstilstand(sakId)
+        // Hel Ved har ikke tatt opp de migrerte kjedene, så en simulering nå ville regnet feil.
+        if (oppdragstilstand.sperrerUtbetalinger) return KunneIkkeSimulere.SakenMigreres.left()
         val forrigeUtbetalingJson = forrigeUtbetaling?.let {
             utbetalingRepo.hentUtbetalingJson(it.id)
         }
@@ -113,7 +116,7 @@ class SimulerService(
                 loggkontekst = "sakId: $sakId, saksnummer: ${saksnummer.verdi}, behandlingId: $behandlingId",
             )
         }
-        val simulering = when (oppdragsversjon) {
+        val simulering = when (oppdragstilstand.versjon) {
             Oppdragsversjon.V2 -> utbetalingsklient.simuler(
                 sakId = sakId,
                 saksnummer = saksnummer,

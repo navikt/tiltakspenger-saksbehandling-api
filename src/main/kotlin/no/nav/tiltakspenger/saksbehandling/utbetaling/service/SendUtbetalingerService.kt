@@ -80,6 +80,7 @@ class SendUtbetalingerService(
 
         val sendtUtbetaling = try {
             sessionFactory.withTransactionContext { tx ->
+                if (!utbetalingRepo.låsOppdragstilstand(utbetaling.sakId, tx).kanSende(Oppdragsversjon.V2)) return@withTransactionContext null
                 statistikkService.lagre(statistikk, tx)
                 utbetalingRepo.markerSendtTilUtbetaling(utbetaling.id, nå(clock), tx)
 
@@ -98,6 +99,9 @@ class SendUtbetalingerService(
                 "$kontekst. Denne vil bli prøvd på nytt.",
             )
             utbetalingRepo.lagreUtbetalingsrespons(utbetaling.id, e.kunneIkkeUtbetale)
+            return
+        } ?: run {
+            logger.info { "Saken ble sperret eller migrert etter at utbetalingen ble hentet, så den sendes ikke nå. $kontekst" }
             return
         }
 
@@ -125,11 +129,17 @@ class SendUtbetalingerService(
                 } ?: error("Fant ikke utbetaling ${utbetaling.id} da V3-requesten skulle lagres")
             }
 
-        sessionFactory.withTransactionContext { tx ->
+        val sperret = sessionFactory.withTransactionContext { tx ->
+            if (!utbetalingRepo.låsOppdragstilstand(utbetaling.sakId, tx).kanSende(Oppdragsversjon.V3)) return@withTransactionContext true
             statistikkService.lagre(statistikk, tx)
             utbetalingRepo.markerSendtTilUtbetaling(utbetaling.id, nå(clock), tx)
             utbetalingRepo.lagreUtbetalingsrespons(utbetaling.id, ProdusertUtbetaling(helvedUtbetalingJson), tx)
             utbetalingProducer.produser(utbetaling.id, helvedUtbetalingJson)
+            false
+        }
+        if (sperret) {
+            logger.info { "Saken ble sperret eller migrert etter at utbetalingen ble hentet, så den sendes ikke nå. $kontekst" }
+            return
         }
         logger.info { "Produserte utbetaling til Hel Ved på Kafka, markert som sendt til utbetaling. $kontekst. Se sikkerlogg for detaljer." }
         Sikkerlogg.info { "Produserte utbetaling til Hel Ved på Kafka. $kontekst. Request: $helvedUtbetalingJson" }

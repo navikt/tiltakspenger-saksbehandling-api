@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
+import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
@@ -54,6 +55,7 @@ interface UtbetalingRepo {
         context: TransactionContext,
     ): String?
 
+    /** Utelater saker med utbetalingssperre, se [sperrUtbetalinger]. */
     fun hentForUtsjekk(limit: Int = 10): List<VedtattUtbetaling>
 
     fun oppdaterUtbetalingsstatus(
@@ -70,6 +72,37 @@ interface UtbetalingRepo {
         sakId: SakId,
         context: TransactionContext? = null,
     ): Oppdragsversjon
+
+    fun hentOppdragstilstand(sakId: SakId): Oppdragstilstand
+
+    /** Setter [Oppdragsversjon.V3], [Oppdragsmigrering.MIGRERT_HOS_HEL_VED] og [tidspunkt] på en sak som står [Oppdragsmigrering.SPERRET]. */
+    fun oppdaterTilOppdragsversjon3(
+        sakId: SakId,
+        tidspunkt: LocalDateTime,
+        context: TransactionContext? = null,
+    ): Either<OppdragsmigreringenStårIEnAnnenTilstand, Unit>
+
+    /**
+     * Setter [Oppdragsmigrering.SPERRET] på en sak som ikke er migrert, slik at [hentForUtsjekk] ikke returnerer utbetalingene i den.
+     * Låser sakraden til transaksjonen er ferdig.
+     *
+     * @return `true` når saken allerede var sperret.
+     */
+    fun sperrUtbetalinger(
+        sakId: SakId,
+        context: TransactionContext,
+    ): Boolean
+
+    /** Låser sakraden til transaksjonen er ferdig, slik at versjonen og migreringen ikke kan endres mens en utbetaling sendes. */
+    fun låsOppdragstilstand(
+        sakId: SakId,
+        context: TransactionContext,
+    ): Oppdragstilstand
+
+    fun hentSakerMigrertHosHelVed(): List<SakId>
+
+    /** Setter [Oppdragsmigrering.FERDIG] på en sak som står [Oppdragsmigrering.MIGRERT_HOS_HEL_VED]. */
+    fun opphevUtbetalingssperre(sakId: SakId): Either<OppdragsmigreringenStårIEnAnnenTilstand, Unit>
 
     /**
      * Lagrer status fra en kvittering på Kafka.

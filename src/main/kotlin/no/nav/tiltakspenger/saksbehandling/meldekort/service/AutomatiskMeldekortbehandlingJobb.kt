@@ -114,6 +114,11 @@ class AutomatiskMeldekortbehandlingJobb(
                                 }
 
                                 IkkeBehandlet.ØkonomisystemetErStengt -> true
+
+                                IkkeBehandlet.SakenMigreres -> {
+                                    logger.info { "Venter med automatisk behandling av meldekort $id til saken $sakId er migrert til oppdragsversjon 3" }
+                                    false
+                                }
                             }
                         },
                         ifRight = { behandling ->
@@ -214,7 +219,7 @@ class AutomatiskMeldekortbehandlingJobb(
         clock: Clock,
     ): Either<IkkeBehandlet, MeldekortBehandletAutomatisk> {
         val meldekortId = meldekort.id
-        var simuleringenSvarteStengt = false
+        var simuleringsfeil: KunneIkkeSimulere? = null
 
         val (meldekortbehandling, simulering) = sak.opprettAutomatiskMeldekortbehandling(
             brukersMeldekort = meldekort,
@@ -231,11 +236,14 @@ class AutomatiskMeldekortbehandlingJobb(
                     sak.utbetalinger.lastOrNull(),
                     sak.meldeperiodeKjeder,
                     sak.kanSendeInnHelgForMeldekort,
-                ) { navkontor }.onLeft { simuleringenSvarteStengt = it is KunneIkkeSimulere.Stengt }
+                ) { navkontor }.onLeft { simuleringsfeil = it }
             },
         ).getOrElse { status ->
-            if (pauseVedStengt && simuleringenSvarteStengt) {
+            if (pauseVedStengt && simuleringsfeil is KunneIkkeSimulere.Stengt) {
                 return IkkeBehandlet.ØkonomisystemetErStengt.left()
+            }
+            if (simuleringsfeil == KunneIkkeSimulere.SakenMigreres) {
+                return IkkeBehandlet.SakenMigreres.left()
             }
             return IkkeBehandlet.Feilet(status).left()
         }
@@ -343,6 +351,9 @@ class AutomatiskMeldekortbehandlingJobb(
 
         /** Simuleringen svarte at økonomisystemet er stengt, utenfor tidsrommet der det antas å være åpent. */
         data object ØkonomisystemetErStengt : IkkeBehandlet
+
+        /** Saken migreres til oppdragsversjon 3, så meldekortet prøves på nytt uten at forsøket teller. */
+        data object SakenMigreres : IkkeBehandlet
     }
 
     companion object {

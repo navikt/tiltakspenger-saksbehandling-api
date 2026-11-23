@@ -449,6 +449,7 @@ open class ApplicationContext(
             statistikkService = statistikkContext.statistikkService,
             meterRegistry = meterRegistry,
             erDev = erDev,
+            erProd = erProd,
         )
     }
     open val meldekortContext by lazy {

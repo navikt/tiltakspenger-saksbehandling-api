@@ -107,7 +107,7 @@ private fun List<UtbetalingV2Dto>.valider() {
  * Leser utbetalingene fra en request vi har sendt til Hel Ved.
  * Requesten er enten [IverksettV2Dto] (versjon 2, har feltet `vedtak`) eller [HelvedUtbetalingDTO] (versjon 3), fordi en sak kan ha byttet versjon etter forrige utbetaling.
  */
-private fun lesUtbetalingerFraRequest(requestJson: String): List<UtbetalingV2Dto> {
+fun lesUtbetalingerFraRequest(requestJson: String): List<UtbetalingV2Dto> {
     return if (lesTre(requestJson).has("vedtak")) {
         deserialize<IverksettV2Dto>(requestJson).vedtak.utbetalinger
     } else {

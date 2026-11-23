@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.utbetaling.service.MigrerTilOppdragsversjon3Service
 import java.time.Clock
 
 const val SAK_PATH = "/sak"
@@ -18,12 +19,14 @@ fun Route.sakRoutes(
     tilgangskontrollService: TilgangskontrollService,
     personService: PersonService,
     erProd: Boolean,
+    migrerTilOppdragsversjon3Service: MigrerTilOppdragsversjon3Service,
 ) {
     søkFnrSaksnummerOgSakIdRoute(sakService, auditService, clock, tilgangskontrollService)
     hentSakForSaksnummerRoute(sakService, auditService, clock, tilgangskontrollService)
     hentEllerOpprettSakSystembrukerRoute(sakService)
     hentEllerOpprettSakRoute(sakService, auditService, tilgangskontrollService, personService, erProd)
     toggleKanSendeHelgForMeldekortSakRoute(sakService, auditService, clock, tilgangskontrollService)
+    migrerTilOppdragsversjon3Route(migrerTilOppdragsversjon3Service, auditService, tilgangskontrollService)
     // TODO jah: Denne føles litt malplassert.
     avbrytSøknadOgBehandling(auditService, avbrytSøknadOgBehandlingService, clock, tilgangskontrollService)
 }

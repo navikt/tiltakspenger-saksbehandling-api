@@ -42,7 +42,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * Klient mot helved utsjekk (iverksetting, utbetalingsstatus og simulering), bygget på den felles [HttpKlient]-modulen i tiltakspenger-libs.
+ * Klient mot helved utsjekk (iverksetting, utbetalingsstatus, simulering og migrering til [no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon.V3]), bygget på den felles [HttpKlient]-modulen i tiltakspenger-libs.
  *
  * Kildekode: https://github.com/navikt/helved-utbetaling
  * Dokumentasjon: https://navikt.github.io/utsjekk-docs/ og https://helved-docs.intern.dev.nav.no/
@@ -57,7 +57,7 @@ import kotlin.time.Duration.Companion.seconds
  * @param clock Klokke som sendes videre til [HttpKlient] og brukes til simuleringstidspunkt-fallback.
  * @param authTokenProvider Henter system-token mot helved.
  * @param statusTimeout Timeout for statusoppslag.
- * @param iverksettTimeout Timeout for iverksetting.
+ * @param iverksettTimeout Timeout for iverksetting og migrering.
  * @param simuleringTimeout Timeout for simulering.
  * Simulering mot Oppdrag kan være treg, derav den høye defaulten.
  * @param transport Transporten som gjør nettverkskallet; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
@@ -78,6 +78,7 @@ class UtbetalingHttpKlient(
 
     private val iverksettUri = URI.create("$baseUrl/api/iverksetting/v2")
     private val simuleringUri = URI.create("$baseUrl/api/simulering/v2")
+    private val migrerUri = URI.create("$baseUrl/api/iverksetting/v2/migrate")
 
     override suspend fun iverksett(
         utbetaling: VedtattUtbetaling,
@@ -189,6 +190,17 @@ class UtbetalingHttpKlient(
                         }
                 }
             }
+    }
+
+    override suspend fun migrerTilOppdragsversjon3(
+        saksnummer: Saksnummer,
+    ): Either<HttpKlientError, Unit> {
+        // Hel Ved bruker saksnummeret som sakId, slik som i iverksettingen, og utleder fagsystemet fra tokenet.
+        return iverksettKlient.postJsonUtenSvar(
+            uri = migrerUri,
+            body = mapOf("sakId" to saksnummer.verdi),
+            godta = Statusregel.Eksakt(200),
+        ).map { }
     }
 
     companion object {

@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelse
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragstilstand
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.ProdusertUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingProducer
@@ -56,6 +57,7 @@ class SendUtbetalingerServiceVersjon3Test {
         clearMocks(utbetalingRepo, utbetalingsklient, utbetalingProducer, statistikkService)
         every { utbetalingRepo.hentForUtsjekk() } returns listOf(utbetaling)
         every { utbetalingRepo.hentOppdragsversjon(utbetaling.sakId) } returns Oppdragsversjon.V3
+        every { utbetalingRepo.låsOppdragstilstand(utbetaling.sakId, any()) } returns Oppdragstilstand(Oppdragsversjon.V3, null)
         coEvery { statistikkService.generer(*anyVararg<Statistikkhendelse>()) } returns statistikk
         justRun { statistikkService.lagre(statistikk, tx) }
         justRun { utbetalingRepo.markerSendtTilUtbetaling(utbetaling.id, any(), tx) }
@@ -92,6 +94,7 @@ class SendUtbetalingerServiceVersjon3Test {
         val lagretRequest = """{ "body": "lagret uendret" }"""
         every { utbetalingRepo.hentForUtsjekk() } returns listOf(utbetalingSomIkkeKanMappes)
         every { utbetalingRepo.hentOppdragsversjon(utbetalingSomIkkeKanMappes.sakId) } returns Oppdragsversjon.V3
+        every { utbetalingRepo.låsOppdragstilstand(utbetalingSomIkkeKanMappes.sakId, any()) } returns Oppdragstilstand(Oppdragsversjon.V3, null)
         every { utbetalingRepo.hentUtbetalingJson(utbetalingSomIkkeKanMappes.id) } returns lagretRequest
         justRun { utbetalingRepo.markerSendtTilUtbetaling(utbetalingSomIkkeKanMappes.id, any(), tx) }
         justRun {

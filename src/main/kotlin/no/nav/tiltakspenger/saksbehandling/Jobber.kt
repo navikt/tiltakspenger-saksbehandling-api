@@ -86,6 +86,12 @@ private fun utbetalingJobber(
             applicationContext.utbetalingContext.behandleUtbetalingskvitteringerJobb.behandle()
         },
     ),
+    Task(
+        navn = "saksbehandling-jobb-opphev-utbetalingssperrer",
+        utfør = { _ ->
+            applicationContext.utbetalingContext.opphevUtbetalingssperrerJobb.opphevUtbetalingssperrer()
+        },
+    ),
 )
 
 /**

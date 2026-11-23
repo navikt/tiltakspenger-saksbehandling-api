@@ -96,6 +96,7 @@ fun Route.routes(
             tilgangskontrollService = applicationContext.tilgangskontrollService,
             personService = applicationContext.personContext.personService,
             erProd = applicationContext.erProd,
+            migrerTilOppdragsversjon3Service = applicationContext.utbetalingContext.migrerTilOppdragsversjon3Service,
         )
         meldekortRoutes(
             iverksettMeldekortbehandlingService = applicationContext.meldekortContext.iverksettMeldekortbehandlingService,

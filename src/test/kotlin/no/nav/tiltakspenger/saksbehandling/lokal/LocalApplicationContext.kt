@@ -375,6 +375,7 @@ class LocalApplicationContext(
             statistikkService = statistikkContext.statistikkService,
             meterRegistry = meterRegistry,
             erDev = false,
+            erProd = false,
         ) {
             override val utbetalingsklient = utbetalingFakeKlient
             override val v3Simuleringsklient = utbetalingFakeKlient

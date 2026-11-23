@@ -32,6 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.V3Simuleringsklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.Clock
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 
 class UtbetalingFakeKlient(
     private val sakRepo: SakRepo,
@@ -69,6 +70,11 @@ class UtbetalingFakeKlient(
      * Simuleringen kalles synkront, som for [simulerFeil], så testen trenger ikke kjøre isolert.
      */
     var simulering: SimuleringMedMetadata? = null,
+    /**
+     * Settes av tester som trenger at migreringen til oppdragsversjon 3 hos Hel Ved feiler.
+     * Migreringen kalles synkront fra sin egen rute, så testen trenger ikke kjøre isolert.
+     */
+    var migreringFeil: HttpKlientError? = null,
 ) : Utbetalingsklient,
     V3Simuleringsklient {
 
@@ -78,6 +84,12 @@ class UtbetalingFakeKlient(
      * Den startes derfor først når statusen hentes, som skjer utenfor transaksjonen og etter at den er committet.
      */
     private val utbetalingerSomVenterPåTilbakekreving = ConcurrentHashMap<UtbetalingId, VedtattUtbetaling>()
+
+    /** Saksnummer det er kalt migrering for, også når kallet feilet. */
+    val migrerteSaksnummer: MutableList<Saksnummer> = CopyOnWriteArrayList()
+
+    /** Kjøres mens Hel Ved migrerer, slik at tester kan la et annet kall endre migreringen samtidig. */
+    var underMigrering: (() -> Unit)? = null
 
     override suspend fun iverksett(
         utbetaling: VedtattUtbetaling,
@@ -108,6 +120,14 @@ class UtbetalingFakeKlient(
                 ?.let { tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(it) }
         }
         return utbetalingsstatus.right()
+    }
+
+    override suspend fun migrerTilOppdragsversjon3(
+        saksnummer: Saksnummer,
+    ): Either<HttpKlientError, Unit> {
+        migrerteSaksnummer.add(saksnummer)
+        underMigrering?.invoke()
+        return migreringFeil?.left() ?: Unit.right()
     }
 
     override suspend fun simuler(

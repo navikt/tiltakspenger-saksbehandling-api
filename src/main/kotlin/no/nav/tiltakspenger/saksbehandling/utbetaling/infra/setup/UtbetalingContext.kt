@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.SimuleringV3HttpKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt.UtbetalingsoversiktHttpKlient
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.jobb.OpphevUtbetalingssperrerJobb
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.kafka.UtbetalingKafkaProducer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.kafka.tilUtbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakPostgresRepo
@@ -38,6 +39,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.Utbetalingskvit
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.utbetalingsoversikt.UtbetalingsoversiktPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.BehandleUtbetalingskvitteringerJobb
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.JournalførMeldekortvedtakService
+import no.nav.tiltakspenger.saksbehandling.utbetaling.service.MigrerTilOppdragsversjon3Service
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsoversiktJobb
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsstatusService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SendUtbetalingerService
@@ -58,6 +60,7 @@ open class UtbetalingContext(
     statistikkService: StatistikkService,
     meterRegistry: MeterRegistry,
     erDev: Boolean,
+    erProd: Boolean,
 ) {
     open val utbetalingsklient: Utbetalingsklient by lazy {
         UtbetalingHttpKlient(
@@ -137,6 +140,23 @@ open class UtbetalingContext(
             sessionFactory = sessionFactory,
             clock = clock,
             korrelasjon = MdcKorrelasjon(),
+        )
+    }
+    val migrerTilOppdragsversjon3Service by lazy {
+        MigrerTilOppdragsversjon3Service(
+            sakRepo = sakRepo,
+            utbetalingRepo = utbetalingRepo,
+            utbetalingsklient = utbetalingsklient,
+            v3Simuleringsklient = v3Simuleringsklient,
+            clock = clock,
+            sessionFactory = sessionFactory,
+            erProd = erProd,
+        )
+    }
+    val opphevUtbetalingssperrerJobb by lazy {
+        OpphevUtbetalingssperrerJobb(
+            utbetalingRepo = utbetalingRepo,
+            migrerTilOppdragsversjon3Service = migrerTilOppdragsversjon3Service,
         )
     }
     val journalførMeldekortvedtakService by lazy {

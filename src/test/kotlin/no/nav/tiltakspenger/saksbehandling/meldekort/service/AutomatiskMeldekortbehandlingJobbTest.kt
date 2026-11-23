@@ -428,6 +428,39 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     @Test
+    fun `skal vente uten å lagre forsøket mens saken migreres til oppdragsversjon 3`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+                    mottatt = nå(clock),
+                )
+                brukersMeldekortRepo.lagre(brukersMeldekort)
+
+                tac.utbetalingFakeKlient.simulerFeil = KunneIkkeSimulere.SakenMigreres
+                tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock = clock)
+
+                tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+                brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.behandletAutomatiskForsøkshistorikk shouldBe
+                    brukersMeldekort.behandletAutomatiskForsøkshistorikk
+
+                tac.utbetalingFakeKlient.simulerFeil = null
+                tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock = clock)
+                tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!.sisteGodkjenteMeldekort!!
+                    .shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
+                    .brukersMeldekort.id shouldBe brukersMeldekort.id
+            }
+        }
+    }
+
+    @Test
     fun `skal kreve simulering for førstegangsbehandling både når økonomisystemet muligens og antatt er åpent`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
