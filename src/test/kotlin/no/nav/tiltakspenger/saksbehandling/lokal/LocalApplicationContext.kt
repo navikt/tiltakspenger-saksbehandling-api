@@ -50,6 +50,7 @@ import no.nav.tiltakspenger.saksbehandling.lokal.infra.repo.lokalFlywayMigrate
 import no.nav.tiltakspenger.saksbehandling.lokal.journalføring.DokumentInfoIdGeneratorRandom
 import no.nav.tiltakspenger.saksbehandling.lokal.journalføring.JournalpostIdGeneratorRandom
 import no.nav.tiltakspenger.saksbehandling.lokal.klage.infra.kafka.LokalKabalHendelseService
+import no.nav.tiltakspenger.saksbehandling.lokal.saksbehandler.infra.EntraProxyFakeLokalClient
 import no.nav.tiltakspenger.saksbehandling.lokal.søknad.infra.repo.hentSøknadForSøknadId
 import no.nav.tiltakspenger.saksbehandling.lokal.tiltaksdeltakelse.LokalTiltaksdeltakelseService
 import no.nav.tiltakspenger.saksbehandling.lokal.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeLokalKlient
@@ -202,6 +203,7 @@ class LocalApplicationContext(
             override val personKlient = personFakeKlient
             override val fellesSkjermingsklient = fellesFakeSkjermingsklient
             override val navIdentClient = if (usePdfgenrs) FakeNavIdentClient() else super.navIdentClient
+            override val entraProxyClient = EntraProxyFakeLokalClient()
         }
 
     override val dokumentContext by lazy {

@@ -97,6 +97,8 @@ spec:
           namespace: nais-system
         - application: populasjonstilgangskontroll
           namespace: tilgangsmaskin
+        - application: entra-proxy
+          namespace: sikkerhetstjenesten
       external:
         - host: {{ urlPdl }}
         - host: {{ urlSkjerming }}
