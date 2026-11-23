@@ -10,14 +10,21 @@ import no.nav.person.pdl.leesah.forelderbarnrelasjon.ForelderBarnRelasjon
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.EntraGruppe
 import no.nav.tiltakspenger.saksbehandling.statistikk.hentSaksstatistikk
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SKJERMET
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.VIKAFOSSEN
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.util.UUID
 import no.nav.person.pdl.leesah.adressebeskyttelse.Adressebeskyttelse as LeesahAdressebeskyttelse
 
 /**
@@ -113,9 +120,50 @@ class PersonhendelseServiceTest {
             saksstatistikk.shouldNotBeEmpty()
             saksstatistikk.forEach {
                 it.fnr shouldBe fnr.verdi
-                it.opprettetAv shouldBe "-5"
-                it.saksbehandler shouldBe "-5"
-                it.ansvarligBeslutter shouldBe "-5"
+                it.opprettetAv shouldBe SKJERMET
+                it.saksbehandler shouldBe SKJERMET
+                it.ansvarligBeslutter shouldBe SKJERMET
+                it.ansvarligenhet shouldBe SKJERMET
+            }
+        }
+    }
+
+    @Test
+    fun `behandlePersonhendelse - adressebeskyttelse, behandlingen ligger hos Vikafossen - beholder enhet og fiktiv ident`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
+            val (sak, _, behandling) = opprettSøknadsbehandlingKlarTilBehandling(tac = tac, fnr = fnr)
+            // Brukeren får strengt fortrolig adresse etter at søknaden er mottatt, og behandlingen tas så av en saksbehandler i Vikafossen.
+            (tac.personContext.personKlient as PersonFakeKlient).leggTilPersonopplysning(
+                fnr = fnr,
+                personopplysninger = ObjectMother.personopplysningKjedeligFyr(fnr = fnr, adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG),
+            )
+            val vikafossenSaksbehandler = ObjectMother.saksbehandler(navIdent = "Z99999")
+            tac.entraProxyFakeClient.leggTil(
+                navIdent = vikafossenSaksbehandler.navIdent,
+                EntraGruppe(id = UUID.fromString(Configuration.roleStrengtFortroligAdresse), navn = "0000-GA-Strengt_Fortrolig_Adresse"),
+            )
+            taRammebehandlinger(tac = tac, behandlinger = listOf(sak.id to behandling.id), saksbehandler = vikafossenSaksbehandler)
+            val raderFørHendelsen = tac.sessionFactory.hentSaksstatistikk(sak.id).size
+
+            tac.leesahConsumer.consume(
+                "key",
+                nyPersonhendelse(
+                    fnr = fnr,
+                    adressebeskyttelse = LeesahAdressebeskyttelse(Gradering.STRENGT_FORTROLIG),
+                    clock = tac.clock,
+                ),
+            )
+
+            tac.personhendelseContext.personhendelseRepo.hent(sak.id).shouldNotBeEmpty()
+            val saksstatistikk = tac.sessionFactory.hentSaksstatistikk(sak.id)
+            saksstatistikk.size shouldBe raderFørHendelsen
+            // Radene fra før saksbehandleren tok behandlingen, er skjermet av oppdateringen; den siste ble skrevet hos Vikafossen og beholdes.
+            saksstatistikk.dropLast(1).shouldNotBeEmpty().forEach {
+                listOf(it.opprettetAv, it.saksbehandler, it.ansvarligBeslutter, it.ansvarligenhet) shouldBe listOf(SKJERMET, SKJERMET, SKJERMET, SKJERMET)
+            }
+            saksstatistikk.last().let {
+                listOf(it.opprettetAv, it.saksbehandler, it.ansvarligBeslutter, it.ansvarligenhet) shouldBe listOf(SKJERMET, "Z99999", null, VIKAFOSSEN)
             }
         }
     }
@@ -144,9 +192,9 @@ class PersonhendelseServiceTest {
             saksstatistikk.shouldNotBeEmpty()
             saksstatistikk.forEach {
                 it.fnr shouldBe fnr.verdi
-                it.opprettetAv shouldNotBe "-5"
-                it.saksbehandler shouldNotBe "-5"
-                it.ansvarligBeslutter shouldNotBe "-5"
+                it.opprettetAv shouldNotBe SKJERMET
+                it.saksbehandler shouldNotBe SKJERMET
+                it.ansvarligBeslutter shouldNotBe SKJERMET
             }
         }
     }

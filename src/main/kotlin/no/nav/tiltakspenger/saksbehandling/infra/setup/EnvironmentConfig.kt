@@ -32,6 +32,7 @@ sealed interface EnvironmentConfig {
     val roleVeileder: String
     val roleUtvikler: String
     val roleTilbakekreving: String
+    val roleStrengtFortroligAdresse: String
 
     val electorPath: String
     val appImage: String
@@ -135,6 +136,7 @@ data object LocalConfig : EnvironmentConfig {
     override val roleVeileder = "13d39d54-4af9-44a8-a57c-e223df62ab86"
     override val roleUtvikler = "8e07be64-c44a-4730-8053-3910ff4e3e92"
     override val roleTilbakekreving = "bdfbab87-3016-4341-97ca-8053ff1e3962"
+    override val roleStrengtFortroligAdresse = "a1b518e2-3947-478d-8929-e5d685c47cac"
 
     // Brukes ikke lokalt
     override val electorPath = ""
@@ -234,6 +236,7 @@ data object DevConfig : EnvironmentConfig {
     override val roleVeileder: String = System.getenv("ROLE_VEILEDER")
     override val roleUtvikler: String = System.getenv("ROLE_UTVIKLER")
     override val roleTilbakekreving: String = System.getenv("ROLE_TILBAKEKREVING")
+    override val roleStrengtFortroligAdresse: String = System.getenv("ROLE_STRENGT_FORTROLIG_ADRESSE")
 
     override val electorPath: String = System.getenv("ELECTOR_PATH")
     override val appImage: String = System.getenv("NAIS_APP_IMAGE")
@@ -330,6 +333,7 @@ data object ProdConfig : EnvironmentConfig {
     override val roleVeileder: String = System.getenv("ROLE_VEILEDER")
     override val roleUtvikler: String = System.getenv("ROLE_UTVIKLER")
     override val roleTilbakekreving: String = System.getenv("ROLE_TILBAKEKREVING")
+    override val roleStrengtFortroligAdresse: String = System.getenv("ROLE_STRENGT_FORTROLIG_ADRESSE")
 
     override val electorPath: String = System.getenv("ELECTOR_PATH")
     override val appImage: String = System.getenv("NAIS_APP_IMAGE")

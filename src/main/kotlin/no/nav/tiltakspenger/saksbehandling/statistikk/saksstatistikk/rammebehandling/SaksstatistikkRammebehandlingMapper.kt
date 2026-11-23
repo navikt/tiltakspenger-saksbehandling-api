@@ -14,15 +14,14 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkB
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkBehandlingType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkFormat
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.maskerHvisStrengtFortrolig
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.maskerHvisStrengtFortroligStrict
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.ansvar
 
 fun Rammebehandling.genererSaksstatistikk(
     hendelse: StatistikkhendelseType,
 ): GenererSaksstatistikk {
-    return GenererSaksstatistikk { gjelderKode6, versjon ->
+    return GenererSaksstatistikk { skjermingsoppslag, versjon ->
         val erSøknadsbehandling = this is Søknadsbehandling
-        val gjelderKode6 = gjelderKode6(this.fnr)
+        val ansvar = skjermingsoppslag.ansvar(fnr = this.fnr, saksbehandler = this.saksbehandler, ansvarligBeslutter = this.beslutter)
         SaksstatistikkDTO(
             sakId = this.sakId.toString(),
             saksnummer = this.saksnummer.toString(),
@@ -52,11 +51,10 @@ fun Rammebehandling.genererSaksstatistikk(
             },
             resultatBegrunnelse = null,
 
-            // skal være -5 for kode 6
-            opprettetAv = maskerHvisStrengtFortroligStrict(gjelderKode6, "system"),
-            saksbehandler = maskerHvisStrengtFortrolig(gjelderKode6, this.saksbehandler),
-            ansvarligBeslutter = maskerHvisStrengtFortrolig(gjelderKode6, this.beslutter),
-            ansvarligenhet = maskerHvisStrengtFortroligStrict(gjelderKode6, "0387"),
+            opprettetAv = ansvar.opprettetAv,
+            saksbehandler = ansvar.saksbehandler,
+            ansvarligBeslutter = ansvar.ansvarligBeslutter,
+            ansvarligenhet = ansvar.ansvarligenhet,
 
             tilbakekrevingsbeløp = null,
             funksjonellPeriodeFom = null,

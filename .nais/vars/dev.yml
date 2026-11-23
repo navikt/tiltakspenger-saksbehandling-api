@@ -27,6 +27,8 @@ azure:
       id: 13d39d54-4af9-44a8-a57c-e223df62ab86
     - name: ROLE_TILBAKEKREVING
       id: bdfbab87-3016-4341-97ca-8053ff1e3962
+    - name: ROLE_STRENGT_FORTROLIG_ADRESSE
+      id: a1b518e2-3947-478d-8929-e5d685c47cac
 replicas: 1
 kafka-pool: "nav-dev"
 # Slipper inn token-generatorene i nais, så vi kan teste mot API-ene i dev. Skal aldri inn i prod.yml.

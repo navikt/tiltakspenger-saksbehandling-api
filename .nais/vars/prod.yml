@@ -27,6 +27,8 @@ azure:
       id: 8779ba24-87e0-455b-91af-76c2a1ae83e4
     - name: ROLE_TILBAKEKREVING
       id: 651186df-f798-4537-84ab-3da8bd0a7a4a
+    - name: ROLE_STRENGT_FORTROLIG_ADRESSE
+      id: 2931da41-8b8e-42cd-99c0-04a169ddae40
 replicas: 2
 kafka-pool: "nav-prod"
 # Token-generatorene i nais finnes bare i dev; regelen skal aldri slås på i prod.

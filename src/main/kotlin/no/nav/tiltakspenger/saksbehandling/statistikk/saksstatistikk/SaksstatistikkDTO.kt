@@ -81,11 +81,14 @@ data class SaksstatistikkDTO(
     val resultatBegrunnelse: String?,
     /** `behandlingmetode`: alltid `MANUELL`. */
     val behandlingMetode: String = StatistikkBehandlingMetode.MANUELL.name,
-    /** `opprettetav`: alltid `system`, eller `-5` ved strengt fortrolig adresse. */
+    /** `opprettetav`: alltid `system`, eller `SKJERMET` ved strengt fortrolig adresse. */
     val opprettetAv: String,
-    /** `saksbehandler`: NAV-ident, eller `-5` ved strengt fortrolig adresse. */
+    /**
+     * `saksbehandler`: NAV-ident.
+     * Ved strengt fortrolig adresse saksbehandlerens fiktive Vikafossen-ident når behandlingen ligger hos Vikafossen, ellers `SKJERMET`.
+     */
     val saksbehandler: String?,
-    /** `ansvarligbeslutter`: NAV-ident, eller `-5` ved strengt fortrolig adresse; alltid null for klage. */
+    /** `ansvarligbeslutter`: NAV-ident, eller `SKJERMET` ved strengt fortrolig adresse; alltid null for klage. */
     val ansvarligBeslutter: String?,
     /** `tilbakekrevingsbelop`: bare for tilbakekreving, som Team Sak får fra tilbakeløsningen; alltid null hos oss. */
     val tilbakekrevingsbeløp: Double?,
@@ -108,7 +111,10 @@ data class SaksstatistikkDTO(
     val behandlingAarsak: StatistikkBehandlingAarsak?,
     val relatertFagsystem: String = "TPSAK",
     val sakUtland: String = "NASJONAL",
-    /** `ansvarligenhet`: alltid `0387`, eller `-5` ved strengt fortrolig adresse. */
+    /**
+     * `ansvarligenhet`: `0387`.
+     * Ved strengt fortrolig adresse `2103` når behandlingen ligger hos Vikafossen, ellers `SKJERMET`.
+     */
     val ansvarligenhet: String,
 )
 

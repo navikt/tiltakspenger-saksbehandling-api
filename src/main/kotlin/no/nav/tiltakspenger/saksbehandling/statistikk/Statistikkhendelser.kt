@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk
 
-import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.Skjermingsoppslag
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
 
 data class Statistikkhendelser(
@@ -29,12 +29,12 @@ data class Statistikkhendelser(
     }
 
     suspend fun tilStatistikkDto(
-        gjelderKode6: suspend (Fnr) -> Boolean,
+        skjermingsoppslag: Skjermingsoppslag,
         versjon: String,
     ): StatistikkDTO {
         val saksstatistikk = hendelser.filterIsInstance<GenererSaksstatistikk>().map {
             it.genererSaksstatistikk(
-                gjelderKode6 = gjelderKode6,
+                skjermingsoppslag = skjermingsoppslag,
                 versjon = versjon,
             )
         }

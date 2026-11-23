@@ -20,7 +20,7 @@ KDoc på DTO-ene beskriver feltene: `SaksstatistikkDTO`, `StatistikkStønadDTO`,
 ## Slik skrives radene
 
 1. Domenefunksjonen som endrer en behandling, returnerer `Statistikkhendelser` sammen med den endrede behandlingen.
-2. Servicen kaller `StatistikkService.generer` før transaksjonen, fordi den slår opp strengt fortrolig adresse i PDL.
+2. Servicen kaller `StatistikkService.generer` før transaksjonen, fordi den slår opp strengt fortrolig adresse i PDL og saksbehandlerens grupper i entra-proxy.
 3. Servicen lagrer statistikken med `StatistikkService.lagre` i samme transaksjon som behandlingen, så statistikken aldri kan avvike fra det som ble lagret.
 
 Hvilke hendelser som gir rader i `statistikk_sak`, står i `StatistikkhendelseType`, og mapperne ligger i `statistikk/saksstatistikk/rammebehandling/`, `klagebehandling/` og `meldekortbehandling/`.
@@ -57,7 +57,12 @@ Lenker til grensesnittbeskrivelsen og Team Saks dokumentasjon står i KDoc på `
 - De velger siste tilstand per behandling etter nyeste `teknisktidspunkt` (`tiltakspenger_behandling_latest`).
 - Team Sak slår opp behandlingstype, status, resultat og årsak i egne kodetabeller for kildesystemet `TILTAKSP`.
   En ny verdi som ikke finnes der, havner som ukjent, så avklar nye verdier med Team Sak før du tar dem i bruk.
-- Strengt fortrolig adresse maskerer de selv ut fra egne persondata; vår `-5` er en ekstra sikring.
+- Ved strengt fortrolig adresse (kode 6) skjermer vi etter Team Saks tekniske beskrivelse, og Team Sak kontrollerer skjermingen før dataene tas i bruk.
+  `opprettetav` og `ansvarligbeslutter` blir `SKJERMET`.
+  Ligger behandlingen hos Vikafossen, blir `ansvarligenhet` `2103` og `saksbehandler` saksbehandlerens fiktive ident; ellers blir begge `SKJERMET`.
+  Behandlingen regnes å ligge hos Vikafossen når saksbehandleren har rollen for strengt fortrolig adresse, slått opp i entra-proxy; feiler oppslaget, blir det `SKJERMET`.
+  Kode 7 skjermes ikke, og ingen rader holdes tilbake.
+  Rader skrevet før endringen har `-5` i stedet for `SKJERMET`.
 
 ## Slik leser Team Spenn de tre andre tabellene
 

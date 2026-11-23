@@ -3,12 +3,12 @@
 
 package no.nav.tiltakspenger.saksbehandling.statistikk
 
-import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkDTO
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.Skjermingsoppslag
 
 fun interface GenererSaksstatistikk : Statistikkhendelse {
     suspend fun genererSaksstatistikk(
-        gjelderKode6: suspend (Fnr) -> Boolean,
+        skjermingsoppslag: Skjermingsoppslag,
         versjon: String,
     ): SaksstatistikkDTO
 }

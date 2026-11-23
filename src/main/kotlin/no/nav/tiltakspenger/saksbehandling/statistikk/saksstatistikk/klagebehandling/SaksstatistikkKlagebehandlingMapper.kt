@@ -10,14 +10,13 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkB
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkBehandlingType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.maskerHvisStrengtFortrolig
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.maskerHvisStrengtFortroligStrict
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.ansvar
 
 fun Klagebehandling.genererSaksstatistikk(
     hendelse: StatistikkhendelseType,
 ): GenererSaksstatistikk {
-    return GenererSaksstatistikk { gjelderKode6, versjon ->
-        val gjelderKode6 = gjelderKode6(this.fnr)
+    return GenererSaksstatistikk { skjermingsoppslag, versjon ->
+        val ansvar = skjermingsoppslag.ansvar(fnr = this.fnr, saksbehandler = this.saksbehandler, ansvarligBeslutter = null)
         SaksstatistikkDTO(
             sakId = this.sakId.toString(),
             saksnummer = this.saksnummer.toString(),
@@ -45,11 +44,10 @@ fun Klagebehandling.genererSaksstatistikk(
                 }
             },
             resultatBegrunnelse = if (this.resultat is Klagebehandlingsresultat.Omgjør) this.resultat.årsak.tilResultatBegrunnelse().name else null,
-            // skal være -5 for kode 6
-            opprettetAv = maskerHvisStrengtFortroligStrict(gjelderKode6, "system"),
-            saksbehandler = maskerHvisStrengtFortrolig(gjelderKode6, this.saksbehandler),
+            opprettetAv = ansvar.opprettetAv,
+            saksbehandler = ansvar.saksbehandler,
             ansvarligBeslutter = null,
-            ansvarligenhet = maskerHvisStrengtFortroligStrict(gjelderKode6, "0387"),
+            ansvarligenhet = ansvar.ansvarligenhet,
 
             tilbakekrevingsbeløp = null,
             funksjonellPeriodeFom = null,

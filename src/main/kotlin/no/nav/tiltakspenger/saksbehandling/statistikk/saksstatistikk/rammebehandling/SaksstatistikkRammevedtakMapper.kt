@@ -11,15 +11,14 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkB
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkBehandlingType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.maskerHvisStrengtFortrolig
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.maskerHvisStrengtFortroligStrict
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.ansvar
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 fun Rammevedtak.genererSaksstatistikk(): GenererSaksstatistikk {
-    return GenererSaksstatistikk { gjelderKode6, versjon ->
+    return GenererSaksstatistikk { skjermingsoppslag, versjon ->
         val behandling = this.rammebehandling
         val erSøknadsbehandling = behandling is Søknadsbehandling
-        val gjelderKode6 = gjelderKode6(this.fnr)
+        val ansvar = skjermingsoppslag.ansvar(fnr = this.fnr, saksbehandler = behandling.saksbehandler, ansvarligBeslutter = behandling.beslutter)
         SaksstatistikkDTO(
             sakId = behandling.sakId.toString(),
             saksnummer = behandling.saksnummer.toString(),
@@ -53,12 +52,11 @@ fun Rammevedtak.genererSaksstatistikk(): GenererSaksstatistikk {
             // TODO jah: Denne bør ikke være null.
             resultatBegrunnelse = null,
 
-            // skal være -5 for kode 6
-            opprettetAv = maskerHvisStrengtFortroligStrict(gjelderKode6, "system"),
-            saksbehandler = maskerHvisStrengtFortrolig(gjelderKode6, behandling.saksbehandler),
-            ansvarligBeslutter = maskerHvisStrengtFortrolig(gjelderKode6, behandling.beslutter),
+            opprettetAv = ansvar.opprettetAv,
+            saksbehandler = ansvar.saksbehandler,
+            ansvarligBeslutter = ansvar.ansvarligBeslutter,
             // TODO jah: Er 0383 for egen ansatt.
-            ansvarligenhet = maskerHvisStrengtFortroligStrict(gjelderKode6, "0387"),
+            ansvarligenhet = ansvar.ansvarligenhet,
 
             tilbakekrevingsbeløp = null,
             funksjonellPeriodeFom = null,
