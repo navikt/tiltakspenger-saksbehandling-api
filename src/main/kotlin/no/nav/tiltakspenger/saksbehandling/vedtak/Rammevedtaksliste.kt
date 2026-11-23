@@ -153,14 +153,12 @@ data class Rammevedtaksliste(
     /**
      * Innslaget i [innvilgetTidslinje] når [nySøknadsperiode] er lik hele perioden i ett innvilget vedtak, ellers null.
      * Brukes til å forhåndsutfylle avslagsbrevet når brukeren allerede er innvilget tiltakspenger for perioden det søkes om.
-     * Innslaget må dekke hele vedtaket, så et vedtak med opphold, eller et vedtak som er stanset eller opphørt for en del av perioden, gir null.
-     * Det samme gjelder når søknaden dekker flere vedtak, eller bare delvis overlapper ett vedtak.
-     * Da skriver saksbehandler innvilgelsen i fritekst (avklart med fag).
+     * Et omgjøringsvedtak kan både innvilge og opphøre dager, så det er ikke nok at søknaden er lik den innvilgede delen.
+     * Uten treff beskriver saksbehandler den tidligere innvilgelsen i fritekst.
      */
     fun innvilgelseMedNøyaktigPeriode(nySøknadsperiode: Periode): PeriodeMedVerdi<Rammevedtak>? {
-        return innvilgetTidslinje.filter { (rammevedtak, periode) ->
-            periode == nySøknadsperiode &&
-                rammevedtak.innvilgelsesperioder?.totalPeriode == nySøknadsperiode
+        return innvilgetTidslinje.filter { (rammevedtak, gjeldendeInnvilgetPeriode) ->
+            gjeldendeInnvilgetPeriode == nySøknadsperiode && rammevedtak.periode == nySøknadsperiode
         }.singleOrNull()
     }
 

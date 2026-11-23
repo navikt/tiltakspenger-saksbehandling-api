@@ -2,10 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.vedtak
 
 import arrow.core.nonEmptySetOf
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.periode.til
@@ -21,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdel
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingAvslag
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOmgjøringInnvilgelse
 import org.junit.jupiter.api.Test
 
 class VedtakslisteTest {
@@ -156,6 +159,37 @@ class VedtakslisteTest {
             sak.rammevedtaksliste.antallDagerForMeldeperiode(15 til 28.september(2025)) shouldBe AntallDagerForMeldeperiode(
                 9,
             )
+        }
+    }
+
+    @Test
+    fun `innvilgelseMedNøyaktigPeriode gir omgjøringsvedtaket når hele vedtaksperioden er innvilget og søkes om på nytt`() {
+        withTestApplicationContext { tac ->
+            val søknadsperiode = 1 til 3.juni(2025)
+            val (sak, _, _, omgjøringsvedtak) = iverksettSøknadsbehandlingOgOmgjøringInnvilgelse(
+                tac = tac,
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(søknadsperiode),
+            ).shouldNotBeNull()
+
+            sak.rammevedtaksliste.innvilgelseMedNøyaktigPeriode(søknadsperiode) shouldBe PeriodeMedVerdi(omgjøringsvedtak, søknadsperiode)
+        }
+    }
+
+    @Test
+    fun `innvilgelseMedNøyaktigPeriode gir null når omgjøringen innvilger søknadsperioden men opphører resten av vedtaksperioden`() {
+        withTestApplicationContext { tac ->
+            val søknadsperiode = 1 til 3.juni(2025)
+            val vedtaksperiode = 1 til 5.juni(2025)
+            val deltakelse = tiltaksdeltakelse(vedtaksperiode)
+            val (sak, _, _, omgjøringsvedtak) = iverksettSøknadsbehandlingOgOmgjøringInnvilgelse(
+                tac = tac,
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(vedtaksperiode, deltakelse),
+                omgjøringInnvilgelsesperioder = innvilgelsesperioder(søknadsperiode, deltakelse),
+                omgjøringVedtaksperiode = vedtaksperiode,
+            ).shouldNotBeNull()
+
+            sak.rammevedtaksliste.innvilgetTidslinje.single() shouldBe PeriodeMedVerdi(omgjøringsvedtak, søknadsperiode)
+            sak.rammevedtaksliste.innvilgelseMedNøyaktigPeriode(søknadsperiode) shouldBe null
         }
     }
 
