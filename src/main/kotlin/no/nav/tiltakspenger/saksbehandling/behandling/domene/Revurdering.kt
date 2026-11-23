@@ -174,6 +174,16 @@ data class Revurdering(
     }
 
     /**
+     * Om jobben har lagt til grunner siden saksbehandler sist lastet revurderingen.
+     * Grunnene legges bare til, så antallet er nok til å avgjøre det.
+     * @param antallVisteGrunner Antallet grunner saksbehandler fikk vist.
+     * Er null når klienten ikke oppgir det, og da gjøres ingen sjekk.
+     */
+    fun harNyeAutomatiskOpprettedeGrunner(antallVisteGrunner: Int?): Boolean {
+        return antallVisteGrunner != null && (automatiskOpprettedeGrunner?.grunner?.size ?: 0) > antallVisteGrunner
+    }
+
+    /**
      * Flytter tidspunktet en automatisk revurdering på vent skal vurderes på nytt.
      */
     fun oppdaterVenterTil(

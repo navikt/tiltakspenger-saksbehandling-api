@@ -33,6 +33,11 @@ sealed interface KanIkkeKonvertereRevurdering : Loggbar {
         override val loggkontekst = Loggkontekst(melding = "Revurderingen er knyttet til en klagebehandling")
     }
 
+    /** Saksbehandler valgte konverteringen uten å ha sett alle endringene i tiltaksdeltakelsen. */
+    data class HarNyeAutomatiskOpprettedeGrunner(val antallViste: Int, val antall: Int) : KanIkkeKonvertereRevurdering {
+        override val loggkontekst = Loggkontekst(melding = "Revurderingen har $antall automatisk opprettede grunner, men saksbehandler fikk vist $antallViste")
+    }
+
     data object HarAlleredeTypen : KanIkkeKonvertereRevurdering {
         override val loggkontekst = Loggkontekst(melding = "Revurderingen er allerede av typen den skal konverteres til")
     }

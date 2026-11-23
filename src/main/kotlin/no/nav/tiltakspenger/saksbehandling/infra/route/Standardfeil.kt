@@ -19,6 +19,12 @@ object Standardfeil {
         "behandling_eies_av_annen_saksbehandler",
     )
 
+    /** Delt av konvertering og avbryting, slik at frontend kan be saksbehandler laste behandlingen på nytt. */
+    fun harNyeAutomatiskOpprettedeGrunner() = ErrorJson(
+        "Tiltaksdeltakelsen er endret igjen siden du åpnet behandlingen. Last inn behandlingen på nytt og se gjennom de nye endringene.",
+        "har_nye_automatisk_opprettede_grunner",
+    )
+
     fun kanIkkeOppdatereBehandling() = ErrorJson(
         "Kan ikke oppdatere behandling i nåværende tilstand",
         "kan_ikke_oppdatere_behandling",

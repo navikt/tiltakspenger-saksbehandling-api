@@ -5,6 +5,7 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -133,6 +134,66 @@ class UbestemtRevurderingRouteTest {
                 .getJSONObject(1).getBoolean("lagtTilEtterSistEndret") shouldBe false
             repo.lagreAutomatiskOpprettedeGrunner(medNyGrunn, null) shouldBe false
             (repo.hent(revurdering.id) as Revurdering).automatiskOpprettedeGrunner shouldBe medNyGrunn.automatiskOpprettedeGrunner
+        }
+    }
+
+    /**
+     * Saksbehandler kan ha lastet revurderingen før jobben la til en ny grunn.
+     * Konvertering og avbryting avvises da, slik at endringen ikke blir stående som håndtert uten at noen har sett den.
+     */
+    @Test
+    fun `konvertering og avbryting avvises når det er lagt til grunner saksbehandler ikke har fått vist`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val repo = tac.behandlingContext.rammebehandlingRepo
+            val (sak, revurdering) = iverksettSøknadsbehandlingOgOpprettUbestemtRevurdering(tac)
+            taRammebehandlinger(tac, listOf(sak.id to revurdering.id))!!
+            val medNyGrunn = (repo.hent(revurdering.id) as Revurdering).leggTilAutomatiskOpprettetGrunn(
+                AutomatiskOpprettetRevurderingGrunn(
+                    endring = TiltaksdeltakerEndring.IkkeAktuellDeltakelse,
+                    tiltaksdeltakerId = revurdering.automatiskOpprettetGrunn!!.tiltaksdeltakerId,
+                    lagtTil = nå(tac.clock),
+                ),
+            )
+            repo.lagreAutomatiskOpprettedeGrunner(medNyGrunn, null) shouldBe true
+            val forventetFeil = ForventetRespons(
+                status = 409,
+                body = ForventetBody.Json(
+                    """
+                    {
+                      "melding": "Tiltaksdeltakelsen er endret igjen siden du åpnet behandlingen. Last inn behandlingen på nytt og se gjennom de nye endringene.",
+                      "kode": "har_nye_automatisk_opprettede_grunner"
+                    }
+                    """.trimIndent(),
+                ),
+                contentType = "application/json; charset=UTF-8",
+            )
+
+            konverterRevurdering(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                revurderingType = "STANS",
+                antallVisteAutomatiskOpprettedeGrunner = 1,
+                forventet = forventetFeil,
+            ).shouldBeNull()
+            avbrytRammebehandling(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                sakId = sak.id,
+                rammebehandlingId = revurdering.id,
+                antallVisteAutomatiskOpprettedeGrunner = 1,
+                forventet = forventetFeil,
+            ).shouldBeNull()
+            repo.hent(revurdering.id) shouldBe medNyGrunn
+
+            val (_, _, avbrutt) = avbrytRammebehandling(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                sakId = sak.id,
+                rammebehandlingId = revurdering.id,
+                antallVisteAutomatiskOpprettedeGrunner = 2,
+            )!!
+            avbrutt!!.status shouldBe Rammebehandlingsstatus.AVBRUTT
         }
     }
 

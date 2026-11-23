@@ -22,6 +22,7 @@ import java.time.Clock
  * Saksopplysningene, begrunnelsen og fritekst til vedtaksbrevet beholdes.
  * Krever at saksbehandleren har rollen saksbehandler, og kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
  * Forutsetningene håndheves av [kanKonvertere], og feilene derfra returneres som venstre-verdi.
+ * Konverteringen avvises også dersom det er lagt til grunner som saksbehandler ikke fikk vist.
  */
 fun Sak.konverterRevurdering(
     kommando: KonverterRevurderingKommando,
@@ -31,6 +32,13 @@ fun Sak.konverterRevurdering(
     val behandling = hentRammebehandling(kommando.behandlingId)!!
     behandling.kanKonvertere(kommando.saksbehandler).onLeft { return it.left() }
     behandling as Revurdering
+
+    if (behandling.harNyeAutomatiskOpprettedeGrunner(kommando.antallVisteAutomatiskOpprettedeGrunner)) {
+        return KanIkkeKonvertereRevurdering.HarNyeAutomatiskOpprettedeGrunner(
+            antallViste = kommando.antallVisteAutomatiskOpprettedeGrunner!!,
+            antall = behandling.automatiskOpprettedeGrunner!!.grunner.size,
+        ).left()
+    }
 
     if (behandling.resultat.harSammeTypeSom(kommando)) {
         return KanIkkeKonvertereRevurdering.HarAlleredeTypen.left()

@@ -90,6 +90,23 @@ sealed interface KunneIkkeAvbryteBehandling {
         override val loggnivå: Loggnivå = Loggnivå.WARN
     }
 
+    /**
+     * Revurderingen har fått automatisk opprettede grunner som saksbehandler ikke fikk vist før behandlingen ble avbrutt.
+     * Avbrytes den likevel, blir endringene i tiltaksdeltakelsen stående som håndtert uten at noen har sett dem.
+     * Saksbehandler må laste behandlingen på nytt og vurdere de nye grunnene.
+     *
+     * Logges som [Loggnivå.INFO]: en forventet kappestrid mellom saksbehandler og jobben som legger til grunner.
+     */
+    data class HarNyeAutomatiskOpprettedeGrunner(
+        val behandlingId: RammebehandlingId,
+        val antallViste: Int,
+        val antall: Int,
+    ) : KunneIkkeAvbryteBehandling {
+        override val beskrivelse: String =
+            "Kan ikke avbryte behandling med id $behandlingId. Den har $antall automatisk opprettede grunner, men saksbehandler fikk vist $antallViste."
+        override val loggnivå: Loggnivå = Loggnivå.INFO
+    }
+
     /** Nivå [beskrivelse] skal logges på i vanlig logg. */
     enum class Loggnivå {
         INFO,

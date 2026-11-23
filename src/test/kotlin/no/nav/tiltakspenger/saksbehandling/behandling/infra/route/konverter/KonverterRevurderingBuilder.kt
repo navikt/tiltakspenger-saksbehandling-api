@@ -30,6 +30,7 @@ interface KonverterRevurderingBuilder {
         behandlingId: RammebehandlingId,
         revurderingType: String,
         rammevedtakIdSomForlenges: VedtakId? = null,
+        antallVisteAutomatiskOpprettedeGrunner: Int? = null,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Revurdering, SakDTOJson>? {
@@ -44,6 +45,7 @@ interface KonverterRevurderingBuilder {
                 mapOf(
                     "revurderingType" to revurderingType,
                     "rammevedtakIdSomForlenges" to rammevedtakIdSomForlenges?.toString(),
+                    "antallVisteAutomatiskOpprettedeGrunner" to antallVisteAutomatiskOpprettedeGrunner,
                 ),
             ),
         )

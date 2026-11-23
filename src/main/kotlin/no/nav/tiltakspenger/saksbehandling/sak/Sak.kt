@@ -170,6 +170,13 @@ data class Sak(
     ): Either<KunneIkkeAvbryteBehandling, Triple<Sak, Søknad?, Rammebehandling>> {
         val rammebehandling: Rammebehandling = this.hentRammebehandling(command.behandlingId)
             ?: return KunneIkkeAvbryteBehandling.FantIkkeBehandling(command.behandlingId).left()
+        if (rammebehandling is Revurdering && rammebehandling.harNyeAutomatiskOpprettedeGrunner(command.antallVisteAutomatiskOpprettedeGrunner)) {
+            return KunneIkkeAvbryteBehandling.HarNyeAutomatiskOpprettedeGrunner(
+                behandlingId = rammebehandling.id,
+                antallViste = command.antallVisteAutomatiskOpprettedeGrunner!!,
+                antall = rammebehandling.automatiskOpprettedeGrunner!!.grunner.size,
+            ).left()
+        }
         val skalAvbryteSøknad =
             rammebehandling is Søknadsbehandling && this.rammebehandlinger.filter { it.id != rammebehandling.id }
                 .none { it is Søknadsbehandling && it.søknad.id == rammebehandling.søknad.id && !it.erAvbrutt }
