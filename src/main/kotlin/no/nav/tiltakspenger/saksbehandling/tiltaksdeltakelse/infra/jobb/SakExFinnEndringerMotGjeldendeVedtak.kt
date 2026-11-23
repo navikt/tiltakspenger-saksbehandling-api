@@ -9,12 +9,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskOmgjøring.finnOmgjøringsperiodeVedAvkortetSluttdato
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.forTiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.reversertOpphør.ReversertOpphør
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.VurdertTiltaksdeltakerEndring.Endret
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.VurdertTiltaksdeltakerEndring.EndretMedÅpenUbestemtRevurdering
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.VurdertTiltaksdeltakerEndring.IngenEndring
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
@@ -30,6 +32,7 @@ import java.time.LocalDate
  * Kjenner den nyeste av dem allerede nå-tilstanden, er endringen fanget opp der, og det gis [VurdertTiltaksdeltakerEndring.IngenEndring].
  * Er deltakelsen ikke innvilget i noe gjeldende vedtak, sammenlignes nå-tilstanden med den åpne behandlingen i stedet, og endringen må følges opp manuelt.
  * Har endringen allerede gitt en automatisk revurdering som ennå ikke er behandlet, gis [VurdertTiltaksdeltakerEndring.IngenEndring], se [harUbehandletAutomatiskRevurdering].
+ * Har saken en åpen ubestemt revurdering, gis en relevant endring som [VurdertTiltaksdeltakerEndring.EndretMedÅpenUbestemtRevurdering], se [vurderMotÅpenUbestemtRevurdering].
  *
  * Gir [VurdertTiltaksdeltakerEndring.IngenEndring] dersom deltakelsen verken er innvilget i noe gjeldende vedtak eller er med i en åpen manuell behandling, eller dersom ingenting relevant er endret.
  * Det gjelder også når deltakelsen har vært innvilget, men er stanset, opphørt eller erstattet av en annen deltakelse i alle periodene.
@@ -39,12 +42,23 @@ fun Sak.finnEndringerForDeltakelse(
     oppdatertDeltakelse: Tiltaksdeltakelse.GirRett,
     clock: Clock,
 ): VurdertTiltaksdeltakerEndring {
-    val iDag = LocalDate.now(clock)
-    val oppdatertTilstand = oppdatertDeltakelse.tilDeltakelsestilstand(clock)
-
     if (harUbehandletAutomatiskRevurdering(tiltaksdeltakerId)) {
         return IngenEndring
     }
+
+    return vurderMotÅpenUbestemtRevurdering(
+        vurdering = vurderMotGjeldendeVedtak(tiltaksdeltakerId, oppdatertDeltakelse, clock),
+        tiltaksdeltakerId = tiltaksdeltakerId,
+    )
+}
+
+private fun Sak.vurderMotGjeldendeVedtak(
+    tiltaksdeltakerId: TiltaksdeltakerId,
+    oppdatertDeltakelse: Tiltaksdeltakelse.GirRett,
+    clock: Clock,
+): VurdertTiltaksdeltakerEndring {
+    val iDag = LocalDate.now(clock)
+    val oppdatertTilstand = oppdatertDeltakelse.tilDeltakelsestilstand(clock)
 
     val endringMotÅpenBehandling = deltakelseISisteÅpneManuelleBehandling(tiltaksdeltakerId)
         ?.let {
@@ -82,6 +96,32 @@ private fun Sak.harUbehandletAutomatiskRevurdering(tiltaksdeltakerId: Tiltaksdel
     rammebehandlinger.åpneBehandlinger.any {
         it is Revurdering && it.erUnderAutomatiskBehandling && it.automatiskOpprettetGrunn?.tiltaksdeltakerId == tiltaksdeltakerId
     }
+
+/**
+ * Har saken en åpen ubestemt revurdering, se [Revurderingsresultat.Ubestemt], skal saksbehandler ta stilling til hele saken i den.
+ * En relevant endring gir da verken en ny revurdering eller en oppgave, men legges til som en ny grunn i den åpne revurderingen.
+ * Er endringen den samme som den sist tillagte grunnen for deltakelsen, er den allerede fanget opp, og det gis [VurdertTiltaksdeltakerEndring.IngenEndring].
+ * En deltakelse som er avsluttet som forventet krever ingen oppfølging, og legges ikke til.
+ */
+private fun Sak.vurderMotÅpenUbestemtRevurdering(
+    vurdering: VurdertTiltaksdeltakerEndring,
+    tiltaksdeltakerId: TiltaksdeltakerId,
+): VurdertTiltaksdeltakerEndring {
+    val ubestemtRevurdering = rammebehandlinger.åpneBehandlinger
+        .filterIsInstance<Revurdering>()
+        .firstOrNull { it.resultat is Revurderingsresultat.Ubestemt }
+        ?: return vurdering
+
+    return when (vurdering) {
+        IngenEndring, is EndretMedÅpenUbestemtRevurdering -> vurdering
+
+        is Endret -> when {
+            vurdering.endring is TiltaksdeltakerEndring.AvsluttetSomForventet -> vurdering
+            ubestemtRevurdering.automatiskOpprettedeGrunner!!.sisteFor(tiltaksdeltakerId)?.endring == vurdering.endring -> IngenEndring
+            else -> EndretMedÅpenUbestemtRevurdering(endring = vurdering.endring, revurdering = ubestemtRevurdering)
+        }
+    }
+}
 
 /**
  * Tilstanden deltakelsen har i den sist endrede åpne behandlingen som har den med i saksopplysningene.
@@ -315,7 +355,8 @@ private fun andreEndringer(
  * Forlengelsen behandles automatisk etter at den er opprettet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskForlengelse.utledAutomatiskForlengelse].
  * - Endret startdato, sluttdato eller deltakelsesmengde gir omgjøring.
  * Det gjelder også et avbrudd med endret startdato eller deltakelsesmengde, og da berøres også vedtakene som innvilger dagene fra avbruddet.
- * - Ikke aktuell, avsluttet som forventet og ren statusendring følges opp manuelt.
+ * - Ikke aktuell gir en ubestemt revurdering, der saksbehandler velger typen revurdering.
+ * - Avsluttet som forventet og ren statusendring følges opp manuelt.
  *
  * Bortsett fra ved avkortet sluttdato gis omgjøring bare når endringen berører nøyaktig ett gjeldende vedtak.
  * En manuell omgjøring kan omgjøre flere vedtak, men omgjøringen startes fra ett av dem.
@@ -363,9 +404,9 @@ private fun Sak.vurderAutomatiskRevurdering(
 
         is TiltaksdeltakerEndring.AndreEndringer -> omgjøringAv(gjeldendeInnvilgelse.vedtakBerørtAv(endring, iDag))
 
-        is TiltaksdeltakerEndring.IkkeAktuellDeltakelse,
-        is TiltaksdeltakerEndring.AvsluttetSomForventet,
-        -> null
+        is TiltaksdeltakerEndring.IkkeAktuellDeltakelse -> AutomatiskRevurderingAvEndring.Ubestemt
+
+        is TiltaksdeltakerEndring.AvsluttetSomForventet -> null
     }
 }
 

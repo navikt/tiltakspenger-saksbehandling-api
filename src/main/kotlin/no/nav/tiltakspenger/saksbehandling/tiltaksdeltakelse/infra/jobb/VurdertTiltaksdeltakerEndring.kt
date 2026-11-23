@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb
 
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 
 /**
  * Utfallet av å vurdere nå-tilstanden til en tiltaksdeltakelse mot de gjeldende vedtakene på saken.
@@ -20,6 +21,15 @@ sealed interface VurdertTiltaksdeltakerEndring {
     data class Endret(
         val endring: TiltaksdeltakerEndring,
         val automatiskRevurdering: AutomatiskRevurderingAvEndring?,
+    ) : VurdertTiltaksdeltakerEndring
+
+    /**
+     * En relevant endring i tiltaksdeltakelsen mens saken har en åpen ubestemt revurdering.
+     * Endringen legges til som en ny grunn i [revurdering], i stedet for å gi en ny revurdering eller en oppgave.
+     */
+    data class EndretMedÅpenUbestemtRevurdering(
+        val endring: TiltaksdeltakerEndring,
+        val revurdering: Revurdering,
     ) : VurdertTiltaksdeltakerEndring
 }
 
@@ -47,4 +57,11 @@ sealed interface AutomatiskRevurderingAvEndring {
      * Se [no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskOmgjøringService].
      */
     data class OmgjøringAvAvkortetSluttdato(val vedtakIdSomOmgjøres: VedtakId) : AutomatiskRevurderingAvEndring
+
+    /**
+     * Systemet kan ikke utlede hvilken type revurdering endringen krever.
+     * Revurderingen opprettes klar til behandling, og saksbehandler må konvertere den til en annen type eller avbryte den.
+     * Se [no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering.opprettUbestemt].
+     */
+    data object Ubestemt : AutomatiskRevurderingAvEndring
 }

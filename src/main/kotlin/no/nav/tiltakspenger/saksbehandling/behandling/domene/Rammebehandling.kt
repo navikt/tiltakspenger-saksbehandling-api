@@ -294,7 +294,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
      * Propagerer en endret klagebehandling gjennom aggregatet.
      *
      * Bumper bevisst ikke [sistEndret]: rammebehandlingens egen tilstand er uendret, det er klagebehandlingen som er endret.
-     * Alle andre operasjoner som endrer rammebehandlingen skal oppdatere [sistEndret].
+     * Alle andre operasjoner som endrer rammebehandlingen skal oppdatere [sistEndret], med unntak av [Revurdering.leggTilAutomatiskOpprettetGrunn].
      */
     fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling
 }

@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import io.kotest.assertions.json.shouldEqualJson
+import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.json.serialize
@@ -9,13 +10,36 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 
 /**
  * Pinner json-kontrakten frontend leser grunnen til en automatisk opprettet revurdering fra.
  */
 class AutomatiskOpprettetRevurderingGrunnDTOTest {
 
-    private fun TiltaksdeltakerEndring.tilJson(): String = serialize(AutomatiskOpprettetRevurderingGrunn(this, tiltaksdeltakerId = TiltaksdeltakerId.random()).toDTO())
+    private val sistEndret = LocalDateTime.of(2025, 5, 1, 12, 0)
+
+    private fun grunn(endring: TiltaksdeltakerEndring, lagtTil: LocalDateTime = sistEndret) =
+        AutomatiskOpprettetRevurderingGrunn(endring, tiltaksdeltakerId = TiltaksdeltakerId.random(), lagtTil = lagtTil)
+
+    /** Den deklarerte elementtypen trengs for at Jackson skal ta med `type`. */
+    private data class Endringer(val endringer: List<TiltaksdeltakerEndringDTO>)
+
+    /** Bare endringene, som de fleste testene pinner. */
+    private fun TiltaksdeltakerEndring.tilJson(): String = serialize(Endringer(grunn(this).toDTO(sistEndret).endringer))
+
+    @Test
+    fun `grunn lagt til samtidig som eller før siste endring gir ikke varsel`() {
+        serialize(grunn(TiltaksdeltakerEndring.AvbruttDeltakelse, lagtTil = sistEndret).toDTO(sistEndret)) shouldEqualJson
+            """{"endringer":[{"type":"AVBRUTT_DELTAKELSE"}],"lagtTil":"2025-05-01T12:00:00","lagtTilEtterSistEndret":false}"""
+        grunn(TiltaksdeltakerEndring.AvbruttDeltakelse, lagtTil = sistEndret.minusSeconds(1)).toDTO(sistEndret).lagtTilEtterSistEndret shouldBe false
+    }
+
+    @Test
+    fun `grunn lagt til etter siste endring gir varsel`() {
+        serialize(grunn(TiltaksdeltakerEndring.AvbruttDeltakelse, lagtTil = sistEndret.plusNanos(1_000)).toDTO(sistEndret)) shouldEqualJson
+            """{"endringer":[{"type":"AVBRUTT_DELTAKELSE"}],"lagtTil":"2025-05-01T12:00:00.000001","lagtTilEtterSistEndret":true}"""
+    }
 
     @Test
     fun `endringer uten detaljer blir én endring med bare type`() {

@@ -1,22 +1,36 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
+import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettedeRevurderingGrunner
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 import java.time.LocalDate
+import java.time.LocalDateTime
+
+/**
+ * Grunnene lagres som `{ "grunner": [...] }`, i rekkefølgen de ble lagt til.
+ * Eldre rader er én grunn uten `lagtTil`, med feltene i [AutomatiskOpprettetRevurderingGrunnDbJson] direkte på rotnivå.
+ * De er migrert til det nye formatet, men en gammel replika kan fortsatt skrive dem under utrulling, så de må kunne leses.
+ */
+private data class AutomatiskOpprettedeRevurderingGrunnerDbJson(
+    val grunner: List<AutomatiskOpprettetRevurderingGrunnDbJson>? = null,
+)
 
 /**
  * Endringen lagres som en liste av enkeltendringer, slik den ble lagret før endringene ble tolket til ett utfall.
  * Formatet er beholdt for å kunne lese rader som allerede er lagret.
  * Eldre rader kan inneholde feltet `hendelseId`, som ignoreres ved lesing.
  * Eldre rader mangler feltet `tiltaksdeltakerId`.
+ * @param lagtTil Mangler bare i rader på det eldre formatet.
  */
 private data class AutomatiskOpprettetRevurderingGrunnDbJson(
     val endringer: List<TiltaksdeltakerEndringDbJson>,
     val tiltaksdeltakerId: String? = null,
+    val lagtTil: String? = null,
 )
 
 private data class TiltaksdeltakerEndringDbJson(
@@ -40,25 +54,46 @@ private enum class TiltaksdeltakerEndringTypeDb {
     ENDRET_STATUS,
 }
 
-fun AutomatiskOpprettetRevurderingGrunn.toDbJson(): String {
+fun AutomatiskOpprettedeRevurderingGrunner.toDbJson(): String {
     return serialize(
-        AutomatiskOpprettetRevurderingGrunnDbJson(
-            endringer = endring.tilEndringerDbJson(),
-            tiltaksdeltakerId = tiltaksdeltakerId?.toString(),
+        AutomatiskOpprettedeRevurderingGrunnerDbJson(
+            grunner = grunner.map {
+                AutomatiskOpprettetRevurderingGrunnDbJson(
+                    endringer = it.endring.tilEndringerDbJson(),
+                    tiltaksdeltakerId = it.tiltaksdeltakerId?.toString(),
+                    lagtTil = it.lagtTil.toString(),
+                )
+            },
         ),
     )
 }
 
-fun String.toAutomatiskOpprettetRevurderingGrunn(): AutomatiskOpprettetRevurderingGrunn {
-    val dbJson = deserialize<AutomatiskOpprettetRevurderingGrunnDbJson>(this)
+/**
+ * @param opprettet Når revurderingen ble opprettet.
+ * Brukes som [AutomatiskOpprettetRevurderingGrunn.lagtTil] for rader på det eldre formatet.
+ */
+fun String.toAutomatiskOpprettedeRevurderingGrunner(opprettet: LocalDateTime): AutomatiskOpprettedeRevurderingGrunner {
+    return when (val grunner = deserialize<AutomatiskOpprettedeRevurderingGrunnerDbJson>(this).grunner) {
+        null -> AutomatiskOpprettedeRevurderingGrunner(
+            deserialize<AutomatiskOpprettetRevurderingGrunnDbJson>(this).toDomain(lagtTil = opprettet),
+        )
+
+        else -> AutomatiskOpprettedeRevurderingGrunner(
+            grunner.map { it.toDomain(lagtTil = LocalDateTime.parse(it.lagtTil!!)) }.toNonEmptyListOrNull()!!,
+        )
+    }
+}
+
+private fun AutomatiskOpprettetRevurderingGrunnDbJson.toDomain(lagtTil: LocalDateTime): AutomatiskOpprettetRevurderingGrunn {
     return AutomatiskOpprettetRevurderingGrunn(
-        endring = dbJson.endringer.toDomain(),
-        tiltaksdeltakerId = dbJson.tiltaksdeltakerId?.let { TiltaksdeltakerId.fromString(it) },
+        endring = endringer.toDomain(),
+        tiltaksdeltakerId = tiltaksdeltakerId?.let { TiltaksdeltakerId.fromString(it) },
+        lagtTil = lagtTil,
     )
 }
 
 /**
- * Endringen som en liste av enkeltendringer, i samme format som i [AutomatiskOpprettetRevurderingGrunn].
+ * Endringen som en liste av enkeltendringer, i samme format som i [AutomatiskOpprettetRevurderingGrunnDbJson].
  * Brukes i `tiltakshistorikk`.
  */
 fun TiltaksdeltakerEndring.toDbJson(): String = serialize(tilEndringerDbJson())

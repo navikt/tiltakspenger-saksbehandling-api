@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettedeRevurderingGrunner
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
@@ -62,7 +63,7 @@ data class Revurdering(
     override val prioritering: Prioritering?,
     override val skalJournalføreNotat: SkalJournalføreNotat,
     override val beslutterEndringer: RammebehandlingBeslutterEndringer,
-    val automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
+    val automatiskOpprettedeGrunner: AutomatiskOpprettedeRevurderingGrunner? = null,
     val manueltBehandlesGrunner: List<ManueltBehandlesGrunn> = emptyList(),
 ) : Rammebehandling {
 
@@ -77,10 +78,13 @@ data class Revurdering(
 
     override val omgjørRammevedtak: OmgjørRammevedtak = resultat.omgjørRammevedtak
 
+    /** Grunnen systemet opprettet revurderingen for, se [AutomatiskOpprettedeRevurderingGrunner.første]. */
+    val automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = automatiskOpprettedeGrunner?.første
+
     init {
         super.init()
         if (resultat is Revurderingsresultat.Ubestemt) {
-            requireNotNull(automatiskOpprettetGrunn) { "En ubestemt revurdering må ha en automatisk opprettet grunn" }
+            requireNotNull(automatiskOpprettedeGrunner) { "En ubestemt revurdering må ha en automatisk opprettet grunn" }
         }
 
         when (status) {
@@ -153,6 +157,20 @@ data class Revurdering(
     override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling {
         require(this.klagebehandling!!.id == klagebehandling.id)
         return this.copy(klagebehandling = klagebehandling)
+    }
+
+    /**
+     * Legger til en ny endring i deltakelsen som grunn i en åpen ubestemt revurdering.
+     * Bumper bevisst ikke [sistEndret], slik at grunner som er lagt til etter forrige lagring kan vises med et varsel.
+     */
+    fun leggTilAutomatiskOpprettetGrunn(grunn: AutomatiskOpprettetRevurderingGrunn): Revurdering {
+        require(resultat is Revurderingsresultat.Ubestemt) {
+            "Kan bare legge til automatisk opprettet grunn i en ubestemt revurdering, men resultatet var ${resultat::class.simpleName} for sakId: $sakId og behandlingId: $id"
+        }
+        require(status == KLAR_TIL_BEHANDLING || status == UNDER_BEHANDLING) {
+            "Kan bare legge til automatisk opprettet grunn i en åpen revurdering, men status var $status for sakId: $sakId og behandlingId: $id"
+        }
+        return this.copy(automatiskOpprettedeGrunner = automatiskOpprettedeGrunner!!.leggTil(grunn))
     }
 
     /**
@@ -491,7 +509,7 @@ data class Revurdering(
                 beslutterEndringer = RammebehandlingBeslutterEndringer(
                     skalJournalføreNotat = null,
                 ),
-                automatiskOpprettetGrunn = automatiskOpprettetGrunn,
+                automatiskOpprettedeGrunner = automatiskOpprettetGrunn?.let { AutomatiskOpprettedeRevurderingGrunner(it) },
             )
         }
     }

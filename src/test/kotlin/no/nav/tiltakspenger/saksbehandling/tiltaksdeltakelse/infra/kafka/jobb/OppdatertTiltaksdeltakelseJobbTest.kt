@@ -410,15 +410,8 @@ class OppdatertTiltaksdeltakelseJobbTest {
         }
     }
 
-    @ParameterizedTest
-    @CsvSource(
-        "Venteliste, Endret status.",
-        "IkkeAktuell, Deltakelsen er ikke aktuell.",
-    )
-    fun `endring som ikke gir automatisk revurdering oppretter Gosys-oppgave`(
-        status: TiltakDeltakerstatus,
-        oppgavetekst: String,
-    ) {
+    @Test
+    fun `ikke aktuell deltakelse - oppretter ubestemt revurdering`() {
         withTestApplicationContextAndPostgres { tac ->
             val fnr = Fnr.random()
             val tiltaksdeltakelse = tiltaksdeltakelse(
@@ -435,8 +428,126 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val oppdatertSak = tac.registrerEndringOgBehandle(
                 sak,
                 tiltaksdeltakelse,
-                nåtilstand = tiltaksdeltakelse.copy(deltakelseStatus = status),
-                forventetOppgavetekst = oppgavetekst,
+                nåtilstand = tiltaksdeltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell),
+                forventetResultat = RevurderingOpprettet::class,
+            )
+
+            oppdatertSak.rammebehandlinger shouldHaveSize 2
+
+            val revurdering = oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
+            revurdering.resultat shouldBe Revurderingsresultat.Ubestemt
+            revurdering.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+            revurdering.saksbehandler.shouldBeNull()
+            val grunn = revurdering.automatiskOpprettetGrunn.shouldNotBeNull()
+            grunn.tiltaksdeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
+            grunn.endring shouldBe TiltaksdeltakerEndring.IkkeAktuellDeltakelse
+        }
+    }
+
+    /** Endringen er den samme som grunnen den ubestemte revurderingen ble opprettet for, så den er allerede fanget opp. */
+    @Test
+    fun `åpen ubestemt revurdering - samme endring på nytt gir ingen ny grunn`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                periode = 5.januar(2025) til 5.mai(2025),
+                internDeltakelseId = TiltaksdeltakerId.random(),
+            )
+            val sak = iverksettSøknadsbehandling(
+                tac = tac,
+                fnr = Fnr.random(),
+                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.lukketPeriode!!, tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            ).first
+            val ikkeAktuell = tiltaksdeltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell)
+            val medUbestemtRevurdering = tac.registrerEndringOgBehandle(
+                sak,
+                tiltaksdeltakelse,
+                nåtilstand = ikkeAktuell,
+                forventetResultat = RevurderingOpprettet::class,
+            )
+
+            val oppdatertSak = tac.registrerEndringOgBehandle(
+                medUbestemtRevurdering,
+                tiltaksdeltakelse,
+                nåtilstand = ikkeAktuell.copy(antallDagerPerUke = 3F),
+                forventetResultat = IngenRelevantEndring::class,
+            )
+
+            oppdatertSak.rammebehandlinger shouldBe medUbestemtRevurdering.rammebehandlinger
+        }
+    }
+
+    @Test
+    fun `åpen ubestemt revurdering - ny endring legges til som grunn uten ny revurdering eller Gosys-oppgave`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                periode = 5.januar(2025) til 5.mai(2025),
+                internDeltakelseId = TiltaksdeltakerId.random(),
+            )
+            val sak = iverksettSøknadsbehandling(
+                tac = tac,
+                fnr = Fnr.random(),
+                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.lukketPeriode!!, tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            ).first
+            val medUbestemtRevurdering = tac.registrerEndringOgBehandle(
+                sak,
+                tiltaksdeltakelse,
+                nåtilstand = tiltaksdeltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell),
+                forventetResultat = RevurderingOpprettet::class,
+            )
+            val ubestemtRevurdering = medUbestemtRevurdering.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
+            val forlenget = tiltaksdeltakelse.medPeriode(fraOgMed = 5.januar(2025), tilOgMed = 5.juni(2025))
+
+            val oppdatertSak = tac.registrerEndringOgBehandle(
+                medUbestemtRevurdering,
+                tiltaksdeltakelse,
+                nåtilstand = forlenget,
+                forventetResultat = TiltaksdeltakelseEndringBehandlet.GrunnLagtTilUbestemtRevurdering::class,
+            )
+
+            oppdatertSak.rammebehandlinger.map { it.id } shouldBe medUbestemtRevurdering.rammebehandlinger.map { it.id }
+            val oppdatertRevurdering = oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
+            oppdatertRevurdering.sistEndret shouldBe ubestemtRevurdering.sistEndret
+            oppdatertRevurdering.automatiskOpprettetGrunn shouldBe ubestemtRevurdering.automatiskOpprettetGrunn
+            val (første, ny) = oppdatertRevurdering.automatiskOpprettedeGrunner.shouldNotBeNull().grunner.also { it shouldHaveSize 2 }
+            første shouldBe ubestemtRevurdering.automatiskOpprettetGrunn
+            ny.endring shouldBe TiltaksdeltakerEndring.Forlengelse(nySluttdato = 5.juni(2025))
+            ny.tiltaksdeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
+            (ny.lagtTil > oppdatertRevurdering.sistEndret) shouldBe true
+            tac.sessionFactory.hentTiltakshistorikk(tiltaksdeltakelse.internDeltakelseId)
+                .map { it.behandlingId } shouldBe List(2) { ubestemtRevurdering.id.toString() }
+
+            val sammeEndringPåNytt = tac.registrerEndringOgBehandle(
+                oppdatertSak,
+                tiltaksdeltakelse,
+                nåtilstand = forlenget,
+                forventetResultat = IngenRelevantEndring::class,
+            )
+            sammeEndringPåNytt.rammebehandlinger shouldBe oppdatertSak.rammebehandlinger
+        }
+    }
+
+    @Test
+    fun `ren statusendring oppretter Gosys-oppgave`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                periode = 5.januar(2025) til 5.mai(2025),
+                internDeltakelseId = TiltaksdeltakerId.random(),
+            )
+            val sak = iverksettSøknadsbehandling(
+                tac = tac,
+                fnr = fnr,
+                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.lukketPeriode!!, tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            ).first
+
+            val oppdatertSak = tac.registrerEndringOgBehandle(
+                sak,
+                tiltaksdeltakelse,
+                nåtilstand = tiltaksdeltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Venteliste),
+                forventetOppgavetekst = "Endret status.",
                 forventetResultat = OppgaveOpprettet::class,
             )
 

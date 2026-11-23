@@ -5,9 +5,16 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 import java.time.LocalDate
+import java.time.LocalDateTime
 
+/**
+ * @param lagtTilEtterSistEndret Om grunnen ble lagt til etter at behandlingen sist ble endret.
+ * Brukes til å varsle saksbehandler om grunner som har kommet til etter forrige lagring.
+ */
 data class AutomatiskOpprettetRevurderingGrunnDTO(
     val endringer: List<TiltaksdeltakerEndringDTO>,
+    val lagtTil: LocalDateTime,
+    val lagtTilEtterSistEndret: Boolean,
 )
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
@@ -48,10 +55,13 @@ sealed interface TiltaksdeltakerEndringDTO {
 
 /**
  * Endringen sendes som en liste av enkeltendringer, slik frontend forventer.
+ * @param sistEndret Når behandlingen grunnen tilhører sist ble endret.
  */
-fun AutomatiskOpprettetRevurderingGrunn.toDTO(): AutomatiskOpprettetRevurderingGrunnDTO {
+fun AutomatiskOpprettetRevurderingGrunn.toDTO(sistEndret: LocalDateTime): AutomatiskOpprettetRevurderingGrunnDTO {
     return AutomatiskOpprettetRevurderingGrunnDTO(
         endringer = endring.toDTO(),
+        lagtTil = lagtTil,
+        lagtTilEtterSistEndret = lagtTil > sistEndret,
     )
 }
 

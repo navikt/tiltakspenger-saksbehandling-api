@@ -8,6 +8,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withBody
@@ -18,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.lokal.infra.route.DEV_ROUTE
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
+import java.time.Clock
 import java.time.LocalDate
 
 private const val PATH = "$DEV_ROUTE/revurdering/ubestemt"
@@ -90,6 +92,7 @@ private data class NyUbestemtRevurderingRespons(
 fun Route.nyUbestemtRevurderingDevRoute(
     sakService: SakService,
     startRevurderingService: StartRevurderingService,
+    clock: Clock,
 ) {
     post(PATH) {
         call.withBody<NyUbestemtRevurderingBody> { body ->
@@ -110,6 +113,7 @@ fun Route.nyUbestemtRevurderingDevRoute(
                     automatiskOpprettetGrunn = AutomatiskOpprettetRevurderingGrunn(
                         endring = endring,
                         tiltaksdeltakerId = tiltaksdeltakerId,
+                        lagtTil = nå(clock),
                     ),
                 ),
                 sak = sak,

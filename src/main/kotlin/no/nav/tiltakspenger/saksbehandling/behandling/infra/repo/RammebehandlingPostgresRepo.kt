@@ -15,9 +15,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo.Companion.oppdaterRammebehandling
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toDbJson
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -368,10 +371,32 @@ class RammebehandlingPostgresRepo(
         }
     }
 
+    override fun lagreAutomatiskOpprettedeGrunner(
+        revurdering: Revurdering,
+        transactionContext: TransactionContext?,
+    ): Boolean {
+        return sessionFactory.withTransaction(transactionContext) { tx ->
+            tx.run(
+                sqlQuery(
+                    """
+                    update behandling set automatisk_opprettet_grunn = :automatisk_opprettet_grunn::jsonb
+                    where id = :id
+                        and resultat = :forventet_resultat
+                        and status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING')
+                    """.trimIndent(),
+                    "id" to revurdering.id.toString(),
+                    "automatisk_opprettet_grunn" to revurdering.automatiskOpprettedeGrunner!!.toDbJson(),
+                    "forventet_resultat" to Revurderingsresultat.Ubestemt.toDb(),
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
     companion object {
         /**
          * Felles `set`-del for oppdatering av hele rammebehandlingen.
          * Brukes av [oppdaterRammebehandling], [lagreHvisFortsattUnderBeslutning] og [hentTilbake], som legger til hver sin `where`.
+         * `automatisk_opprettet_grunn` er bevisst utelatt, se [lagreAutomatiskOpprettedeGrunner].
          */
         private const val OPPDATER_RAMMEBEHANDLING = """
             update behandling set
@@ -406,7 +431,6 @@ class RammebehandlingPostgresRepo(
                 omgjør_rammevedtak = :omgjoer_rammevedtak::jsonb,
                 forlengelse = :forlengelse::jsonb,
                 klagebehandling_id = :klagebehandling_id,
-                automatisk_opprettet_grunn = :automatisk_opprettet_grunn::jsonb,
                 skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev,
                 prioritering_begrunnelse = :prioritering_begrunnelse,
                 skal_journalfore_notat = :skal_journalfore_notat::jsonb,
