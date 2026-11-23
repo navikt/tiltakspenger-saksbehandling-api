@@ -75,12 +75,13 @@ interface RammebehandlingRepo {
     ): Boolean
 
     /**
-     * Lagrer de automatisk opprettede grunnene til [revurdering], og ingenting annet.
-     * [Rammebehandling.sistEndret] oppdateres ikke, se [Revurdering.leggTilAutomatiskOpprettetGrunn].
-     * Lagres bare hvis den lagrede revurderingen fortsatt er ubestemt og klar til eller under behandling.
+     * Lagrer de automatisk opprettede grunnene til [revurdering].
+     * Er revurderingen ikke tildelt en saksbehandler, lagres også saksopplysningene, se [Revurdering.leggTilAutomatiskOpprettetGrunn].
+     * [Rammebehandling.sistEndret] oppdateres ikke.
+     * Lagres bare hvis den lagrede revurderingen fortsatt er ubestemt og klar til eller under behandling, og fortsatt er tildelt eller ikke tildelt en saksbehandler slik som [revurdering].
      * Grunnene lagres ikke av [lagre], slik at en samtidig lagring fra saksbehandler ikke overskriver dem.
      *
-     * @return true dersom grunnene ble lagret, false dersom revurderingen er endret til noe annet siden den ble lastet.
+     * @return true dersom grunnene ble lagret, false dersom revurderingen er endret siden den ble lastet.
      */
     fun lagreAutomatiskOpprettedeGrunner(
         revurdering: Revurdering,

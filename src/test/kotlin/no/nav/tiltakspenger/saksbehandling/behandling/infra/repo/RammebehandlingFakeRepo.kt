@@ -157,11 +157,19 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
         val behandling = data.get()[revurdering.id]
         if (behandling !is Revurdering ||
             behandling.resultat !is Revurderingsresultat.Ubestemt ||
-            (behandling.status != Rammebehandlingsstatus.KLAR_TIL_BEHANDLING && behandling.status != Rammebehandlingsstatus.UNDER_BEHANDLING)
+            (behandling.status != Rammebehandlingsstatus.KLAR_TIL_BEHANDLING && behandling.status != Rammebehandlingsstatus.UNDER_BEHANDLING) ||
+            (behandling.saksbehandler == null) != (revurdering.saksbehandler == null)
         ) {
             return false
         }
-        data.get()[revurdering.id] = behandling.copy(automatiskOpprettedeGrunner = revurdering.automatiskOpprettedeGrunner)
+        data.get()[revurdering.id] = when (revurdering.saksbehandler) {
+            null -> behandling.copy(
+                automatiskOpprettedeGrunner = revurdering.automatiskOpprettedeGrunner,
+                saksopplysninger = revurdering.saksopplysninger,
+            )
+
+            else -> behandling.copy(automatiskOpprettedeGrunner = revurdering.automatiskOpprettedeGrunner)
+        }
         return true
     }
 

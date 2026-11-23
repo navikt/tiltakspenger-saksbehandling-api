@@ -161,16 +161,29 @@ data class Revurdering(
 
     /**
      * Legger til en ny endring i deltakelsen som grunn i en åpen ubestemt revurdering.
+     * Er revurderingen ikke tildelt en saksbehandler, erstattes også saksopplysningene, slik at den som tar den får opplysninger som gjenspeiler endringen.
+     * En tildelt saksbehandler oppdaterer selv saksopplysningene, så de røres ikke da.
      * Bumper bevisst ikke [sistEndret], slik at grunner som er lagt til etter forrige lagring kan vises med et varsel.
+     *
+     * @param oppdaterteSaksopplysninger Påkrevd når revurderingen ikke er tildelt en saksbehandler, og ellers null.
      */
-    fun leggTilAutomatiskOpprettetGrunn(grunn: AutomatiskOpprettetRevurderingGrunn): Revurdering {
+    fun leggTilAutomatiskOpprettetGrunn(
+        grunn: AutomatiskOpprettetRevurderingGrunn,
+        oppdaterteSaksopplysninger: Saksopplysninger?,
+    ): Revurdering {
         require(resultat is Revurderingsresultat.Ubestemt) {
             "Kan bare legge til automatisk opprettet grunn i en ubestemt revurdering, men resultatet var ${resultat::class.simpleName} for sakId: $sakId og behandlingId: $id"
         }
         require(status == KLAR_TIL_BEHANDLING || status == UNDER_BEHANDLING) {
             "Kan bare legge til automatisk opprettet grunn i en åpen revurdering, men status var $status for sakId: $sakId og behandlingId: $id"
         }
-        return this.copy(automatiskOpprettedeGrunner = automatiskOpprettedeGrunner!!.leggTil(grunn))
+        require((saksbehandler == null) == (oppdaterteSaksopplysninger != null)) {
+            "Saksopplysningene skal oppdateres når, og bare når, revurderingen ikke er tildelt en saksbehandler. Saksbehandler var $saksbehandler for sakId: $sakId og behandlingId: $id"
+        }
+        return this.copy(
+            automatiskOpprettedeGrunner = automatiskOpprettedeGrunner!!.leggTil(grunn),
+            saksopplysninger = oppdaterteSaksopplysninger ?: saksopplysninger,
+        )
     }
 
     /**

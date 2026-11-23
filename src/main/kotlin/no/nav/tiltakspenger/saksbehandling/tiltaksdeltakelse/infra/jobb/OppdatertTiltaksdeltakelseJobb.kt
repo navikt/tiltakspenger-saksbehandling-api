@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.ForberedtRevurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskForlengelseService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskOmgjøringService
@@ -53,6 +54,7 @@ import java.time.LocalDateTime
  * Automatiske søknadsbehandlinger og forlengelser på vent får fremskyndet ny vurdering når deltakelsen endres.
  * Endringer som ikke kan revurderes automatisk fører til en Gosys-oppgave inntil erstatteren er på plass.
  * Har saken en åpen ubestemt revurdering, legges endringen i stedet til som en ny grunn i den.
+ * Er den ubestemte revurderingen ikke tildelt en saksbehandler, hentes også saksopplysningene på nytt.
  * Referansen til oppgaven lagres som en [EksternOppgave] før markøren nullstilles.
  * Nå-tilstanden lagres i tiltakshistorikken når den er endret siden forrige innslag for deltakeren, eller når den førte til en revurdering eller en oppgave.
  * Den lagres i samme transaksjon som markøren nullstilles.
@@ -71,6 +73,7 @@ class OppdatertTiltaksdeltakelseJobb(
     private val oppgaveKlient: OppgaveKlient,
     private val eksternOppgaveRepo: EksternOppgaveRepo,
     private val tiltakshistorikkRepo: TiltakshistorikkRepo,
+    private val hentSaksopplysingerService: HentSaksopplysingerService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
     private val korrelasjon: Korrelasjon,
@@ -115,14 +118,20 @@ class OppdatertTiltaksdeltakelseJobb(
     suspend fun behandleDeltaker(deltaker: Tiltaksdeltaker): Either<TiltaksdeltakelseEndringKunneIkkeBehandles, TiltaksdeltakelseEndringBehandlet> =
         korrelasjon.medNyCorrelationId { correlationId ->
             Either.catch {
+                // Tas før nå-tilstanden hentes, slik at innslaget ikke ser nyere ut enn saksopplysninger som hentes etter den.
+                val innhentet = nå(clock)
                 vurderEndring(deltaker, correlationId).onRight { resultat ->
-                    lagreSomBehandlet(deltaker, resultat)
+                    lagreSomBehandlet(deltaker, resultat, innhentet)
                 }
             }.mapLeft { TiltaksdeltakelseEndringKunneIkkeBehandles.UventetFeil(it) }
                 .flatten()
         }
 
-    private fun lagreSomBehandlet(deltaker: Tiltaksdeltaker, resultat: TiltaksdeltakelseEndringBehandlet) {
+    private fun lagreSomBehandlet(
+        deltaker: Tiltaksdeltaker,
+        resultat: TiltaksdeltakelseEndringBehandlet,
+        innhentet: LocalDateTime,
+    ) {
         sessionFactory.withTransactionContext { tx ->
             when (resultat) {
                 is TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet -> startRevurderingService.lagre(resultat.forberedtRevurdering, tx)
@@ -138,7 +147,7 @@ class OppdatertTiltaksdeltakelseJobb(
                 is TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet,
                 -> Unit
             }
-            lagreTiltakshistorikk(deltaker, resultat, tx)
+            lagreTiltakshistorikk(deltaker, resultat, innhentet, tx)
             tiltaksdeltakerRepo.markerEndringSomBehandlet(
                 deltaker.id,
                 deltaker.sisteUbehandletEndringTidspunkt!!,
@@ -150,10 +159,13 @@ class OppdatertTiltaksdeltakelseJobb(
     /**
      * Et innslag uten nå-tilstand lagres aldri, siden det ikke har noen verdi å vise eller sammenligne med.
      * Uendret nå-tilstand lagres bare når den likevel førte til en revurdering eller en oppgave.
+     * [innhentet] er tidspunktet før nå-tilstanden ble hentet, og ikke når innslaget lagres.
+     * Ellers ville saksopplysninger hentet i samme kjøring, f.eks. for en ubestemt revurdering, sett utdaterte ut.
      */
     private fun lagreTiltakshistorikk(
         deltaker: Tiltaksdeltaker,
         resultat: TiltaksdeltakelseEndringBehandlet,
+        innhentet: LocalDateTime,
         tx: TransactionContext,
     ) {
         val nåtilstand = resultat.nåtilstand ?: return
@@ -162,7 +174,7 @@ class OppdatertTiltaksdeltakelseJobb(
             sakId = deltaker.sakId,
             tiltaksdeltakerId = deltaker.id,
             eksternDeltakerId = deltaker.eksternId,
-            innhentet = nå(clock),
+            innhentet = innhentet,
             verdi = nåtilstand,
             endring = resultat.endring,
             behandlingId = when (resultat) {
@@ -220,7 +232,22 @@ class OppdatertTiltaksdeltakelseJobb(
                 log.info { "Tiltaksdeltakelse er endret mens saken har en åpen ubestemt revurdering, legger endringen til som grunn i revurdering ${vurdering.revurdering.id} ($logIder)" }
                 return TiltaksdeltakelseEndringBehandlet.GrunnLagtTilUbestemtRevurdering(
                     revurdering = vurdering.revurdering.leggTilAutomatiskOpprettetGrunn(
-                        AutomatiskOpprettetRevurderingGrunn(endring = vurdering.endring, tiltaksdeltakerId = deltaker.id, lagtTil = nå(clock)),
+                        grunn = AutomatiskOpprettetRevurderingGrunn(endring = vurdering.endring, tiltaksdeltakerId = deltaker.id, lagtTil = nå(clock)),
+                        oppdaterteSaksopplysninger = when (vurdering.revurdering.saksbehandler) {
+                            null -> hentSaksopplysingerService.hentSaksopplysningerFraRegistre(
+                                fnr = sak.fnr,
+                                correlationId = correlationId,
+                                tiltaksdeltakelserDetErSøktTiltakspengerFor = sak.tiltaksdeltakelserDetErSøktTiltakspengerFor,
+                                aktuelleTiltaksdeltakelserForBehandlingen = sak.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.tiltaksdeltakerId }.distinct(),
+                                inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = false,
+                                sakId = sak.id,
+                                saksnummer = sak.saksnummer,
+                                behandlingId = vurdering.revurdering.id,
+                            )
+
+                            // Saksbehandler oppdaterer selv saksopplysningene på en revurdering hen har tatt.
+                            else -> null
+                        },
                     ),
                     nåtilstand = oppdatertDeltakelse,
                     endring = vurdering.endring,

@@ -112,6 +112,7 @@ class UbestemtRevurderingRouteTest {
                     tiltaksdeltakerId = revurdering.automatiskOpprettetGrunn!!.tiltaksdeltakerId,
                     lagtTil = nå(tac.clock),
                 ),
+                oppdaterteSaksopplysninger = null,
             )
 
             repo.lagreAutomatiskOpprettedeGrunner(medNyGrunn, null) shouldBe true
@@ -140,6 +141,36 @@ class UbestemtRevurderingRouteTest {
     }
 
     /**
+     * Jobben laster revurderingen før den henter saksopplysningene på nytt, og en saksbehandler kan ta den i mellomtiden.
+     * Lagringen avvises da, slik at saksopplysningene saksbehandler jobber med ikke byttes ut.
+     * Jobben prøver igjen ved neste kjøring og legger da bare til grunnen.
+     */
+    @Test
+    fun `grunn med oppdaterte saksopplysninger lagres ikke hvis revurderingen er tatt etter at den ble lastet`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val repo = tac.behandlingContext.rammebehandlingRepo
+            val (sak, revurdering) = iverksettSøknadsbehandlingOgOpprettUbestemtRevurdering(tac)
+            val ikkeTatt = repo.hent(revurdering.id) as Revurdering
+            ikkeTatt.saksbehandler shouldBe null
+            val medNyGrunn = ikkeTatt.leggTilAutomatiskOpprettetGrunn(
+                AutomatiskOpprettetRevurderingGrunn(
+                    endring = TiltaksdeltakerEndring.IkkeAktuellDeltakelse,
+                    tiltaksdeltakerId = revurdering.automatiskOpprettetGrunn!!.tiltaksdeltakerId,
+                    lagtTil = nå(tac.clock),
+                ),
+                oppdaterteSaksopplysninger = ikkeTatt.saksopplysninger.copy(oppslagstidspunkt = nå(tac.clock)),
+            )
+            taRammebehandlinger(tac, listOf(sak.id to revurdering.id))!!
+
+            repo.lagreAutomatiskOpprettedeGrunner(medNyGrunn, null) shouldBe false
+            (repo.hent(revurdering.id) as Revurdering).let {
+                it.automatiskOpprettedeGrunner shouldBe ikkeTatt.automatiskOpprettedeGrunner
+                it.saksopplysninger shouldBe ikkeTatt.saksopplysninger
+            }
+        }
+    }
+
+    /**
      * Saksbehandler kan ha lastet revurderingen før jobben la til en ny grunn.
      * Konvertering og avbryting avvises da, slik at endringen ikke blir stående som håndtert uten at noen har sett den.
      */
@@ -155,6 +186,7 @@ class UbestemtRevurderingRouteTest {
                     tiltaksdeltakerId = revurdering.automatiskOpprettetGrunn!!.tiltaksdeltakerId,
                     lagtTil = nå(tac.clock),
                 ),
+                oppdaterteSaksopplysninger = null,
             )
             repo.lagreAutomatiskOpprettedeGrunner(medNyGrunn, null) shouldBe true
             val forventetFeil = ForventetRespons(

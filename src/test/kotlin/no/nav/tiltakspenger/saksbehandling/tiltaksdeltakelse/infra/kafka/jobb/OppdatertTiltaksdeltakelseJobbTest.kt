@@ -44,6 +44,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settRammebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
@@ -515,8 +516,14 @@ class OppdatertTiltaksdeltakelseJobbTest {
             ny.endring shouldBe TiltaksdeltakerEndring.Forlengelse(nySluttdato = 5.juni(2025))
             ny.tiltaksdeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
             (ny.lagtTil > oppdatertRevurdering.sistEndret) shouldBe true
-            tac.sessionFactory.hentTiltakshistorikk(tiltaksdeltakelse.internDeltakelseId)
-                .map { it.behandlingId } shouldBe List(2) { ubestemtRevurdering.id.toString() }
+            // Revurderingen er ikke tildelt en saksbehandler, så saksopplysningene hentes på nytt.
+            ubestemtRevurdering.saksbehandler shouldBe null
+            ubestemtRevurdering.saksopplysninger.getTiltaksdeltakelse(tiltaksdeltakelse.internDeltakelseId)!!.periode shouldBe tiltaksdeltakelse.periode
+            oppdatertRevurdering.saksopplysninger.getTiltaksdeltakelse(tiltaksdeltakelse.internDeltakelseId)!!.periode shouldBe forlenget.periode
+            val historikk = tac.sessionFactory.hentTiltakshistorikk(tiltaksdeltakelse.internDeltakelseId)
+            historikk.map { it.behandlingId } shouldBe List(2) { ubestemtRevurdering.id.toString() }
+            // Innslaget skal ikke se nyere ut enn saksopplysningene som ble hentet på grunn av det, ellers vises de som utdaterte.
+            (historikk.last().innhentet < oppdatertRevurdering.saksopplysninger.oppslagstidspunkt) shouldBe true
 
             val sammeEndringPåNytt = tac.registrerEndringOgBehandle(
                 oppdatertSak,
@@ -525,6 +532,45 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 forventetResultat = IngenRelevantEndring::class,
             )
             sammeEndringPåNytt.rammebehandlinger shouldBe oppdatertSak.rammebehandlinger
+        }
+    }
+
+    /** Saksbehandler som har tatt revurderingen oppdaterer selv saksopplysningene, så de skal ikke byttes ut under hen. */
+    @Test
+    fun `åpen ubestemt revurdering tildelt saksbehandler - ny grunn legges til uten å oppdatere saksopplysningene`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                periode = 5.januar(2025) til 5.mai(2025),
+                internDeltakelseId = TiltaksdeltakerId.random(),
+            )
+            val sak = iverksettSøknadsbehandling(
+                tac = tac,
+                fnr = Fnr.random(),
+                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.lukketPeriode!!, tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            ).first
+            val medUbestemtRevurdering = tac.registrerEndringOgBehandle(
+                sak,
+                tiltaksdeltakelse,
+                nåtilstand = tiltaksdeltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell),
+                forventetResultat = RevurderingOpprettet::class,
+            )
+            taRammebehandlinger(tac, listOf(sak.id to medUbestemtRevurdering.rammebehandlinger.last().id))!!
+            val tattRevurdering = tac.behandlingContext.rammebehandlingRepo
+                .hent(medUbestemtRevurdering.rammebehandlinger.last().id).shouldBeInstanceOf<Revurdering>()
+            tattRevurdering.saksbehandler.shouldNotBeNull()
+
+            val oppdatertSak = tac.registrerEndringOgBehandle(
+                medUbestemtRevurdering,
+                tiltaksdeltakelse,
+                nåtilstand = tiltaksdeltakelse.medPeriode(fraOgMed = 5.januar(2025), tilOgMed = 5.juni(2025)),
+                forventetResultat = TiltaksdeltakelseEndringBehandlet.GrunnLagtTilUbestemtRevurdering::class,
+            )
+
+            val oppdatertRevurdering = oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
+            oppdatertRevurdering.automatiskOpprettedeGrunner.shouldNotBeNull().grunner shouldHaveSize 2
+            oppdatertRevurdering.saksopplysninger shouldBe tattRevurdering.saksopplysninger
+            oppdatertRevurdering.sistEndret shouldBe tattRevurdering.sistEndret
         }
     }
 

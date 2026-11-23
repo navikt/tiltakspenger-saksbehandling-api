@@ -375,20 +375,38 @@ class RammebehandlingPostgresRepo(
         revurdering: Revurdering,
         transactionContext: TransactionContext?,
     ): Boolean {
+        val query = when (revurdering.saksbehandler) {
+            null -> sqlQuery(
+                """
+                update behandling set
+                    automatisk_opprettet_grunn = :automatisk_opprettet_grunn::jsonb,
+                    saksopplysninger = :saksopplysninger::jsonb
+                where id = :id
+                    and resultat = :forventet_resultat
+                    and status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING')
+                    and saksbehandler is null
+                """.trimIndent(),
+                "id" to revurdering.id.toString(),
+                "automatisk_opprettet_grunn" to revurdering.automatiskOpprettedeGrunner!!.toDbJson(),
+                "saksopplysninger" to revurdering.saksopplysninger.toDbJson(),
+                "forventet_resultat" to Revurderingsresultat.Ubestemt.toDb(),
+            )
+
+            else -> sqlQuery(
+                """
+                update behandling set automatisk_opprettet_grunn = :automatisk_opprettet_grunn::jsonb
+                where id = :id
+                    and resultat = :forventet_resultat
+                    and status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING')
+                    and saksbehandler is not null
+                """.trimIndent(),
+                "id" to revurdering.id.toString(),
+                "automatisk_opprettet_grunn" to revurdering.automatiskOpprettedeGrunner!!.toDbJson(),
+                "forventet_resultat" to Revurderingsresultat.Ubestemt.toDb(),
+            )
+        }
         return sessionFactory.withTransaction(transactionContext) { tx ->
-            tx.run(
-                sqlQuery(
-                    """
-                    update behandling set automatisk_opprettet_grunn = :automatisk_opprettet_grunn::jsonb
-                    where id = :id
-                        and resultat = :forventet_resultat
-                        and status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING')
-                    """.trimIndent(),
-                    "id" to revurdering.id.toString(),
-                    "automatisk_opprettet_grunn" to revurdering.automatiskOpprettedeGrunner!!.toDbJson(),
-                    "forventet_resultat" to Revurderingsresultat.Ubestemt.toDb(),
-                ).asUpdate,
-            ) > 0
+            tx.run(query.asUpdate) > 0
         }
     }
 

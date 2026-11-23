@@ -242,6 +242,7 @@ open class ApplicationContext(
             oppgaveKlient = oppgaveKlient,
             eksternOppgaveRepo = eksternOppgaveRepo,
             tiltakshistorikkRepo = tiltakContext.tiltakshistorikkRepo,
+            hentSaksopplysingerService = behandlingContext.hentSaksopplysingerService,
             sessionFactory = sessionFactory,
             clock = clock,
             korrelasjon = MdcKorrelasjon(),
