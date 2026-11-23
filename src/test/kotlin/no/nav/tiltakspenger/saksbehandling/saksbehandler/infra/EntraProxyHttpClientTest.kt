@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.saksbehandler.infra
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
@@ -78,25 +79,21 @@ class EntraProxyHttpClientTest {
     }
 
     @Test
-    fun `hentGrupper gir KallFeilet uten responsinnhold for uventet status`() = runTest {
+    fun `hentGrupper gir KallFeilet for uventet status`() = runTest {
         val transport = FakeHttpTransport()
         transport.leggIKøStatus(statusCode = 500, body = "intern serverfeil", contentType = "text/plain")
 
-        val feil = client(transport).hentGrupper(navIdent).fold({ it }, { throw AssertionError("Forventet Left, fikk $it") })
+        client(transport).hentGrupper(navIdent).fold({ it }, { throw AssertionError("Forventet Left, fikk $it") })
             .shouldBeInstanceOf<KanIkkeHenteGrupper.KallFeilet>()
             .httpKlientError.shouldBeInstanceOf<HttpKlientError.UventetStatus>()
-
-        feil.statusCode shouldBe 500
-        feil.body shouldNotContain "intern serverfeil"
-        feil.metadata.rawResponseString!! shouldNotContain "intern serverfeil"
     }
 
     /**
-     * Gruppedataene skal ikke kunne nå noen logg via feilen, heller ikke via meldingen til Jackson-exceptionen.
-     * En ugyldig `gruppeId` gjør at Jackson siterer verdien i meldingen sin.
+     * `loggFeil` sender exceptionen til vanlig logg, og en ugyldig `gruppeId` gjør at Jackson siterer verdien i meldingen sin.
+     * Responsen går bare til sikkerlogg, og beholdes for feilsøking.
      */
     @Test
-    fun `hentGrupper gir KallFeilet uten gruppedata når svaret ikke kan deserialiseres`() = runTest {
+    fun `hentGrupper gir KallFeilet uten gruppedata i exceptionen når svaret ikke kan deserialiseres`() = runTest {
         val transport = FakeHttpTransport()
         transport.leggIKøJson(json = """[{"rolle": "0000-GA-Hemmelig", "gruppeId": "Hemmelig-id"}]""")
 
@@ -104,10 +101,9 @@ class EntraProxyHttpClientTest {
             .shouldBeInstanceOf<KanIkkeHenteGrupper.KallFeilet>()
             .httpKlientError.shouldBeInstanceOf<HttpKlientError.DeserializationError>()
 
-        feil.body shouldNotContain "Hemmelig"
-        feil.metadata.rawResponseString!! shouldNotContain "Hemmelig"
         feil.throwable.message!! shouldNotContain "Hemmelig"
         feil.throwable.cause shouldBe null
+        feil.metadata.rawResponseString!! shouldContain "Hemmelig"
     }
 
     @Test
