@@ -21,7 +21,6 @@ import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
@@ -33,7 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.gyldigFnr
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
-import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
@@ -52,9 +51,9 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeTestKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.EndretUtenOppfølging
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.IngenLesbarNåtilstand
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.IngenRelevantEndring
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltakshistorikk
@@ -72,7 +71,6 @@ class OppdatertTiltaksdeltakelseJobbTest {
         sak: Sak,
         tiltaksdeltakelse: TiltaksdeltakelseIntern,
         nåtilstand: TiltaksdeltakelseIntern? = tiltaksdeltakelse,
-        forventetOppgavetekst: String? = null,
         forventetResultat: KClass<out TiltaksdeltakelseEndringBehandlet>,
     ): Sak {
         oppdaterTiltaksdeltakelse(sak.fnr, nåtilstand)
@@ -87,20 +85,6 @@ class OppdatertTiltaksdeltakelseJobbTest {
         // Alle endringene i denne fila skal ferdigbehandles, slik at markøren kan nullstilles.
         val resultat = behandlingContext.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker).getOrFail()
         resultat::class shouldBe forventetResultat
-
-        val oppgaver = oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>()
-        val referanser = eksternOppgaveRepo.hentForSakId(sak.id)
-        if (forventetOppgavetekst == null) {
-            oppgaver.opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
-            referanser.shouldBeEmpty()
-        } else {
-            oppgaver.opprettedeOppgaverUtenDuplikatkontroll shouldBe listOf(sak.fnr to Oppgavebehov.ENDRET_TILTAKDELTAKER)
-            oppgaver.opprettedeOppgavetekster shouldBe listOf(forventetOppgavetekst)
-            referanser.map { it.oppgaveId } shouldBe oppgaver.opprettedeOppgaveIder
-            referanser.map { it.tilleggstekst } shouldBe listOf(forventetOppgavetekst)
-            referanser.single().grunnlag.shouldContainJsonKeyValue("$.verdi.eksternDeltakelseId", tiltaksdeltakelse.eksternDeltakelseId)
-            resultat.shouldBeInstanceOf<OppgaveOpprettet>().oppgaveId shouldBe referanser.single().oppgaveId
-        }
 
         val oppdatertSak = sakContext.sakRepo.hentForSakId(sak.id)!!
         if (resultat is RevurderingOpprettet) {
@@ -279,7 +263,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
     }
 
     @Test
-    fun `deltakelse avsluttet som forventet - ingen revurdering eller oppgave`() {
+    fun `deltakelse avsluttet som forventet - ingen revurdering`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 30.april(2025))
             val (sak) = iverksettSøknadsbehandling(
@@ -292,7 +276,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 sak,
                 deltakelse,
                 deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Fullført),
-                forventetResultat = TiltaksdeltakelseEndringBehandlet.AvsluttetSomForventet::class,
+                forventetResultat = EndretUtenOppfølging::class,
             )
 
             oppdatert.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
@@ -479,7 +463,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
     }
 
     @Test
-    fun `åpen ubestemt revurdering - ny endring legges til som grunn uten ny revurdering eller Gosys-oppgave`() {
+    fun `åpen ubestemt revurdering - ny endring legges til som grunn uten ny revurdering`() {
         withTestApplicationContextAndPostgres { tac ->
             val tiltaksdeltakelse = tiltaksdeltakelse(
                 periode = 5.januar(2025) til 5.mai(2025),
@@ -575,7 +559,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
     }
 
     @Test
-    fun `ren statusendring oppretter Gosys-oppgave`() {
+    fun `ren statusendring oppretter omgjøring uten forhåndsutfylte vedtak`() {
         withTestApplicationContextAndPostgres { tac ->
             val fnr = Fnr.random()
             val tiltaksdeltakelse = tiltaksdeltakelse(
@@ -593,16 +577,19 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 sak,
                 tiltaksdeltakelse,
                 nåtilstand = tiltaksdeltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Venteliste),
-                forventetOppgavetekst = "Endret status.",
-                forventetResultat = OppgaveOpprettet::class,
+                forventetResultat = RevurderingOpprettet::class,
             )
 
-            oppdatertSak.rammebehandlinger shouldHaveSize 1
+            oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>().also {
+                it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+                it.saksbehandler.shouldBeNull()
+                it.resultat shouldBe Omgjøringsresultat.OmgjøringIkkeValgt(OmgjørRammevedtak.empty)
+            }
         }
     }
 
     @Test
-    fun `flere endringer i åpen manuell behandling samles i én Gosys-oppgave`() {
+    fun `endringer under åpen manuell behandling følges ikke opp`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(
@@ -614,8 +601,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 sak,
                 deltakelse,
                 nåtilstand = deltakelse.medPeriode(fraOgMed = 6.januar(2025)).copy(antallDagerPerUke = 3F),
-                forventetOppgavetekst = "- Endret deltakelsesmengde\n- Endret startdato",
-                forventetResultat = OppgaveOpprettet::class,
+                forventetResultat = EndretUtenOppfølging::class,
             )
 
             oppdatert.rammebehandlinger.map { it.id } shouldBe listOf(behandling.id)
@@ -649,8 +635,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 sak,
                 deltakelse,
                 deltakelse.medPeriode(tilOgMed = 5.juni(2025)),
-                forventetOppgavetekst = if (automatisk) null else "Deltakelsen har blitt forlenget.",
-                forventetResultat = if (automatisk) IngenRelevantEndring::class else OppgaveOpprettet::class,
+                forventetResultat = if (automatisk) IngenRelevantEndring::class else EndretUtenOppfølging::class,
             )
 
             oppdatert.rammebehandlinger.map { it.id } shouldBe listOf(behandling.id)
@@ -676,8 +661,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 sak,
                 deltakelse,
                 deltakelse.medPeriode(tilOgMed = 5.juni(2025)),
-                forventetOppgavetekst = "Deltakelsen har blitt forlenget.",
-                forventetResultat = OppgaveOpprettet::class,
+                forventetResultat = EndretUtenOppfølging::class,
             )
 
             oppdatert.rammebehandlinger shouldHaveSize 2
@@ -773,7 +757,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
     }
 
     @Test
-    fun `avbrudd på utløpt innvilgelse uten rett fremover gir ingen revurdering`() {
+    fun `avbrudd på utløpt innvilgelse uten rett fremover gir ubestemt revurdering`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 31.januar(2025))
             val (sak) = iverksettSøknadsbehandling(
@@ -786,17 +770,21 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 sak,
                 deltakelse,
                 deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
-                forventetOppgavetekst = "Deltakelsen er avbrutt.",
-                forventetResultat = OppgaveOpprettet::class,
+                forventetResultat = RevurderingOpprettet::class,
             )
 
-            oppdatert.rammebehandlinger shouldHaveSize 1
+            oppdatert.rammebehandlinger shouldHaveSize 2
+            val revurdering = oppdatert.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
+            revurdering.resultat shouldBe Revurderingsresultat.Ubestemt
+            revurdering.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+            revurdering.saksbehandler.shouldBeNull()
+            revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe TiltaksdeltakerEndring.AvbruttDeltakelse
         }
     }
 
     @ParameterizedTest
     @ValueSource(booleans = [false, true])
-    fun `allerede iverksatt forlengelse gir ingen duplikat og flere vedtak omgjøres ikke automatisk`(endreMengde: Boolean) {
+    fun `allerede iverksatt forlengelse gir ingen duplikat og flere vedtak gir omgjøring uten forhåndsutfylte vedtak`(endreMengde: Boolean) {
         withTestApplicationContextAndPostgres { tac ->
             val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
             val (sak) = iverksettSøknadsbehandling(
@@ -816,21 +804,25 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 sakMedForlengelse,
                 deltakelse,
                 if (endreMengde) forlenget.copy(antallDagerPerUke = 3F) else forlenget,
-                forventetOppgavetekst = if (endreMengde) "Endret deltakelsesmengde." else null,
-                forventetResultat = if (endreMengde) OppgaveOpprettet::class else IngenRelevantEndring::class,
+                forventetResultat = if (endreMengde) RevurderingOpprettet::class else IngenRelevantEndring::class,
             )
 
-            oppdatert.rammebehandlinger.map { it.id } shouldBe sakMedForlengelse.rammebehandlinger.map { it.id }
+            if (endreMengde) {
+                oppdatert.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>().resultat shouldBe
+                    Omgjøringsresultat.OmgjøringIkkeValgt(OmgjørRammevedtak.empty)
+            } else {
+                oppdatert.rammebehandlinger.map { it.id } shouldBe sakMedForlengelse.rammebehandlinger.map { it.id }
+            }
         }
     }
 
     @ParameterizedTest
     @ValueSource(booleans = [false, true])
-    fun `forlengelse innenfor sakens siste rett kan fortsatt kreve omgjøring ved endret mengde`(endreMengde: Boolean) {
+    fun `forlengelse innenfor sakens siste rett gir ubestemt revurdering`(endreMengde: Boolean) {
         withTestApplicationContextAndPostgres { tac ->
             val første = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
             val andre = tac.tiltaksdeltakelse(10.mai(2025) til 5.juni(2025))
-            val (sak, _, førsteVedtak) = iverksettSøknadsbehandling(
+            val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 tiltaksdeltakelse = første,
                 innvilgelsesperioder = innvilgelsesperioder(første.lukketPeriode!!, første),
@@ -845,22 +837,22 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 sakMedBeggeVedtak,
                 første,
                 første.medPeriode(tilOgMed = 9.mai(2025)).copy(antallDagerPerUke = if (endreMengde) 3F else første.antallDagerPerUke),
-                forventetOppgavetekst = if (endreMengde) null else "Deltakelsen har blitt forlenget.",
-                forventetResultat = if (endreMengde) RevurderingOpprettet::class else OppgaveOpprettet::class,
+                forventetResultat = RevurderingOpprettet::class,
             )
 
-            if (endreMengde) {
-                oppdatert.rammebehandlinger shouldHaveSize 3
-                val revurdering = oppdatert.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
-                revurdering.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringIkkeValgt>()
-                    .omgjørRammevedtak.rammevedtakIDer shouldBe listOf(førsteVedtak.id)
-                revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe TiltaksdeltakerEndring.Forlengelse(
-                    nySluttdato = 9.mai(2025),
-                    endretDeltakelsesmengde = TiltaksdeltakerEndring.EndretDeltakelsesmengde(første.deltakelseProsent, 3F),
-                )
-            } else {
-                oppdatert.rammebehandlinger.map { it.id } shouldBe sakMedBeggeVedtak.rammebehandlinger.map { it.id }
-            }
+            oppdatert.rammebehandlinger shouldHaveSize 3
+            val revurdering = oppdatert.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
+            revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Ubestemt>()
+            revurdering.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+            revurdering.saksbehandler.shouldBeNull()
+            revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe TiltaksdeltakerEndring.Forlengelse(
+                nySluttdato = 9.mai(2025),
+                endretDeltakelsesmengde = if (endreMengde) {
+                    TiltaksdeltakerEndring.EndretDeltakelsesmengde(første.deltakelseProsent, 3F)
+                } else {
+                    null
+                },
+            )
         }
     }
 

@@ -30,7 +30,7 @@ import java.time.LocalDate
  *
  * Åpne manuelle behandlinger med deltakelsen tas med som kjent tilstand, se [deltakelseISisteÅpneManuelleBehandling].
  * Kjenner den nyeste av dem allerede nå-tilstanden, er endringen fanget opp der, og det gis [VurdertTiltaksdeltakerEndring.IngenEndring].
- * Er deltakelsen ikke innvilget i noe gjeldende vedtak, sammenlignes nå-tilstanden med den åpne behandlingen i stedet, og endringen må følges opp manuelt.
+ * Er deltakelsen ikke innvilget i noe gjeldende vedtak, sammenlignes nå-tilstanden med den åpne behandlingen i stedet, og endringen følges ikke opp automatisk.
  * Har endringen allerede gitt en automatisk revurdering som ennå ikke er behandlet, gis [VurdertTiltaksdeltakerEndring.IngenEndring], se [harUbehandletAutomatiskRevurdering].
  * Har saken en åpen ubestemt revurdering, gis en relevant endring som [VurdertTiltaksdeltakerEndring.EndretMedÅpenUbestemtRevurdering], se [vurderMotÅpenUbestemtRevurdering].
  *
@@ -90,7 +90,7 @@ private fun Sak.vurderMotGjeldendeVedtak(
 /**
  * Om saken har en revurdering under automatisk behandling som er opprettet automatisk for en endring i deltakelsen.
  * Revurderingen henter nå-tilstanden på nytt når den behandles, og fanger da opp senere endringer selv.
- * Uten dette ville endringen blitt sammenlignet med gjeldende vedtak på nytt og gitt en oppgave i tillegg til revurderingen.
+ * Uten dette ville endringen blitt sammenlignet med gjeldende vedtak på nytt, uten å ta hensyn til revurderingen.
  */
 private fun Sak.harUbehandletAutomatiskRevurdering(tiltaksdeltakerId: TiltaksdeltakerId): Boolean =
     rammebehandlinger.åpneBehandlinger.any {
@@ -99,7 +99,7 @@ private fun Sak.harUbehandletAutomatiskRevurdering(tiltaksdeltakerId: Tiltaksdel
 
 /**
  * Har saken en åpen ubestemt revurdering, se [Revurderingsresultat.Ubestemt], skal saksbehandler ta stilling til hele saken i den.
- * En relevant endring gir da verken en ny revurdering eller en oppgave, men legges til som en ny grunn i den åpne revurderingen.
+ * En relevant endring gir da ingen ny revurdering, men legges til som en ny grunn i den åpne revurderingen.
  * Er endringen den samme som den sist tillagte grunnen for deltakelsen, er den allerede fanget opp, og det gis [VurdertTiltaksdeltakerEndring.IngenEndring].
  * En deltakelse som er avsluttet som forventet krever ingen oppfølging, og legges ikke til.
  */
@@ -338,29 +338,33 @@ private fun andreEndringer(
 )
 
 /**
- * Vurderer hvilken revurdering som kan opprettes automatisk for endringen, eller null dersom den må følges opp manuelt.
- * Det opprettes ikke revurdering dersom saken mangler førstegangsvedtak eller har åpne behandlinger.
+ * Vurderer hvilken revurdering som skal opprettes automatisk for endringen, eller null dersom endringen ikke skal følges opp.
+ * Har saken åpne behandlinger, følges endringen ikke opp, siden saksbehandler da allerede ser på saken.
+ * En åpen ubestemt revurdering får likevel endringen som ny grunn, se [vurderMotÅpenUbestemtRevurdering].
+ * Saken har alltid et førstegangsvedtak her, siden deltakelsen er innvilget i et gjeldende vedtak, men det sjekkes likevel før en revurdering opprettes.
  *
  * - Avbrudd gir stans eller opphør, så lenge deltakelsen er innvilget etter avbruddet og ingen andre deltakelser er innvilget etter avbruddet.
  * Avbruddet kan gjelde tilbake i tid, også i en innvilgelse som er passert.
  * Er andre deltakelser innvilget etter avbruddet, vurderes omgjøring i stedet, siden en stans også ville stanset dem.
+ * Er ingen dager innvilget etter avbruddet, gir det en ubestemt revurdering.
  * En stans behandles automatisk etter at den er opprettet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.utledAutomatiskStans].
  * Har oppdragssystemet allerede utbetalt for mange dager etter avbruddet, opprettes et opphør i stedet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.vurderOpphørIStedenforStans].
+ * Opphøret kan omgjøre flere vedtak.
  * - Avkortet sluttdato gir omgjøring av vedtakene, slik at deltakelsen er innvilget til og med ny sluttdato og resten av vedtaksperioden opphøres.
  * Er ny sluttdato innvilget i et tidligere vedtak enn de avkortede dagene, omgjøres både det og de senere vedtakene, se [finnOmgjøringsperiodeVedAvkortetSluttdato].
  * Omgjøringen behandles automatisk etter at den er opprettet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskOmgjøring.utledAutomatiskOmgjøringAvSluttdato].
  * Kan den ikke behandles automatisk, vurderes en passert sluttdato som et avbrudd, og ellers en vanlig omgjøring som for endret sluttdato.
  * - Forlengelse gir innvilgelse dersom ny sluttdato er etter siste dag med rett på saken.
- * Ellers vurderes omgjøring dersom deltakelsesmengden er endret samtidig.
+ * Ellers gir den en ubestemt revurdering, også når deltakelsesmengden er endret samtidig.
  * Forlengelsen behandles automatisk etter at den er opprettet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskForlengelse.utledAutomatiskForlengelse].
  * - Endret startdato, sluttdato eller deltakelsesmengde gir omgjøring.
  * Det gjelder også et avbrudd med endret startdato eller deltakelsesmengde, og da berøres også vedtakene som innvilger dagene fra avbruddet.
+ * - Ren statusendring gir også omgjøring.
  * - Ikke aktuell gir en ubestemt revurdering, der saksbehandler velger typen revurdering.
- * - Avsluttet som forventet og ren statusendring følges opp manuelt.
+ * - Avsluttet som forventet følges ikke opp.
  *
- * Bortsett fra ved avkortet sluttdato gis omgjøring bare når endringen berører nøyaktig ett gjeldende vedtak.
- * En manuell omgjøring kan omgjøre flere vedtak, men omgjøringen startes fra ett av dem.
- * Deltakelsen kan altså være innvilget i flere vedtak, så lenge endringen bare berører periodene til ett av dem.
+ * Bortsett fra ved avkortet sluttdato og opphør etter avbrudd forhåndsutfylles omgjøringen bare når endringen berører nøyaktig ett gjeldende vedtak.
+ * Berører den ingen eller flere vedtak, opprettes omgjøringen uten vedtak, og saksbehandler velger selv vedtaksperioden.
  */
 private fun Sak.vurderAutomatiskRevurdering(
     tiltaksdeltakerId: TiltaksdeltakerId,
@@ -386,7 +390,7 @@ private fun Sak.vurderAutomatiskRevurdering(
             if (sisteDagSomGirRett == null || endring.nySluttdato.isAfter(sisteDagSomGirRett)) {
                 AutomatiskRevurderingAvEndring.Innvilgelse
             } else {
-                endring.endretDeltakelsesmengde?.let { omgjøringAv(gjeldendeInnvilgelse.vedtakForDeltakelsesmengde) }
+                AutomatiskRevurderingAvEndring.Ubestemt
             }
         }
 
@@ -412,7 +416,7 @@ private fun Sak.vurderAutomatiskRevurdering(
 
 /**
  * Avbruddet gjelder fra dagen etter ny sluttdato dersom den er avkortet inn i de innvilgede periodene, og ellers fra i dag.
- * Er ingen dager innvilget fra avbruddet, er det ingenting å stanse eller opphøre, og avbruddet følges opp manuelt.
+ * Er ingen dager innvilget fra avbruddet, er det ingenting å stanse eller opphøre, og saksbehandler tar stilling til avbruddet i en ubestemt revurdering.
  * Det gjelder når en innvilgelse som er passert avbrytes uten at sluttdatoen avkortes.
  */
 private fun Sak.vurderRevurderingForAvbrudd(
@@ -420,7 +424,7 @@ private fun Sak.vurderRevurderingForAvbrudd(
     oppdatertTilstand: Deltakelsestilstand,
     gjeldendeInnvilgelse: GjeldendeInnvilgelse,
     iDag: LocalDate,
-): AutomatiskRevurderingAvEndring? {
+): AutomatiskRevurderingAvEndring {
     val nySluttdato = oppdatertTilstand.deltakelseTilOgMed
     val avbruttFraOgMed = if (nySluttdato != null && nySluttdato.isBefore(gjeldendeInnvilgelse.sisteInnvilgedeDag)) {
         maxOf(nySluttdato.plusDays(1), gjeldendeInnvilgelse.førsteInnvilgedeDag)
@@ -428,7 +432,7 @@ private fun Sak.vurderRevurderingForAvbrudd(
         iDag
     }
     if (avbruttFraOgMed.isAfter(gjeldendeInnvilgelse.sisteInnvilgedeDag)) {
-        return null
+        return AutomatiskRevurderingAvEndring.Ubestemt
     }
 
     val harAndreDeltakelserInnvilgetEtterAvbruddet = rammevedtaksliste.valgteTiltaksdeltakelser.perioderMedVerdi.any {
@@ -487,6 +491,6 @@ private fun GjeldendeInnvilgelse.vedtakBerørtAvSluttdato(nySluttdato: LocalDate
         setOf(vedtakVedSlutt)
     }
 
-/** Gir null dersom ingen eller flere vedtak berøres, slik at saksbehandler selv må ta stilling til hva som skal omgjøres. */
-private fun omgjøringAv(berørteVedtak: Set<Rammevedtak>): AutomatiskRevurderingAvEndring? =
-    berørteVedtak.singleOrNull()?.let { AutomatiskRevurderingAvEndring.Omgjøring(it.id) }
+/** Berøres ingen eller flere vedtak, opprettes omgjøringen uten vedtak, slik at saksbehandler selv tar stilling til hva som skal omgjøres. */
+private fun omgjøringAv(berørteVedtak: Set<Rammevedtak>): AutomatiskRevurderingAvEndring.Omgjøring =
+    AutomatiskRevurderingAvEndring.Omgjøring(berørteVedtak.singleOrNull()?.id)

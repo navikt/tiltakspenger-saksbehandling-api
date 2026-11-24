@@ -299,26 +299,32 @@ data class Revurdering(
          * En omgjøring som opprettes av systemet klar til behandling for en saksbehandler.
          * Den behandles ikke automatisk, og systemet fyller ikke ut noe i den.
          *
-         * @param omgjørRammevedtak Rammevedtaket som erstattes helt eller delvis
+         * @param omgjørRammevedtak Periodene i ett eller flere rammevedtak som erstattes helt eller delvis.
          */
         fun opprettAutomatiskOmgjøring(
             revurderingId: RammebehandlingId = RammebehandlingId.random(),
+            sakId: SakId,
+            saksnummer: Saksnummer,
+            fnr: Fnr,
             saksopplysninger: Saksopplysninger,
-            omgjørRammevedtak: Rammevedtak,
+            omgjørRammevedtak: OmgjørRammevedtak,
             opprettet: LocalDateTime,
             automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn,
         ): Revurdering {
+            require(omgjørRammevedtak.isNotEmpty()) {
+                "En automatisk omgjøring må omgjøre minst ett vedtak for sakId: $sakId"
+            }
             return opprett(
                 revurderingId = revurderingId,
-                sakId = omgjørRammevedtak.sakId,
-                saksnummer = omgjørRammevedtak.saksnummer,
-                fnr = omgjørRammevedtak.fnr,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 status = KLAR_TIL_BEHANDLING,
                 saksbehandler = null,
                 saksopplysninger = saksopplysninger,
                 opprettet = opprettet,
                 resultat = Omgjøringsresultat.OmgjøringIkkeValgt(
-                    omgjørRammevedtak = OmgjørRammevedtak.create(omgjørRammevedtak),
+                    omgjørRammevedtak = omgjørRammevedtak,
                 ),
                 klagebehandling = null,
                 automatiskOpprettetGrunn = automatiskOpprettetGrunn,

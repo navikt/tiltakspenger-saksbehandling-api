@@ -414,7 +414,6 @@ sealed class TestApplicationContext(
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
             tiltakshistorikkRepo = tiltakContext.tiltakshistorikkRepo,
             sakRepo = sakContext.sakRepo,
-            eksternOppgaveRepo = eksternOppgaveRepo,
             erProd = erProd,
         ) {
             override val rammevedtakRepo: RammevedtakRepo

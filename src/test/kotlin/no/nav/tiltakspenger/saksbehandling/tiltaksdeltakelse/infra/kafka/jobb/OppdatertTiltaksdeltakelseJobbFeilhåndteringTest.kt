@@ -16,26 +16,20 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
-import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Arenastatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakstype
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testdeltakelse
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.infra.setup.MdcKorrelasjon
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.httpKlientUventetStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
-import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
@@ -52,49 +46,6 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.util.UUID
 
 class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
-
-    @Test
-    fun `Gosys-feil gir verken oppgave eller oppgavereferanse før nytt forsøk lykkes`() {
-        withTestApplicationContextAndPostgres { tac ->
-            val (sak, deltakelse) = opprettInnvilgetSak(tac)
-            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Venteliste))
-            val deltaker = tac.registrerEndring(sak, deltakelse)
-            val delegate = tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>()
-            var skalFeile = true
-            var antallForsøk = 0
-            val klient = object : OppgaveKlient by delegate {
-                override suspend fun opprettOppgaveUtenDuplikatkontroll(
-                    fnr: Fnr,
-                    oppgavebehov: Oppgavebehov,
-                    tilleggstekst: String?,
-                ): Either<HttpKlientError, OppgaveId> {
-                    antallForsøk++
-                    if (skalFeile) return httpKlientUventetStatus().left()
-                    return delegate.opprettOppgaveUtenDuplikatkontroll(fnr, oppgavebehov, tilleggstekst)
-                }
-            }
-            val jobb = tac.jobb(oppgaveKlient = klient)
-
-            jobb.behandleDeltaker(deltaker).leftOrNull() shouldBe TiltaksdeltakelseEndringKunneIkkeBehandles.KunneIkkeOppretteOppgave
-
-            antallForsøk shouldBe 1
-            delegate.opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
-            tac.eksternOppgaveRepo.hentForSakId(sak.id).shouldBeEmpty()
-            tac.hentDeltaker(deltakelse) shouldBe deltaker
-            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
-
-            skalFeile = false
-            val resultat = jobb.behandleDeltaker(deltaker).getOrFail()
-
-            antallForsøk shouldBe 2
-            val referanse = tac.eksternOppgaveRepo.hentForSakId(sak.id).single()
-            referanse.oppgaveId shouldBe delegate.opprettedeOppgaveIder.single()
-            resultat.shouldBeInstanceOf<TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet>().oppgaveId shouldBe referanse.oppgaveId
-            delegate.opprettedeOppgaverUtenDuplikatkontroll shouldBe listOf(sak.fnr to Oppgavebehov.ENDRET_TILTAKDELTAKER)
-            delegate.opprettedeOppgavetekster shouldBe listOf("Endret status.")
-            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
-        }
-    }
 
     @Test
     fun `registerfeil gir ingen revurdering, og nytt forsøk oppretter bare én`() {
@@ -136,7 +87,6 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
 
             antallOppslag shouldBe 3
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe etterRetry.rammebehandlinger.map { it.id }
-            tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>().opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
         }
     }
 
@@ -176,7 +126,6 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
 
             oppslag shouldBe listOf(sak.fnr to deltakelse.eksternDeltakelseId)
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
-            tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>().opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
             tac.sessionFactory.hentTiltakshistorikk(deltaker.id).shouldBeEmpty()
         }
     }
@@ -268,7 +217,6 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
 
     private fun TestApplicationContextMedPostgres.jobb(
         klient: TiltaksdeltakelseKlient = tiltakContext.tiltaksdeltakelseKlient,
-        oppgaveKlient: OppgaveKlient = this.oppgaveKlient,
     ) = OppdatertTiltaksdeltakelseJobb(
         tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
         sakRepo = sakContext.sakRepo,
@@ -278,8 +226,6 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
         delautomatiskStansService = behandlingContext.delautomatiskStansService,
         delautomatiskForlengelseService = behandlingContext.delautomatiskForlengelseService,
         delautomatiskOmgjøringService = behandlingContext.delautomatiskOmgjøringService,
-        oppgaveKlient = oppgaveKlient,
-        eksternOppgaveRepo = eksternOppgaveRepo,
         tiltakshistorikkRepo = tiltakContext.tiltakshistorikkRepo,
         hentSaksopplysingerService = behandlingContext.hentSaksopplysingerService,
         sessionFactory = sessionFactory,

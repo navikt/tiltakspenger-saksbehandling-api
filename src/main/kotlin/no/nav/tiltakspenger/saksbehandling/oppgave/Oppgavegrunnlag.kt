@@ -10,6 +10,7 @@ import java.time.LocalDateTime
 sealed interface Oppgavegrunnlag {
     /**
      * [verdi] er nå-tilstanden fra tiltakshistorikk som førte til oppgaven.
+     * Slike oppgaver opprettes ikke lenger, men typen beskriver eksisterende rader.
      */
     data class EndretTiltaksdeltakelse(
         val kilde: Kilde,

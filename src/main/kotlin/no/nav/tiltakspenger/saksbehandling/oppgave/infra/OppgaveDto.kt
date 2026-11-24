@@ -7,7 +7,6 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 
 const val TEMA_TILTAKSPENGER: String = "IND"
-const val ENDRET_TILTAKSDELTAKELSE_BESKRIVELSE = "Det har skjedd en endring i tiltaksdeltakelsen som kan påvirke tiltakspengeytelsen"
 
 /**
  *  Ettersom vi ikke setter tildeltEnhetsnr tildeles oppgaven automatisk til riktig enhet basert på andre parametre
@@ -25,23 +24,6 @@ data class OpprettOppgaveRequest(
     val prioritet: PrioritetType = PrioritetType.NORM,
 ) {
     companion object {
-        fun opprettOppgaveRequestForEndretTiltaksdeltaker(
-            fnr: Fnr,
-            tilleggstekst: String?,
-            clock: Clock,
-        ): OpprettOppgaveRequest {
-            val dagensDato = LocalDate.now(clock)
-            return OpprettOppgaveRequest(
-                personident = fnr.verdi,
-                journalpostId = null,
-                beskrivelse = tilleggstekst?.let { "$ENDRET_TILTAKSDELTAKELSE_BESKRIVELSE: $it" } ?: "$ENDRET_TILTAKSDELTAKELSE_BESKRIVELSE.",
-                behandlesAvApplikasjon = null,
-                oppgavetype = OppgaveType.OPPGAVETYPE_VURDER_KONSEKVENS_FOR_YTELSE.value,
-                aktivDato = dagensDato,
-                fristFerdigstillelse = finnFristForFerdigstillingAvOppgave(dagensDato.plusDays(3)),
-            )
-        }
-
         fun opprettOppgaveRequestForFattBarn(
             fnr: Fnr,
             clock: Clock,

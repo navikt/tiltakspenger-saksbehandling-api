@@ -32,10 +32,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.startAutomatiskStan
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.ForberedtRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
-import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
 import java.time.LocalDate
 
@@ -69,14 +69,12 @@ class DelautomatiskStansService(
      * Da opprettes en omgjøring av vedtaket klar til behandling, uten at systemet fyller ut noe i den, og den behandles aldri automatisk.
      * Det vurderes også når stansen ellers måtte behandles manuelt, for eksempel fordi deltakelsen fortsatt har status deltar, så lenge sluttdatoen er passert og deltakelsen er innvilget etter den.
      * Uten passert sluttdato opprettes stansen uten simulering, og saksbehandler velger stansdato.
-     *
-     * @return null dersom opphøret ville omgjort flere vedtak, og må følges opp med en oppgave.
      */
     suspend fun opprettStansEllerOpphør(
         sak: Sak,
         automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn,
         correlationId: CorrelationId,
-    ): ForberedtRevurdering? {
+    ): ForberedtRevurdering {
         val (sakMedStans, stans) = sak.startAutomatiskStans(
             automatiskOpprettetGrunn = automatiskOpprettetGrunn,
             correlationId = correlationId,
@@ -113,11 +111,6 @@ class DelautomatiskStansService(
         ) {
             AutomatiskStansEllerOpphør.Stans -> forberedtStans()
 
-            AutomatiskStansEllerOpphør.OpphørOmgjørFlereVedtak -> {
-                log.info { "Utbetalt for mange dager til å stanse, men opphøret ville omgjort flere vedtak - ${stans.loggkontekst(correlationId)}" }
-                null
-            }
-
             is AutomatiskStansEllerOpphør.Opphør -> sak.opprettOmgjøringTilOpphør(
                 omgjørRammevedtak = vurdering.omgjørRammevedtak,
                 saksopplysninger = stans.saksopplysninger,
@@ -132,7 +125,7 @@ class DelautomatiskStansService(
      * Oppretter en omgjøring av [omgjørRammevedtak] klar til behandling, der saksbehandler fyller ut opphøret.
      */
     private suspend fun Sak.opprettOmgjøringTilOpphør(
-        omgjørRammevedtak: Rammevedtak,
+        omgjørRammevedtak: OmgjørRammevedtak,
         saksopplysninger: Saksopplysninger,
         automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn,
         stansperiode: Periode,
