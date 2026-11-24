@@ -109,7 +109,14 @@ class AutomatiskMeldekortbehandlingJobb(
                         ifLeft = { ikkeBehandlet ->
                             when (ikkeBehandlet) {
                                 is IkkeBehandlet.Feilet -> {
-                                    håndterOpprettBehandlingFeil(ikkeBehandlet.status, meldekort, sak, clock, correlationId)
+                                    håndterOpprettBehandlingFeil(
+                                        status = ikkeBehandlet.status,
+                                        meldekort = meldekort,
+                                        sak = sak,
+                                        clock = clock,
+                                        correlationId = correlationId,
+                                        simuleringViserTidligereUtbetaling = ikkeBehandlet.simuleringViserTidligereUtbetaling,
+                                    )
                                     false
                                 }
 
@@ -173,6 +180,7 @@ class AutomatiskMeldekortbehandlingJobb(
         sak: Lazy<Sak>,
         clock: Clock,
         correlationId: CorrelationId,
+        simuleringViserTidligereUtbetaling: Boolean = false,
     ) {
         val logMsg =
             "Kunne ikke opprette automatisk behandling for brukers meldekort ${meldekort.id} på sak ${meldekort.sakId} - Status: $status"
@@ -186,7 +194,7 @@ class AutomatiskMeldekortbehandlingJobb(
                     logger.warn(it) { "Kunne ikke hente sak for å vurdere prioritering av brukers meldekort ${meldekort.id} på sak ${meldekort.sakId}" }
                     null
                 }
-                ?.utledPrioriteringAvKorrigering(meldekort, status)
+                ?.utledPrioriteringAvKorrigering(meldekort, status, simuleringViserTidligereUtbetaling)
         }
 
         if (skalPrøvePåNytt) {
@@ -255,7 +263,7 @@ class AutomatiskMeldekortbehandlingJobb(
                     logger.at(status.loggnivå) {
                         message = "Behandling av brukers meldekort $meldekortId viser feilutbetaling i simuleringen - ${meldekortbehandling.loggkontekst()}"
                     }
-                    return IkkeBehandlet.Feilet(status).left()
+                    return IkkeBehandlet.Feilet(status, meldekortbehandling.simuleringViserTidligereUtbetaling()).left()
                 }
 
                 is KanIkkeIverksetteUtbetaling.JusteringStøttesIkke,
@@ -265,7 +273,7 @@ class AutomatiskMeldekortbehandlingJobb(
                     logger.at(status.loggnivå) {
                         message = "Behandling av brukers meldekort $meldekortId viser justeringer i simuleringen - ${meldekortbehandling.loggkontekst()}"
                     }
-                    return IkkeBehandlet.Feilet(status).left()
+                    return IkkeBehandlet.Feilet(status, meldekortbehandling.simuleringViserTidligereUtbetaling()).left()
                 }
 
                 // Simuleringen er påkrevd, og håndteres i Sak.opprettAutomatiskMeldekortbehandling().
@@ -346,8 +354,18 @@ class AutomatiskMeldekortbehandlingJobb(
         return nyStatus.kanPrøvesPåNytt
     }
 
+    private fun MeldekortBehandletAutomatisk.simuleringViserTidligereUtbetaling(): Boolean =
+        simulering?.harTidligereUtbetaling == true
+
     private sealed interface IkkeBehandlet {
-        data class Feilet(val status: MeldekortBehandletAutomatiskStatus) : IkkeBehandlet
+        /**
+         * @param simuleringViserTidligereUtbetaling om simuleringen viste at meldeperioden allerede er utbetalt, selv om statusen sier noe annet.
+         * Det skjer for en korrigering etter endret rett, som ikke stoppes av at meldeperioden er utbetalt, men kan stoppes av feilutbetaling eller justering.
+         */
+        data class Feilet(
+            val status: MeldekortBehandletAutomatiskStatus,
+            val simuleringViserTidligereUtbetaling: Boolean = false,
+        ) : IkkeBehandlet
 
         /** Simuleringen svarte at økonomisystemet er stengt, utenfor tidsrommet der det antas å være åpent. */
         data object ØkonomisystemetErStengt : IkkeBehandlet

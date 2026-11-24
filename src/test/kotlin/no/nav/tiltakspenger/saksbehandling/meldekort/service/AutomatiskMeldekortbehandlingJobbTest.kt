@@ -1760,7 +1760,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
 
     /**
      * Korrigeringen fjerner en dag som er utbetalt, så simuleringen viser feilutbetaling selv om korrigeringen ellers kunne vært behandlet etter endret rett.
-     * Den nye versjonen er ikke behandlet ennå, så korrigeringen prioriteres ut fra fristen regnet fra første behandling av kjeden.
+     * Simuleringen viser også at meldeperioden er utbetalt, så korrigeringen prioriteres ikke, selv om den er mottatt innen fristen regnet fra første behandling av kjeden.
      */
     @Test
     fun `skal ikke behandle korrigering etter revurdering til flere dager automatisk når simuleringen viser feilutbetaling`() {
@@ -1781,7 +1781,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
             tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(korrigertMeldekort!!.id)!!.let {
                 it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING
                 it.behandlesAutomatisk shouldBe false
-                it.prioritering shouldNotBe null
+                it.prioritering shouldBe null
             }
             tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 1
         }
