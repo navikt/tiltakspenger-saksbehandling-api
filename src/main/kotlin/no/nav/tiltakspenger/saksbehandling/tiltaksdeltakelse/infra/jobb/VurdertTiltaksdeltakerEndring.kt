@@ -15,8 +15,8 @@ sealed interface VurdertTiltaksdeltakerEndring {
 
     /**
      * En relevant endring i tiltaksdeltakelsen.
-     * @param automatiskRevurdering Revurderingen som kan opprettes automatisk som følge av endringen.
-     * Er den null, må endringen følges opp manuelt.
+     * @param automatiskRevurdering Revurderingen som opprettes automatisk som følge av endringen.
+     * Er den null, følges endringen ikke opp, fordi saken har en åpen behandling eller deltakelsen er avsluttet som forventet.
      */
     data class Endret(
         val endring: TiltaksdeltakerEndring,
@@ -25,7 +25,7 @@ sealed interface VurdertTiltaksdeltakerEndring {
 
     /**
      * En relevant endring i tiltaksdeltakelsen mens saken har en åpen ubestemt revurdering.
-     * Endringen legges til som en ny grunn i [revurdering], i stedet for å gi en ny revurdering eller en oppgave.
+     * Endringen legges til som en ny grunn i [revurdering], i stedet for å gi en ny revurdering.
      */
     data class EndretMedÅpenUbestemtRevurdering(
         val endring: TiltaksdeltakerEndring,
@@ -48,7 +48,12 @@ sealed interface AutomatiskRevurderingAvEndring {
 
     data object Innvilgelse : AutomatiskRevurderingAvEndring
 
-    data class Omgjøring(val vedtakIdSomOmgjøres: VedtakId) : AutomatiskRevurderingAvEndring
+    /**
+     * Omgjøringen opprettes klar til behandling for en saksbehandler, uten valgt resultat.
+     * Berører endringen nøyaktig ett gjeldende vedtak, forhåndsutfylles omgjøringen med det.
+     * Ellers er [vedtakIdSomOmgjøres] null, og saksbehandler velger selv vedtaksperioden, som for en omgjøring startet fra menyen.
+     */
+    data class Omgjøring(val vedtakIdSomOmgjøres: VedtakId?) : AutomatiskRevurderingAvEndring
 
     /**
      * Sluttdatoen er avkortet, se [TiltaksdeltakerEndring.Avkortet].

@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans
 
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.LocalDate
 
 /**
@@ -24,17 +24,16 @@ sealed interface AutomatiskStansEllerOpphør {
      * Omgjøringen fylles ikke ut og behandles ikke automatisk.
      */
     data class Opphør(
-        val omgjørRammevedtak: Rammevedtak,
+        val omgjørRammevedtak: OmgjørRammevedtak,
     ) : AutomatiskStansEllerOpphør
-
-    /** Opphøret ville omgjort mer enn ett vedtak, og må følges opp manuelt. */
-    data object OpphørOmgjørFlereVedtak : AutomatiskStansEllerOpphør
 }
 
 /**
  * Vurderer om stansen skal erstattes av et opphør, ut fra simuleringen av stansen fra dagen etter sluttdatoen.
  * Simuleringen sier hvor langt oppdragssystemet har utbetalt ([sisteDagMedFeilutbetaling]), og dagene med beløp i de gjeldende beregningene sier hvilke av dagene som er utbetalingsdager.
  * Er flere enn [MAKS_UTBETALTE_DAGER_FOR_AUTOMATISK_STANS] av dagene i [stansperiode] utbetalt, må saksbehandler opphøre i stedet.
+ * Berører [stansperiode] bare ett vedtak, omgjøres hele det vedtaket.
+ * Berører den flere vedtak, omgjøres periodene [stansperiode] dekker i dem, slik at omgjøringen kan forhåndsutfylles med opphørsperioden.
  * Ellers stanses deltakelsen automatisk, og stansdatoen flyttes forbi de utbetalte dagene, se [utledAutomatiskStans].
  *
  * @param stansperiode Perioden en stans fra dagen etter sluttdatoen ville gjeldt for.
@@ -54,9 +53,11 @@ fun Sak.vurderOpphørIStedenforStans(
         return AutomatiskStansEllerOpphør.Stans
     }
 
-    val omgjørRammevedtak = vedtaksliste.finnRammevedtakSomOmgjøres(stansperiode).rammevedtakIDer.singleOrNull()
-        ?.let { rammevedtaksliste.hentRammevedtakForId(it) }
-        ?: return AutomatiskStansEllerOpphør.OpphørOmgjørFlereVedtak
+    val omgjøringsperioder = vedtaksliste.finnRammevedtakSomOmgjøres(stansperiode)
+    val omgjørRammevedtak = when (val rammevedtakId = omgjøringsperioder.rammevedtakIDer.singleOrNull()) {
+        null -> omgjøringsperioder
+        else -> OmgjørRammevedtak.create(rammevedtaksliste.hentRammevedtakForId(rammevedtakId))
+    }
 
     return AutomatiskStansEllerOpphør.Opphør(omgjørRammevedtak = omgjørRammevedtak)
 }

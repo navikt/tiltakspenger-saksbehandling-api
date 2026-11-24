@@ -50,7 +50,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.IngenRelevantEndring
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.medPeriode
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -301,14 +300,15 @@ class DelautomatiskStansServiceTest {
     }
 
     /**
-     * Et opphør over 10. januar–5. mai ville omgjort både søknadsvedtaket og omgjøringen fra 1. februar.
+     * Et opphør over 10. januar–5. mai omgjør både søknadsvedtaket og omgjøringen fra 1. februar.
+     * Omgjøringen opprettes med periodene opphøret dekker i begge vedtakene, uten valgt resultat.
      */
     @Test
-    fun `utbetalt mer enn fem dager og opphøret ville omgjort flere vedtak - oppretter oppgave`() {
+    fun `utbetalt mer enn fem dager og opphøret omgjør flere vedtak - opprettes omgjøring av begge vedtakene`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakelse = tac.tiltaksdeltakelse(6.januar(2025) til 5.mai(2025))
             val (sak, søknadsvedtak) = iverksettSøknadsbehandlingMedUtbetaling(tac, deltakelse)
-            iverksettOmgjøringInnvilgelse(
+            val (_, omgjøringsvedtak) = iverksettOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = søknadsvedtak.id,
@@ -320,10 +320,17 @@ class DelautomatiskStansServiceTest {
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
                 nåtilstand = deltakelse.medPeriode(tilOgMed = 9.januar(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
-            ).shouldBeInstanceOf<OppgaveOpprettet>()
+            ).shouldBeInstanceOf<RevurderingOpprettet>()
 
-            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.filterIsInstance<Revurdering>()
-                .filter { it.automatiskOpprettetGrunn != null }.shouldBeEmpty()
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>().also {
+                it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+                it.saksbehandler.shouldBeNull()
+                it.erUnderAutomatiskBehandling shouldBe false
+                it.automatiskOpprettetGrunn.shouldNotBeNull().tiltaksdeltakerId shouldBe deltakelse.internDeltakelseId
+                val omgjørRammevedtak = it.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringIkkeValgt>().omgjørRammevedtak
+                omgjørRammevedtak.rammevedtakIDer shouldBe listOf(søknadsvedtak.id, omgjøringsvedtak.id)
+                omgjørRammevedtak.perioder shouldBe listOf(10.januar(2025) til 31.januar(2025), 1.februar(2025) til 5.mai(2025))
+            }
         }
     }
 

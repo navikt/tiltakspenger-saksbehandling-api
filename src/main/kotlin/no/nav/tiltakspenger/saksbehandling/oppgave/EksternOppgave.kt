@@ -5,7 +5,8 @@ import java.time.LocalDateTime
 
 /**
  * En oppgave i det eksterne oppgavesystemet med et uforanderlig øyeblikksbilde av grunnlaget.
- * Foreløpig lagres bare oppgaver for endret tiltaksdeltakelse, ikke personhendelser, søknader eller meldekort.
+ * Det eneste grunnlaget så langt er endret tiltaksdeltakelse, fra da slike endringer ga Gosys-oppgaver.
+ * Ingen oppgaver lagres her nå, men lagringen er beholdt for andre planlagte oppgaver.
  * Lagring for personbeskyttelse avventer juridisk avklaring og må ikke gjøre det mulig å identifisere brukeren.
  * [opprettet] er lokalt registreringstidspunkt, ikke oppgavens eksterne opprettelsestidspunkt.
  * Ved duplikattreff hos oppgavetjenesten kan oppgaven ha blitt opprettet eksternt tidligere.

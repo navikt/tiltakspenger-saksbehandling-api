@@ -374,7 +374,6 @@ class LocalApplicationContext(
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
             tiltakshistorikkRepo = tiltakContext.tiltakshistorikkRepo,
             sakRepo = sakContext.sakRepo,
-            eksternOppgaveRepo = eksternOppgaveRepo,
             erProd = erProd,
         ) {}
     }

@@ -147,12 +147,15 @@ suspend fun Sak.startAutomatiskStans(
  * Starter en omgjøring av [omgjørRammevedtak] klar til behandling for en saksbehandler, se [Revurdering.opprettAutomatiskOmgjøring].
  */
 fun Sak.startAutomatiskOmgjøring(
-    omgjørRammevedtak: Rammevedtak,
+    omgjørRammevedtak: OmgjørRammevedtak,
     saksopplysninger: Saksopplysninger,
     automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn,
     clock: Clock,
 ): Pair<Sak, Revurdering> {
     val revurdering = Revurdering.opprettAutomatiskOmgjøring(
+        sakId = id,
+        saksnummer = saksnummer,
+        fnr = fnr,
         saksopplysninger = saksopplysninger,
         omgjørRammevedtak = omgjørRammevedtak,
         opprettet = nå(clock),

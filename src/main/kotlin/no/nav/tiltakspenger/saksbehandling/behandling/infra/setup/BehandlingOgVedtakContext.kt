@@ -49,7 +49,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.MdcKorrelasjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
-import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgaveRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
@@ -85,7 +84,6 @@ open class BehandlingOgVedtakContext(
     tiltaksdeltakerRepo: TiltaksdeltakerRepo,
     tiltakshistorikkRepo: TiltakshistorikkRepo,
     sakRepo: SakRepo,
-    eksternOppgaveRepo: EksternOppgaveRepo,
     /** Sperrer forlengelse i prod inntil videre. */
     erProd: Boolean,
 ) {
@@ -392,8 +390,6 @@ open class BehandlingOgVedtakContext(
             delautomatiskStansService = delautomatiskStansService,
             delautomatiskForlengelseService = delautomatiskForlengelseService,
             delautomatiskOmgjøringService = delautomatiskOmgjøringService,
-            oppgaveKlient = oppgaveKlient,
-            eksternOppgaveRepo = eksternOppgaveRepo,
             tiltakshistorikkRepo = tiltakshistorikkRepo,
             hentSaksopplysingerService = hentSaksopplysingerService,
             sessionFactory = sessionFactory,

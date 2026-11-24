@@ -20,8 +20,6 @@ import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
-import org.junit.jupiter.params.provider.NullSource
-import org.junit.jupiter.params.provider.ValueSource
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -108,7 +106,6 @@ class OppgaveHttpClientTest {
     @Test
     fun `opprettOppgave - alle oppgavebehov uten journalpost er en programmeringsfeil og kaster`() {
         val behovUtenJournalpost = listOf(
-            Oppgavebehov.ENDRET_TILTAKDELTAKER,
             Oppgavebehov.FATT_BARN,
             Oppgavebehov.DOED,
             Oppgavebehov.ADRESSEBESKYTTELSE,
@@ -141,7 +138,6 @@ class OppgaveHttpClientTest {
     @Test
     fun `opprettOppgaveUtenDuplikatkontroll - oppretter for alle støttede oppgavebehov`() {
         val støttedeBehov = listOf(
-            Oppgavebehov.ENDRET_TILTAKDELTAKER,
             Oppgavebehov.FATT_BARN,
             Oppgavebehov.DOED,
             Oppgavebehov.ADRESSEBESKYTTELSE,
@@ -172,42 +168,6 @@ class OppgaveHttpClientTest {
                 }
             }
         }
-    }
-
-    @ParameterizedTest
-    @NullSource
-    @ValueSource(strings = ["Endret status.", "- Endret deltakelsesmengde\n- Endret startdato"])
-    fun `tiltaksendring oppretter samme Gosys-oppgave som før uten duplikatsøk`(tilleggstekst: String?) {
-        val transport = FakeHttpTransport().apply { leggIKøJson(OpprettOppgaveResponse(id = 42), statusCode = 201) }
-        val clock = fixedClockAt(LocalDateTime.of(2025, 5, 1, 12, 0))
-
-        runTest {
-            client(transport, clock).opprettOppgaveUtenDuplikatkontroll(
-                fnr,
-                Oppgavebehov.ENDRET_TILTAKDELTAKER,
-                tilleggstekst,
-            ) shouldBe OppgaveId("42").right()
-        }
-
-        val kall = transport.mottatteKall.single()
-        kall.metode shouldBe "POST"
-        kall.uri.toString() shouldBe "$baseUrl/api/v1/oppgaver"
-        val beskrivelse = "Det har skjedd en endring i tiltaksdeltakelsen som kan påvirke tiltakspengeytelsen" +
-            if (tilleggstekst == null) "." else ": $tilleggstekst"
-        kall.bodyTekst.shouldNotBeNull() shouldEqualJson """
-            {
-              "personident": "${fnr.verdi}",
-              "opprettetAvEnhetsnr": "9999",
-              "journalpostId": null,
-              "behandlesAvApplikasjon": null,
-              "beskrivelse": ${serialize(beskrivelse)},
-              "tema": "IND",
-              "oppgavetype": "VUR_KONS_YTE",
-              "aktivDato": "2025-05-01",
-              "fristFerdigstillelse": "2025-05-05",
-              "prioritet": "NORM"
-            }
-        """.trimIndent()
     }
 
     /*
@@ -350,15 +310,11 @@ class OppgaveHttpClientTest {
     }
 
     @Test
-    fun `feil ved opprettelse av tiltaksendringsoppgave returnerer Left`() {
+    fun `opprettOppgaveUtenDuplikatkontroll - feil ved opprettelse returnerer Left`() {
         val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 500, body = "feil") }
 
         runTest {
-            client(transport).opprettOppgaveUtenDuplikatkontroll(
-                fnr,
-                Oppgavebehov.ENDRET_TILTAKDELTAKER,
-                "Endret status.",
-            ).isLeft() shouldBe true
+            client(transport).opprettOppgaveUtenDuplikatkontroll(fnr, Oppgavebehov.FATT_BARN).isLeft() shouldBe true
         }
     }
 

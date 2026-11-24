@@ -9,9 +9,6 @@ import java.time.LocalDate
  */
 sealed interface TiltaksdeltakerEndring {
 
-    /** Beskrivelsene av endringene, i den rekkefølgen de vises i oppgaveteksten. */
-    val beskrivelser: List<String>
-
     /** Om endringen kan påvirke saken og krever oppfølging. */
     val erRelevant: Boolean
         get() = when (this) {
@@ -25,21 +22,15 @@ sealed interface TiltaksdeltakerEndring {
             -> true
         }
 
-    data object AvsluttetSomForventet : TiltaksdeltakerEndring {
-        override val beskrivelser = listOf("Deltakelsen er avsluttet som forventet")
-    }
+    data object AvsluttetSomForventet : TiltaksdeltakerEndring
 
     /**
      * Deltakelsen har fått status avbrutt, eller sluttdatoen er avkortet til en dato som er passert uten at deltakelsen har status deltar.
      * Startdatoen og deltakelsesmengden er uendret, ellers er det i stedet [AndreEndringer], slik at de ikke går tapt i en stans eller et opphør.
      */
-    data object AvbruttDeltakelse : TiltaksdeltakerEndring {
-        override val beskrivelser = listOf("Deltakelsen er avbrutt")
-    }
+    data object AvbruttDeltakelse : TiltaksdeltakerEndring
 
-    data object IkkeAktuellDeltakelse : TiltaksdeltakerEndring {
-        override val beskrivelser = listOf("Deltakelsen er ikke aktuell")
-    }
+    data object IkkeAktuellDeltakelse : TiltaksdeltakerEndring
 
     /**
      * Sluttdatoen er flyttet frem, med samme startdato.
@@ -48,18 +39,14 @@ sealed interface TiltaksdeltakerEndring {
     data class Forlengelse(
         val nySluttdato: LocalDate,
         val endretDeltakelsesmengde: EndretDeltakelsesmengde? = null,
-    ) : TiltaksdeltakerEndring {
-        override val beskrivelser = listOfNotNull(endretDeltakelsesmengde?.beskrivelse, "Deltakelsen har blitt forlenget")
-    }
+    ) : TiltaksdeltakerEndring
 
     /**
      * Sluttdatoen er flyttet til en dato før siste innvilgede dag, men den er ikke passert ennå, og deltakelsen har fortsatt status deltar.
      * Startdatoen og deltakelsesmengden er uendret.
      * Er sluttdatoen passert, er deltakelsen i stedet regnet som [AvbruttDeltakelse].
      */
-    data class Avkortet(val nySluttdato: LocalDate) : TiltaksdeltakerEndring {
-        override val beskrivelser = listOf("Deltakelsen har blitt avkortet")
-    }
+    data class Avkortet(val nySluttdato: LocalDate) : TiltaksdeltakerEndring
 
     /**
      * Endringer som ikke går under noen av de andre utfallene.
@@ -76,30 +63,15 @@ sealed interface TiltaksdeltakerEndring {
         init {
             require(endringer.isNotEmpty()) { "AndreEndringer må ha minst én endring" }
         }
-
-        override val beskrivelser = endringer.map { it.beskrivelse }
     }
 
-    sealed interface Endringsdetalj {
-        val beskrivelse: String
-    }
+    sealed interface Endringsdetalj
 
-    data class EndretDeltakelsesmengde(val nyDeltakelsesprosent: Float?, val nyDagerPerUke: Float?) : Endringsdetalj {
-        override val beskrivelse = "Endret deltakelsesmengde"
-    }
+    data class EndretDeltakelsesmengde(val nyDeltakelsesprosent: Float?, val nyDagerPerUke: Float?) : Endringsdetalj
 
-    data class EndretStartdato(val nyStartdato: LocalDate?) : Endringsdetalj {
-        override val beskrivelse = "Endret startdato"
-    }
+    data class EndretStartdato(val nyStartdato: LocalDate?) : Endringsdetalj
 
-    data class EndretSluttdato(val nySluttdato: LocalDate?) : Endringsdetalj {
-        override val beskrivelse = "Endret sluttdato"
-    }
+    data class EndretSluttdato(val nySluttdato: LocalDate?) : Endringsdetalj
 
-    data class EndretStatus(val nyStatus: TiltakDeltakerstatus) : Endringsdetalj {
-        override val beskrivelse = "Endret status"
-    }
-
-    fun getOppgaveTilleggstekst(): String =
-        if (beskrivelser.size == 1) "${beskrivelser.first()}." else beskrivelser.joinToString("\n") { "- $it" }
+    data class EndretStatus(val nyStatus: TiltakDeltakerstatus) : Endringsdetalj
 }

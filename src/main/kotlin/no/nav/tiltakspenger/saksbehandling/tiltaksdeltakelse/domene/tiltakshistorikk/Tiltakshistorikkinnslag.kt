@@ -13,7 +13,8 @@ import java.time.LocalDateTime
  * Nå-tilstanden for en tiltaksdeltakelse slik den ble hentet fra tiltakshistorikk-tjenesten, og det vi utledet av den.
  * [eksternDeltakerId] er id-en deltakelsen ble slått opp med.
  * [endring] er endringen som ble utledet mot saken, og er null når det ikke fantes noen relevant endring.
- * [behandlingId] og [oppgaveId] er satt når endringen førte til en automatisk opprettet revurdering eller en Gosys-oppgave.
+ * [behandlingId] er satt når endringen førte til en automatisk opprettet revurdering.
+ * [oppgaveId] er bare satt på eldre innslag, fra da endringer som ikke kunne revurderes automatisk førte til en Gosys-oppgave.
  * [behandlingId] er også satt når endringen ble lagt til som grunn i en åpen ubestemt revurdering.
  */
 data class Tiltakshistorikkinnslag(
