@@ -171,7 +171,7 @@ class BrevSøknadAvslagDTOTest {
     }
 
     @Test
-    fun `tidligereInnvilgelse gir periode, vedtaksdato og harBarnetillegg i brevdata`() {
+    fun `tidligereInnvilgelse gir periode, vedtaksdato, harBarnetillegg og tiltak i brevdata`() {
         runTest {
             val tidligereInnvilgelse = tidligereInnvilgelse(
                 periode = 1.januar(2025) til 31.mars(2025),
@@ -189,7 +189,8 @@ class BrevSøknadAvslagDTOTest {
                       "fraOgMed": "2025-01-01",
                       "tilOgMed": "2025-03-31",
                       "vedtaksdato": "2025-01-02",
-                      "harBarnetillegg": false
+                      "harBarnetillegg": false,
+                      "tiltak": ["Arbeidsmarkedsoppfølging gruppe"]
                     }
                     """.trimIndent(),
                 )
