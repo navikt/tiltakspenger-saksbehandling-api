@@ -20,7 +20,7 @@ enum class MeldekortBehandletAutomatiskStatus(val loggnivå: Level, val kanPrøv
      */
     ALLEREDE_BEHANDLET(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
 
-    /** Korrigeringen fra bruker kom etter fristen for automatisk korrigering. */
+    /** Korrigeringen fra bruker kom etter fristen for automatisk korrigering, se [korrigeringsfrist]. */
     FOR_SENT_Å_KORRIGERE(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
 
     /** Korrigeringen fra bruker kan ikke behandles automatisk, fordi en tidligere behandling av meldeperioden ble gjort manuelt. */
@@ -50,7 +50,10 @@ enum class MeldekortBehandletAutomatiskStatus(val loggnivå: Level, val kanPrøv
     HAR_FEILUTBETALING(loggnivå = Level.WARN, kanPrøvesPåNytt = false),
     HAR_JUSTERING(loggnivå = Level.WARN, kanPrøvesPåNytt = false),
 
-    /** Simuleringen viser at oppdragssystemet allerede har utbetalt minst en dag i meldeperioden, så korrigering kan ikke behandles automatisk. */
+    /**
+     * Simuleringen viser at oppdragssystemet allerede har utbetalt minst en dag i meldeperioden, så korrigering kan ikke behandles automatisk.
+     * Gjelder ikke en korrigering etter endret rett, se [erKorrigeringEtterEndretRett].
+     */
     HAR_TIDLIGERE_UTBETALING(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
 
     /** Meldeperioden har fått en ny versjon etter at bruker sendte meldekortet, typisk fordi tiltaksdeltakelsen er endret. */

@@ -48,7 +48,7 @@ fun KunneIkkeSimulere.logg(logger: KLogger, kontekst: String) {
 
         KunneIkkeSimulere.SakenMigreres -> logger.info { "Simulerer ikke fordi saken migreres til oppdragsversjon 3. $kontekst - KunneIkkeSimulere.SakenMigreres" }
 
-        is KunneIkkeSimulere.UkjentFeil -> feil.loggFeil(logger, "ukjent feil ved simulering mot helved", kontekst)
+        is KunneIkkeSimulere.UkjentFeil -> feil.loggFeil(logger, "simulering mot helved (ukjent feil)", kontekst)
 
         is KunneIkkeSimulere.UgyldigSimulering -> logger.error(feil.loggkontekst.underliggendeFeil) {
             "Simulering mot helved ga et svar vi ikke kan tolke: ${feil.loggkontekst.melding} $kontekst - KunneIkkeSimulere.UgyldigSimulering(${feil::class.simpleName})"

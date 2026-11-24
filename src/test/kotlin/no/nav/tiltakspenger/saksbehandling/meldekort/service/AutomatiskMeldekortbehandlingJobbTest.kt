@@ -32,6 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.Inn
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandlingIverksatt
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.nyOpprettetMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.httpKlientUventetStatus
@@ -1684,34 +1685,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
     fun `skal behandle korrigering automatisk selv om meldeperioden har fått ny versjon etter forrige behandling`() {
         // Hverdag innenfor økonomisystemets åpningstider, ellers hopper jobben over alle meldekort.
         withTestApplicationContext(clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0)))) { tac ->
-            val deltakelse = tac.tiltaksdeltakelse(vedtaksperiode)
-            val (sak) = iverksettSøknadsbehandling(
-                tac = tac,
-                tiltaksdeltakelse = deltakelse,
-                innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode, deltakelse),
-            )
-            val førsteVersjon = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode()
-            val alleDagerDeltatt = førsteVersjon.tilUtfyltFraBruker(kanSendeInnHelgForMeldekort = sak.kanSendeInnHelgForMeldekort)
-            val glemtDag = alleDagerDeltatt.entries.first { it.value == BrukerutfyltMeldekortDTO.Status.DELTATT_UTEN_LØNN_I_TILTAKET }.key
-
-            // Bruker glemte å melde en dag i førstegangsinnsendingen.
-            val (_, førsteMeldekort) = mottaMeldekortRequest(
-                tac = tac,
-                meldeperiodeId = førsteVersjon.id,
-                sakId = sak.id,
-                dager = alleDagerDeltatt + (glemtDag to BrukerutfyltMeldekortDTO.Status.IKKE_TILTAKSDAG),
-            )
-            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
-            tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(førsteMeldekort!!.id)!!
-                .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
-
-            val (sakEtterRevurdering) = iverksettRevurderingInnvilgelse(
-                tac = tac,
-                sakId = sak.id,
-                innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode, deltakelse, AntallDagerForMeldeperiode(11)),
-            )
-            val andreVersjon = sakEtterRevurdering.meldeperiodeKjeder.first().hentSisteMeldeperiode()
-            andreVersjon.versjon shouldBe førsteVersjon.versjon.inc()
+            val (sak, andreVersjon, alleDagerDeltatt) = behandleFørsteMeldekortOgRevurderTilFlereDager(tac)
 
             val (_, korrigertMeldekort) = mottaMeldekortRequest(
                 tac = tac,
@@ -1728,6 +1702,129 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 it.last().shouldBeInstanceOf<MeldekortBehandletAutomatisk>().brukersMeldekort.meldeperiode shouldBe andreVersjon
             }
         }
+    }
+
+    /**
+     * Første meldekort behandles fredag 2. mai 2025, så fristen for automatisk korrigering er mandag 5. mai kl 20:50.
+     * Revurderingen gir meldeperioden flere dager, så den første korrigeringen på den nye versjonen behandles automatisk onsdag 7. mai, etter fristen og selv om meldeperioden er utbetalt.
+     * Fristen for de neste korrigeringene av den nye versjonen regnes fra den behandlingen, og er torsdag 8. mai kl 20:50.
+     * Korrigeringen torsdag behandles derfor automatisk, også den selv om meldeperioden er utbetalt, mens korrigeringen fredag er for sen og ikke prioriteres.
+     */
+    @Test
+    fun `skal regne fristen for korrigering etter revurdering til flere dager fra første behandling av den nye versjonen`() {
+        withTestApplicationContext(clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0)))) { tac ->
+            val (sak, andreVersjon, alleDagerDeltatt) = behandleFørsteMeldekortOgRevurderTilFlereDager(tac)
+            tac.utbetalingFakeKlient.simulering = ObjectMother.simuleringMedMetadata(
+                ObjectMother.simulering(
+                    periode = andreVersjon.periode,
+                    meldeperiode = andreVersjon,
+                    simuleringsdager = nonEmptyListOf(
+                        Simuleringsdag(
+                            dato = andreVersjon.periode.fraOgMed,
+                            tidligereUtbetalt = 298,
+                            nyUtbetaling = 298,
+                            totalEtterbetaling = 0,
+                            totalFeilutbetaling = 0,
+                            totalTrekk = 0,
+                            totalJustering = 0,
+                            totalMotpostering = 0,
+                            harJustering = false,
+                        ),
+                    ),
+                ),
+            )
+
+            val (førsteKorrigering, andreKorrigering, tredjeKorrigering) = listOf(
+                7.mai(2025).atTime(12, 0),
+                8.mai(2025).atTime(12, 0),
+                9.mai(2025).atTime(12, 0),
+            ).map { tidspunkt ->
+                val (_, korrigering) = mottaMeldekortRequest(
+                    tac = tac,
+                    meldeperiodeId = andreVersjon.id,
+                    sakId = sak.id,
+                    dager = alleDagerDeltatt,
+                    mottatt = tidspunkt.minusHours(1),
+                )
+                tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(fixedClockAt(tidspunkt))
+                tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(korrigering!!.id)!!
+            }
+
+            førsteKorrigering.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
+            andreKorrigering.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
+            tredjeKorrigering.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE
+            tredjeKorrigering.prioritering shouldBe null
+            tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 3
+        }
+    }
+
+    /**
+     * Korrigeringen fjerner en dag som er utbetalt, så simuleringen viser feilutbetaling selv om korrigeringen ellers kunne vært behandlet etter endret rett.
+     * Simuleringen viser også at meldeperioden er utbetalt, så korrigeringen prioriteres ikke, selv om den er mottatt innen fristen regnet fra første behandling av kjeden.
+     */
+    @Test
+    fun `skal ikke behandle korrigering etter revurdering til flere dager automatisk når simuleringen viser feilutbetaling`() {
+        withTestApplicationContext(clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0)))) { tac ->
+            val (sak, andreVersjon, alleDagerDeltatt) = behandleFørsteMeldekortOgRevurderTilFlereDager(tac)
+            val dagerDeltatt = alleDagerDeltatt.filterValues { it == BrukerutfyltMeldekortDTO.Status.DELTATT_UTEN_LØNN_I_TILTAKET }.keys
+            val glemtDag = dagerDeltatt.first()
+            val utbetaltDag = dagerDeltatt.last()
+
+            val (_, korrigertMeldekort) = mottaMeldekortRequest(
+                tac = tac,
+                meldeperiodeId = andreVersjon.id,
+                sakId = sak.id,
+                dager = alleDagerDeltatt + listOf(glemtDag, utbetaltDag).associateWith { BrukerutfyltMeldekortDTO.Status.IKKE_TILTAKSDAG },
+            )
+            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+
+            tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(korrigertMeldekort!!.id)!!.let {
+                it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING
+                it.behandlesAutomatisk shouldBe false
+                it.prioritering shouldBe null
+            }
+            tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 1
+        }
+    }
+
+    /**
+     * Behandler en førstegangsinnsending der bruker glemte å melde en dag, og iverksetter så en revurdering som gir meldeperioden 11 dager i stedet for 10.
+     * Klokka må stå på en hverdag innenfor økonomisystemets åpningstider, ellers hopper jobben over alle meldekort.
+     *
+     * @return saken, den nye versjonen av meldeperioden og dagene utfylt med deltatt på alle dager med rett.
+     */
+    private suspend fun ApplicationTestBuilder.behandleFørsteMeldekortOgRevurderTilFlereDager(
+        tac: TestApplicationContext,
+    ): Triple<Sak, Meldeperiode, Map<LocalDate, BrukerutfyltMeldekortDTO.Status>> {
+        val deltakelse = tac.tiltaksdeltakelse(vedtaksperiode)
+        val (sak) = iverksettSøknadsbehandling(
+            tac = tac,
+            tiltaksdeltakelse = deltakelse,
+            innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode, deltakelse),
+        )
+        val førsteVersjon = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode()
+        val alleDagerDeltatt = førsteVersjon.tilUtfyltFraBruker(kanSendeInnHelgForMeldekort = sak.kanSendeInnHelgForMeldekort)
+        val glemtDag = alleDagerDeltatt.entries.first { it.value == BrukerutfyltMeldekortDTO.Status.DELTATT_UTEN_LØNN_I_TILTAKET }.key
+
+        val (_, førsteMeldekort) = mottaMeldekortRequest(
+            tac = tac,
+            meldeperiodeId = førsteVersjon.id,
+            sakId = sak.id,
+            dager = alleDagerDeltatt + (glemtDag to BrukerutfyltMeldekortDTO.Status.IKKE_TILTAKSDAG),
+        )
+        tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+        tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(førsteMeldekort!!.id)!!
+            .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
+
+        val (sakEtterRevurdering) = iverksettRevurderingInnvilgelse(
+            tac = tac,
+            sakId = sak.id,
+            innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode, deltakelse, AntallDagerForMeldeperiode(11)),
+        )
+        val andreVersjon = sakEtterRevurdering.meldeperiodeKjeder.first().hentSisteMeldeperiode()
+        andreVersjon.versjon shouldBe førsteVersjon.versjon.inc()
+
+        return Triple(sakEtterRevurdering, andreVersjon, alleDagerDeltatt)
     }
 
     @Test
