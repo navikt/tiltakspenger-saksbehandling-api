@@ -109,11 +109,16 @@ private fun Set<Avslagsgrunnlag>.hjemlerForBrev(harSøktBarnetillegg: Boolean): 
     this.flatMap { it.hjemler } +
         if (harSøktBarnetillegg) listOf(Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_3) else emptyList()
 
+/**
+ * @param tiltak Navnene på tiltakstypene i den tidligere innvilgelsen, i rekkefølgen de først er innvilget, uten duplikater.
+ * pdfgenrs bruker dem i brevet når brukeren allerede er innvilget tiltakspenger for perioden.
+ */
 private data class TidligereInnvilgelseDTO(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
     val vedtaksdato: LocalDate,
     val harBarnetillegg: Boolean,
+    val tiltak: List<String>,
 )
 
 private fun PeriodeMedVerdi<Rammevedtak>.tilTidligereInnvilgelseDTO(): TidligereInnvilgelseDTO {
@@ -125,5 +130,12 @@ private fun PeriodeMedVerdi<Rammevedtak>.tilTidligereInnvilgelseDTO(): Tidligere
             ?.overlappendePeriode(periode)
             ?.any { barnIPeriode -> barnIPeriode.verdi.value > 0 }
             ?: false,
+        tiltak = verdi.valgteTiltaksdeltakelser
+            ?.overlappendePeriode(periode)
+            ?.verdier
+            ?.flatten()
+            ?.map { it.typeNavn }
+            ?.distinct()
+            ?: emptyList(),
     )
 }
