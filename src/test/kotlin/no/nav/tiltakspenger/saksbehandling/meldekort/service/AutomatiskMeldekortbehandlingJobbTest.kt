@@ -1706,14 +1706,14 @@ class AutomatiskMeldekortbehandlingJobbTest {
 
     /**
      * Første meldekort behandles fredag 2. mai 2025, så fristen for automatisk korrigering er mandag 5. mai kl 20:50.
-     * Revurderingen gir meldeperioden flere dager, så korrigeringen på den nye versjonen behandles automatisk etter fristen og selv om meldeperioden er utbetalt.
-     * Når den nye versjonen er behandlet, gjelder fristen igjen for neste korrigering.
+     * Revurderingen gir meldeperioden flere dager, så den første korrigeringen på den nye versjonen behandles automatisk onsdag 7. mai, etter fristen og selv om meldeperioden er utbetalt.
+     * Fristen for de neste korrigeringene av den nye versjonen regnes fra den behandlingen, og er torsdag 8. mai kl 20:50.
+     * Korrigeringen torsdag behandles derfor automatisk, også den selv om meldeperioden er utbetalt, mens korrigeringen fredag er for sen og ikke prioriteres.
      */
     @Test
-    fun `skal behandle korrigering etter revurdering til flere dager automatisk etter fristen og selv om meldeperioden er utbetalt`() {
+    fun `skal regne fristen for korrigering etter revurdering til flere dager fra første behandling av den nye versjonen`() {
         withTestApplicationContext(clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0)))) { tac ->
             val (sak, andreVersjon, alleDagerDeltatt) = behandleFørsteMeldekortOgRevurderTilFlereDager(tac)
-            val etterFristen = fixedClockAt(7.mai(2025).atTime(12, 0))
             tac.utbetalingFakeKlient.simulering = ObjectMother.simuleringMedMetadata(
                 ObjectMother.simulering(
                     periode = andreVersjon.periode,
@@ -1734,32 +1734,34 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 ),
             )
 
-            val (_, korrigertMeldekort) = mottaMeldekortRequest(
-                tac = tac,
-                meldeperiodeId = andreVersjon.id,
-                sakId = sak.id,
-                dager = alleDagerDeltatt,
-            )
-            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(etterFristen)
+            val (førsteKorrigering, andreKorrigering, tredjeKorrigering) = listOf(
+                7.mai(2025).atTime(12, 0),
+                8.mai(2025).atTime(12, 0),
+                9.mai(2025).atTime(12, 0),
+            ).map { tidspunkt ->
+                val (_, korrigering) = mottaMeldekortRequest(
+                    tac = tac,
+                    meldeperiodeId = andreVersjon.id,
+                    sakId = sak.id,
+                    dager = alleDagerDeltatt,
+                    mottatt = tidspunkt.minusHours(1),
+                )
+                tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(fixedClockAt(tidspunkt))
+                tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(korrigering!!.id)!!
+            }
 
-            tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(korrigertMeldekort!!.id)!!
-                .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
-            tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 2
-
-            val (_, nyKorrigering) = mottaMeldekortRequest(
-                tac = tac,
-                meldeperiodeId = andreVersjon.id,
-                sakId = sak.id,
-                dager = alleDagerDeltatt,
-            )
-            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(etterFristen)
-
-            tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(nyKorrigering!!.id)!!
-                .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE
+            førsteKorrigering.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
+            andreKorrigering.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
+            tredjeKorrigering.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE
+            tredjeKorrigering.prioritering shouldBe null
+            tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 3
         }
     }
 
-    /** Korrigeringen fjerner en dag som er utbetalt, så simuleringen viser feilutbetaling selv om korrigeringen ellers kunne vært behandlet etter endret rett. */
+    /**
+     * Korrigeringen fjerner en dag som er utbetalt, så simuleringen viser feilutbetaling selv om korrigeringen ellers kunne vært behandlet etter endret rett.
+     * Den nye versjonen er ikke behandlet ennå, så korrigeringen prioriteres ut fra fristen regnet fra første behandling av kjeden.
+     */
     @Test
     fun `skal ikke behandle korrigering etter revurdering til flere dager automatisk når simuleringen viser feilutbetaling`() {
         withTestApplicationContext(clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0)))) { tac ->
@@ -1779,6 +1781,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
             tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(korrigertMeldekort!!.id)!!.let {
                 it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING
                 it.behandlesAutomatisk shouldBe false
+                it.prioritering shouldNotBe null
             }
             tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 1
         }

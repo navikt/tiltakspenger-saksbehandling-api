@@ -20,10 +20,7 @@ enum class MeldekortBehandletAutomatiskStatus(val loggnivå: Level, val kanPrøv
      */
     ALLEREDE_BEHANDLET(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
 
-    /**
-     * Korrigeringen fra bruker kom etter fristen for automatisk korrigering.
-     * Gjelder ikke en korrigering etter endret rett, se [erKorrigeringEtterEndretRett].
-     */
+    /** Korrigeringen fra bruker kom etter fristen for automatisk korrigering, se [korrigeringsfrist]. */
     FOR_SENT_Å_KORRIGERE(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
 
     /** Korrigeringen fra bruker kan ikke behandles automatisk, fordi en tidligere behandling av meldeperioden ble gjort manuelt. */

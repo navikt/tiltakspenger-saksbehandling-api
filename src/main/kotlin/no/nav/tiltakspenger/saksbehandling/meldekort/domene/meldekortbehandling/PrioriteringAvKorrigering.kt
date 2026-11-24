@@ -7,7 +7,9 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 /**
  * Utleder prioriteringen av en korrigering fra bruker som ikke kunne behandles automatisk, slik at saksbehandler kan rekke å behandle den før utbetalingen for meldeperioden er utbetalt.
- * Korrigeringen prioriteres dersom den ble mottatt før [fristForKorrigering], som er samme frist som for automatisk korrigering.
+ * Korrigeringen prioriteres dersom den ble mottatt før [korrigeringsfrist], som er samme frist som for automatisk korrigering.
+ * Er korrigeringen den første etter endret rett, har den ingen frist for automatisk korrigering.
+ * Da er det utbetalingen av den forrige versjonen den må rekke, og fristen regnes fra første behandling av kjeden.
  * Det er tidspunktet korrigeringen ble mottatt som teller, slik at den prioriteres også når jobben først gir den opp etter fristen.
  * Viser simuleringen at meldeperioden allerede er utbetalt, er det for sent å rekke utbetalingen, og korrigeringen prioriteres ikke.
  *
@@ -21,13 +23,14 @@ fun Sak.utledPrioriteringAvKorrigering(
     if (status == MeldekortBehandletAutomatiskStatus.HAR_TIDLIGERE_UTBETALING) {
         return null
     }
-    val førsteIverksettelse = meldekortbehandlinger.behandledeMeldekortPerKjede[brukersMeldekort.kjedeId]
-        .orEmpty()
+    val behandledeMeldekort = meldekortbehandlinger.behandledeMeldekortPerKjede[brukersMeldekort.kjedeId].orEmpty()
+    val førsteIverksettelse = behandledeMeldekort
         .mapNotNull { it.iverksattTidspunkt }
         .minOrNull()
         ?: return null
+    val frist = brukersMeldekort.korrigeringsfrist(behandledeMeldekort) ?: fristForKorrigering(førsteIverksettelse)
 
-    if (!brukersMeldekort.mottatt.isBefore(fristForKorrigering(førsteIverksettelse))) {
+    if (!brukersMeldekort.mottatt.isBefore(frist)) {
         return null
     }
 

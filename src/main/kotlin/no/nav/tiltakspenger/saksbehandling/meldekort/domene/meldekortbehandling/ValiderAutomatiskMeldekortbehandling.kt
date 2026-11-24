@@ -6,6 +6,7 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider
 import java.time.Clock
@@ -63,24 +64,20 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
 }
 
 /**
- * En korrigering fra bruker kan behandles automatisk dersom den behandles før [fristForKorrigering], regnet fra første iverksatte behandling av kjeden.
+ * En korrigering fra bruker kan behandles automatisk dersom den behandles før [korrigeringsfrist].
  * Den må i tillegg være mottatt etter innsendingene som er behandlet automatisk, og alle tidligere behandlinger av kjeden må være automatiske.
  * Sjekkene gjøres i den rekkefølgen, slik at statusen sier om det er for sent før den sier noe om de tidligere behandlingene.
  * Det er ikke et krav at de tidligere behandlingene gjaldt samme versjon av meldeperioden.
  * Fristen sparer oss for simuleringer som uansett ville vist at utbetalingen er utbetalt.
  * Om utbetalingen faktisk er utbetalt, avgjøres av simuleringen, se [no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering.harTidligereUtbetaling].
  * Vi sjekker ikke utbetalingsstatusen, siden den kun forteller om Oppdrag har tatt imot utbetalingen og ikke om den er utbetalt.
- * Fristen gjelder ikke en korrigering etter endret rett, se [erKorrigeringEtterEndretRett].
  */
 private fun BrukersMeldekort.validerKanKorrigeresAutomatisk(
     behandledeMeldekort: List<Meldekortbehandling.Behandlet>,
     clock: Clock,
 ): Either<MeldekortBehandletAutomatiskStatus, Unit> {
-    val førsteIverksettelse = behandledeMeldekort.mapNotNull { it.iverksattTidspunkt }.minOrNull()
-    if (!erKorrigeringEtterEndretRett(behandledeMeldekort) &&
-        førsteIverksettelse != null &&
-        !nå(clock).isBefore(fristForKorrigering(førsteIverksettelse))
-    ) {
+    val frist = korrigeringsfrist(behandledeMeldekort)
+    if (frist != null && !nå(clock).isBefore(frist)) {
         return MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE.left()
     }
 
@@ -98,27 +95,49 @@ private fun BrukersMeldekort.validerKanKorrigeresAutomatisk(
 }
 
 /**
- * Om meldekortet fra bruker korrigerer en meldeperiode som har fått en nyere versjon med flere dager med rett, eller nytt maks antall dager, siden forrige behandling av kjeden.
- * Typisk fordi en revurdering har endret retten etter at meldeperioden ble behandlet, slik at bruker må kunne melde på nytt.
- * En slik korrigering kan behandles automatisk etter [fristForKorrigering], og selv om simuleringen viser at meldeperioden allerede er utbetalt.
- * De andre kravene til automatisk korrigering gjelder fortsatt, blant annet at simuleringen ikke kan vise feilutbetaling eller justering.
+ * Fristen for å korrigere meldeperioden automatisk, se [fristForKorrigering].
+ * Fristen regnes fra første iverksatte behandling av kjeden.
+ * For en korrigering etter endret rett regnes den i stedet fra første iverksatte behandling av versjonen med endret rett, se [erKorrigeringEtterEndretRett].
  *
  * @param behandledeMeldekort behandlingene av kjeden, sortert i behandlingsrekkefølge, se [Meldekortbehandlinger.behandledeMeldekortPerKjede].
- * @return false dersom kjeden ikke er behandlet før, slik at meldekortet ikke er en korrigering.
+ * @return null dersom ingen behandling fristen regnes fra er iverksatt, typisk for den første korrigeringen etter endret rett.
  */
-fun BrukersMeldekort.erKorrigeringEtterEndretRett(behandledeMeldekort: List<Meldekortbehandling.Behandlet>): Boolean {
-    val forrigeMeldeperiode = behandledeMeldekort.lastOrNull()
-        ?.meldeperioder
-        ?.single { it.kjedeId == kjedeId }
-        ?.meldeperiode
-        ?: return false
-
-    return meldeperiode.versjon > forrigeMeldeperiode.versjon &&
-        meldeperiode.harFlereDagerMedRettEllerNyttAntallDager(forrigeMeldeperiode)
+fun BrukersMeldekort.korrigeringsfrist(behandledeMeldekort: List<Meldekortbehandling.Behandlet>): LocalDateTime? {
+    val behandlingerFristenRegnesFra = if (erKorrigeringEtterEndretRett(behandledeMeldekort)) {
+        behandledeMeldekort.filter { it.meldeperiodeForKjede(kjedeId).versjon == meldeperiode.versjon }
+    } else {
+        behandledeMeldekort
+    }
+    return behandlingerFristenRegnesFra
+        .mapNotNull { it.iverksattTidspunkt }
+        .minOrNull()
+        ?.let { fristForKorrigering(it) }
 }
 
 /**
- * Fristen for å korrigere en meldeperiode før utbetalingen kan ha gått gjennom, gitt tidspunktet første behandling av kjeden ble iverksatt.
+ * Om meldekortet fra bruker gjelder en versjon av meldeperioden som har flere dager med rett, eller nytt maks antall dager, enn versjonen som sist ble behandlet før den.
+ * Typisk fordi en revurdering har endret retten etter at meldeperioden ble behandlet, slik at bruker må kunne melde på nytt.
+ * Gjelder både den første og de senere korrigeringene av versjonen med endret rett.
+ * En slik korrigering kan behandles automatisk selv om simuleringen viser at meldeperioden allerede er utbetalt, og fristen regnes fra første behandling av versjonen, se [korrigeringsfrist].
+ * De andre kravene til automatisk korrigering gjelder fortsatt, blant annet at simuleringen ikke kan vise feilutbetaling eller justering.
+ *
+ * @param behandledeMeldekort behandlingene av kjeden, sortert i behandlingsrekkefølge, se [Meldekortbehandlinger.behandledeMeldekortPerKjede].
+ * @return false dersom ingen eldre versjon av meldeperioden er behandlet.
+ */
+fun BrukersMeldekort.erKorrigeringEtterEndretRett(behandledeMeldekort: List<Meldekortbehandling.Behandlet>): Boolean {
+    val forrigeVersjon = behandledeMeldekort
+        .map { it.meldeperiodeForKjede(kjedeId) }
+        .lastOrNull { it.versjon < meldeperiode.versjon }
+        ?: return false
+
+    return meldeperiode.harFlereDagerMedRettEllerNyttAntallDager(forrigeVersjon)
+}
+
+private fun Meldekortbehandling.Behandlet.meldeperiodeForKjede(kjedeId: MeldeperiodeKjedeId): Meldeperiode =
+    meldeperioder.single { it.kjedeId == kjedeId }.meldeperiode
+
+/**
+ * Fristen for å korrigere en meldeperiode før utbetalingen kan ha gått gjennom, gitt tidspunktet første behandling fristen regnes fra ble iverksatt, se [korrigeringsfrist].
  * Fristen er 10 minutter før stengetid neste virkedag, se [Åpningstider.senesteÅpneTidspunkt].
  * Lørdager regnes ikke som virkedager, siden økonomisystemet kan være stengt da, se [Åpningstider.nesteÅpneDag].
  * Økonomisystemet er likevel av og til åpent på lørdager.
