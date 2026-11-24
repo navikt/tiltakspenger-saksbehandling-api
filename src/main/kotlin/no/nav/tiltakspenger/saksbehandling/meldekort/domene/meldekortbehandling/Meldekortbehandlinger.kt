@@ -47,15 +47,19 @@ data class Meldekortbehandlinger(
         verdi.filterIsInstance<Meldekortbehandling.Behandlet>()
     }
 
-    /** Behandlingene av hver kjede, sortert i [behandlingsrekkefølge]. */
-    val behandledeMeldekortPerKjede: Map<MeldeperiodeKjedeId, List<Meldekortbehandling.Behandlet>> by lazy {
-        behandledeMeldekort
-            .flatMap { behandling -> behandling.kjedeIder.map { kjedeId -> kjedeId to behandling } }
-            .groupBy({ it.first }, { it.second })
-    }
+    /**
+     * Behandlingene av kjeden, sortert i [behandlingsrekkefølge].
+     *
+     * @return en tom liste dersom kjeden ikke er behandlet.
+     */
+    fun hentBehandledeMeldekortForKjede(kjedeId: MeldeperiodeKjedeId): List<Meldekortbehandling.Behandlet> =
+        behandledeMeldekort.filter { kjedeId in it.kjedeIder }
 
     val sisteBehandledeMeldekortPerKjede: List<Meldekortbehandling.Behandlet> by lazy {
-        behandledeMeldekortPerKjede.values.map { it.last() }
+        behandledeMeldekort
+            .flatMap { it.kjedeIder }
+            .distinct()
+            .map { hentBehandledeMeldekortForKjede(it).last() }
     }
 
     /** meldekort med status UNDER_BEHANDLING */

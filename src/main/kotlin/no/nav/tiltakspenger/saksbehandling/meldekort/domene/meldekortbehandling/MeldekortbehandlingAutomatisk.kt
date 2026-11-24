@@ -173,7 +173,7 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
     // Unntaket er en korrigering etter endret rett, der feilutbetaling og justering likevel stoppes av simuleringen.
     if (type == MeldeperiodebehandlingType.KORRIGERING &&
         simulering.simulering.harTidligereUtbetaling &&
-        !brukersMeldekort.erKorrigeringEtterEndretRett(meldekortbehandlinger.behandledeMeldekortPerKjede[brukersMeldekort.kjedeId].orEmpty())
+        !brukersMeldekort.erKorrigeringEtterEndretRett(meldekortbehandlinger.hentBehandledeMeldekortForKjede(brukersMeldekort.kjedeId))
     ) {
         return MeldekortBehandletAutomatiskStatus.HAR_TIDLIGERE_UTBETALING.left()
     }

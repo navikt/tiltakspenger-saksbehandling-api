@@ -512,7 +512,7 @@ class OppdaterMeldekortbehandlingRouteTest {
             )!!
 
             // Rekkefølgen per kjede følger iverksettelsen, ikke når behandlingene ble opprettet.
-            oppdatertSak.meldekortbehandlinger.behandledeMeldekortPerKjede[andreKjede]!!.map { it.id } shouldBe listOf(
+            oppdatertSak.meldekortbehandlinger.hentBehandledeMeldekortForKjede(andreKjede).map { it.id } shouldBe listOf(
                 nyesteBehandling.id,
                 eldsteBehandling.id,
             )

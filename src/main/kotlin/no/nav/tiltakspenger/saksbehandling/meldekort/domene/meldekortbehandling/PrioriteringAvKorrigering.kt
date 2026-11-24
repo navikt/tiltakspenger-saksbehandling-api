@@ -23,7 +23,7 @@ fun Sak.utledPrioriteringAvKorrigering(
     if (status == MeldekortBehandletAutomatiskStatus.HAR_TIDLIGERE_UTBETALING) {
         return null
     }
-    val behandledeMeldekort = meldekortbehandlinger.behandledeMeldekortPerKjede[brukersMeldekort.kjedeId].orEmpty()
+    val behandledeMeldekort = meldekortbehandlinger.hentBehandledeMeldekortForKjede(brukersMeldekort.kjedeId)
     val førsteIverksettelse = behandledeMeldekort
         .mapNotNull { it.iverksattTidspunkt }
         .minOrNull()

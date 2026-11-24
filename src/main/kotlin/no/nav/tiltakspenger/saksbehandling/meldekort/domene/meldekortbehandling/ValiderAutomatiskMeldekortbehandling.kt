@@ -32,7 +32,7 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
         return MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK.left()
     }
 
-    val behandledeMeldekort = this.meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId] ?: emptyList()
+    val behandledeMeldekort = this.meldekortbehandlinger.hentBehandledeMeldekortForKjede(kjedeId)
 
     if (behandledeMeldekort.isNotEmpty()) {
         brukersMeldekort.validerKanKorrigeresAutomatisk(behandledeMeldekort, clock).onLeft { return it.left() }
@@ -99,7 +99,7 @@ private fun BrukersMeldekort.validerKanKorrigeresAutomatisk(
  * Fristen regnes fra første iverksatte behandling av kjeden.
  * For en korrigering etter endret rett regnes den i stedet fra første iverksatte behandling av versjonen med endret rett, se [erKorrigeringEtterEndretRett].
  *
- * @param behandledeMeldekort behandlingene av kjeden, sortert i behandlingsrekkefølge, se [Meldekortbehandlinger.behandledeMeldekortPerKjede].
+ * @param behandledeMeldekort behandlingene av kjeden, sortert i behandlingsrekkefølge, se [Meldekortbehandlinger.hentBehandledeMeldekortForKjede].
  * @return null dersom ingen behandling fristen regnes fra er iverksatt, typisk for den første korrigeringen etter endret rett.
  */
 fun BrukersMeldekort.korrigeringsfrist(behandledeMeldekort: List<Meldekortbehandling.Behandlet>): LocalDateTime? {
@@ -121,7 +121,7 @@ fun BrukersMeldekort.korrigeringsfrist(behandledeMeldekort: List<Meldekortbehand
  * En slik korrigering kan behandles automatisk selv om simuleringen viser at meldeperioden allerede er utbetalt, og fristen regnes fra første behandling av versjonen, se [korrigeringsfrist].
  * De andre kravene til automatisk korrigering gjelder fortsatt, blant annet at simuleringen ikke kan vise feilutbetaling eller justering.
  *
- * @param behandledeMeldekort behandlingene av kjeden, sortert i behandlingsrekkefølge, se [Meldekortbehandlinger.behandledeMeldekortPerKjede].
+ * @param behandledeMeldekort behandlingene av kjeden, sortert i behandlingsrekkefølge, se [Meldekortbehandlinger.hentBehandledeMeldekortForKjede].
  * @return false dersom ingen eldre versjon av meldeperioden er behandlet.
  */
 fun BrukersMeldekort.erKorrigeringEtterEndretRett(behandledeMeldekort: List<Meldekortbehandling.Behandlet>): Boolean {

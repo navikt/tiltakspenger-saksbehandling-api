@@ -312,7 +312,7 @@ class MeldekortbehandlingerTest {
             Meldekortbehandlinger(verdi = listOf(nyereBehandlingIverksattFørst, eldreBehandlingIverksattSist))
         }
 
-        meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId] shouldBe listOf(
+        meldekortbehandlinger.hentBehandledeMeldekortForKjede(kjedeId) shouldBe listOf(
             nyereBehandlingIverksattFørst,
             eldreBehandlingIverksattSist,
         )
@@ -345,7 +345,7 @@ class MeldekortbehandlingerTest {
             Meldekortbehandlinger(verdi = listOf(nyereIverksattBehandling, eldreBehandlingTilBeslutning))
         }
 
-        meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId] shouldBe listOf(
+        meldekortbehandlinger.hentBehandledeMeldekortForKjede(kjedeId) shouldBe listOf(
             nyereIverksattBehandling,
             eldreBehandlingTilBeslutning,
         )
