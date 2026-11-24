@@ -15,15 +15,23 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
  */
 interface OppdaterMeldekortbehandlingForBeslutterBuilder {
 
-    /** Forventer at det allerede finnes en meldekortbehandling med status `UNDER_BESLUTNING`. */
+    /**
+     * Forventer at det allerede finnes en meldekortbehandling med status `UNDER_BESLUTNING`.
+     * Vedtaksbrevvalg som er null sendes med behandlingens gjeldende verdi.
+     */
     suspend fun ApplicationTestBuilder.oppdaterMeldekortbehandlingForBeslutter(
         tac: TestApplicationContext,
         sakId: SakId,
         meldekortId: MeldekortId,
         skalJournalføreNotat: Boolean,
         beslutter: Saksbehandler = ObjectMother.beslutter(),
+        skalJournalføreVedtaksbrev: Boolean? = null,
+        skalDistribuereVedtaksbrev: Boolean? = null,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): String? {
+        val gjeldende = tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId)!!
+        val journalføre = skalJournalføreVedtaksbrev ?: gjeldende.skalJournalføreVedtaksbrev
+        val distribuere = skalDistribuereVedtaksbrev ?: gjeldende.skalDistribuereVedtaksbrev
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = beslutter)
         tac.leggTilBruker(jwt, beslutter)
         val response = defaultRequestWithAssertions(
@@ -31,7 +39,7 @@ interface OppdaterMeldekortbehandlingForBeslutterBuilder {
             "/sak/$sakId/meldekort/$meldekortId/beslutter/oppdater",
             jwt = jwt,
             forventet = forventet,
-            body = """{"skalJournalføreNotat": $skalJournalføreNotat}""",
+            body = """{"skalJournalføreNotat": $skalJournalføreNotat, "skalJournalføreVedtaksbrev": $journalføre, "skalDistribuereVedtaksbrev": $distribuere}""",
         )
         if (response.statusCode != 200) return null
         return response.body

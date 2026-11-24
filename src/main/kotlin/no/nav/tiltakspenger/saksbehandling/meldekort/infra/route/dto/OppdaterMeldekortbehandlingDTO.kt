@@ -19,7 +19,8 @@ data class OppdaterMeldekortbehandlingDTO(
     val meldeperioder: List<OppdatertMeldeperiodeDTO>,
     val begrunnelse: String?,
     val tekstTilVedtaksbrev: String?,
-    val skalSendeVedtaksbrev: Boolean,
+    val skalJournalføreVedtaksbrev: Boolean,
+    val skalDistribuereVedtaksbrev: Boolean,
     val skalJournalføreNotat: Boolean,
     /**
      * null når behandlingen ikke er prioritert.
@@ -62,7 +63,8 @@ data class OppdaterMeldekortbehandlingDTO(
             meldekortId = meldekortId,
             begrunnelse = begrunnelse?.let { Begrunnelse.create(it) },
             fritekstTilVedtaksbrev = tekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
-            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreVedtaksbrev = skalJournalføreVedtaksbrev,
+            skalDistribuereVedtaksbrev = skalDistribuereVedtaksbrev,
             skalJournalføreNotat = skalJournalføreNotat,
             prioritering = prioritering?.tilDomene(),
         )

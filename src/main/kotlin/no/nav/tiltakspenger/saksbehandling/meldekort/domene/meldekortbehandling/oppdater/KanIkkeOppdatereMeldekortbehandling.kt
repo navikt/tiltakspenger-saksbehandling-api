@@ -7,6 +7,10 @@ sealed interface KanIkkeOppdatereMeldekortbehandling {
 
     data object IngenDagerGirRett : KanIkkeOppdatereMeldekortbehandling
 
+    data object KanIkkeDistribuereVedtaksbrevUtenJournalføring : KanIkkeOppdatereMeldekortbehandling
+
+    /** Distribusjon av vedtaksbrev er foreløpig kun tillatt når behandlingen korrigerer en tidligere behandlet meldeperiode. */
+
     data class ForMangeDagerUtfylt(
         val antallUtfylt: Int,
         val maksAntall: Int,

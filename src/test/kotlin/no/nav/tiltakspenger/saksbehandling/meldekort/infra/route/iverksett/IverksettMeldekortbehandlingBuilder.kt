@@ -114,7 +114,8 @@ interface IverksettMeldekortbehandlingBuilder {
         begrunnelse: String? = null,
         tekstTilVedtaksbrev: String? = null,
         meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
-        skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreVedtaksbrev: Boolean = true,
+        skalDistribuereVedtaksbrev: Boolean = false,
         skalJournalføreNotat: Boolean = false,
         jobber: JobberEtterIverksettelse = JobberEtterIverksettelse(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
@@ -128,7 +129,8 @@ interface IverksettMeldekortbehandlingBuilder {
             begrunnelse = begrunnelse,
             tekstTilVedtaksbrev = tekstTilVedtaksbrev,
             meldeperioder = meldeperioder,
-            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreVedtaksbrev = skalJournalføreVedtaksbrev,
+            skalDistribuereVedtaksbrev = skalDistribuereVedtaksbrev,
             skalJournalføreNotat = skalJournalføreNotat,
         ) ?: return null
         return iverksettMeldekortbehandling(
@@ -143,8 +145,6 @@ interface IverksettMeldekortbehandlingBuilder {
 
     /**
      * Forventer at det allerede finnes en sak og meldekortbehandling i status UNDER_BESLUTNING
-     *
-     * @param jobber Meldekortvedtak distribueres ikke, så [JobberEtterIverksettelse.distribuerVedtaksbrev] har ingen effekt her.
      */
     suspend fun ApplicationTestBuilder.iverksettMeldekortbehandling(
         tac: TestApplicationContext,
@@ -185,6 +185,9 @@ interface IverksettMeldekortbehandlingBuilder {
             }
             if (jobber.journalførVedtaksbrev) {
                 tac.utbetalingContext.journalførMeldekortvedtakService.journalfør()
+            }
+            if (jobber.distribuerVedtaksbrev) {
+                tac.utbetalingContext.distribuerMeldekortvedtaksbrevService.distribuer()
             }
             if (jobber.journalførNotat) {
                 tac.journalførJournalnotatService.journalførNotater()

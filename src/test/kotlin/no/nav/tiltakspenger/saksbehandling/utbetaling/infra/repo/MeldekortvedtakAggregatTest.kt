@@ -36,7 +36,7 @@ class MeldekortvedtakAggregatTest {
             val eldst = iverksattMeldekortvedtak(tac, journalførVedtaksbrev = false)
             val nyest = iverksattMeldekortvedtak(tac, journalførVedtaksbrev = false)
             // Kandidaten som skal falle utenfor: saksbehandler har valgt bort vedtaksbrevet.
-            iverksattMeldekortvedtak(tac, skalSendeVedtaksbrev = false, journalførVedtaksbrev = false)
+            iverksattMeldekortvedtak(tac, skalJournalføreVedtaksbrev = false, journalførVedtaksbrev = false)
 
             val repo = tac.utbetalingContext.meldekortvedtakRepo
 
@@ -113,13 +113,49 @@ class MeldekortvedtakAggregatTest {
     }
 
     /**
+     * Distribusjonskøen tar kun journalførte vedtak der saksbehandler har valgt å sende vedtaksbrevet til bruker.
+     * Distribusjon er kun tillatt ved korrigering, så vedtakene i køen er korrigeringer av en tidligere behandlet meldeperiode.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `distribusjonskøen tar kun journalførte vedtak som skal distribueres, sorterer eldst først, respekterer limit og tømmes av jobben`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val eldst = iverksattKorrigering(tac, skalDistribuereVedtaksbrev = true)
+            val nyest = iverksattKorrigering(tac, skalDistribuereVedtaksbrev = true)
+            val valgtBort = iverksattKorrigering(tac, skalDistribuereVedtaksbrev = false)
+            // Journalføringsjobben tar hele køen, så vedtaket som skal bli liggende ujournalført må bygges sist.
+            val ikkeJournalført = iverksattKorrigering(tac, skalDistribuereVedtaksbrev = true, journalførVedtaksbrev = false)
+
+            val repo = tac.utbetalingContext.meldekortvedtakRepo
+
+            repo.hentMeldekortvedtakSomSkalDistribueres(limit = 10).map { it.id } shouldBe listOf(eldst, nyest)
+            repo.hentMeldekortvedtakSomSkalDistribueres(limit = 1).map { it.id } shouldBe listOf(eldst)
+            repo.hentMeldekortvedtakSomSkalDistribueres(limit = 10).first().journalpostId shouldBe repo.hentForVedtakId(eldst)!!.journalpostId
+
+            tac.utbetalingContext.distribuerMeldekortvedtaksbrevService.distribuer()
+
+            repo.hentMeldekortvedtakSomSkalDistribueres(limit = 10).shouldBeEmpty()
+            repo.hentForVedtakId(eldst)!!.let {
+                it.distribusjonId.shouldNotBeNull()
+                it.distribusjonstidspunkt.shouldNotBeNull()
+            }
+            repo.hentForVedtakId(nyest)!!.distribusjonId.shouldNotBeNull()
+            repo.hentForVedtakId(ikkeJournalført)!!.let {
+                it.distribusjonId.shouldBeNull()
+                it.distribusjonstidspunkt.shouldBeNull()
+            }
+            repo.hentForVedtakId(valgtBort)!!.distribusjonId.shouldBeNull()
+        }
+    }
+
+    /**
      * Bygger en sak med et iverksatt meldekortvedtak gjennom route-laget.
      *
      * @param journalførVedtaksbrev Sett `false` for å la vedtaket bli liggende i journalføringskøen.
      */
     private suspend fun ApplicationTestBuilder.iverksattMeldekortvedtak(
         tac: TestApplicationContext,
-        skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreVedtaksbrev: Boolean = true,
         journalførVedtaksbrev: Boolean = true,
         skalJournalføreNotat: Boolean = false,
     ): VedtakId {
@@ -132,7 +168,7 @@ class MeldekortvedtakAggregatTest {
             tac = tac,
             sakId = sak.id,
             kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
-            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreVedtaksbrev = skalJournalføreVedtaksbrev,
             // Fritekst settes for at repoets mapping av tekst_til_vedtaksbrev skal kjøres.
             tekstTilVedtaksbrev = "Fritekst til vedtaksbrevet",
             begrunnelse = "Begrunnelse for meldekortbehandlingen",
@@ -141,5 +177,39 @@ class MeldekortvedtakAggregatTest {
             jobber = JobberEtterIverksettelse(journalførVedtaksbrev = journalførVedtaksbrev, journalførNotat = false),
         )!!
         return meldekortvedtak.id
+    }
+
+    /**
+     * Bygger en sak der første meldeperiode er behandlet, og iverksetter en korrigering av den.
+     * Distribusjonsjobben slås av, slik at vedtak som skal distribueres blir liggende i køen.
+     */
+    private suspend fun ApplicationTestBuilder.iverksattKorrigering(
+        tac: TestApplicationContext,
+        skalDistribuereVedtaksbrev: Boolean,
+        journalførVedtaksbrev: Boolean = true,
+    ): VedtakId {
+        val (sak) = iverksettSøknadsbehandling(
+            tac = tac,
+            jobber = JobberEtterIverksettelse(distribuerVedtaksbrev = false, journalførNotat = false),
+        )
+        val kjedeId = sak.meldeperiodeKjeder.first().kjedeId
+        opprettOgIverksettMeldekortbehandling(
+            tac = tac,
+            sakId = sak.id,
+            kjedeId = kjedeId,
+            jobber = JobberEtterIverksettelse(distribuerVedtaksbrev = false, journalførNotat = false),
+        )!!
+        val (_, korrigering) = opprettOgIverksettMeldekortbehandling(
+            tac = tac,
+            sakId = sak.id,
+            kjedeId = kjedeId,
+            skalDistribuereVedtaksbrev = skalDistribuereVedtaksbrev,
+            jobber = JobberEtterIverksettelse(
+                journalførVedtaksbrev = journalførVedtaksbrev,
+                distribuerVedtaksbrev = false,
+                journalførNotat = false,
+            ),
+        )!!
+        return korrigering.id
     }
 }

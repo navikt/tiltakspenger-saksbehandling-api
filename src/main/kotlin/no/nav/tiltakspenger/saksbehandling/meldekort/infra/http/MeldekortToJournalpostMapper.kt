@@ -18,7 +18,11 @@ fun Meldekortvedtak.toJournalpostRequest(
     return DokarkivRequest(
         tittel = tittel,
         journalpostType = DokarkivRequest.JournalPostType.UTGAAENDE,
-        kanal = DokarkivRequest.DistribusjonskanalUtgående.INGEN_DISTRIBUSJON,
+        kanal = if (this.skalDistribuereVedtaksbrev) {
+            DokarkivRequest.DistribusjonskanalUtgående.NAV_NO
+        } else {
+            DokarkivRequest.DistribusjonskanalUtgående.INGEN_DISTRIBUSJON
+        },
         avsenderMottaker = DokarkivRequest.AvsenderMottaker(this.fnr.verdi),
         bruker = DokarkivRequest.Bruker(this.fnr.verdi),
         sak = DokarkivRequest.DokarkivSak.Fagsak(this.saksnummer.toString()),

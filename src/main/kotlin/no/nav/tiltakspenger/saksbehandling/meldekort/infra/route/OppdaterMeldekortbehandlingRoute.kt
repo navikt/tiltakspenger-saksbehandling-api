@@ -85,6 +85,13 @@ suspend fun RoutingContext.respondWithError(meldekort: KanIkkeOppdatereMeldekort
             )
         }
 
+        is KanIkkeOppdatereMeldekortbehandling.KanIkkeDistribuereVedtaksbrevUtenJournalføring -> {
+            call.respond400BadRequest(
+                melding = "Vedtaksbrevet kan ikke sendes til bruker uten at det journalføres.",
+                kode = "kan_ikke_distribuere_vedtaksbrev_uten_journalføring",
+            )
+        }
+
         is KanIkkeOppdatereMeldekortbehandling.IngenDagerGirRett -> {
             call.respond400BadRequest(
                 melding = "Meldeperiodene må ha minst en dag med rett for å kunne behandles.",

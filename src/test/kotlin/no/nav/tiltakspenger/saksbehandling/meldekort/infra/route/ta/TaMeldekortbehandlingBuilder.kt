@@ -123,7 +123,8 @@ interface TaMeldekortbehandlingBuilder {
         begrunnelse: String? = null,
         tekstTilVedtaksbrev: String? = null,
         meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
-        skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreVedtaksbrev: Boolean = true,
+        skalDistribuereVedtaksbrev: Boolean = false,
         skalJournalføreNotat: Boolean = false,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Meldekortbehandling, MeldekortbehandlingDTOJson>? {
@@ -135,7 +136,8 @@ interface TaMeldekortbehandlingBuilder {
             begrunnelse = begrunnelse,
             tekstTilVedtaksbrev = tekstTilVedtaksbrev,
             meldeperioder = meldeperioder,
-            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreVedtaksbrev = skalJournalføreVedtaksbrev,
+            skalDistribuereVedtaksbrev = skalDistribuereVedtaksbrev,
             skalJournalføreNotat = skalJournalføreNotat,
             forventet = forventet,
         ) ?: return null

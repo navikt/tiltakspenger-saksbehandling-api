@@ -366,6 +366,7 @@ class LocalApplicationContext(
             sessionFactory = sessionFactory,
             genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForMeldekortKlient,
             journalførMeldekortKlient = journalførFakeMeldekortKlient,
+            dokumentdistribusjonsklient = dokumentdistribusjonsklientFakeKlient,
             texasClient = texasClient,
             sakRepo = sakContext.sakRepo,
             navIdentClient = personContext.navIdentClient,

@@ -27,7 +27,11 @@ import java.time.Clock
 
 private const val PATH = "/sak/{sakId}/meldekort/{meldekortId}/beslutter/oppdater"
 
-private data class OppdaterMeldekortbehandlingForBeslutterBody(val skalJournalføreNotat: Boolean)
+private data class OppdaterMeldekortbehandlingForBeslutterBody(
+    val skalJournalføreNotat: Boolean,
+    val skalJournalføreVedtaksbrev: Boolean,
+    val skalDistribuereVedtaksbrev: Boolean,
+)
 
 fun Route.oppdaterMeldekortbehandlingForBeslutterRoute(
     oppdaterMeldekortbehandlingForBeslutterService: OppdaterMeldekortbehandlingForBeslutterService,
@@ -51,6 +55,8 @@ fun Route.oppdaterMeldekortbehandlingForBeslutterRoute(
                             sakId = sakId,
                             meldekortId = meldekortId,
                             skalJournalføreNotat = body.skalJournalføreNotat,
+                            skalJournalføreVedtaksbrev = body.skalJournalføreVedtaksbrev,
+                            skalDistribuereVedtaksbrev = body.skalDistribuereVedtaksbrev,
                             saksbehandler = saksbehandler,
                             correlationId = correlationId,
                         ),
@@ -92,6 +98,11 @@ private fun KanIkkeOppdatereMeldekortbehandlingForBeslutter.toErrorJson(): Pair<
     )
 
     KanIkkeOppdatereMeldekortbehandlingForBeslutter.MåHaBegrunnelseForÅJournalføreNotat -> HttpStatusCode.BadRequest to Standardfeil.måHaBegrunnelseForÅJournalføreNotat()
+
+    KanIkkeOppdatereMeldekortbehandlingForBeslutter.KanIkkeDistribuereVedtaksbrevUtenJournalføring -> HttpStatusCode.BadRequest to ErrorJson(
+        "Vedtaksbrevet kan ikke sendes til bruker uten at det journalføres.",
+        "kan_ikke_distribuere_vedtaksbrev_uten_journalføring",
+    )
 
     KanIkkeOppdatereMeldekortbehandlingForBeslutter.BehandlingenErIkkeLengerUnderBeslutning -> HttpStatusCode.Conflict to ErrorJson(
         melding = "Meldekortbehandlingen er ikke lenger sendt til beslutning.",

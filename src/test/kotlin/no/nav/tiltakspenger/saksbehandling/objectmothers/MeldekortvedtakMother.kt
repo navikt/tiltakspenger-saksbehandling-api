@@ -56,6 +56,8 @@ interface MeldekortvedtakMother : MotherOfAllMothers {
             journalpostId = journalpostId,
             journalføringstidspunkt = journalføringstidspunkt,
             journalføringsnotat = null,
+            distribusjonId = null,
+            distribusjonstidspunkt = null,
             utbetaling = utbetaling(
                 id = utbetalingId,
                 sendtTilUtbetaling = sendtTilUtbetaling,

@@ -148,15 +148,77 @@ class OppdaterMeldekortbehandlingRouteTest {
     }
 
     @Test
-    fun `kan velge å ikke sende vedtaksbrev`() {
+    fun `kan velge å ikke journalføre vedtaksbrev`() {
         withTestApplicationContextAndPostgres { tac ->
-            val (_, _, _, meldekortbehandling) = this.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling(
+            val (_, _, _, meldekortbehandling, json) = this.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling(
                 tac = tac,
-                skalSendeVedtaksbrev = false,
+                skalJournalføreVedtaksbrev = false,
             )!!
 
-            meldekortbehandling.skalSendeVedtaksbrev shouldBe false
-            tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortbehandling.id)!!.skalSendeVedtaksbrev shouldBe false
+            meldekortbehandling.skalJournalføreVedtaksbrev shouldBe false
+            meldekortbehandling.skalDistribuereVedtaksbrev shouldBe false
+            tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortbehandling.id)!!.skalJournalføreVedtaksbrev shouldBe false
+            val behandlingJson = json.getJSONObject("meldekortbehandlinger").getJSONObject(meldekortbehandling.id.toString())
+            behandlingJson.getBoolean("skalJournalføreVedtaksbrev") shouldBe false
+            behandlingJson.getBoolean("skalDistribuereVedtaksbrev") shouldBe false
+        }
+    }
+
+    @Test
+    fun `kan velge å distribuere vedtaksbrev når behandlingen ikke har korrigering`() {
+        withTestApplicationContext { tac ->
+            val (_, _, _, meldekortbehandling) = this.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling(
+                tac = tac,
+                skalDistribuereVedtaksbrev = true,
+            )!!
+
+            meldekortbehandling.harKorrigering shouldBe false
+            meldekortbehandling.skalJournalføreVedtaksbrev shouldBe true
+            meldekortbehandling.skalDistribuereVedtaksbrev shouldBe true
+        }
+    }
+
+    @Test
+    fun `kan ikke distribuere vedtaksbrev uten å journalføre det`() {
+        withTestApplicationContext { tac ->
+            val (sak) = this.iverksettSøknadsbehandling(tac = tac)
+            val kjedeId = sak.meldeperiodeKjeder.first().kjedeId
+            opprettOgIverksettMeldekortbehandling(tac = tac, sakId = sak.id, kjedeId = kjedeId)!!
+
+            opprettOgOppdaterMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = kjedeId,
+                skalJournalføreVedtaksbrev = false,
+                skalDistribuereVedtaksbrev = true,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+                medJsonBody = {
+                    it harKode "kan_ikke_distribuere_vedtaksbrev_uten_journalføring"
+                },
+            ).shouldBeNull()
+        }
+    }
+
+    @Test
+    fun `kan velge å distribuere vedtaksbrev ved korrigering`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak) = this.iverksettSøknadsbehandling(tac = tac)
+            val kjedeId = sak.meldeperiodeKjeder.first().kjedeId
+            opprettOgIverksettMeldekortbehandling(tac = tac, sakId = sak.id, kjedeId = kjedeId)!!
+
+            val (_, korrigering, json) = opprettOgOppdaterMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = kjedeId,
+                skalDistribuereVedtaksbrev = true,
+            )!!
+
+            korrigering.harKorrigering shouldBe true
+            korrigering.skalDistribuereVedtaksbrev shouldBe true
+            tac.meldekortContext.meldekortbehandlingRepo.hent(korrigering.id)!!.skalDistribuereVedtaksbrev shouldBe true
+            json.getJSONObject("meldekortbehandlinger")
+                .getJSONObject(korrigering.id.toString())
+                .getBoolean("skalDistribuereVedtaksbrev") shouldBe true
         }
     }
 

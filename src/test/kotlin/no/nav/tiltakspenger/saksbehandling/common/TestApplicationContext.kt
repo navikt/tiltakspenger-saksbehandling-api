@@ -470,6 +470,7 @@ sealed class TestApplicationContext(
             sessionFactory = sessionFactory,
             genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForMeldekortKlient,
             journalførMeldekortKlient = journalførFakeMeldekortKlient,
+            dokumentdistribusjonsklient = dokumentdistribusjonsFakeKlient,
             texasClient = texasClient,
             navIdentClient = personContext.navIdentClient,
             personService = personContext.personService,
