@@ -430,7 +430,7 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, _) = opprettSakOgSøknad(tac)
 
-            // Samme oppsett som i DelautomatiskSoknadsbehandlingJobbTest, der beskyttede og skjermede søkere får NY_SOKNAD-oppgave.
+            // Samme oppsett som i DelautomatiskSøknadsbehandlingJobbTest, der beskyttede og skjermede søkere får NY_SOKNAD-oppgave.
             // Tilgangsmaskin-faken er uavhengig av disse fakene, så saksbehandleren har fortsatt tilgang til saken.
             (tac.personContext.personKlient as PersonFakeKlient).leggTilPersonopplysning(
                 sak.fnr,

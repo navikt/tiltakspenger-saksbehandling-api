@@ -56,7 +56,7 @@ class RammevedtakAggregatTest {
             // Limit batcher fra toppen av køen, så det eldste vedtaket kommer først og ingen kan sulte.
             repo.hentRammevedtakSomSkalJournalføres(limit = 1).map { it.id } shouldBe listOf(eldst)
 
-            tac.behandlingContext.journalførRammevedtaksbrevService.journalfør()
+            tac.behandlingContext.journalførRammevedtaksbrevJobb.journalfør()
 
             // Journalførte vedtak forlater køen, slik at jobben ikke plukker dem opp på nytt.
             repo.hentRammevedtakSomSkalJournalføres(limit = 10).shouldBeEmpty()
@@ -80,7 +80,7 @@ class RammevedtakAggregatTest {
             repo.hentRammevedtakSomSkalDistribueres(limit = 10).map { it.id } shouldBe listOf(eldst, nyest)
             repo.hentRammevedtakSomSkalDistribueres(limit = 1).map { it.id } shouldBe listOf(eldst)
 
-            tac.behandlingContext.distribuerRammevedtaksbrevService.distribuer()
+            tac.behandlingContext.distribuerRammevedtaksbrevJobb.distribuer()
 
             repo.hentRammevedtakSomSkalDistribueres(limit = 10).shouldBeEmpty()
         }
@@ -88,7 +88,7 @@ class RammevedtakAggregatTest {
 
     /**
      * Datadelingskøen krever at saken selv er sendt til datadeling.
-     * Jobben deler sakene før rammevedtakene i samme kjøring, så ett kall til [no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService.send] dekker begge stegene.
+     * Jobben deler sakene før rammevedtakene i samme kjøring, så ett kall til [no.nav.tiltakspenger.saksbehandling.datadeling.infra.jobb.SendTilDatadelingJobb.send] dekker begge stegene.
      */
     @Test
     @IsolatedDatabaseTest
@@ -102,7 +102,7 @@ class RammevedtakAggregatTest {
             // Ingen av sakene er delt ennå, så køen er tom selv om vedtakene er iverksatt.
             repo.hentRammevedtakTilDatadeling(limit = 10).shouldBeEmpty()
 
-            tac.sendTilDatadelingService.send()
+            tac.datadelingContext.sendTilDatadelingJobb.send()
 
             // Jobben plukker køen eldst først.
             tac.datadelingFakeKlient.sendteRammevedtak.toList() shouldBe listOf(eldst, nyest)
@@ -139,7 +139,7 @@ class RammevedtakAggregatTest {
             repo.hentRammevedtakIderMedNotatSomSkalJournalføres(limit = 10) shouldBe listOf(eldst, midterst, nyest)
             repo.hentRammevedtakIderMedNotatSomSkalJournalføres(limit = 1) shouldBe listOf(eldst)
 
-            tac.journalførJournalnotatService.journalførNotater()
+            tac.journalnotatContext.journalførJournalnotatJobb.journalførNotater()
 
             repo.hentRammevedtakIderMedNotatSomSkalJournalføres(limit = 10).shouldBeEmpty()
             repo.hentForVedtakId(eldst)!!.journalføringsnotat.shouldNotBeNull()
@@ -166,7 +166,7 @@ class RammevedtakAggregatTest {
             repo.hentSøknadsutfallTilSøknadApi(limit = 10).map { it.vedtakId } shouldBe listOf(innvilgelse.id, avslag.id)
             repo.hentSøknadsutfallTilSøknadApi(limit = 1).map { it.vedtakId } shouldBe listOf(innvilgelse.id)
 
-            tac.sendSøknadsutfallTilSøknadApiJobb.send()
+            tac.søknadContext.sendSøknadsutfallTilSøknadApiJobb.send()
 
             repo.hentSøknadsutfallTilSøknadApi(limit = 10).shouldBeEmpty()
         }

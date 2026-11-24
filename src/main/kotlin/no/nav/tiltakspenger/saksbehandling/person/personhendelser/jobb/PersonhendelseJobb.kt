@@ -4,6 +4,9 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
+import no.nav.tiltakspenger.libs.jobber.TaskResultat
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.Miljøverdi
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.Task
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
@@ -16,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.harInnvilgetTiltakspengerPåDa
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.time.Duration.Companion.minutes
 
 class PersonhendelseJobb(
     private val personhendelseRepo: PersonhendelseRepo,
@@ -99,4 +103,27 @@ class PersonhendelseJobb(
             Opplysningstype.DOEDSFALL_V1 -> Oppgavebehov.DOED
             Opplysningstype.ADRESSEBESKYTTELSE_V1 -> Oppgavebehov.ADRESSEBESKYTTELSE
         }
+}
+
+fun (() -> PersonhendelseJobb).tasks(): List<Task> {
+    return listOf(
+        Task(
+            navn = "saksbehandling-jobb-personhendelse-opprett-opgave",
+            intervall = Miljøverdi.lik(1.minutes),
+            initialDelay = Miljøverdi.lik(1.minutes),
+            utfør = { _ ->
+                this().opprettOppgaveForPersonhendelser()
+                TaskResultat.Ferdig
+            },
+        ),
+        Task(
+            navn = "saksbehandling-jobb-personhendelse-opprydning",
+            intervall = Miljøverdi.lik(1.minutes),
+            initialDelay = Miljøverdi.lik(1.minutes),
+            utfør = { _ ->
+                this().opprydning()
+                TaskResultat.Ferdig
+            },
+        ),
+    )
 }

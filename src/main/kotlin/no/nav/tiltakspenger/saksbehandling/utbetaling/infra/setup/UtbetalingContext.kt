@@ -31,20 +31,20 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.SimuleringV3HttpKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt.UtbetalingsoversiktHttpKlient
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.jobb.BehandleUtbetalingskvitteringerJobb
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.jobb.DistribuerMeldekortvedtaksbrevJobb
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.jobb.JournalførMeldekortvedtakJobb
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.jobb.OppdaterUtbetalingsoversiktJobb
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.jobb.OppdaterUtbetalingsstatusJobb
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.jobb.OpphevUtbetalingssperrerJobb
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.jobb.SendUtbetalingerJobb
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.kafka.UtbetalingKafkaProducer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.kafka.tilUtbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingskvitteringPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.utbetalingsoversikt.UtbetalingsoversiktPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.utbetaling.service.BehandleUtbetalingskvitteringerJobb
-import no.nav.tiltakspenger.saksbehandling.utbetaling.service.DistribuerMeldekortvedtaksbrevService
-import no.nav.tiltakspenger.saksbehandling.utbetaling.service.JournalførMeldekortvedtakService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.MigrerTilOppdragsversjon3Service
-import no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsoversiktJobb
-import no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsstatusService
-import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SendUtbetalingerService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 import java.time.LocalDateTime
@@ -133,8 +133,8 @@ open class UtbetalingContext(
             v3Simuleringsklient = v3Simuleringsklient,
         )
     }
-    val sendUtbetalingerService: SendUtbetalingerService by lazy {
-        SendUtbetalingerService(
+    val sendUtbetalingerJobb: SendUtbetalingerJobb by lazy {
+        SendUtbetalingerJobb(
             utbetalingRepo = utbetalingRepo,
             meldekortvedtakRepo = meldekortvedtakRepo,
             utbetalingsklient = utbetalingsklient,
@@ -162,8 +162,8 @@ open class UtbetalingContext(
             migrerTilOppdragsversjon3Service = migrerTilOppdragsversjon3Service,
         )
     }
-    val journalførMeldekortvedtakService by lazy {
-        JournalførMeldekortvedtakService(
+    val journalførMeldekortvedtakJobb by lazy {
+        JournalførMeldekortvedtakJobb(
             meldekortvedtakRepo = meldekortvedtakRepo,
             journalførMeldekortKlient = journalførMeldekortKlient,
             genererVedtaksbrevForMeldekortKlient = genererVedtaksbrevForMeldekortKlient,
@@ -175,8 +175,8 @@ open class UtbetalingContext(
         )
     }
 
-    val distribuerMeldekortvedtaksbrevService by lazy {
-        DistribuerMeldekortvedtaksbrevService(
+    val distribuerMeldekortvedtaksbrevJobb by lazy {
+        DistribuerMeldekortvedtaksbrevJobb(
             dokumentdistribusjonsklient = dokumentdistribusjonsklient,
             meldekortvedtakRepo = meldekortvedtakRepo,
             clock = clock,
@@ -186,8 +186,8 @@ open class UtbetalingContext(
 
     private val utbetalingsmålinger by lazy { Utbetalingsmålinger(meterRegistry) }
 
-    val oppdaterUtbetalingsstatusService by lazy {
-        OppdaterUtbetalingsstatusService(
+    val oppdaterUtbetalingsstatusJobb by lazy {
+        OppdaterUtbetalingsstatusJobb(
             utbetalingRepo = utbetalingRepo,
             utbetalingsklient = utbetalingsklient,
             clock = clock,

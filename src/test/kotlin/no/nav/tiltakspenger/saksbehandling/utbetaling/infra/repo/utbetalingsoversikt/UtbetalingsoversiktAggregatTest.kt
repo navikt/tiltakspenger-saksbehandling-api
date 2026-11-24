@@ -40,7 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktstatus
-import no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsoversiktJobb
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.jobb.OppdaterUtbetalingsoversiktJobb
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -277,7 +277,7 @@ class UtbetalingsoversiktAggregatTest {
             val oversikt = status(tac, sak).shouldBeInstanceOf<Utbetalingsoversiktstatus.SisteOppslagVellykket>().oversikt
             oversikt.plan shouldBe Oppslagsplan.etterVellykketOppslag(oversikt.hentet, harNyligSendtUtbetaling = false)
 
-            tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
+            tac.utbetalingContext.oppdaterUtbetalingsstatusJobb.oppdaterUtbetalingsstatus()
             kø(tac) shouldBe emptyList()
 
             spolTilÅpent(tac, 7.mai(2025))

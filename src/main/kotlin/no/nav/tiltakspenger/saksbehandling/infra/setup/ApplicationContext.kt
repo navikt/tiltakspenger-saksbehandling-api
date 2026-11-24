@@ -4,7 +4,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.tiltakspenger.libs.kafka.avro.infra.AvroKafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
-import no.nav.tiltakspenger.libs.kafka.infra.Producer
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
@@ -21,15 +20,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.AvbrytSøknadOgBehandlingContext
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.GjenåpneSøknadsbehandlingContext
-import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskRevurderingJobb
-import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskSoknadsbehandlingJobb
 import no.nav.tiltakspenger.saksbehandling.benk.infra.setup.BenkContext
-import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
-import no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService
-import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient
+import no.nav.tiltakspenger.saksbehandling.datadeling.infra.setup.DatadelingContext
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.infra.repo.DataSourceSetup
-import no.nav.tiltakspenger.saksbehandling.journalnotat.service.JournalførJournalnotatService
+import no.nav.tiltakspenger.saksbehandling.journalnotat.infra.setup.JournalnotatContext
 import no.nav.tiltakspenger.saksbehandling.journalpost.HentJournalpostDokumentService
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostHttpClient
@@ -43,35 +38,17 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.Oppfølg
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgaveRepo
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.repo.EksternOppgavePostgresRepo
-import no.nav.tiltakspenger.saksbehandling.person.identhendelser.IdenthendelseService
-import no.nav.tiltakspenger.saksbehandling.person.identhendelser.infra.repo.IdenthendelseRepository
-import no.nav.tiltakspenger.saksbehandling.person.identhendelser.jobb.IdenthendelseJobb
+import no.nav.tiltakspenger.saksbehandling.person.identhendelser.infra.setup.IdenthendelseContext
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.AktorV2Consumer
-import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseKafkaProducer
-import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseProducer
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.PersonhendelseRepo
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.PersonhendelseService
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelsePostgresRepo
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.jobb.PersonhendelseJobb
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.setup.PersonhendelseContext
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.LeesahConsumer
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
-import no.nav.tiltakspenger.saksbehandling.søknad.domene.SøknadApiKlient
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.http.SøknadApiHttpClient
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
-import no.nav.tiltakspenger.saksbehandling.søknad.service.SendSøknadsutfallTilSøknadApiJobb
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingHendelseRepo
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.jobb.BehandleTilbakekrevingHendelserJobb
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingConsumer
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingKafkaProducer
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingProducer
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelsePostgresRepo
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.service.TilbakekrevingBehandlingTildelingService
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.setup.TilbakekrevingContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseRepo
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.TiltaksdeltakerArenaConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.TiltaksdeltakerKometConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.TiltaksdeltakerTeamTiltakConsumer
@@ -229,26 +206,6 @@ open class ApplicationContext(
         )
     }
 
-    open val oppdatertTiltaksdeltakelseJobb by lazy {
-        OppdatertTiltaksdeltakelseJobb(
-            tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
-            sakRepo = sakContext.sakRepo,
-            rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
-            tiltaksdeltakelseKlient = tiltakContext.tiltaksdeltakelseKlient,
-            startRevurderingService = behandlingContext.startRevurderingService,
-            delautomatiskStansService = behandlingContext.delautomatiskStansService,
-            delautomatiskForlengelseService = behandlingContext.delautomatiskForlengelseService,
-            delautomatiskOmgjøringService = behandlingContext.delautomatiskOmgjøringService,
-            oppgaveKlient = oppgaveKlient,
-            eksternOppgaveRepo = eksternOppgaveRepo,
-            tiltakshistorikkRepo = tiltakContext.tiltakshistorikkRepo,
-            hentSaksopplysingerService = behandlingContext.hentSaksopplysingerService,
-            sessionFactory = sessionFactory,
-            clock = clock,
-            korrelasjon = MdcKorrelasjon(),
-        )
-    }
-
     open val tiltaksdeltakerArenaConsumer by lazy {
         TiltaksdeltakerArenaConsumer(
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
@@ -286,59 +243,20 @@ open class ApplicationContext(
         )
     }
 
-    open val personhendelseRepo: PersonhendelseRepo by lazy {
-        PersonhendelsePostgresRepo(
-            sessionFactory = sessionFactory as PostgresSessionFactory,
-            clock = clock,
-        )
-    }
-
-    open val personhendelseService: PersonhendelseService by lazy {
-        PersonhendelseService(
-            sakRepo = sakContext.sakRepo,
-            personhendelseRepo = personhendelseRepo,
-            personKlient = personContext.personKlient,
-            statistikkService = statistikkContext.statistikkService,
-        )
-    }
-
-    open val identhendelseRepository: IdenthendelseRepository by lazy {
-        IdenthendelseRepository(
-            sessionFactory = sessionFactory as PostgresSessionFactory,
-            clock = clock,
-        )
-    }
-
-    open val identhendelseService: IdenthendelseService by lazy {
-        IdenthendelseService(
-            sakRepo = sakContext.sakRepo,
-            identhendelseRepository = identhendelseRepository,
-        )
-    }
-
     open val leesahConsumer by lazy {
         LeesahConsumer(
             topic = Configuration.leesahTopic,
-            personhendelseService = personhendelseService,
+            personhendelseService = personhendelseContext.personhendelseService,
             avroKafkaConfig = avroKafkaConfig(autoOffsetReset = "none"),
             clock = clock,
             meterRegistry = meterRegistry,
         )
     }
 
-    open val personhendelseJobb by lazy {
-        PersonhendelseJobb(
-            personhendelseRepo = personhendelseRepo,
-            sakRepo = sakContext.sakRepo,
-            oppgaveKlient = oppgaveKlient,
-            clock = clock,
-        )
-    }
-
     open val aktorV2Consumer by lazy {
         AktorV2Consumer(
             topic = Configuration.aktorV2Topic,
-            identhendelseService = identhendelseService,
+            identhendelseService = identhendelseContext.identhendelseService,
             avroKafkaConfig = avroKafkaConfig(autoOffsetReset = "none"),
             clock = clock,
             meterRegistry = meterRegistry,
@@ -361,46 +279,6 @@ open class ApplicationContext(
             kafkaConfig = kafkaConfig(autoOffsetReset = "earliest"),
             clock = clock,
             meterRegistry = meterRegistry,
-        )
-    }
-
-    open val identhendelseProducer: IdenthendelseProducer by lazy {
-        IdenthendelseKafkaProducer(
-            kafkaProducer = Producer(producerConfig = KafkaConfig.fraNaisEnv().producerConfig()),
-            topic = Configuration.identhendelseTopic,
-        )
-    }
-
-    open val identhendelseJobb by lazy {
-        IdenthendelseJobb(
-            identhendelseRepository = identhendelseRepository,
-            identhendelseProducer = identhendelseProducer,
-            sakRepo = sakContext.sakRepo,
-            søknadRepo = søknadContext.søknadRepo,
-            statistikkService = statistikkContext.statistikkService,
-            sessionFactory = sessionFactory,
-        )
-    }
-
-    open val delautomatiskSøknadsbehandlingJobb by lazy {
-        DelautomatiskSoknadsbehandlingJobb(
-            søknadRepo = søknadContext.søknadRepo,
-            rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
-            startSøknadsbehandlingService = behandlingContext.startSøknadsbehandlingService,
-            delautomatiskBehandlingService = behandlingContext.delautomatiskBehandlingService,
-            oppdaterSaksopplysningerService = behandlingContext.oppdaterSaksopplysningerService,
-            clock = clock,
-            korrelasjon = MdcKorrelasjon(),
-        )
-    }
-
-    open val delautomatiskRevurderingJobb by lazy {
-        DelautomatiskRevurderingJobb(
-            rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
-            delautomatiskStansService = behandlingContext.delautomatiskStansService,
-            delautomatiskForlengelseService = behandlingContext.delautomatiskForlengelseService,
-            delautomatiskOmgjøringService = behandlingContext.delautomatiskOmgjøringService,
-            korrelasjon = MdcKorrelasjon(),
         )
     }
 
@@ -493,6 +371,9 @@ open class ApplicationContext(
             oppgaveKlient = oppgaveKlient,
             tiltakspengerArenaClient = tiltakspengerArenaClient,
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
+            tiltakshistorikkRepo = tiltakContext.tiltakshistorikkRepo,
+            sakRepo = sakContext.sakRepo,
+            eksternOppgaveRepo = eksternOppgaveRepo,
             erProd = erProd,
         )
     }
@@ -541,6 +422,66 @@ open class ApplicationContext(
             clock = clock,
             safJournalpostClient = safJournalpostClient,
             personKlient = personContext.personKlient,
+            texasClient = texasClient,
+            rammevedtakRepo = behandlingContext.rammevedtakRepo,
+            startSøknadsbehandlingService = behandlingContext.startSøknadsbehandlingService,
+            delautomatiskBehandlingService = behandlingContext.delautomatiskBehandlingService,
+            oppdaterSaksopplysningerService = behandlingContext.oppdaterSaksopplysningerService,
+        )
+    }
+
+    open val datadelingContext by lazy {
+        DatadelingContext(
+            texasClient = texasClient,
+            rammevedtakRepo = behandlingContext.rammevedtakRepo,
+            rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
+            sakRepo = sakContext.sakRepo,
+            meldekortbehandlingRepo = meldekortContext.meldekortbehandlingRepo,
+            meldekortvedtakRepo = utbetalingContext.meldekortvedtakRepo,
+            clock = clock,
+        )
+    }
+
+    open val journalnotatContext by lazy {
+        JournalnotatContext(
+            rammevedtakRepo = behandlingContext.rammevedtakRepo,
+            meldekortvedtakRepo = utbetalingContext.meldekortvedtakRepo,
+            genererJournalnotatKlient = dokumentContext.genererJournalnotatKlient,
+            journalførJournalnotatKlient = dokumentContext.journalførJournalnotatKlient,
+            personService = personContext.personService,
+            navIdentClient = personContext.navIdentClient,
+            clock = clock,
+        )
+    }
+
+    open val tilbakekrevingContext by lazy {
+        TilbakekrevingContext(
+            sessionFactory = sessionFactory,
+            sakRepo = sakContext.sakRepo,
+            sakService = sakContext.sakService,
+            clock = clock,
+            erDev = erDev,
+        )
+    }
+
+    open val personhendelseContext by lazy {
+        PersonhendelseContext(
+            sessionFactory = sessionFactory,
+            sakRepo = sakContext.sakRepo,
+            personKlient = personContext.personKlient,
+            statistikkService = statistikkContext.statistikkService,
+            oppgaveKlient = oppgaveKlient,
+            clock = clock,
+        )
+    }
+
+    open val identhendelseContext by lazy {
+        IdenthendelseContext(
+            sessionFactory = sessionFactory,
+            sakRepo = sakContext.sakRepo,
+            søknadRepo = søknadContext.søknadRepo,
+            statistikkService = statistikkContext.statistikkService,
+            clock = clock,
         )
     }
 
@@ -549,63 +490,6 @@ open class ApplicationContext(
             sessionFactory = sessionFactory,
             tilgangskontrollService = tilgangskontrollService,
             adressebeskyttelseOgSkjermingService = personContext.adressebeskyttelseOgSkjermingService,
-        )
-    }
-
-    open val datadelingKlient: DatadelingClient by lazy {
-        DatadelingHttpClient(
-            baseUrl = Configuration.datadelingUrl,
-            clock = clock,
-            authTokenProvider = TexasSystemTokenProvider(
-                texasClient = texasClient,
-                audienceTarget = Configuration.datadelingScope,
-            ),
-        )
-    }
-
-    val sendTilDatadelingService by lazy {
-        SendTilDatadelingService(
-            rammevedtakRepo = behandlingContext.rammevedtakRepo,
-            rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
-            sakRepo = sakContext.sakRepo,
-            meldekortbehandlingRepo = meldekortContext.meldekortbehandlingRepo,
-            meldekortvedtakRepo = utbetalingContext.meldekortvedtakRepo,
-            datadelingClient = datadelingKlient,
-            clock = clock,
-            korrelasjon = MdcKorrelasjon(),
-        )
-    }
-
-    open val søknadApiKlient: SøknadApiKlient by lazy {
-        SøknadApiHttpClient(
-            baseUrl = Configuration.soknadApiUrl,
-            clock = clock,
-            authTokenProvider = TexasSystemTokenProvider(
-                texasClient = texasClient,
-                audienceTarget = Configuration.soknadApiScope,
-            ),
-        )
-    }
-
-    val sendSøknadsutfallTilSøknadApiJobb by lazy {
-        SendSøknadsutfallTilSøknadApiJobb(
-            rammevedtakRepo = behandlingContext.rammevedtakRepo,
-            søknadRepo = søknadContext.søknadRepo,
-            søknadApiKlient = søknadApiKlient,
-            clock = clock,
-        )
-    }
-
-    val journalførJournalnotatService by lazy {
-        JournalførJournalnotatService(
-            rammevedtakRepo = behandlingContext.rammevedtakRepo,
-            meldekortvedtakRepo = utbetalingContext.meldekortvedtakRepo,
-            genererJournalnotatKlient = dokumentContext.genererJournalnotatKlient,
-            journalførJournalnotatKlient = dokumentContext.journalførJournalnotatKlient,
-            personService = personContext.personService,
-            navIdentClient = personContext.navIdentClient,
-            clock = clock,
-            korrelasjon = MdcKorrelasjon(),
         )
     }
 
@@ -640,56 +524,14 @@ open class ApplicationContext(
         )
     }
 
-    open val tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo by lazy {
-        TilbakekrevingHendelsePostgresRepo(
-            sessionFactory = sessionFactory as PostgresSessionFactory,
-            clock = clock,
-        )
-    }
-
-    open val tilbakekrevingBehandlingRepo: TilbakekrevingBehandlingRepo by lazy {
-        TilbakekrevingBehandlingPostgresRepo(
-            sessionFactory = sessionFactory as PostgresSessionFactory,
-        )
-    }
-
     open val tilbakekrevingConsumer by lazy {
         TilbakekrevingConsumer(
             topic = Configuration.tilbakekrevingTopic,
-            tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
+            tilbakekrevingHendelseRepo = tilbakekrevingContext.tilbakekrevingHendelseRepo,
             clock = clock,
             erDev = erDev,
             kafkaConfig = kafkaConfig(autoOffsetReset = "none"),
             meterRegistry = meterRegistry,
-        )
-    }
-
-    open val tilbakekrevingProducer: TilbakekrevingProducer by lazy {
-        TilbakekrevingKafkaProducer(
-            topic = Configuration.tilbakekrevingTopic,
-            kafkaProducer = Producer(producerConfig = KafkaConfig.fraNaisEnv().producerConfig()),
-        )
-    }
-
-    val tilbakekrevingBehandlingTildelingService by lazy {
-        TilbakekrevingBehandlingTildelingService(
-            sakService = sakContext.sakService,
-            tilbakekrevingBehandlingRepo = tilbakekrevingBehandlingRepo,
-            sessionFactory = sessionFactory,
-            clock = clock,
-        )
-    }
-
-    val behandleTilbakekrevingHendelserJobb by lazy {
-        BehandleTilbakekrevingHendelserJobb(
-            tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
-            tilbakekrevingBehandlingRepo = tilbakekrevingBehandlingRepo,
-            sakRepo = sakContext.sakRepo,
-            tilbakekrevingProducer = tilbakekrevingProducer,
-            sessionFactory = sessionFactory,
-            clock = clock,
-            erDev = erDev,
-            frontendUrl = Configuration.saksbehandlingFrontendUrl,
         )
     }
 }

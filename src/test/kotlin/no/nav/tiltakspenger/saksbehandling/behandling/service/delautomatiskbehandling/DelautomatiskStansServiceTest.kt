@@ -88,7 +88,7 @@ class DelautomatiskStansServiceTest {
         )
         val deltaker = tiltakContext.tiltaksdeltakerRepo
             .hentTiltaksdeltaker(tiltaksdeltakelse.eksternDeltakelseId).shouldNotBeNull()
-        return oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker).getOrFail()
+        return behandlingContext.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker).getOrFail()
     }
 
     private fun TestApplicationContextMedPostgres.hentRevurdering(sak: Sak, revurdering: Revurdering): Revurdering =
@@ -139,7 +139,7 @@ class DelautomatiskStansServiceTest {
                 nåtilstand = deltakelse.medPeriode(tilOgMed = 20.april(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
             )
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -172,7 +172,7 @@ class DelautomatiskStansServiceTest {
                 nåtilstand = deltakelse.medPeriode(tilOgMed = 10.januar(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
             )
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -200,7 +200,7 @@ class DelautomatiskStansServiceTest {
                 nåtilstand = deltakelse.medPeriode(tilOgMed = 20.februar(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
             )
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -228,7 +228,7 @@ class DelautomatiskStansServiceTest {
             ).shouldBeInstanceOf<RevurderingOpprettet>()
 
             val omgjøring = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(omgjøring.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(omgjøring.id)
 
             tac.hentRevurdering(sak, omgjøring).also {
                 it shouldBe omgjøring
@@ -294,7 +294,7 @@ class DelautomatiskStansServiceTest {
                 nåtilstand = deltakelse.medPeriode(tilOgMed = 3.januar(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Deltar),
             )
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.STANS_DELTAKELSEN_ER_IKKE_AVSLUTTET)
         }
@@ -343,7 +343,7 @@ class DelautomatiskStansServiceTest {
                 nåtilstand = deltakelse.medPeriode(tilOgMed = 7.januar(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
             )
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -400,7 +400,7 @@ class DelautomatiskStansServiceTest {
             )!!
             sakMedUtbetaling.meldeperiodeBeregninger.sisteDagMedUtbetaling shouldBe 9.januar(2025)
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering)
                 .skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SISTE_UTBETALING)
@@ -422,7 +422,7 @@ class DelautomatiskStansServiceTest {
                 nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
             )
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.STANS_SLUTTDATO_ER_IKKE_PASSERT)
         }
@@ -444,7 +444,7 @@ class DelautomatiskStansServiceTest {
             )
             tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse)
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(
                 ManueltBehandlesGrunn.STANS_DELTAKELSEN_ER_IKKE_AVSLUTTET,
@@ -473,7 +473,7 @@ class DelautomatiskStansServiceTest {
 
             tac.behandleEndring(sak, deltakelse, avbruttTidligere).shouldBeInstanceOf<IngenRelevantEndring>()
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -509,7 +509,7 @@ class DelautomatiskStansServiceTest {
             )
             startRevurderingInnvilgelse(tac, sak.id).shouldNotBeNull()
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.ANNET_APEN_BEHANDLING)
         }
@@ -532,7 +532,7 @@ class DelautomatiskStansServiceTest {
             startRevurderingInnvilgelse(tac, sak.id).shouldNotBeNull()
             tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.medPeriode(tilOgMed = 2.mai(2025)).copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt))
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(
                 ManueltBehandlesGrunn.ANNET_APEN_BEHANDLING,
@@ -552,7 +552,7 @@ class DelautomatiskStansServiceTest {
             )
             val (_, revurdering) = startRevurderingStans(tac, sak.id)!!
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering) shouldBe revurdering
         }

@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
- * Registrerer hva som ble sendt til datadeling, slik at tester kan assertere på sideeffekten av [no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService].
+ * Registrerer hva som ble sendt til datadeling, slik at tester kan assertere på sideeffekten av [no.nav.tiltakspenger.saksbehandling.datadeling.infra.jobb.SendTilDatadelingJobb].
  */
 class DatadelingFakeKlient : DatadelingClient {
 

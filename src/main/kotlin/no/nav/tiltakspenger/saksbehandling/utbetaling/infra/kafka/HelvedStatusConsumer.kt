@@ -16,7 +16,7 @@ import java.time.Clock
 import java.time.LocalDateTime
 
 /**
- * Lagrer statusmeldingene fra Hel Ved for tiltakspenger rått, med Kafka-metadata som hindrer duplikater, og lar [no.nav.tiltakspenger.saksbehandling.utbetaling.service.BehandleUtbetalingskvitteringerJobb] behandle dem.
+ * Lagrer statusmeldingene fra Hel Ved for tiltakspenger rått, med Kafka-metadata som hindrer duplikater, og lar [no.nav.tiltakspenger.saksbehandling.utbetaling.infra.jobb.BehandleUtbetalingskvitteringerJobb] behandle dem.
  * Topicet deles av alle fagsystemene til Hel Ved, som setter headeren `fagsystem` på hver melding.
  * Kaster ved feil, slik at meldingen leses på nytt; en melding som aldri kan lagres, stopper consumeren.
  *

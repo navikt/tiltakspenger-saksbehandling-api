@@ -35,7 +35,7 @@ import kotlin.time.Duration.Companion.seconds
  * Teamkatalog: https://teamkatalogen.nav.no/team/15bca3d2-2584-4167-85ba-faab1f1cfb53
  *
  * Klienten logger bevisst ikke selv: den returnerer [HttpKlientError] uendret, og den bærer all HTTP-kontekst (status, rå request/respons, throwable) via `metadata`.
- * Feilloggingen gjøres én gang av konsumenten ([no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService]), som i tillegg har domenekonteksten.
+ * Feilloggingen gjøres én gang av konsumenten ([no.nav.tiltakspenger.saksbehandling.datadeling.infra.jobb.SendTilDatadelingJobb]), som i tillegg har domenekonteksten.
  *
  * @param transport Transporten som gjør nettverkskallet; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen (auth, statusregel, serialisering) kjører i test.
  */

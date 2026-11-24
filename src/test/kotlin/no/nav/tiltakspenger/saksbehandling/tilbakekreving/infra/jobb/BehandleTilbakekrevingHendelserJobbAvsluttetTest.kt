@@ -133,7 +133,7 @@ class BehandleTilbakekrevingHendelserJobbAvsluttetTest {
             avsluttetBehandling.statusIntern shouldBe TilbakekrevingBehandlingsstatusIntern.AVSLUTTET
             avsluttetBehandling.sistEndret shouldBe avsluttetTidspunkt
 
-            val avsluttetHendelse = tac.tilbakekrevingHendelseRepo.hentHendelse(avsluttetHendelseId)
+            val avsluttetHendelse = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo.hentHendelse(avsluttetHendelseId)
             avsluttetHendelse.shouldBeInstanceOf<TilbakekrevingBehandlingEndretHendelse>()
             avsluttetHendelse.behandlet.shouldNotBeNull()
             avsluttetHendelse.feil shouldBe null
@@ -141,7 +141,7 @@ class BehandleTilbakekrevingHendelserJobbAvsluttetTest {
     }
 
     private fun hentBehandling(tac: TestApplicationContext, sak: Sak): TilbakekrevingBehandling =
-        tac.tilbakekrevingBehandlingRepo.hentForSakId(sak.id).single()
+        tac.tilbakekrevingContext.tilbakekrevingBehandlingRepo.hentForSakId(sak.id).single()
 
     /**
      * Konsumerer en behandling_endret-hendelse og kjører jobben for akkurat denne hendelsen.
@@ -186,11 +186,11 @@ class BehandleTilbakekrevingHendelserJobbAvsluttetTest {
         val hendelseId = konsumerTilbakekrevingshendelse(
             key = sak.fnr.verdi,
             value = hendelseJson,
-            tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+            tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
             clock = tac.clock,
         ).shouldNotBeNull()
 
-        tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(hendelseId)
+        tac.tilbakekrevingContext.behandleTilbakekrevingHendelserJobb.håndterHendelse(hendelseId)
 
         return hendelseId
     }

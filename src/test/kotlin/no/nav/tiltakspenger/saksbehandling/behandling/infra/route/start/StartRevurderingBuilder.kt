@@ -69,9 +69,9 @@ interface StartRevurderingBuilder {
             sakId = sak.id,
             tidspunkt = nå(tac.clock).minusMinutes(20),
         )
-        tac.oppdatertTiltaksdeltakelseJobb.håndterUbehandledeEndringer()
+        tac.behandlingContext.oppdatertTiltaksdeltakelseJobb.håndterUbehandledeEndringer()
         val revurderingId = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last().id
-        tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurderingId)
+        tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurderingId)
         val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
         val revurdering = oppdatertSak.hentRammebehandling(revurderingId).shouldBeInstanceOf<Revurdering>()
         revurdering.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING

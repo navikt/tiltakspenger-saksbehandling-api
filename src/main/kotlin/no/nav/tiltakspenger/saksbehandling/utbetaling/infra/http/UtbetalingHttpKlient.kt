@@ -50,7 +50,7 @@ import kotlin.time.Duration.Companion.seconds
  * Slack: #team-hel-ved
  * Teamkatalog: https://teamkatalogen.nav.no/team/93e78ae9-babc-452c-965d-e7dc67af8612
  *
- * Klienten logger bevisst ikke selv: den bærer HTTP-konteksten videre via [HttpKlientError] (evt. wrappet i [KunneIkkeUtbetale]/[KunneIkkeSimulere]), og feillogging gjøres én gang i kallende service ([no.nav.tiltakspenger.saksbehandling.utbetaling.service.SendUtbetalingerService], [no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsstatusService], [no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService]), som i tillegg har domenekonteksten.
+ * Klienten logger bevisst ikke selv: den bærer HTTP-konteksten videre via [HttpKlientError] (evt. wrappet i [KunneIkkeUtbetale]/[KunneIkkeSimulere]), og feillogging gjøres én gang i kallende service ([no.nav.tiltakspenger.saksbehandling.utbetaling.infra.jobb.SendUtbetalingerJobb], [no.nav.tiltakspenger.saksbehandling.utbetaling.infra.jobb.OppdaterUtbetalingsstatusJobb], [no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService]), som i tillegg har domenekonteksten.
  *
  * Per-kall-timeouts finnes ikke i v2-API-et; de tre endepunktene har ulike behov og får derfor hver sin [HttpKlient]-instans som deler samme [transport].
  *

@@ -33,9 +33,9 @@ class IdenthendelseJobbTest {
             tac.aktorV2Consumer.consume("key", aktor(gjeldendeFnr = nyttFnr, historiskeFnr = listOf(gammeltFnr)))
             val identhendelse = tac.sessionFactory.hentIdenthendelserForGammeltFnr(gammeltFnr).single()
 
-            tac.identhendelseJobb.behandleIdenthendelse(identhendelse.id)
+            tac.identhendelseContext.identhendelseJobb.behandleIdenthendelse(identhendelse.id)
 
-            tac.identhendelseProducer.produserteHendelser shouldBe listOf(
+            tac.identhendelseFakeProducer.produserteHendelser shouldBe listOf(
                 identhendelse.id to IdenthendelseDto(gammeltFnr = gammeltFnr.verdi, nyttFnr = nyttFnr.verdi),
             )
             val behandlet = tac.sessionFactory.hentIdenthendelserForGammeltFnr(gammeltFnr).single()
@@ -65,11 +65,11 @@ class IdenthendelseJobbTest {
             val identhendelse = tac.sessionFactory.hentIdenthendelserForGammeltFnr(gammeltFnr).single()
             // Et krasj mellom stegene i prod etterlater hendelsen produsert, men ikke databaseoppdatert.
             // Tilstanden konstrueres med prod-kallet jobben selv bruker for steg én.
-            tac.identhendelseRepository.oppdaterProdusertHendelse(identhendelse.id)
+            tac.identhendelseContext.identhendelseRepository.oppdaterProdusertHendelse(identhendelse.id)
 
-            tac.identhendelseJobb.behandleIdenthendelse(identhendelse.id)
+            tac.identhendelseContext.identhendelseJobb.behandleIdenthendelse(identhendelse.id)
 
-            tac.identhendelseProducer.produserteHendelser shouldBe emptyList()
+            tac.identhendelseFakeProducer.produserteHendelser shouldBe emptyList()
             val behandlet = tac.sessionFactory.hentIdenthendelserForGammeltFnr(gammeltFnr).single()
             behandlet.oppdatertDatabase shouldNotBe null
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
@@ -86,13 +86,13 @@ class IdenthendelseJobbTest {
             opprettSakOgSøknad(tac = tac, fnr = gammeltFnr)
             tac.aktorV2Consumer.consume("key", aktor(gjeldendeFnr = nyttFnr, historiskeFnr = listOf(gammeltFnr)))
             val identhendelse = tac.sessionFactory.hentIdenthendelserForGammeltFnr(gammeltFnr).single()
-            tac.identhendelseJobb.behandleIdenthendelse(identhendelse.id)
+            tac.identhendelseContext.identhendelseJobb.behandleIdenthendelse(identhendelse.id)
             val etterFørsteKjøring = tac.sessionFactory.hentIdenthendelserForGammeltFnr(gammeltFnr).single()
 
-            tac.identhendelseJobb.behandleIdenthendelse(identhendelse.id)
+            tac.identhendelseContext.identhendelseJobb.behandleIdenthendelse(identhendelse.id)
 
             tac.sessionFactory.hentIdenthendelserForGammeltFnr(gammeltFnr).single() shouldBe etterFørsteKjøring
-            tac.identhendelseProducer.produserteHendelser.size shouldBe 1
+            tac.identhendelseFakeProducer.produserteHendelser.size shouldBe 1
         }
     }
 
@@ -107,9 +107,9 @@ class IdenthendelseJobbTest {
             tac.aktorV2Consumer.consume("key", aktor(gjeldendeFnr = Fnr.random(), historiskeFnr = listOf(gammeltFnr2)))
             val ubehandlet = tac.sessionFactory.hentIdenthendelserForGammeltFnr(gammeltFnr).single()
             val ferdigBehandlet = tac.sessionFactory.hentIdenthendelserForGammeltFnr(gammeltFnr2).single()
-            tac.identhendelseJobb.behandleIdenthendelse(ferdigBehandlet.id)
+            tac.identhendelseContext.identhendelseJobb.behandleIdenthendelse(ferdigBehandlet.id)
 
-            val iderSomIkkeErBehandlet = tac.identhendelseRepository.hentIderSomIkkeErBehandlet()
+            val iderSomIkkeErBehandlet = tac.identhendelseContext.identhendelseRepository.hentIderSomIkkeErBehandlet()
 
             iderSomIkkeErBehandlet shouldContain ubehandlet.id
             iderSomIkkeErBehandlet shouldNotContain ferdigBehandlet.id

@@ -16,11 +16,12 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortApiKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiHttpClient
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.jobb.AutomatiskMeldekortbehandlingJobb
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.jobb.SendTilMeldekortApiJobb
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AngreMeldekortbehandlingService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingJobb
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AvbrytMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.GjenopptaMeldekortbehandlingService
@@ -32,7 +33,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortbe
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OvertaMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortbehandlingTilBeslutterService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendTilMeldekortApiService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SettMeldekortbehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.TaMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortbehandlingService
@@ -150,8 +150,8 @@ open class MeldekortContext(
             ),
         )
     }
-    val sendTilMeldekortApiService by lazy {
-        SendTilMeldekortApiService(
+    val sendTilMeldekortApiJobb by lazy {
+        SendTilMeldekortApiJobb(
             sakRepo = sakRepo,
             meldekortApiHttpClient = meldekortApiHttpClient,
         )

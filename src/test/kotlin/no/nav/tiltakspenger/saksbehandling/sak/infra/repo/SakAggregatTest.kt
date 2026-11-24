@@ -4,7 +4,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendTilMeldekortApiService
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.jobb.SendTilMeldekortApiJobb
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import org.junit.jupiter.api.Test
@@ -41,7 +41,7 @@ class SakAggregatTest {
             // Limit batcher fra toppen av køen, så den eldste saken kommer først og ingen kan sulte.
             repo.hentSakIderForSendingTilMeldekortApi(limit = 2) shouldBe listOf(eldst.id, midterst.id)
 
-            SendTilMeldekortApiService(
+            SendTilMeldekortApiJobb(
                 sakRepo = repo,
                 meldekortApiHttpClient = tac.meldekortContext.meldekortApiHttpClient,
             ).sendSak(eldst.id)
@@ -53,7 +53,7 @@ class SakAggregatTest {
 
     /**
      * De to datadelingskøene på sak henger sammen: meldeperiodekøen krever at saken selv er delt.
-     * Jobben deler sakene før meldeperiodene i samme kjøring, så ett kall til [no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService.send] dekker begge stegene, og de testes derfor sammen.
+     * Jobben deler sakene før meldeperiodene i samme kjøring, så ett kall til [no.nav.tiltakspenger.saksbehandling.datadeling.infra.jobb.SendTilDatadelingJobb.send] dekker begge stegene, og de testes derfor sammen.
      */
     @Test
     @IsolatedDatabaseTest
@@ -71,7 +71,7 @@ class SakAggregatTest {
             // Meldeperiodekøen er tom så lenge sakene ikke er delt, selv om iverksettelsen har satt flagget.
             repo.hentForSendingAvMeldeperioderTilDatadeling(limit = 10).shouldBeEmpty()
 
-            tac.sendTilDatadelingService.send()
+            tac.datadelingContext.sendTilDatadelingJobb.send()
 
             tac.datadelingFakeKlient.sendteSaker.toList() shouldBe listOf(eldst.id, nyest.id)
             // Meldeperiodene ble delt i samme kjøring, ett kall per sak, i samme rekkefølge.

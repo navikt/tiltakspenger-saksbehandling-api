@@ -94,7 +94,7 @@ class DelautomatiskOmgjøringServiceTest {
         )
         val deltaker = tiltakContext.tiltaksdeltakerRepo
             .hentTiltaksdeltaker(tiltaksdeltakelse.eksternDeltakelseId).shouldNotBeNull()
-        return oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker).getOrFail()
+        return behandlingContext.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker).getOrFail()
     }
 
     private fun TestApplicationContextMedPostgres.hentRevurdering(sak: Sak, revurdering: Revurdering): Revurdering =
@@ -131,7 +131,7 @@ class DelautomatiskOmgjøringServiceTest {
             val avkortet = deltakelse.medPeriode(tilOgMed = 15.mai(2025))
             val revurdering = tac.opprettAutomatiskOmgjøring(sak, vedtak, deltakelse, avkortet)
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -195,7 +195,7 @@ class DelautomatiskOmgjøringServiceTest {
             )
             val revurdering = tac.opprettAutomatiskOmgjøring(sak, vedtak, deltakelse, deltakelse.medPeriode(tilOgMed = 15.mai(2025)))
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.OMGJORING_AVKORTER_PERIODE_MED_FLERE_TILTAK)
         }
@@ -214,7 +214,7 @@ class DelautomatiskOmgjøringServiceTest {
             val revurdering = tac.opprettAutomatiskOmgjøring(sak, vedtak, deltakelse, avkortet)
             tac.oppdaterTiltaksdeltakelse(sak.fnr, avkortet.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt))
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering)
                 .skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.OMGJORING_DELTAKELSEN_HAR_IKKE_STATUS_DELTAR)
@@ -237,7 +237,7 @@ class DelautomatiskOmgjøringServiceTest {
                 avkortet.medPeriode(fraOgMed = 13.januar(2025)).copy(antallDagerPerUke = 2F, deltakelseProsent = 40F),
             )
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(
                 ManueltBehandlesGrunn.OMGJORING_ENDRET_STARTDATO,
@@ -268,7 +268,7 @@ class DelautomatiskOmgjøringServiceTest {
                 nåtilstand = deltakelse.medPeriode(tilOgMed = 10.januar(2025)),
             )
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering)
                 .skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.OMGJORING_UTBETALING_STOTTER_IKKE_FEILUTBETALING)
@@ -297,7 +297,7 @@ class DelautomatiskOmgjøringServiceTest {
                 nåtilstand = deltakelse.medPeriode(tilOgMed = 10.januar(2025)),
             )
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering)
                 .skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.OMGJORING_UTBETALING_STOTTER_IKKE_JUSTERING)
@@ -329,7 +329,7 @@ class DelautomatiskOmgjøringServiceTest {
                 nåtilstand = deltakelse.medPeriode(tilOgMed = 15.mars(2025)),
             )
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -369,7 +369,7 @@ class DelautomatiskOmgjøringServiceTest {
                 nåtilstand = deltakelse.medPeriode(tilOgMed = 10.januar(2025)),
             )
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering)
                 .skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.OMGJORING_UTBETALING_STOTTER_IKKE_FEILUTBETALING)
@@ -403,7 +403,7 @@ class DelautomatiskOmgjøringServiceTest {
                 nåtilstand = deltakelse.medPeriode(tilOgMed = 15.mars(2025)),
             )
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -443,7 +443,7 @@ class DelautomatiskOmgjøringServiceTest {
             val avkortet = deltakelse.medPeriode(tilOgMed = 15.mars(2025))
             val revurdering = tac.opprettAutomatiskOmgjøring(sak, søknadsvedtak, deltakelse, avkortet)
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -515,7 +515,7 @@ class DelautomatiskOmgjøringServiceTest {
             )
             val revurdering = tac.opprettAutomatiskOmgjøring(sak, søknadsvedtak, deltakelse, deltakelse.medPeriode(tilOgMed = 15.mars(2025)))
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             val omgjøring = tac.hentRevurdering(sak, revurdering)
             omgjøring.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -555,7 +555,7 @@ class DelautomatiskOmgjøringServiceTest {
             )
             val revurdering = tac.opprettAutomatiskOmgjøring(sak, vedtak, deltakelse, deltakelse.medPeriode(tilOgMed = 15.mai(2025)))
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             val omgjøring = tac.hentRevurdering(sak, revurdering)
             omgjøring.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().also {
@@ -596,7 +596,7 @@ class DelautomatiskOmgjøringServiceTest {
             )
             val revurdering = tac.opprettAutomatiskOmgjøring(sak, søknadsvedtak, deltakelse, deltakelse.medPeriode(tilOgMed = 15.juni(2025)))
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             val omgjøring = tac.hentRevurdering(sak, revurdering)
             omgjøring.barnetillegg.shouldBeInstanceOf<BarnetilleggV2>().also {
@@ -638,7 +638,7 @@ class DelautomatiskOmgjøringServiceTest {
             )
             val revurdering = tac.opprettAutomatiskOmgjøring(sak, søknadsvedtak, deltakelse, deltakelse.medPeriode(tilOgMed = 15.mars(2025)))
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING

@@ -3,6 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.jobb
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.jobber.TaskResultat
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.Task
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingRepo
@@ -66,4 +68,16 @@ class KnyttKlageinstansHendelseTilKlagebehandlingJobb(
             errorEveryNLogger.log(it) { "Feil ved knytting av klageinstanshendelse til klagebehandling. $loggkontekst" }
         }
     }
+}
+
+fun (() -> KnyttKlageinstansHendelseTilKlagebehandlingJobb).tasks(): List<Task> {
+    return listOf(
+        Task(
+            navn = "saksbehandling-jobb-knytt-klagehendelse",
+            utfør = { _ ->
+                this().knyttHendelser()
+                TaskResultat.Ferdig
+            },
+        ),
+    )
 }

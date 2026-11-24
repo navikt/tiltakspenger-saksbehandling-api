@@ -124,12 +124,12 @@ class JournalnotatRouteTest {
             val vedtak = iverksettRammebehandling(tac, sak.id, behandling, JobberEtterIverksettelse(journalførNotat = false))
             vedtak.journalføringsnotat.shouldBeNull()
 
-            tac.journalførJournalnotatService.journalførNotater()
+            tac.journalnotatContext.journalførJournalnotatJobb.journalførNotater()
 
             val journalført = tac.hentRammevedtak(sak.id, vedtak)
             journalført.journalføringsnotat.shouldNotBeNull()
 
-            tac.journalførJournalnotatService.journalførNotater()
+            tac.journalnotatContext.journalførJournalnotatJobb.journalførNotater()
             tac.hentRammevedtak(sak.id, vedtak).journalføringsnotat shouldBe journalført.journalføringsnotat
         }
     }
@@ -190,12 +190,12 @@ class JournalnotatRouteTest {
             val vedtak = iverksettMeldekort(tac, sakId, meldekortId, JobberEtterIverksettelse(journalførNotat = false))
             vedtak.journalføringsnotat.shouldBeNull()
 
-            tac.journalførJournalnotatService.journalførNotater()
+            tac.journalnotatContext.journalførJournalnotatJobb.journalførNotater()
 
             val journalført = tac.hentMeldekortvedtak(sakId, vedtak)
             journalført.journalføringsnotat.shouldNotBeNull()
 
-            tac.journalførJournalnotatService.journalførNotater()
+            tac.journalnotatContext.journalførJournalnotatJobb.journalførNotater()
             tac.hentMeldekortvedtak(sakId, vedtak).journalføringsnotat shouldBe journalført.journalføringsnotat
         }
     }

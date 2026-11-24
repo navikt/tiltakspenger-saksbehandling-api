@@ -51,8 +51,8 @@ class BrukersMeldekortAggregatTest {
             // Det er dette som hindrer at meldekort nummer to behandles før det første er utbetalt.
             repo.hentMeldekortSomSkalBehandlesAutomatisk(limit = 10).shouldBeEmpty()
 
-            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
-            tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
+            tac.utbetalingContext.sendUtbetalingerJobb.sendUtbetalingerTilHelved()
+            tac.utbetalingContext.oppdaterUtbetalingsstatusJobb.oppdaterUtbetalingsstatus()
 
             // Med utbetalingen kvittert ut rykker køen fram til neste kjede på begge sakene.
             repo.hentMeldekortSomSkalBehandlesAutomatisk(limit = 10).map { it.id } shouldContainExactlyInAnyOrder

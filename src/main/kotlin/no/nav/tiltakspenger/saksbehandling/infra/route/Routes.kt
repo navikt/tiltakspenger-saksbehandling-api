@@ -131,7 +131,7 @@ fun Route.routes(
 
         tilbakekrevingRoutes(
             auditService = applicationContext.personContext.auditService,
-            tilbakekrevingBehandlingTildelingService = applicationContext.tilbakekrevingBehandlingTildelingService,
+            tilbakekrevingBehandlingTildelingService = applicationContext.tilbakekrevingContext.tilbakekrevingBehandlingTildelingService,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
             clock = applicationContext.clock,
         )

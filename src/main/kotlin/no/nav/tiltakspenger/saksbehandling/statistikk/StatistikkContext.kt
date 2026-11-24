@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.statistikk
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
+import no.nav.tiltakspenger.saksbehandling.statistikk.infra.jobb.SynkroniserTiltakstypekodeverkJobb
 import no.nav.tiltakspenger.saksbehandling.statistikk.infra.repo.StatistikkPostgresRepo
 import java.time.Clock
 
@@ -26,5 +27,9 @@ open class StatistikkContext(
             clock = clock,
             statistikkRepo = statistikkRepo,
         )
+    }
+
+    val synkroniserTiltakstypekodeverkJobb: SynkroniserTiltakstypekodeverkJobb by lazy {
+        SynkroniserTiltakstypekodeverkJobb(statistikkService = statistikkService)
     }
 }

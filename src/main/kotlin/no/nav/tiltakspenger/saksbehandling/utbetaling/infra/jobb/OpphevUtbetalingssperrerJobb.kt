@@ -6,6 +6,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.jobber.TaskResultat
 import no.nav.tiltakspenger.libs.jobber.tilSamletResultat
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.Task
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeOppheveUtbetalingssperre
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.MigrerTilOppdragsversjon3Service
@@ -40,4 +41,15 @@ class OpphevUtbetalingssperrerJobb(
             },
         )
     }
+}
+
+fun (() -> OpphevUtbetalingssperrerJobb).tasks(): List<Task> {
+    return listOf(
+        Task(
+            navn = "saksbehandling-jobb-opphev-utbetalingssperrer",
+            utfør = { _ ->
+                this().opphevUtbetalingssperrer()
+            },
+        ),
+    )
 }

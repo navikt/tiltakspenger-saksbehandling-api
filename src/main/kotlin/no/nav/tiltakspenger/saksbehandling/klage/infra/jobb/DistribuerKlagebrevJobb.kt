@@ -5,6 +5,8 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.jobber.TaskResultat
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.Task
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.felles.Korrelasjon
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -159,4 +161,30 @@ class DistribuerKlagebrevJobb(
             }
         }
     }
+}
+
+fun (() -> DistribuerKlagebrevJobb).tasks(): List<Task> {
+    return listOf(
+        Task(
+            navn = "saksbehandling-jobb-distribuer-klagebrev-avvisning",
+            utfør = { _ ->
+                this().distribuerAvvisningsbrev()
+                TaskResultat.Ferdig
+            },
+        ),
+        Task(
+            navn = "saksbehandling-jobb-distribuer-klagebrev-innstilling",
+            utfør = { _ ->
+                this().distribuerInnstillingsbrev()
+                TaskResultat.Ferdig
+            },
+        ),
+        Task(
+            navn = "saksbehandling-jobb-distribuer-klagebrev-forvaltningsmelding",
+            utfør = { _ ->
+                this().distribuerForvaltningsmeldinger()
+                TaskResultat.Ferdig
+            },
+        ),
+    )
 }

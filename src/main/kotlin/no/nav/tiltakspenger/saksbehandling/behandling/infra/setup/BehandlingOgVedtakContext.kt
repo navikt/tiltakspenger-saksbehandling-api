@@ -11,6 +11,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.JournalførRammeved
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammevedtakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.jobb.DelautomatiskRevurderingJobb
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.jobb.DistribuerRammevedtaksbrevJobb
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.jobb.JournalførRammevedtaksbrevJobb
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.AngreRammebehandlingService
@@ -38,8 +42,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehan
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskOmgjøringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskRevurderingSteg
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskStansService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.distribuering.DistribuerRammevedtaksbrevService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.journalføring.JournalførRammevedtakService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
@@ -47,10 +49,13 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.MdcKorrelasjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
+import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgaveRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.tiltakshistorikk.TiltakshistorikkRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.SokosUtbetaldataClient
@@ -78,6 +83,9 @@ open class BehandlingOgVedtakContext(
     oppgaveKlient: OppgaveKlient,
     tiltakspengerArenaClient: TiltakspengerArenaClient,
     tiltaksdeltakerRepo: TiltaksdeltakerRepo,
+    tiltakshistorikkRepo: TiltakshistorikkRepo,
+    sakRepo: SakRepo,
+    eksternOppgaveRepo: EksternOppgaveRepo,
     /** Sperrer forlengelse i prod inntil videre. */
     erProd: Boolean,
 ) {
@@ -223,8 +231,8 @@ open class BehandlingOgVedtakContext(
         )
     }
 
-    val journalførRammevedtaksbrevService by lazy {
-        JournalførRammevedtakService(
+    val journalførRammevedtaksbrevJobb by lazy {
+        JournalførRammevedtaksbrevJobb(
             journalførRammevedtaksbrevKlient = journalførRammevedtaksbrevKlient,
             rammevedtakRepo = rammevedtakRepo,
             sakService = sakService,
@@ -239,8 +247,8 @@ open class BehandlingOgVedtakContext(
         )
     }
 
-    val distribuerRammevedtaksbrevService by lazy {
-        DistribuerRammevedtaksbrevService(
+    val distribuerRammevedtaksbrevJobb by lazy {
+        DistribuerRammevedtaksbrevJobb(
             dokumentdistribusjonsklient = dokumentdistribusjonsklient,
             rammevedtakRepo = rammevedtakRepo,
             clock = clock,
@@ -361,6 +369,36 @@ open class BehandlingOgVedtakContext(
             simulerService = simulerService,
             sessionFactory = sessionFactory,
             clock = clock,
+        )
+    }
+
+    val delautomatiskRevurderingJobb by lazy {
+        DelautomatiskRevurderingJobb(
+            rammebehandlingRepo = rammebehandlingRepo,
+            delautomatiskStansService = delautomatiskStansService,
+            delautomatiskForlengelseService = delautomatiskForlengelseService,
+            delautomatiskOmgjøringService = delautomatiskOmgjøringService,
+            korrelasjon = MdcKorrelasjon(),
+        )
+    }
+
+    val oppdatertTiltaksdeltakelseJobb by lazy {
+        OppdatertTiltaksdeltakelseJobb(
+            tiltaksdeltakerRepo = tiltaksdeltakerRepo,
+            sakRepo = sakRepo,
+            rammebehandlingRepo = rammebehandlingRepo,
+            tiltaksdeltakelseKlient = tiltaksdeltakelseKlient,
+            startRevurderingService = startRevurderingService,
+            delautomatiskStansService = delautomatiskStansService,
+            delautomatiskForlengelseService = delautomatiskForlengelseService,
+            delautomatiskOmgjøringService = delautomatiskOmgjøringService,
+            oppgaveKlient = oppgaveKlient,
+            eksternOppgaveRepo = eksternOppgaveRepo,
+            tiltakshistorikkRepo = tiltakshistorikkRepo,
+            hentSaksopplysingerService = hentSaksopplysingerService,
+            sessionFactory = sessionFactory,
+            clock = clock,
+            korrelasjon = MdcKorrelasjon(),
         )
     }
 }

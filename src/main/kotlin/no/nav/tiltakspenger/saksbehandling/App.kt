@@ -74,8 +74,8 @@ fun bakgrunnsprosessoppsett(applicationContext: ApplicationContext, isNais: Bool
         electorPath = Configuration::electorPath,
         clock = applicationContext.clock,
         meterRegistry = applicationContext.meterRegistry,
-        tasks = jobber(isNais = isNais, applicationContext = applicationContext, clock = applicationContext.clock),
-        taskGrupper = taskGrupper(applicationContext = applicationContext),
+        tasks = applicationContext.jobber(isNais = isNais),
+        taskGrupper = applicationContext.taskGrupper(),
     ),
     kafkaConsumers = kafkaConsumers(isNais = isNais, applicationContext = applicationContext),
 )

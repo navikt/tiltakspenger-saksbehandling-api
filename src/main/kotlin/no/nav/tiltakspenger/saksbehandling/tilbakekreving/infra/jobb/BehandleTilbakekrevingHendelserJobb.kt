@@ -10,6 +10,9 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.jobber.TaskResultat
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.Miljøverdi
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.Task
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
@@ -39,6 +42,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.Tilbak
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.tilNyTilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.Clock
+import kotlin.time.Duration.Companion.minutes
 
 class BehandleTilbakekrevingHendelserJobb(
     private val tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,
@@ -320,4 +324,18 @@ class BehandleTilbakekrevingHendelserJobb(
 
         private const val FAKE_SAK_PREFIX = "BF"
     }
+}
+
+fun (() -> BehandleTilbakekrevingHendelserJobb).tasks(): List<Task> {
+    return listOf(
+        Task(
+            navn = "saksbehandling-jobb-tilbakekreving-hendelser",
+            intervall = Miljøverdi.lik(1.minutes),
+            initialDelay = Miljøverdi.lik(1.minutes),
+            utfør = { _ ->
+                this().håndterUbehandledeHendelser()
+                TaskResultat.Ferdig
+            },
+        ),
+    )
 }

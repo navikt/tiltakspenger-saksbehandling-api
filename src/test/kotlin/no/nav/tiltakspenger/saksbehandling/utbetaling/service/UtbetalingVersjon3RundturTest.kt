@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingskobling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingskvitteringId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingskvitteringRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.jobb.BehandleUtbetalingskvitteringerJobb
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.kafka.HelvedStatusConsumer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.kafka.HelvedUtbetalingDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.kafka.tilUtbetalingsstatus

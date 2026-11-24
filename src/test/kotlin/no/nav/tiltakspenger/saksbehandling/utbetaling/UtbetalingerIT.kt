@@ -86,7 +86,7 @@ class UtbetalingerIT {
             oppdatertSak.rammevedtaksliste.last().utbetaling!!.beregning.totalBeløp shouldBe
                 satser2025.sats * 10 + satser2025.satsBarnetillegg * 10 * 2
 
-            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
+            tac.utbetalingContext.sendUtbetalingerJobb.sendUtbetalingerTilHelved()
 
             tac.utbetalingContext.utbetalingRepo.hentUtbetalingJson(revurderingUtbetalingId)!!.let { json ->
                 val iverksettDto = deserialize<IverksettV2Dto>(json)
@@ -132,7 +132,7 @@ class UtbetalingerIT {
             utbetalinger[0].beregning.totalBeløp shouldBe satser2025.sats * 10
             utbetalinger[1].beregning.totalBeløp shouldBe satser2025.sats * 10 + satser2025.satsBarnetillegg * 5
 
-            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
+            tac.utbetalingContext.sendUtbetalingerJobb.sendUtbetalingerTilHelved()
 
             tac.utbetalingContext.utbetalingRepo.hentUtbetalingJson(revurderingUtbetalingId)!!.let { json ->
                 val iverksettDto = deserialize<IverksettV2Dto>(json)
@@ -184,7 +184,7 @@ class UtbetalingerIT {
 
             oppdatertSak.rammevedtaksliste.last().utbetaling!!.beregning.totalBeløp shouldBe 0
 
-            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
+            tac.utbetalingContext.sendUtbetalingerJobb.sendUtbetalingerTilHelved()
 
             tac.utbetalingContext.utbetalingRepo.hentUtbetalingJson(omgjøringUtbetalingId)!!.let { json ->
                 val iverksettDto = deserialize<IverksettV2Dto>(json)

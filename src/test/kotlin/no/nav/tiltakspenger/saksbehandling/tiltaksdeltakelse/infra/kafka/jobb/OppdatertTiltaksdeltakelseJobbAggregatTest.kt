@@ -78,7 +78,7 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
                 tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.medPeriode(tilOgMed = 5.juni(2025)))
                 val repo = tac.tiltakContext.tiltaksdeltakerRepo
                 repo.registrerUbehandletEndring(deltakelse.internDeltakelseId, sak.id, nå(tac.clock).minusMinutes(20))
-                val task = jobber(isNais, tac, tac.clock).single { it.navn == "saksbehandling-jobb-endret-tiltaksdeltaker" }
+                val task = tac.jobber(isNais).single { it.navn == "saksbehandling-jobb-endret-tiltaksdeltaker" }
 
                 task.utfør(CorrelationId.generate()) shouldBe TaskResultat.Ferdig
 

@@ -76,6 +76,8 @@ import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingFakeProducer
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingProducer
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.setup.TilbakekrevingContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
@@ -287,17 +289,29 @@ class LocalApplicationContext(
         UtbetalingFakeKlient(
             sakRepo = sakContext.sakRepo,
             clock = clock,
-            tilbakekrevingProducer = tilbakekrevingProducer,
+            tilbakekrevingProducer = tilbakekrevingFakeProducer,
             skalStarteTilbakekrevinger = true,
         )
     }
 
-    override val tilbakekrevingProducer by lazy {
+    private val tilbakekrevingFakeProducer: TilbakekrevingFakeProducer by lazy {
         TilbakekrevingFakeProducer(
-            tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
+            tilbakekrevingHendelseRepo = tilbakekrevingContext.tilbakekrevingHendelseRepo,
             sakRepo = sakContext.sakRepo,
             clock = clock,
         )
+    }
+
+    override val tilbakekrevingContext by lazy {
+        object : TilbakekrevingContext(
+            sessionFactory = sessionFactory,
+            sakRepo = sakContext.sakRepo,
+            sakService = sakContext.sakService,
+            clock = clock,
+            erDev = erDev,
+        ) {
+            override val tilbakekrevingProducer: TilbakekrevingProducer get() = tilbakekrevingFakeProducer
+        }
     }
 
     override val meldekortContext by lazy {
@@ -358,6 +372,9 @@ class LocalApplicationContext(
             oppgaveKlient = oppgaveKlient,
             tiltakspengerArenaClient = tiltakspengerArenaClient,
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
+            tiltakshistorikkRepo = tiltakContext.tiltakshistorikkRepo,
+            sakRepo = sakContext.sakRepo,
+            eksternOppgaveRepo = eksternOppgaveRepo,
             erProd = erProd,
         ) {}
     }

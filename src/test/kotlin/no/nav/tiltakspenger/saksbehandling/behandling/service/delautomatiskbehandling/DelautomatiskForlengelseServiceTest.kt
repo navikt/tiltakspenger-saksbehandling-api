@@ -107,7 +107,7 @@ class DelautomatiskForlengelseServiceTest {
         )
         val deltaker = tiltakContext.tiltaksdeltakerRepo
             .hentTiltaksdeltaker(tiltaksdeltakelse.eksternDeltakelseId).shouldNotBeNull()
-        return oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker).getOrFail()
+        return behandlingContext.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker).getOrFail()
     }
 
     /**
@@ -115,11 +115,11 @@ class DelautomatiskForlengelseServiceTest {
      * Starter forlengelsen frem i tid, settes den først på vent, og klokka spoles forbi ventetiden før den behandles på nytt.
      */
     private suspend fun TestApplicationContextMedPostgres.behandleForlengelseAutomatisk(revurdering: Revurdering) {
-        delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+        behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
         val etterFørsteForsøk = behandlingContext.rammebehandlingRepo.hent(revurdering.id)
         if (etterFørsteForsøk.ventestatus.erSattPåVent) {
             clock.spolTil(etterFørsteForsøk.venterTil.shouldNotBeNull().plusHours(1))
-            delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
         }
     }
 
@@ -1210,17 +1210,17 @@ class DelautomatiskForlengelseServiceTest {
                 nåtilstand = deltakelse.medPeriode(tilOgMed = 30.juni(2025)),
             )
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).skalVæreSattPåVentTilFireDagerFørStartdatoen()
 
             // Før ventetiden har passert hoppes forlengelsen over.
             tac.clock.spolTil(2.mai(2025).atTime(5, 0))
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
             tac.hentRevurdering(sak, revurdering).skalVæreSattPåVentTilFireDagerFørStartdatoen()
 
             tac.clock.spolTil(2.mai(2025).atTime(7, 0))
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.ventestatus.erSattPåVent shouldBe false
@@ -1248,7 +1248,7 @@ class DelautomatiskForlengelseServiceTest {
                 nåtilstand = deltakelse.medPeriode(tilOgMed = 30.juni(2025)),
             )
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.ventestatus.erSattPåVent shouldBe false
@@ -1278,7 +1278,7 @@ class DelautomatiskForlengelseServiceTest {
             )
             startRevurderingInnvilgelse(tac, sak.id).shouldNotBeNull()
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.skalVæreSattPåVentTilFireDagerFørStartdatoenMedBegrunnelse(DelautomatiskForlengelseService.BEGRUNNELSE_UTFYLLING_FEILET)
@@ -1286,7 +1286,7 @@ class DelautomatiskForlengelseServiceTest {
             }
 
             tac.clock.spolTil(2.mai(2025).atTime(7, 0))
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).skalVæreOverlattTilSaksbehandler(ManueltBehandlesGrunn.ANNET_APEN_BEHANDLING)
         }
@@ -1312,7 +1312,7 @@ class DelautomatiskForlengelseServiceTest {
                 tiltaksdeltakelse = deltakelse,
                 nåtilstand = deltakelse.medPeriode(tilOgMed = 30.juni(2025)),
             )
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
             tac.hentRevurdering(sak, revurdering).skalVæreSattPåVentTilFireDagerFørStartdatoen()
 
             val forlengetIgjen = deltakelse.medPeriode(tilOgMed = 31.juli(2025))
@@ -1324,7 +1324,7 @@ class DelautomatiskForlengelseServiceTest {
             fremskyndetVenterTil.isBefore(2.mai(2025).atTime(6, 0)) shouldBe true
 
             tac.clock.spolTil(fremskyndetVenterTil.plusMinutes(1))
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurderinger()
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurderinger()
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.skalVæreSattPåVentTilFireDagerFørStartdatoen(tilOgMed = 31.juli(2025))
@@ -1333,7 +1333,7 @@ class DelautomatiskForlengelseServiceTest {
             }
 
             tac.clock.spolTil(2.mai(2025).atTime(7, 0))
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurderinger()
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurderinger()
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -1363,7 +1363,7 @@ class DelautomatiskForlengelseServiceTest {
                 tiltaksdeltakelse = deltakelse,
                 nåtilstand = deltakelse.medPeriode(tilOgMed = 30.juni(2025)),
             )
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             settRammebehandlingPåVent(
                 tac = tac,
@@ -1385,7 +1385,7 @@ class DelautomatiskForlengelseServiceTest {
             fremskyndetVenterTil.isBefore(2.mai(2025).atTime(6, 0)) shouldBe true
 
             tac.clock.spolTil(fremskyndetVenterTil.plusMinutes(1))
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering).also {
                 it.skalVæreSattPåVentTilFireDagerFørStartdatoen(tilOgMed = 31.juli(2025))
@@ -1422,7 +1422,7 @@ class DelautomatiskForlengelseServiceTest {
             )
             val (_, revurdering) = startRevurderingInnvilgelse(tac, sak.id)!!
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(revurdering.id)
 
             tac.hentRevurdering(sak, revurdering) shouldBe revurdering
         }

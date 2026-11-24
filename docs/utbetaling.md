@@ -62,7 +62,7 @@ Kolonnen `sak.oppdragsmigrering` viser hvor langt migreringen har kommet:
 | `MIGRERT_HOS_HEL_VED` | 3 | Hel Ved har svart OK, men kontrollsimuleringen har ikke vist at kjedene er tatt opp. |
 | `FERDIG` | 3 | Sperren er opphevet. |
 
-`SPERRET` og `MIGRERT_HOS_HEL_VED` gjør at `SendUtbetalingerService` hopper over saken og at simuleringen svarer 409 med koden `saken_migreres`.
+`SPERRET` og `MIGRERT_HOS_HEL_VED` gjør at `SendUtbetalingerJobb` hopper over saken og at simuleringen svarer 409 med koden `saken_migreres`.
 Sendingen leser tilstanden på nytt under lås på sakraden, så en utbetaling hentet før sperren eller byttet sendes ikke på feil versjon.
 Ruten setter først `SPERRET`.
 Deretter kaller den Hel Veds `POST /api/iverksetting/v2/migrate` og bytter saken til versjon 3.

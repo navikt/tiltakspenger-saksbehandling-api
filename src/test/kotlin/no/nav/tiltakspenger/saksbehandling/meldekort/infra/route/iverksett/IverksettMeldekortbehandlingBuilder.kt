@@ -178,19 +178,19 @@ interface IverksettMeldekortbehandlingBuilder {
 
             // Emulerer jobbene som normalt ville blitt trigget av å iverksette meldekortbehandlingen.
             if (jobber.sendUtbetalinger) {
-                tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
+                tac.utbetalingContext.sendUtbetalingerJobb.sendUtbetalingerTilHelved()
             }
             if (jobber.oppdaterUtbetalingsstatus) {
-                tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
+                tac.utbetalingContext.oppdaterUtbetalingsstatusJobb.oppdaterUtbetalingsstatus()
             }
             if (jobber.journalførVedtaksbrev) {
-                tac.utbetalingContext.journalførMeldekortvedtakService.journalfør()
+                tac.utbetalingContext.journalførMeldekortvedtakJobb.journalfør()
             }
             if (jobber.distribuerVedtaksbrev) {
-                tac.utbetalingContext.distribuerMeldekortvedtaksbrevService.distribuer()
+                tac.utbetalingContext.distribuerMeldekortvedtaksbrevJobb.distribuer()
             }
             if (jobber.journalførNotat) {
-                tac.journalførJournalnotatService.journalførNotater()
+                tac.journalnotatContext.journalførJournalnotatJobb.journalførNotater()
             }
 
             return Tuple4(

@@ -49,19 +49,19 @@ interface IverksettRammebehandlingBuilder {
             if (statusCode != 200) return null
             // Emulerer jobbene som normalt ville blitt trigget av å sette behandling til IVERKSATT.
             if (jobber.sendUtbetalinger) {
-                tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
+                tac.utbetalingContext.sendUtbetalingerJobb.sendUtbetalingerTilHelved()
             }
             if (jobber.oppdaterUtbetalingsstatus) {
-                tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
+                tac.utbetalingContext.oppdaterUtbetalingsstatusJobb.oppdaterUtbetalingsstatus()
             }
             if (jobber.journalførVedtaksbrev) {
-                tac.behandlingContext.journalførRammevedtaksbrevService.journalfør()
+                tac.behandlingContext.journalførRammevedtaksbrevJobb.journalfør()
             }
             if (jobber.distribuerVedtaksbrev) {
-                tac.behandlingContext.distribuerRammevedtaksbrevService.distribuer()
+                tac.behandlingContext.distribuerRammevedtaksbrevJobb.distribuer()
             }
             if (jobber.journalførNotat) {
-                tac.journalførJournalnotatService.journalførNotater()
+                tac.journalnotatContext.journalførJournalnotatJobb.journalførNotater()
             }
             val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             val rammevedtak = sak.vedtaksliste.hentRammevedtakForBehandlingId(behandlingId)

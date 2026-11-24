@@ -31,7 +31,7 @@ Radene oppdateres aldri, med to unntak: `SaksstatistikkPostgresRepo.oppdaterFnr`
 
 `statistikk_kodeverk_tiltakstype` bygges fra `eksterneTiltakskoderSomGirRett` i tiltakspenger-libs og `mapStønadstype()`, de samme kildene som klassifiseringen og utbetalingen bruker, så kodeverket kan ikke avvike fra det vi faktisk sender.
 
-- Jobben `saksbehandling-jobb-synkroniser-statistikk-kodeverk-tiltakstype` kjører én gang per pod på lederen, se `StatistikkService.synkroniserTiltakstypekodeverk`.
+- Jobben `saksbehandling-jobb-synkroniser-statistikk-kodeverk-tiltakstype` kjører én gang per pod på lederen, se `SynkroniserTiltakstypekodeverkJobb`, som kaller `StatistikkService.synkroniserTiltakstypekodeverk`.
   Én gang per pod hindrer at en gammel pod under utrullingen skriver tilbake den gamle mappingen.
 - En mapping som forsvinner eller får ny stønadstype, får `gyldig_til` og ny `sist_endret`, og en ny eller endret mapping får en ny rad med `gyldig_fra`.
 - Radene fra første synkronisering har `gyldig_fra = null`, fordi mappingen gjaldt før kodeverket fantes.

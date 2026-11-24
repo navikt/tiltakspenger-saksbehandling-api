@@ -252,8 +252,8 @@ class MeldeperiodeKjedeDTOTest {
 
             mottaMeldekortFraBruker(tac = tac, sak = sak, kjedeIndeks = 0)
             jobb.behandleBrukersMeldekort(tac.clock)
-            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
-            tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
+            tac.utbetalingContext.sendUtbetalingerJobb.sendUtbetalingerTilHelved()
+            tac.utbetalingContext.oppdaterUtbetalingsstatusJobb.oppdaterUtbetalingsstatus()
             mottaMeldekortFraBruker(
                 tac = tac,
                 sak = sak,

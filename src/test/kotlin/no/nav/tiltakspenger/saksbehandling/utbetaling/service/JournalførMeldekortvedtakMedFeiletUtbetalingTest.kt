@@ -38,7 +38,7 @@ class JournalførMeldekortvedtakMedFeiletUtbetalingTest {
             val repo = tac.utbetalingContext.meldekortvedtakRepo
             repo.hentForVedtakId(meldekortvedtak.id)!!.utbetaling.status shouldBe Utbetalingsstatus.FeiletMotOppdrag
 
-            tac.utbetalingContext.journalførMeldekortvedtakService.journalfør()
+            tac.utbetalingContext.journalførMeldekortvedtakJobb.journalfør()
 
             // Brevet skal være journalført til tross for den feilede utbetalingen.
             repo.hentForVedtakId(meldekortvedtak.id)!!.journalpostId.shouldNotBeNull()

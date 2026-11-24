@@ -6,6 +6,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
+import no.nav.tiltakspenger.libs.jobber.TaskResultat
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.Task
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -266,4 +268,30 @@ class JournalførKlagebrevJobb(
             errorEveryNLogger.log(it) { "Feil ved journalføring av forvaltningsmelding for klage. $loggkontekst" }
         }
     }
+}
+
+fun (() -> JournalførKlagebrevJobb).tasks(): List<Task> {
+    return listOf(
+        Task(
+            navn = "saksbehandling-jobb-journalfør-klagebrev-avvisning",
+            utfør = { _ ->
+                this().journalførAvvisningbrev()
+                TaskResultat.Ferdig
+            },
+        ),
+        Task(
+            navn = "saksbehandling-jobb-journalfør-klagebrev-innstilling",
+            utfør = { _ ->
+                this().journalførInnstillingsbrev()
+                TaskResultat.Ferdig
+            },
+        ),
+        Task(
+            navn = "saksbehandling-jobb-journalfør-klagebrev-forvaltningsmelding",
+            utfør = { _ ->
+                this().journalførForvaltningsmeldinger()
+                TaskResultat.Ferdig
+            },
+        ),
+    )
 }

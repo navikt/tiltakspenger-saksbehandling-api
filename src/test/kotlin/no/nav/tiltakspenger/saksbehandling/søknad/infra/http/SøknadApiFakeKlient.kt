@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
- * Registrerer hvilke søknadsutfall som ble sendt, slik at tester kan assertere på sideeffekten av [no.nav.tiltakspenger.saksbehandling.søknad.service.SendSøknadsutfallTilSøknadApiJobb].
+ * Registrerer hvilke søknadsutfall som ble sendt, slik at tester kan assertere på sideeffekten av [no.nav.tiltakspenger.saksbehandling.søknad.infra.jobb.SendSøknadsutfallTilSøknadApiJobb].
  * Tester kan legge inn en feil for en søknad med [feilFor], og fjerne den igjen med `null`.
  */
 class SøknadApiFakeKlient : SøknadApiKlient {

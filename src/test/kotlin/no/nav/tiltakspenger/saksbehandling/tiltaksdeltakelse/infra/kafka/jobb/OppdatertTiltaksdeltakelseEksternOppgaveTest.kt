@@ -55,7 +55,7 @@ class OppdatertTiltaksdeltakelseEksternOppgaveTest {
             klient.opprettOppgaveUtenDuplikatkontrollResponse = oppgaveId.right()
             val før = nå(tac.clock)
 
-            tac.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker).getOrFail()
+            tac.behandlingContext.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker).getOrFail()
                 .shouldBeInstanceOf<TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet>().oppgaveId shouldBe oppgaveId
 
             val første = tac.eksternOppgaveRepo.hentForSakId(sak.id).single()
@@ -71,7 +71,7 @@ class OppdatertTiltaksdeltakelseEksternOppgaveTest {
             tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell))
             val nyDeltaker = tac.registrerEndring(deltakelse)
             klient.opprettOppgaveUtenDuplikatkontrollResponse = null
-            tac.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(nyDeltaker).getOrFail()
+            tac.behandlingContext.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(nyDeltaker).getOrFail()
                 .shouldBeInstanceOf<TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet>()
 
             val referanser = tac.eksternOppgaveRepo.hentForSakId(sak.id)

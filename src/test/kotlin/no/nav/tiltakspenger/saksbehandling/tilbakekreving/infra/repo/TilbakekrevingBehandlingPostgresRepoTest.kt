@@ -33,7 +33,7 @@ class TilbakekrevingBehandlingPostgresRepoTest {
                 tilbakekrevingId = behandling.id,
                 saksbehandler = ObjectMother.tilbakekrevingSaksbehandler("saksbehandlerSomVant"),
             )!!
-            val repo = tac.tilbakekrevingBehandlingRepo
+            val repo = tac.tilbakekrevingContext.tilbakekrevingBehandlingRepo
 
             // Behandlingen har allerede en saksbehandler, så `saksbehandler_ident is null` slår ikke til.
             repo.taBehandlingSaksbehandler(tattBehandling) shouldBe false
@@ -54,7 +54,7 @@ class TilbakekrevingBehandlingPostgresRepoTest {
                 tilbakekrevingId = behandling.id,
                 saksbehandler = ObjectMother.tilbakekrevingBeslutter("beslutterSomVant"),
             )!!
-            val repo = tac.tilbakekrevingBehandlingRepo
+            val repo = tac.tilbakekrevingContext.tilbakekrevingBehandlingRepo
 
             // Behandlingen har allerede en beslutter, så `beslutter_ident is null` slår ikke til.
             repo.taBehandlingBeslutter(tattBehandling) shouldBe false

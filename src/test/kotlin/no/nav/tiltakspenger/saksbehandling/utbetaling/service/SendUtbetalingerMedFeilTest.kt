@@ -41,7 +41,7 @@ class SendUtbetalingerMedFeilTest {
 
             tac.utbetalingFakeKlient.iverksettFeil = feil
 
-            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
+            tac.utbetalingContext.sendUtbetalingerJobb.sendUtbetalingerTilHelved()
 
             tac.utbetalingContext.utbetalingRepo.hentUtbetalingJson(
                 meldekortvedtak.utbetaling.id,

@@ -32,6 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRepo
 import no.nav.tiltakspenger.saksbehandling.benk.infra.setup.BenkContext
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingFakeKlient
+import no.nav.tiltakspenger.saksbehandling.datadeling.infra.setup.DatadelingContext
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevKlient
@@ -61,7 +62,9 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.OppfølgingskontorF
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
+import no.nav.tiltakspenger.saksbehandling.person.identhendelser.infra.setup.IdenthendelseContext
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseFakeProducer
+import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseProducer
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
@@ -78,6 +81,8 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingB
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingHendelseRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingConsumer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingFakeProducer
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingProducer
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.setup.TilbakekrevingContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
@@ -181,9 +186,7 @@ sealed class TestApplicationContext(
     }
     protected open val safJournalpostFakeClient by lazy { SafJournalpostFakeClient(clock) }
     open val datadelingFakeKlient by lazy { DatadelingFakeKlient() }
-    override val datadelingKlient: DatadelingClient by lazy { datadelingFakeKlient }
     open val søknadApiFakeKlient by lazy { SøknadApiFakeKlient() }
-    override val søknadApiKlient: SøknadApiKlient by lazy { søknadApiFakeKlient }
     override val safJournalpostClient by lazy { safJournalpostFakeClient }
     override val sokosUtbetaldataClient by lazy { sokosUtbetaldataFakeClient }
     override val tiltakspengerArenaClient by lazy { tiltakspengerArenaFakeClient }
@@ -205,20 +208,20 @@ sealed class TestApplicationContext(
         UtbetalingFakeKlient(
             sakRepo = sakContext.sakRepo,
             clock = clock,
-            tilbakekrevingProducer = tilbakekrevingProducer,
+            tilbakekrevingProducer = tilbakekrevingFakeProducer,
             skalStarteTilbakekrevinger = false,
         )
     }
 
-    override val tilbakekrevingProducer by lazy {
+    open val tilbakekrevingFakeProducer: TilbakekrevingFakeProducer by lazy {
         TilbakekrevingFakeProducer(
-            tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
+            tilbakekrevingHendelseRepo = tilbakekrevingContext.tilbakekrevingHendelseRepo,
             sakRepo = sakContext.sakRepo,
             clock = clock,
         )
     }
 
-    override val identhendelseProducer: IdenthendelseFakeProducer by lazy { IdenthendelseFakeProducer() }
+    open val identhendelseFakeProducer: IdenthendelseFakeProducer by lazy { IdenthendelseFakeProducer() }
 
     /**
      * Egne fangere per testkontekst, slik at tester kan asserte på linjene fra [TilgangskontrollService] uten å dele tilstand med andre tester.
@@ -311,8 +314,14 @@ sealed class TestApplicationContext(
             clock = clock,
             safJournalpostClient = safJournalpostClient,
             personKlient = personContext.personKlient,
+            texasClient = texasClient,
+            rammevedtakRepo = behandlingContext.rammevedtakRepo,
+            startSøknadsbehandlingService = behandlingContext.startSøknadsbehandlingService,
+            delautomatiskBehandlingService = behandlingContext.delautomatiskBehandlingService,
+            oppdaterSaksopplysningerService = behandlingContext.oppdaterSaksopplysningerService,
         ) {
             override val søknadRepo: SøknadRepo get() = søknadRepoOverride ?: super.søknadRepo
+            override val søknadApiKlient: SøknadApiKlient = søknadApiFakeKlient
         }
     }
 
@@ -403,6 +412,9 @@ sealed class TestApplicationContext(
             oppgaveKlient = oppgaveKlient,
             tiltakspengerArenaClient = tiltakspengerArenaFakeClient,
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
+            tiltakshistorikkRepo = tiltakContext.tiltakshistorikkRepo,
+            sakRepo = sakContext.sakRepo,
+            eksternOppgaveRepo = eksternOppgaveRepo,
             erProd = erProd,
         ) {
             override val rammevedtakRepo: RammevedtakRepo
@@ -497,16 +509,52 @@ sealed class TestApplicationContext(
         }
     }
 
-    override val tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo
-        get() = tilbakekrevingHendelseRepoOverride ?: super.tilbakekrevingHendelseRepo
+    override val datadelingContext by lazy {
+        object : DatadelingContext(
+            texasClient = texasClient,
+            rammevedtakRepo = behandlingContext.rammevedtakRepo,
+            rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
+            sakRepo = sakContext.sakRepo,
+            meldekortbehandlingRepo = meldekortContext.meldekortbehandlingRepo,
+            meldekortvedtakRepo = utbetalingContext.meldekortvedtakRepo,
+            clock = clock,
+        ) {
+            override val datadelingKlient: DatadelingClient = datadelingFakeKlient
+        }
+    }
 
-    override val tilbakekrevingBehandlingRepo: TilbakekrevingBehandlingRepo
-        get() = tilbakekrevingBehandlingRepoOverride ?: super.tilbakekrevingBehandlingRepo
+    override val tilbakekrevingContext by lazy {
+        object : TilbakekrevingContext(
+            sessionFactory = sessionFactory,
+            sakRepo = sakContext.sakRepo,
+            sakService = sakContext.sakService,
+            clock = clock,
+            erDev = erDev,
+        ) {
+            override val tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo
+                get() = tilbakekrevingHendelseRepoOverride ?: super.tilbakekrevingHendelseRepo
+            override val tilbakekrevingBehandlingRepo: TilbakekrevingBehandlingRepo
+                get() = tilbakekrevingBehandlingRepoOverride ?: super.tilbakekrevingBehandlingRepo
+            override val tilbakekrevingProducer: TilbakekrevingProducer get() = tilbakekrevingFakeProducer
+        }
+    }
+
+    override val identhendelseContext by lazy {
+        object : IdenthendelseContext(
+            sessionFactory = sessionFactory,
+            sakRepo = sakContext.sakRepo,
+            søknadRepo = søknadContext.søknadRepo,
+            statistikkService = statistikkContext.statistikkService,
+            clock = clock,
+        ) {
+            override val identhendelseProducer: IdenthendelseProducer = identhendelseFakeProducer
+        }
+    }
 
     override val tilbakekrevingConsumer by lazy {
         TilbakekrevingConsumer(
             topic = Configuration.tilbakekrevingTopic,
-            tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
+            tilbakekrevingHendelseRepo = tilbakekrevingContext.tilbakekrevingHendelseRepo,
             clock = clock,
             erDev = false,
             kafkaConfig = kafkaConfig(autoOffsetReset = "earliest"),

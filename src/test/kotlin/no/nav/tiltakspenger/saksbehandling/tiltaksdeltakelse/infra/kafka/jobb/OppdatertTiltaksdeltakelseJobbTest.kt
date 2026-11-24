@@ -85,7 +85,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             .hentTiltaksdeltaker(tiltaksdeltakelse.eksternDeltakelseId).shouldNotBeNull()
 
         // Alle endringene i denne fila skal ferdigbehandles, slik at markøren kan nullstilles.
-        val resultat = oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker).getOrFail()
+        val resultat = behandlingContext.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker).getOrFail()
         resultat::class shouldBe forventetResultat
 
         val oppgaver = oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>()

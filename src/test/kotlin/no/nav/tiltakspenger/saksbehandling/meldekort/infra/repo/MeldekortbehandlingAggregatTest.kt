@@ -21,7 +21,7 @@ class MeldekortbehandlingAggregatTest {
 
     /**
      * Køen krever at saken selv er sendt til datadeling.
-     * Jobben deler sakene før meldekortbehandlingene i samme kjøring, så ett kall til [no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService.send] dekker begge stegene.
+     * Jobben deler sakene før meldekortbehandlingene i samme kjøring, så ett kall til [no.nav.tiltakspenger.saksbehandling.datadeling.infra.jobb.SendTilDatadelingJobb.send] dekker begge stegene.
      */
     @Test
     @IsolatedDatabaseTest
@@ -35,7 +35,7 @@ class MeldekortbehandlingAggregatTest {
             // Ingen av sakene er delt ennå, så køen er tom selv om behandlingene er iverksatt.
             repo.hentBehandlingerTilDatadeling(limit = 10).shouldBeEmpty()
 
-            tac.sendTilDatadelingService.send()
+            tac.datadelingContext.sendTilDatadelingJobb.send()
 
             // Jobben deler både rammebehandlinger og meldekortbehandlinger; her ser vi kun på de sistnevnte.
             tac.datadelingFakeKlient.sendteBehandlinger.filter { it == eldst || it == nyest } shouldBe listOf(eldst, nyest)

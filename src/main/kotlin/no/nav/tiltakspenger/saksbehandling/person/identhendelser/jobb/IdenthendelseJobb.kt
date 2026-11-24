@@ -2,6 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.person.identhendelser.jobb
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
+import no.nav.tiltakspenger.libs.jobber.TaskResultat
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.Miljøverdi
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.Task
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadRepo
@@ -11,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.Identhend
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseProducer
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import java.util.UUID
+import kotlin.time.Duration.Companion.minutes
 
 class IdenthendelseJobb(
     private val identhendelseRepository: IdenthendelseRepository,
@@ -65,4 +69,18 @@ class IdenthendelseJobb(
             gammeltFnr = gammeltFnr.verdi,
             nyttFnr = nyttFnr.verdi,
         )
+}
+
+fun (() -> IdenthendelseJobb).tasks(): List<Task> {
+    return listOf(
+        Task(
+            navn = "saksbehandling-jobb-identhendelse",
+            intervall = Miljøverdi.lik(1.minutes),
+            initialDelay = Miljøverdi.lik(1.minutes),
+            utfør = { _ ->
+                this().behandleIdenthendelser()
+                TaskResultat.Ferdig
+            },
+        ),
+    )
 }

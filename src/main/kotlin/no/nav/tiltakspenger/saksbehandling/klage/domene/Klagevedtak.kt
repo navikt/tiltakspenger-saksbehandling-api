@@ -25,7 +25,7 @@ data class Klagevedtak(
     val vedtaksdato: LocalDate?,
     /**
      * Alltid null i praksis: klagevedtak deles ikke med `tiltakspenger-datadeling`, som ikke kjenner klagebegrepet.
-     * `SendTilDatadelingService` deler sak, rammevedtak, rammebehandling og meldekortvedtak — ikke klagevedtak.
+     * `SendTilDatadelingJobb` deler sak, rammevedtak, rammebehandling og meldekortvedtak — ikke klagevedtak.
      *
      * Kolonnen `sendt_til_datadeling` skrives ved lagring og leses tilbake hit, men står alltid som null.
      * Skrivemetoden på repoet er fjernet fordi ingen prodsti kalte den.

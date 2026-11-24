@@ -5,6 +5,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
+import no.nav.tiltakspenger.libs.jobber.TaskResultat
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.Task
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KabalClient
@@ -98,4 +100,16 @@ class OversendKlageTilKlageinstansJobb(
             }
         }
     }
+}
+
+fun (() -> OversendKlageTilKlageinstansJobb).tasks(): List<Task> {
+    return listOf(
+        Task(
+            navn = "saksbehandling-jobb-oversend-klage",
+            utfør = { _ ->
+                this().oversendKlagerTilKlageinstans()
+                TaskResultat.Ferdig
+            },
+        ),
+    )
 }

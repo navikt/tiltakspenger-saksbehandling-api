@@ -45,7 +45,7 @@ class UtbetalingsstatusRundturTest {
                 Utbetalingsstatus.OkUtenUtbetaling,
             ).forEach { status ->
                 tac.utbetalingFakeKlient.utbetalingsstatus = status
-                tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
+                tac.utbetalingContext.oppdaterUtbetalingsstatusJobb.oppdaterUtbetalingsstatus()
                 lagretStatus() shouldBe status
             }
         }

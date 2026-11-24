@@ -41,7 +41,7 @@ class TilbakekrevingHendelsePostgresRepoTest {
             fun konsumer() = konsumerTilbakekrevingshendelse(
                 key = sak.fnr.verdi,
                 value = json,
-                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
                 clock = tac.clock,
             )
 
@@ -58,7 +58,7 @@ class TilbakekrevingHendelsePostgresRepoTest {
     fun `hendelse markert med feil og sak leses tilbake med begge deler`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak) = opprettSakOgSøknad(tac = tac)
-            val repo = tac.tilbakekrevingHendelseRepo
+            val repo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo
 
             @Language("JSON")
             val json = """

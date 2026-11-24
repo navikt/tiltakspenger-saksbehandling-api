@@ -28,7 +28,7 @@ class TilbakekrevingHendelseAggregatTest {
     @IsolatedDatabaseTest
     fun `køen tar ubehandlede hendelser, sorterer eldst først og tømmes når hendelsen er behandlet`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val repo = tac.tilbakekrevingHendelseRepo
+            val repo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo
 
             repo.hentUbehandledeHendelseIder().shouldBeEmpty()
 
@@ -38,11 +38,11 @@ class TilbakekrevingHendelseAggregatTest {
             repo.hentUbehandledeHendelseIder() shouldBe listOf(eldst, nyest)
 
             // Jobben markerer hendelsen som behandlet med feil, og da forlater den køen.
-            tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(eldst)
+            tac.tilbakekrevingContext.behandleTilbakekrevingHendelserJobb.håndterHendelse(eldst)
 
             repo.hentUbehandledeHendelseIder() shouldBe listOf(nyest)
 
-            tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(nyest)
+            tac.tilbakekrevingContext.behandleTilbakekrevingHendelserJobb.håndterHendelse(nyest)
 
             repo.hentUbehandledeHendelseIder().shouldBeEmpty()
         }
@@ -72,7 +72,7 @@ class TilbakekrevingHendelseAggregatTest {
         return konsumerTilbakekrevingshendelse(
             key = sak.fnr.verdi,
             value = json,
-            tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+            tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
             clock = tac.clock,
         )!!
     }

@@ -38,7 +38,7 @@ class RammebehandlingAggregatTest {
 
     /**
      * Køen for delautomatisk behandling har tre kriterier: behandlingstypen, statusen `UNDER_AUTOMATISK_BEHANDLING`, og at behandlingen ikke venter på noe.
-     * Alle tre asserteres her; jobben som konsumerer køen testes for seg i `DelautomatiskSoknadsbehandlingJobbTest`.
+     * Alle tre asserteres her; jobben som konsumerer køen testes for seg i `DelautomatiskSøknadsbehandlingJobbTest`.
      */
     @Test
     @IsolatedDatabaseTest
@@ -96,7 +96,7 @@ class RammebehandlingAggregatTest {
             repo.hentAutomatiskeRevurderingIder(limit = 10) shouldBe listOf(eldst.id, nyest.id)
             repo.hentAutomatiskeRevurderingIder(limit = 1) shouldBe listOf(eldst.id)
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurderinger()
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurderinger()
 
             // Forlengelsen starter 6. mai, fem dager frem i tid.
             // Den settes derfor på vent til 2. mai og faller ut av køen til `venter_til` har passert.
@@ -111,7 +111,7 @@ class RammebehandlingAggregatTest {
             tac.clock.spolTil(2.mai(2025).atTime(7, 0))
             repo.hentAutomatiskeRevurderingIder(limit = 10) shouldBe listOf(nyest.id)
 
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurderinger()
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurderinger()
 
             repo.hentAutomatiskeRevurderingIder(limit = 10).shouldBeEmpty()
             tac.sakContext.sakRepo.hentForSakId(nyest.sakId)!!.hentRammebehandling(nyest.id)!!.status shouldBe
@@ -140,14 +140,14 @@ class RammebehandlingAggregatTest {
             sakId = sak.id,
             tidspunkt = nå(tac.clock).minusMinutes(20),
         )
-        tac.oppdatertTiltaksdeltakelseJobb.håndterUbehandledeEndringer()
+        tac.behandlingContext.oppdatertTiltaksdeltakelseJobb.håndterUbehandledeEndringer()
         return tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
             .also { it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING }
     }
 
     /**
      * Datadelingskøen krever at saken selv er sendt til datadeling.
-     * Jobben deler sakene før behandlingene i samme kjøring, så ett kall til [no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService.send] dekker begge stegene.
+     * Jobben deler sakene før behandlingene i samme kjøring, så ett kall til [no.nav.tiltakspenger.saksbehandling.datadeling.infra.jobb.SendTilDatadelingJobb.send] dekker begge stegene.
      */
     @Test
     @IsolatedDatabaseTest
@@ -161,7 +161,7 @@ class RammebehandlingAggregatTest {
             // Ingen av sakene er delt ennå, så køen er tom selv om behandlingene er iverksatt.
             repo.hentBehandlingerTilDatadeling(limit = 10).shouldBeEmpty()
 
-            tac.sendTilDatadelingService.send()
+            tac.datadelingContext.sendTilDatadelingJobb.send()
 
             tac.datadelingFakeKlient.sendteBehandlinger.toList().size shouldBe 2
 

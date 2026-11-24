@@ -61,12 +61,12 @@ class UtbetalingAggregatTest {
             // Den nye utbetalingen står på vent: forrige utbetaling på saken er ikke sendt ennå.
             repo.hentForUtsjekk(limit = 10).map { it.sakId } shouldBe listOf(sakA.id, sakB.id)
 
-            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
+            tac.utbetalingContext.sendUtbetalingerJobb.sendUtbetalingerTilHelved()
 
             // Sendt, men ikke kvittert ut: den neste utbetalingen på saken slipper fortsatt ikke til.
             repo.hentForUtsjekk(limit = 10).shouldBeEmpty()
 
-            tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
+            tac.utbetalingContext.oppdaterUtbetalingsstatusJobb.oppdaterUtbetalingsstatus()
 
             // Med forrige utbetaling kvittert ut som OK rykker den neste utbetalingen fram i køen.
             repo.hentForUtsjekk(limit = 10).map { it.sakId } shouldBe listOf(sakA.id)
@@ -85,12 +85,12 @@ class UtbetalingAggregatTest {
             // Ingenting er sendt ennå, så det finnes ingen status å hente.
             repo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = 10).shouldBeEmpty()
 
-            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
+            tac.utbetalingContext.sendUtbetalingerJobb.sendUtbetalingerTilHelved()
 
             repo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = 10).map { it.sakId } shouldBe listOf(sakA.id, sakB.id)
             repo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = 1).map { it.sakId } shouldBe listOf(sakA.id)
 
-            tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
+            tac.utbetalingContext.oppdaterUtbetalingsstatusJobb.oppdaterUtbetalingsstatus()
 
             // En utbetaling med endelig status forlater køen, så jobben ikke spør om den igjen.
             repo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = 10).shouldBeEmpty()
@@ -110,7 +110,7 @@ class UtbetalingAggregatTest {
             sakMedUtbetaling(tac)
             val repo = tac.utbetalingContext.utbetalingRepo
 
-            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
+            tac.utbetalingContext.sendUtbetalingerJobb.sendUtbetalingerTilHelved()
 
             tac.utbetalingFakeProducer.produserteUtbetalinger.size shouldBe 1
             repo.hentForUtsjekk(limit = 10).shouldBeEmpty()
@@ -131,7 +131,7 @@ class UtbetalingAggregatTest {
             val sak = sakMedUtbetaling(tac)
             val repo = tac.utbetalingContext.utbetalingRepo
 
-            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
+            tac.utbetalingContext.sendUtbetalingerJobb.sendUtbetalingerTilHelved()
 
             listOf(
                 Utbetalingsstatus.IkkePåbegynt,
@@ -139,7 +139,7 @@ class UtbetalingAggregatTest {
                 Utbetalingsstatus.FeiletMotOppdrag,
             ).forEach { ikkeEndeligStatus ->
                 tac.utbetalingFakeKlient.utbetalingsstatus = ikkeEndeligStatus
-                tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
+                tac.utbetalingContext.oppdaterUtbetalingsstatusJobb.oppdaterUtbetalingsstatus()
 
                 withClue("$ikkeEndeligStatus er ikke endelig, så utbetalingen må bli stående i køen") {
                     repo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = 10).map { it.sakId } shouldBe listOf(sak.id)
@@ -147,7 +147,7 @@ class UtbetalingAggregatTest {
             }
 
             tac.utbetalingFakeKlient.utbetalingsstatus = Utbetalingsstatus.Ok
-            tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
+            tac.utbetalingContext.oppdaterUtbetalingsstatusJobb.oppdaterUtbetalingsstatus()
 
             repo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = 10).shouldBeEmpty()
         }

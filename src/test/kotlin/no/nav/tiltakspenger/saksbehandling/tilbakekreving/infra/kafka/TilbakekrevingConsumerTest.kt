@@ -36,7 +36,7 @@ class TilbakekrevingConsumerTest {
             konsumerTilbakekrevingshendelse(
                 key = key,
                 value = value,
-                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
                 clock = tac.clock,
             )
 
@@ -83,7 +83,7 @@ class TilbakekrevingConsumerTest {
             konsumerTilbakekrevingshendelse(
                 key = key,
                 value = value,
-                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
                 clock = tac.clock,
             )
 
@@ -136,7 +136,7 @@ class TilbakekrevingConsumerTest {
             konsumerTilbakekrevingshendelse(
                 key = key,
                 value = value,
-                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
                 clock = tac.clock,
             )
 
@@ -185,7 +185,7 @@ class TilbakekrevingConsumerTest {
             konsumerTilbakekrevingshendelse(
                 key = key,
                 value = value,
-                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
                 clock = tac.clock,
             )
 
@@ -202,7 +202,7 @@ class TilbakekrevingConsumerTest {
             konsumerTilbakekrevingshendelse(
                 key = "test-key",
                 value = null,
-                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
                 clock = tac.clock,
             )
 
@@ -231,7 +231,7 @@ class TilbakekrevingConsumerTest {
             konsumerTilbakekrevingshendelse(
                 key = "key-1",
                 value = value,
-                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
                 clock = tac.clock,
             )
 
@@ -239,7 +239,7 @@ class TilbakekrevingConsumerTest {
             konsumerTilbakekrevingshendelse(
                 key = "key-2",
                 value = value,
-                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
                 clock = tac.clock,
             )
 
@@ -268,7 +268,7 @@ class TilbakekrevingConsumerTest {
             konsumerTilbakekrevingshendelse(
                 key = key,
                 value = value,
-                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
                 clock = tac.clock,
             )
 
@@ -321,7 +321,7 @@ class TilbakekrevingConsumerTest {
                 konsumerTilbakekrevingshendelse(
                     key = key,
                     value = value,
-                    tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                    tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
                     clock = tac.clock,
                 )
 
@@ -357,11 +357,11 @@ class TilbakekrevingConsumerTest {
             val hendelseId = konsumerTilbakekrevingshendelse(
                 key = key,
                 value = value,
-                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
                 clock = tac.clock,
             ).shouldNotBeNull()
 
-            val hendelse = tac.tilbakekrevingHendelseRepo.hentHendelse(hendelseId) as TilbakekrevingInfoBehovHendelse
+            val hendelse = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo.hentHendelse(hendelseId) as TilbakekrevingInfoBehovHendelse
             hendelse.eksternFagsakId shouldBe sak.saksnummer.verdi
             hendelse.kravgrunnlagReferanse shouldBe "ref-postgres-12345"
             hendelse.sakId shouldBe null
@@ -404,11 +404,11 @@ class TilbakekrevingConsumerTest {
             val hendelseId = konsumerTilbakekrevingshendelse(
                 key = key,
                 value = value,
-                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
                 clock = tac.clock,
             ).shouldNotBeNull()
 
-            val hendelse = tac.tilbakekrevingHendelseRepo.hentHendelse(hendelseId) as TilbakekrevingBehandlingEndretHendelse
+            val hendelse = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo.hentHendelse(hendelseId) as TilbakekrevingBehandlingEndretHendelse
             hendelse.eksternFagsakId shouldBe sak.saksnummer.verdi
             hendelse.eksternBehandlingId shouldBe "ekstern-behandling-postgres-123"
             hendelse.tilbakeBehandlingId shouldBe "tilbake-behandling-postgres-456"
@@ -438,7 +438,7 @@ class TilbakekrevingConsumerTest {
             konsumerTilbakekrevingshendelse(
                 key = key,
                 value = value,
-                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
                 clock = tac.clock,
             )
 
@@ -469,11 +469,11 @@ class TilbakekrevingConsumerTest {
             val hendelseId = konsumerTilbakekrevingshendelse(
                 key = key,
                 value = value,
-                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
                 clock = tac.clock,
             ).shouldNotBeNull()
 
-            val hendelse = tac.tilbakekrevingHendelseRepo.hentHendelse(hendelseId) as TilbakekrevingUkjentHendelse
+            val hendelse = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo.hentHendelse(hendelseId) as TilbakekrevingUkjentHendelse
             hendelse.id shouldBe hendelseId
             hendelse.hendelsestype shouldBe TilbakekrevinghendelseType.Ukjent
             hendelse.sakId shouldBe null

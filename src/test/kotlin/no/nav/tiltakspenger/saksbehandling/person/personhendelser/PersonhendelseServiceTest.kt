@@ -31,7 +31,7 @@ class PersonhendelseServiceTest {
         withTestApplicationContextAndPostgres { tac ->
             val fnr = Fnr.random()
 
-            tac.personhendelseService.behandlePersonhendelse(
+            tac.personhendelseContext.personhendelseService.behandlePersonhendelse(
                 nyPersonhendelse(
                     fnr = fnr,
                     doedsfall = Doedsfall(LocalDate.now(tac.clock).minusDays(1)),
@@ -54,7 +54,7 @@ class PersonhendelseServiceTest {
 
             tac.leesahConsumer.consume("key", personhendelse)
 
-            val lagretPersonhendelse = tac.personhendelseRepo.hent(sak.id).single()
+            val lagretPersonhendelse = tac.personhendelseContext.personhendelseRepo.hent(sak.id).single()
             lagretPersonhendelse.fnr shouldBe fnr
             lagretPersonhendelse.hendelseId shouldBe personhendelse.hendelseId
             lagretPersonhendelse.opplysningstype shouldBe Opplysningstype.DOEDSFALL_V1
@@ -71,7 +71,7 @@ class PersonhendelseServiceTest {
             val fnr = Fnr.random()
             val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = fnr)
 
-            tac.personhendelseService.behandlePersonhendelse(
+            tac.personhendelseContext.personhendelseService.behandlePersonhendelse(
                 nyPersonhendelse(
                     fnr = fnr,
                     forelderBarnRelasjon = ForelderBarnRelasjon(ObjectMother.gyldigFnr().verdi, "BARN", "FAR"),
@@ -79,7 +79,7 @@ class PersonhendelseServiceTest {
                 ),
             ) shouldBe KunneIkkeBehandlePersonhendelse.OpplysningstypeIkkeStøttet.left()
 
-            tac.personhendelseRepo.hent(sak.id) shouldBe emptyList()
+            tac.personhendelseContext.personhendelseRepo.hent(sak.id) shouldBe emptyList()
         }
     }
 
@@ -100,7 +100,7 @@ class PersonhendelseServiceTest {
 
             tac.leesahConsumer.consume("key", personhendelse)
 
-            val lagretPersonhendelse = tac.personhendelseRepo.hent(sak.id).single()
+            val lagretPersonhendelse = tac.personhendelseContext.personhendelseRepo.hent(sak.id).single()
             lagretPersonhendelse.fnr shouldBe fnr
             lagretPersonhendelse.hendelseId shouldBe personhendelse.hendelseId
             lagretPersonhendelse.opplysningstype shouldBe Opplysningstype.ADRESSEBESKYTTELSE_V1
@@ -131,7 +131,7 @@ class PersonhendelseServiceTest {
                 personopplysninger = ObjectMother.personopplysningKjedeligFyr(fnr = fnr),
             )
 
-            tac.personhendelseService.behandlePersonhendelse(
+            tac.personhendelseContext.personhendelseService.behandlePersonhendelse(
                 nyPersonhendelse(
                     fnr = fnr,
                     adressebeskyttelse = LeesahAdressebeskyttelse(Gradering.STRENGT_FORTROLIG),
@@ -139,7 +139,7 @@ class PersonhendelseServiceTest {
                 ),
             ) shouldBe KunneIkkeBehandlePersonhendelse.IkkeKode6IPdl.left()
 
-            tac.personhendelseRepo.hent(sak.id) shouldBe emptyList()
+            tac.personhendelseContext.personhendelseRepo.hent(sak.id) shouldBe emptyList()
             val saksstatistikk = tac.sessionFactory.hentSaksstatistikk(sak.id)
             saksstatistikk.shouldNotBeEmpty()
             saksstatistikk.forEach {
@@ -157,7 +157,7 @@ class PersonhendelseServiceTest {
             val fnr = Fnr.random()
             val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = fnr)
 
-            tac.personhendelseService.behandlePersonhendelse(
+            tac.personhendelseContext.personhendelseService.behandlePersonhendelse(
                 nyPersonhendelse(
                     fnr = fnr,
                     opplysningstype = "NAVN_V1",
@@ -165,7 +165,7 @@ class PersonhendelseServiceTest {
                 ),
             ) shouldBe KunneIkkeBehandlePersonhendelse.OpplysningstypeIkkeStøttet.left()
 
-            tac.personhendelseRepo.hent(sak.id) shouldBe emptyList()
+            tac.personhendelseContext.personhendelseRepo.hent(sak.id) shouldBe emptyList()
         }
     }
 
@@ -176,7 +176,7 @@ class PersonhendelseServiceTest {
             val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = fnr)
 
             // DOEDSFALL_V1 uten doedsfall-payload — fanget av defensiv guard i servicen.
-            tac.personhendelseService.behandlePersonhendelse(
+            tac.personhendelseContext.personhendelseService.behandlePersonhendelse(
                 nyPersonhendelse(
                     fnr = fnr,
                     opplysningstype = Opplysningstype.DOEDSFALL_V1.name,
@@ -184,7 +184,7 @@ class PersonhendelseServiceTest {
                 ),
             ) shouldBe KunneIkkeBehandlePersonhendelse.PayloadMangler.left()
 
-            tac.personhendelseRepo.hent(sak.id) shouldBe emptyList()
+            tac.personhendelseContext.personhendelseRepo.hent(sak.id) shouldBe emptyList()
         }
     }
 
@@ -195,7 +195,7 @@ class PersonhendelseServiceTest {
             val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = fnr)
 
             // Vi bryr oss kun om STRENGT_FORTROLIG[_UTLAND] (kode 6). FORTROLIG (kode 7) skal ignoreres.
-            tac.personhendelseService.behandlePersonhendelse(
+            tac.personhendelseContext.personhendelseService.behandlePersonhendelse(
                 nyPersonhendelse(
                     fnr = fnr,
                     adressebeskyttelse = LeesahAdressebeskyttelse(Gradering.FORTROLIG),
@@ -203,7 +203,7 @@ class PersonhendelseServiceTest {
                 ),
             ) shouldBe KunneIkkeBehandlePersonhendelse.AdressebeskyttelseErIkkeKode6.left()
 
-            tac.personhendelseRepo.hent(sak.id) shouldBe emptyList()
+            tac.personhendelseContext.personhendelseRepo.hent(sak.id) shouldBe emptyList()
         }
     }
 
@@ -215,7 +215,7 @@ class PersonhendelseServiceTest {
             val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = sakFnr)
             val ukjentFnr = Fnr.random()
 
-            tac.personhendelseService.behandlePersonhendelse(
+            tac.personhendelseContext.personhendelseService.behandlePersonhendelse(
                 nyPersonhendelse(
                     fnr = ukjentFnr,
                     doedsfall = Doedsfall(LocalDate.now(tac.clock).minusDays(1)),
@@ -223,7 +223,7 @@ class PersonhendelseServiceTest {
                 ),
             ) shouldBe KunneIkkeBehandlePersonhendelse.IngenSakForPersonidenter.left()
 
-            tac.personhendelseRepo.hent(sak.id) shouldBe emptyList()
+            tac.personhendelseContext.personhendelseRepo.hent(sak.id) shouldBe emptyList()
         }
     }
 
@@ -239,10 +239,10 @@ class PersonhendelseServiceTest {
             )
             tac.leesahConsumer.consume("key", personhendelse)
 
-            tac.personhendelseService.behandlePersonhendelse(personhendelse) shouldBe
+            tac.personhendelseContext.personhendelseService.behandlePersonhendelse(personhendelse) shouldBe
                 KunneIkkeBehandlePersonhendelse.HendelseAlleredeLagret.left()
 
-            tac.personhendelseRepo.hent(sak.id).size shouldBe 1
+            tac.personhendelseContext.personhendelseRepo.hent(sak.id).size shouldBe 1
         }
     }
 }

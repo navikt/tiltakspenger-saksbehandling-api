@@ -786,7 +786,7 @@ class BenkAggregatTest {
             val (sakManuell, _, _, manuell) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac = tac)
             settRammebehandlingPåVent(tac = tac, sakId = sakManuell.id, rammebehandlingId = manuell.id, frist = 10.mai(2025))!!
             val automatisk = opprettAutomatiskRevurdering(tac) { it.medPeriode(tilOgMed = 30.juni(2025)) }
-            tac.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(automatisk.id)
+            tac.behandlingContext.delautomatiskRevurderingJobb.automatiskBehandleRevurdering(automatisk.id)
             val (sakIkkePåVent) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac = tac)
             val repo = tac.benkContext.benkRepo
 
@@ -829,7 +829,7 @@ class BenkAggregatTest {
             sakId = sak.id,
             tidspunkt = nå(tac.clock).minusMinutes(20),
         )
-        tac.oppdatertTiltaksdeltakelseJobb.håndterUbehandledeEndringer()
+        tac.behandlingContext.oppdatertTiltaksdeltakelseJobb.håndterUbehandledeEndringer()
         return tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
             .also { it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING }
     }
@@ -960,8 +960,8 @@ class BenkAggregatTest {
             // Første kort i kjeden behandles automatisk; korrigeringen etterpå faller til manuell behandling og havner på benken.
             mottaAutomatiskMeldekortForKjede(tac, sak, kjedeIndeks = 0)
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
-            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
-            tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
+            tac.utbetalingContext.sendUtbetalingerJobb.sendUtbetalingerTilHelved()
+            tac.utbetalingContext.oppdaterUtbetalingsstatusJobb.oppdaterUtbetalingsstatus()
             val (_, korrigering) = mottaManueltMeldekortForKjede(tac, sak, kjedeIndeks = 0)
             val (_, innsendt) = mottaManueltMeldekortForKjede(tac, sak, kjedeIndeks = 1)
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
@@ -1011,8 +1011,8 @@ class BenkAggregatTest {
             val (sak) = iverksettSøknadsbehandling(tac = tac)
             mottaAutomatiskMeldekortForKjede(tac, sak, kjedeIndeks = 0)
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
-            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
-            tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
+            tac.utbetalingContext.sendUtbetalingerJobb.sendUtbetalingerTilHelved()
+            tac.utbetalingContext.oppdaterUtbetalingsstatusJobb.oppdaterUtbetalingsstatus()
             val (_, korrigering) = mottaManueltMeldekortForKjede(tac, sak, kjedeIndeks = 0)
             // Første innsending i en kjede er ikke en korrigering, og prioriteres ikke.
             mottaManueltMeldekortForKjede(tac, sak, kjedeIndeks = 1)
@@ -1762,11 +1762,11 @@ class BenkAggregatTest {
         val hendelseId = konsumerTilbakekrevingshendelse(
             key = sak.fnr.verdi,
             value = hendelseJson,
-            tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+            tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
             clock = tac.clock,
         )!!
         // Jobbens kø-spørring går på tvers av saker, så vi kjører kun vår egen hendelse.
-        tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(hendelseId)
+        tac.tilbakekrevingContext.behandleTilbakekrevingHendelserJobb.håndterHendelse(hendelseId)
     }
 
     /** Sender inn et rent brukers meldekort via motta-ruta, klart for automatisk behandling. */

@@ -80,11 +80,11 @@ interface TilbakekrevingBehandlingBuilder {
         val opprettetHendelseJsonId = konsumerTilbakekrevingshendelse(
             key = sak.fnr.verdi,
             value = opprettetHendelseJson,
-            tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+            tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
             clock = tac.clock,
         )!!
         // Jobbens kø-spørring går på tvers av saker, så vi kjører kun vår egen hendelse.
-        tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(opprettetHendelseJsonId)
+        tac.tilbakekrevingContext.behandleTilbakekrevingHendelserJobb.håndterHendelse(opprettetHendelseJsonId)
 
         @Language("JSON")
         val tilBehandlingHendelseJson = """
@@ -113,11 +113,11 @@ interface TilbakekrevingBehandlingBuilder {
         val tilBehandlingHendelseJsonId = konsumerTilbakekrevingshendelse(
             key = sak.fnr.verdi,
             value = tilBehandlingHendelseJson,
-            tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+            tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
             clock = tac.clock,
         )!!
         // Jobbens kø-spørring går på tvers av saker, så vi kjører kun vår egen hendelse.
-        tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(tilBehandlingHendelseJsonId)
+        tac.tilbakekrevingContext.behandleTilbakekrevingHendelserJobb.håndterHendelse(tilBehandlingHendelseJsonId)
 
         val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
         val tilbakekrevingBehandling = oppdatertSak.tilbakekrevinger.single()
@@ -163,11 +163,11 @@ interface TilbakekrevingBehandlingBuilder {
         val tilGodkjenningHendelseJsonId = konsumerTilbakekrevingshendelse(
             key = sak.fnr.verdi,
             value = tilGodkjenningHendelseJson,
-            tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+            tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
             clock = tac.clock,
         )!!
         // Jobbens kø-spørring går på tvers av saker, så vi kjører kun vår egen hendelse.
-        tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(tilGodkjenningHendelseJsonId)
+        tac.tilbakekrevingContext.behandleTilbakekrevingHendelserJobb.håndterHendelse(tilGodkjenningHendelseJsonId)
 
         val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
         val tilbakekrevingBehandling = oppdatertSak.tilbakekrevinger.single()
@@ -227,11 +227,11 @@ interface TilbakekrevingBehandlingBuilder {
             val hendelseId = konsumerTilbakekrevingshendelse(
                 key = sak.fnr.verdi,
                 value = hendelseJson,
-                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingContext.tilbakekrevingHendelseRepo,
                 clock = tac.clock,
             )!!
             // Jobbens kø-spørring går på tvers av saker, så vi kjører kun vår egen hendelse.
-            tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(hendelseId)
+            tac.tilbakekrevingContext.behandleTilbakekrevingHendelserJobb.håndterHendelse(hendelseId)
         }
 
         val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!

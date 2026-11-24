@@ -59,7 +59,7 @@ class MeldekortvedtakAggregatTest {
 
     /**
      * Datadelingskøen krever både at vedtaket er journalført og at saken selv er sendt til datadeling.
-     * Jobben deler sakene før meldekortvedtakene i samme kjøring, så ett kall til [no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService.send] dekker begge stegene.
+     * Jobben deler sakene før meldekortvedtakene i samme kjøring, så ett kall til [no.nav.tiltakspenger.saksbehandling.datadeling.infra.jobb.SendTilDatadelingJobb.send] dekker begge stegene.
      */
     @Test
     @IsolatedDatabaseTest
@@ -74,7 +74,7 @@ class MeldekortvedtakAggregatTest {
             // Ingen av sakene er delt ennå, så køen er tom selv om det finnes journalførte vedtak.
             repo.hentMeldekortvedtakTilDatadeling(limit = 10).shouldBeEmpty()
 
-            tac.sendTilDatadelingService.send()
+            tac.datadelingContext.sendTilDatadelingJobb.send()
 
             // Jobben plukker køen eldst først, og det ikke journalførte vedtaket kom aldri inn i den.
             val sendte = tac.datadelingFakeKlient.sendteMeldekortvedtak.toList()
@@ -103,7 +103,7 @@ class MeldekortvedtakAggregatTest {
             repo.hentMeldekortvedtakIderMedNotatSomSkalJournalføres(limit = 10) shouldBe listOf(eldst, nyest)
             repo.hentMeldekortvedtakIderMedNotatSomSkalJournalføres(limit = 1) shouldBe listOf(eldst)
 
-            tac.journalførJournalnotatService.journalførNotater()
+            tac.journalnotatContext.journalførJournalnotatJobb.journalførNotater()
 
             repo.hentMeldekortvedtakIderMedNotatSomSkalJournalføres(limit = 10).shouldBeEmpty()
             repo.hentForVedtakId(eldst)!!.journalføringsnotat.shouldNotBeNull()
@@ -132,7 +132,7 @@ class MeldekortvedtakAggregatTest {
             repo.hentMeldekortvedtakSomSkalDistribueres(limit = 1).map { it.id } shouldBe listOf(eldst)
             repo.hentMeldekortvedtakSomSkalDistribueres(limit = 10).first().journalpostId shouldBe repo.hentForVedtakId(eldst)!!.journalpostId
 
-            tac.utbetalingContext.distribuerMeldekortvedtaksbrevService.distribuer()
+            tac.utbetalingContext.distribuerMeldekortvedtaksbrevJobb.distribuer()
 
             repo.hentMeldekortvedtakSomSkalDistribueres(limit = 10).shouldBeEmpty()
             repo.hentForVedtakId(eldst)!!.let {
