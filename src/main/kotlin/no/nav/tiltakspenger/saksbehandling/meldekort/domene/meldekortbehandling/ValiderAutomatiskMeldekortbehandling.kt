@@ -34,12 +34,7 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
     val behandledeMeldekort = this.meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId] ?: emptyList()
 
     if (behandledeMeldekort.isNotEmpty()) {
-        validerKanKorrigeresAutomatisk(
-            behandledeMeldekort = behandledeMeldekort,
-            brukersMeldekort = brukersMeldekort,
-            erKorrigeringEtterEndretRett = erKorrigeringEtterEndretRett(brukersMeldekort),
-            clock = clock,
-        ).onLeft { return it.left() }
+        brukersMeldekort.validerKanKorrigeresAutomatisk(behandledeMeldekort, clock).onLeft { return it.left() }
     }
 
     if (brukersMeldekort.harRegistrertHelg() && !this.kanSendeInnHelgForMeldekort) {
@@ -77,20 +72,21 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
  * Vi sjekker ikke utbetalingsstatusen, siden den kun forteller om Oppdrag har tatt imot utbetalingen og ikke om den er utbetalt.
  * Fristen gjelder ikke en korrigering etter endret rett, se [erKorrigeringEtterEndretRett].
  */
-private fun validerKanKorrigeresAutomatisk(
+private fun BrukersMeldekort.validerKanKorrigeresAutomatisk(
     behandledeMeldekort: List<Meldekortbehandling.Behandlet>,
-    brukersMeldekort: BrukersMeldekort,
-    erKorrigeringEtterEndretRett: Boolean,
     clock: Clock,
 ): Either<MeldekortBehandletAutomatiskStatus, Unit> {
     val førsteIverksettelse = behandledeMeldekort.mapNotNull { it.iverksattTidspunkt }.minOrNull()
-    if (!erKorrigeringEtterEndretRett && førsteIverksettelse != null && !nå(clock).isBefore(fristForKorrigering(førsteIverksettelse))) {
+    if (!erKorrigeringEtterEndretRett(behandledeMeldekort) &&
+        førsteIverksettelse != null &&
+        !nå(clock).isBefore(fristForKorrigering(førsteIverksettelse))
+    ) {
         return MeldekortBehandletAutomatiskStatus.FOR_SENT_Å_KORRIGERE.left()
     }
 
     val automatiskeBehandlinger = behandledeMeldekort.filterIsInstance<MeldekortBehandletAutomatisk>()
     // Fanger også at korrigeringen selv er behandlet, siden den da har samme mottatt-tidspunkt som den behandlede innsendingen.
-    if (automatiskeBehandlinger.any { it.brukersMeldekort.mottatt >= brukersMeldekort.mottatt }) {
+    if (automatiskeBehandlinger.any { it.brukersMeldekort.mottatt >= this.mottatt }) {
         return MeldekortBehandletAutomatiskStatus.NYERE_INNSENDING_ER_BEHANDLET.left()
     }
 
@@ -107,17 +103,15 @@ private fun validerKanKorrigeresAutomatisk(
  * En slik korrigering kan behandles automatisk etter [fristForKorrigering], og selv om simuleringen viser at meldeperioden allerede er utbetalt.
  * De andre kravene til automatisk korrigering gjelder fortsatt, blant annet at simuleringen ikke kan vise feilutbetaling eller justering.
  *
+ * @param behandledeMeldekort behandlingene av kjeden, sortert i behandlingsrekkefølge, se [Meldekortbehandlinger.behandledeMeldekortPerKjede].
  * @return false dersom kjeden ikke er behandlet før, slik at meldekortet ikke er en korrigering.
  */
-fun Sak.erKorrigeringEtterEndretRett(brukersMeldekort: BrukersMeldekort): Boolean {
-    val kjedeId = brukersMeldekort.kjedeId
-    val forrigeMeldeperiode = meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId]
-        ?.last()
+fun BrukersMeldekort.erKorrigeringEtterEndretRett(behandledeMeldekort: List<Meldekortbehandling.Behandlet>): Boolean {
+    val forrigeMeldeperiode = behandledeMeldekort.lastOrNull()
         ?.meldeperioder
         ?.single { it.kjedeId == kjedeId }
         ?.meldeperiode
         ?: return false
-    val meldeperiode = brukersMeldekort.meldeperiode
 
     return meldeperiode.versjon > forrigeMeldeperiode.versjon &&
         meldeperiode.harFlereDagerMedRettEllerNyttAntallDager(forrigeMeldeperiode)
