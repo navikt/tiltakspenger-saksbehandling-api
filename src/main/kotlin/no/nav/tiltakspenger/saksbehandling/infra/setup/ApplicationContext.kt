@@ -11,8 +11,10 @@ import no.nav.tiltakspenger.libs.persistering.infra.SessionCounter
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasHttpClient
 import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.ArenaStatistikkPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaHttpClient
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.jobb.HentArenaStatistikkJobb
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsmaskinClient
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinHttpClient
@@ -176,6 +178,14 @@ open class ApplicationContext(
                 texasClient = texasClient,
                 audienceTarget = Configuration.tiltakspengerArenaScope,
             ),
+            clock = clock,
+        )
+    }
+
+    val hentArenaStatistikkJobb: HentArenaStatistikkJobb by lazy {
+        HentArenaStatistikkJobb(
+            tiltakspengerArenaClient = tiltakspengerArenaClient,
+            arenaStatistikkRepo = ArenaStatistikkPostgresRepo(sessionFactory as PostgresSessionFactory),
             clock = clock,
         )
     }

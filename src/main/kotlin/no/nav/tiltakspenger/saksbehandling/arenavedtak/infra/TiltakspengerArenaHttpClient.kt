@@ -14,15 +14,17 @@ import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaStatistikkForMåned
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
 import java.net.URI
 import java.time.Clock
 import java.time.LocalDate
+import java.time.YearMonth
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * Klient mot tiltakspenger-arena for å hente tiltakspengevedtak fra Arena.
+ * Klient mot tiltakspenger-arena for å hente tiltakspengevedtak og statistikk fra Arena.
  *
  * Kildekode: https://github.com/navikt/tiltakspenger-arena
  * Dokumentasjon: README-en i kildekode-repoet
@@ -48,6 +50,7 @@ class TiltakspengerArenaHttpClient(
     )
 
     private val uri = URI.create("$baseUrl/azure/tiltakspenger/vedtak")
+    private val statistikkUri = "$baseUrl/azure/tiltakspenger/statistikk/per-maned"
 
     override suspend fun hentTiltakspengevedtakFraArena(
         fnr: Fnr,
@@ -69,6 +72,31 @@ class TiltakspengerArenaHttpClient(
             it.body.map(ArenaTPVedtakDto::toDomain)
         }
     }
+
+    override suspend fun hentStatistikkPerMåned(år: Int): Either<HttpKlientError, List<ArenaStatistikkForMåned>> {
+        return httpKlient.getJson<List<StatistikkForMånedDto>>(
+            uri = URI.create("$statistikkUri?aar=$år"),
+            godta = Statusregel.Eksakt(200),
+        ).map { svar -> svar.body.map { it.toDomain() } }
+    }
+}
+
+private data class StatistikkForMånedDto(
+    val måned: String,
+    val sakerMedRett: Int,
+    val nyeRettigheter: Int,
+    val gjenopptak: Int,
+    val endringer: Int,
+    val stans: Int,
+) {
+    fun toDomain() = ArenaStatistikkForMåned(
+        måned = YearMonth.parse(måned),
+        sakerMedRett = sakerMedRett,
+        nyeRettigheter = nyeRettigheter,
+        gjenopptak = gjenopptak,
+        endringer = endringer,
+        stans = stans,
+    )
 }
 
 /** Kun ment brukt av testene utenfor denne fila. */

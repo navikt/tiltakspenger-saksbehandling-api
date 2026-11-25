@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaStatistikkForMåned
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
 
 interface TiltakspengerArenaClient {
@@ -13,4 +14,6 @@ interface TiltakspengerArenaClient {
         periode: Periode,
         correlationId: CorrelationId,
     ): Either<HttpKlientError, List<ArenaTPVedtak>>
+
+    suspend fun hentStatistikkPerMåned(år: Int): Either<HttpKlientError, List<ArenaStatistikkForMåned>>
 }

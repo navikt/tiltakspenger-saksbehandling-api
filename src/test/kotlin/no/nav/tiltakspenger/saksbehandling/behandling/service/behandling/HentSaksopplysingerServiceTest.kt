@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakstype
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testdeltakelse
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaStatistikkForMåned
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelseDetErSøktTiltakspengerFor
@@ -120,6 +121,8 @@ class HentSaksopplysingerServiceTest {
                     periode: Periode,
                     correlationId: CorrelationId,
                 ) = emptyList<ArenaTPVedtak>().right()
+
+                override suspend fun hentStatistikkPerMåned(år: Int) = emptyList<ArenaStatistikkForMåned>().right()
             }
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
@@ -271,6 +274,8 @@ class HentSaksopplysingerServiceTest {
                     periode: Periode,
                     correlationId: CorrelationId,
                 ) = emptyList<ArenaTPVedtak>().right()
+
+                override suspend fun hentStatistikkPerMåned(år: Int) = emptyList<ArenaStatistikkForMåned>().right()
             }
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
@@ -422,6 +427,8 @@ class HentSaksopplysingerServiceTest {
                         vedtakId = 123L,
                     ),
                 ).right()
+
+                override suspend fun hentStatistikkPerMåned(år: Int) = emptyList<ArenaStatistikkForMåned>().right()
             }
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
@@ -588,6 +595,8 @@ class HentSaksopplysingerServiceTest {
                     periode: Periode,
                     correlationId: CorrelationId,
                 ) = emptyList<ArenaTPVedtak>().right()
+
+                override suspend fun hentStatistikkPerMåned(år: Int) = emptyList<ArenaStatistikkForMåned>().right()
             }
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
@@ -772,6 +781,8 @@ class HentSaksopplysingerServiceTest {
                     periode: Periode,
                     correlationId: CorrelationId,
                 ) = emptyList<ArenaTPVedtak>().right()
+
+                override suspend fun hentStatistikkPerMåned(år: Int) = emptyList<ArenaStatistikkForMåned>().right()
             }
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
@@ -1041,6 +1052,8 @@ class HentSaksopplysingerServiceTest {
                     periode: Periode,
                     correlationId: CorrelationId,
                 ) = arenavedtak
+
+                override suspend fun hentStatistikkPerMåned(år: Int) = emptyList<ArenaStatistikkForMåned>().right()
             },
             clock = Clock.fixed(1.februar(2023).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC),
             tiltaksdeltakerRepo = tiltaksdeltakerRepo,

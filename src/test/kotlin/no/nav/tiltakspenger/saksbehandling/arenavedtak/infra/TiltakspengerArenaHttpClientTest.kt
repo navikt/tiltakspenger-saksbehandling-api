@@ -9,11 +9,13 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaStatistikkForMåned
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
 
 class TiltakspengerArenaHttpClientTest {
     private val baseUrl = "http://arena.test"
@@ -84,5 +86,24 @@ class TiltakspengerArenaHttpClientTest {
             val result = client(transport).hentTiltakspengevedtakFraArena(fnr, periode, correlationId)
             result.isLeft() shouldBe true
         }
+    }
+
+    @Test
+    fun `henter statistikk per måned med GET og året som parameter`() {
+        val transport = FakeHttpTransport().apply {
+            leggIKøJson(
+                """[{"måned":"2026-02","sakerMedRett":5,"nyeRettigheter":1,"gjenopptak":2,"endringer":3,"stans":4}]""",
+            )
+        }
+
+        runTest {
+            client(transport).hentStatistikkPerMåned(2026) shouldBe listOf(
+                ArenaStatistikkForMåned(YearMonth.of(2026, 2), 5, 1, 2, 3, 4),
+            ).right()
+        }
+
+        val kall = transport.mottatteKall.single()
+        kall.metode shouldBe "GET"
+        kall.uri.toString() shouldBe "$baseUrl/azure/tiltakspenger/statistikk/per-maned?aar=2026"
     }
 }

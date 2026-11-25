@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaStatistikkForMåned
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
@@ -648,6 +649,11 @@ sealed class TestApplicationContext(
     /** Registrerer vedtakene [TiltakspengerArenaFakeClient] skal svare med for [fnr]. */
     fun leggTilTiltakspengevedtakFraArena(fnr: Fnr, vedtak: List<ArenaTPVedtak>) {
         tiltakspengerArenaFakeClient.leggTilVedtak(fnr = fnr, vedtak = vedtak)
+    }
+
+    /** Registrerer statistikken [TiltakspengerArenaFakeClient] skal svare med for [år]. */
+    fun leggTilStatistikkFraArena(år: Int, statistikk: List<ArenaStatistikkForMåned>) {
+        tiltakspengerArenaFakeClient.leggTilStatistikk(år = år, statistikk = statistikk)
     }
 
     /** Registrerer ytelsene [SokosUtbetaldataFakeClient] skal svare med for [fnr]. */
