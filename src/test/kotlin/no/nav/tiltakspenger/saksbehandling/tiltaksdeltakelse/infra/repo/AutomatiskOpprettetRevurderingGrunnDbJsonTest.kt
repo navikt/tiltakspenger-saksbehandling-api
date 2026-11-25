@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOp
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -22,7 +21,6 @@ import java.time.LocalDateTime
  * Testen pinner **den faktiske json-en** som havner i kolonnen, ikke bare rundturen.
  * Db-typene er `private`, så json-strengen er den eneste kontrakten som er synlig utenfra — og den er kontrakten mot rader som allerede er lagret.
  */
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AutomatiskOpprettetRevurderingGrunnDbJsonTest {
 
     private val tiltaksdeltakerId = TiltaksdeltakerId.fromString("tiltaksdeltaker_01JQ8Z4XW9K5N2P7R3T6V8Y1BC")

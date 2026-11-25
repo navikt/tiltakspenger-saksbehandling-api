@@ -79,7 +79,7 @@ Slik ser den ut i dette repoet:
 - **Testhjelpere som ikke hører i prodkoden ligger i `*TestEx.kt` ved siden av typen de gjelder.**
   `BegrunnelseTestEx.kt` og `BarnetilleggTestEx.kt` er bekvemmelighetskonstruktører som companion-extensions, `StatistikkTestEx.kt` og `TiltaksdeltakerHendelseTestEx.kt` er databaseoppslag kun tester trenger.
   Repoet har null `@TestOnly` i `src/main`, og det skal det fortsette å ha.
-- **Rene mappinger testes som enhetstester som pinner den lagrede strengen eller json-en**, ikke bare rundturen — se «Row hører i databasetesten, ren mapping i enhetstesten» i AGENTS-backend.md i metarepoet `tiltakspenger`.
+- **Rene mappinger testes som enhetstester som låser fast den lagrede strengen eller json-en**, ikke bare rundturen — se «Row hører i databasetesten, ren mapping i enhetstesten» i AGENTS-backend.md i metarepoet `tiltakspenger`.
   `HjemmelForOpphørDbTest` og `TiltakDeltakerstatusDbTest` er mønsterfilene.
 
 ## Utbetalingskvitteringer
