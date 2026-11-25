@@ -9,6 +9,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.jobber.TaskResultat
 import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.ArenaStatistikkRepo
@@ -21,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.uventetStatus
+import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -103,20 +105,25 @@ class HentArenaStatistikkJobbTest {
 
     @Test
     @IsolatedDatabaseTest
-    fun `henter i år og i fjor, venter et døgn og skriver over månedene`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+    fun `henter fra 2024 til og med neste år, venter et døgn og skriver over månedene`() {
+        withTestApplicationContextAndPostgres(
+            clock = TikkendeKlokke(fixedClockAt(1.januar(2026))),
+            runIsolated = true,
+        ) { tac ->
             tac.leggTilStatistikkFraArena(2024, listOf(statistikk("2024-12", 10)))
             tac.leggTilStatistikkFraArena(2025, listOf(statistikk("2025-01", 20)))
+            tac.leggTilStatistikkFraArena(2026, listOf(statistikk("2026-01", 40)))
+            tac.leggTilStatistikkFraArena(2027, listOf(statistikk("2027-01", 50)))
 
             tac.hentArenaStatistikkJobb.hentOgLagre() shouldBe TaskResultat.Ferdig
-            tac.lagrede() shouldBe listOf("2024-12" to 10, "2025-01" to 20)
+            tac.lagrede() shouldBe listOf("2024-12" to 10, "2025-01" to 20, "2026-01" to 40, "2027-01" to 50)
 
             tac.leggTilStatistikkFraArena(2025, listOf(statistikk("2025-01", 21), statistikk("2025-02", 30)))
             tac.hentArenaStatistikkJobb.hentOgLagre() shouldBe TaskResultat.IngenArbeid
 
             tac.clock.spolFrem(25.hours)
             tac.hentArenaStatistikkJobb.hentOgLagre() shouldBe TaskResultat.Ferdig
-            tac.lagrede() shouldBe listOf("2024-12" to 10, "2025-01" to 21, "2025-02" to 30)
+            tac.lagrede() shouldBe listOf("2024-12" to 10, "2025-01" to 21, "2025-02" to 30, "2026-01" to 40, "2027-01" to 50)
         }
     }
 
@@ -158,24 +165,35 @@ class HentArenaStatistikkJobbTest {
 
     @Test
     @IsolatedDatabaseTest
-    fun `henter utbetalinger i år og i fjor, venter et døgn og skriver over månedene`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val iÅr = LocalDate.now(tac.clock).year
-            tac.leggTilUtbetalingerFraArena(iÅr - 1, listOf(utbetalinger("${iÅr - 1}-12", "5700.00")))
-            tac.leggTilUtbetalingerFraArena(iÅr, listOf(utbetalinger("$iÅr-01", "2850.00")))
+    fun `henter utbetalinger fra 2024 til og med neste år, venter et døgn og skriver over månedene`() {
+        withTestApplicationContextAndPostgres(
+            clock = TikkendeKlokke(fixedClockAt(1.januar(2026))),
+            runIsolated = true,
+        ) { tac ->
+            tac.leggTilUtbetalingerFraArena(2024, listOf(utbetalinger("2024-12", "5700.00")))
+            tac.leggTilUtbetalingerFraArena(2025, listOf(utbetalinger("2025-01", "2850.00")))
+            tac.leggTilUtbetalingerFraArena(2026, listOf(utbetalinger("2026-01", "2850.00")))
+            tac.leggTilUtbetalingerFraArena(2027, listOf(utbetalinger("2027-01", "2850.00")))
 
             tac.hentArenaStatistikkJobb.hentOgLagreUtbetalinger() shouldBe TaskResultat.Ferdig
-            tac.lagredeUtbetalinger() shouldBe listOf(utbetalinger("${iÅr - 1}-12", "5700.00"), utbetalinger("$iÅr-01", "2850.00"))
+            tac.lagredeUtbetalinger() shouldBe listOf(
+                utbetalinger("2024-12", "5700.00"),
+                utbetalinger("2025-01", "2850.00"),
+                utbetalinger("2026-01", "2850.00"),
+                utbetalinger("2027-01", "2850.00"),
+            )
 
-            tac.leggTilUtbetalingerFraArena(iÅr, listOf(utbetalinger("$iÅr-01", "2900.00"), utbetalinger("$iÅr-02", "1425.00")))
+            tac.leggTilUtbetalingerFraArena(2025, listOf(utbetalinger("2025-01", "2900.00"), utbetalinger("2025-02", "1425.00")))
             tac.hentArenaStatistikkJobb.hentOgLagreUtbetalinger() shouldBe TaskResultat.IngenArbeid
 
             tac.clock.spolFrem(25.hours)
             tac.hentArenaStatistikkJobb.hentOgLagreUtbetalinger() shouldBe TaskResultat.Ferdig
             tac.lagredeUtbetalinger() shouldBe listOf(
-                utbetalinger("${iÅr - 1}-12", "5700.00"),
-                utbetalinger("$iÅr-01", "2900.00"),
-                utbetalinger("$iÅr-02", "1425.00"),
+                utbetalinger("2024-12", "5700.00"),
+                utbetalinger("2025-01", "2900.00"),
+                utbetalinger("2025-02", "1425.00"),
+                utbetalinger("2026-01", "2850.00"),
+                utbetalinger("2027-01", "2850.00"),
             )
         }
     }

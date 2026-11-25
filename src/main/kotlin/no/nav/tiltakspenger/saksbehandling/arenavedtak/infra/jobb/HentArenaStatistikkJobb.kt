@@ -15,9 +15,9 @@ import java.time.LocalDate
 import kotlin.time.Duration.Companion.hours
 
 /**
- * Henter statistikken over saker og vedtak i Arena for i år og i fjor, og lagrer den i `arena_statistikk_per_maned`.
+ * Henter statistikken over saker og vedtak i Arena fra 2024 til og med neste år, og lagrer den i `arena_statistikk_per_maned`.
  * Henter også saker og personer i Arena fordelt på siste dag med rett etter [ArenaSisteDagMedRettEtter.startdato], og lagrer dem i `arena_siste_dag_med_rett`.
- * Henter også utbetalingene i Arena for i år og i fjor, og lagrer dem i `arena_utbetalinger_per_maned`.
+ * Henter også utbetalingene i Arena fra 2024 til og med neste år, og lagrer dem i `arena_utbetalinger_per_maned`.
  * Henter på nytt når siste henting er mer enn et døgn gammel, fordi vedtak kan registreres i Arena med virkning bakover i tid.
  * Kan fjernes når de siste sakene i Arena er avsluttet og tallene har sluttet å endre seg.
  */
@@ -33,8 +33,7 @@ class HentArenaStatistikkJobb(
         val sistHentet = arenaStatistikkRepo.sistHentet()
         if (sistHentet != null && sistHentet.plusSeconds(24 * 60 * 60) > nå) return TaskResultat.IngenArbeid
 
-        val iÅr = LocalDate.now(clock).year
-        val statistikk = listOf(iÅr - 1, iÅr).map { år ->
+        val statistikk = (2024..(LocalDate.now(clock).year + 1)).map { år ->
             tiltakspengerArenaClient.hentStatistikkPerMåned(år).getOrElse {
                 logger.error { "Kunne ikke hente statistikk for $år fra tiltakspenger-arena: $it" }
                 return TaskResultat.Feilet
@@ -65,8 +64,7 @@ class HentArenaStatistikkJobb(
         val sistHentet = arenaStatistikkRepo.utbetalingerSistHentet()
         if (sistHentet != null && sistHentet.plusSeconds(24 * 60 * 60) > nå) return TaskResultat.IngenArbeid
 
-        val iÅr = LocalDate.now(clock).year
-        val statistikk = listOf(iÅr - 1, iÅr).map { år ->
+        val statistikk = (2024..(LocalDate.now(clock).year + 1)).map { år ->
             tiltakspengerArenaClient.hentUtbetalingerPerMåned(år).getOrElse {
                 logger.error { "Kunne ikke hente utbetalinger for $år fra tiltakspenger-arena: $it" }
                 return TaskResultat.Feilet
