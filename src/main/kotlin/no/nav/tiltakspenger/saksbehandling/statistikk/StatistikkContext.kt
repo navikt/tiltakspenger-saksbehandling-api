@@ -30,6 +30,6 @@ open class StatistikkContext(
     }
 
     val synkroniserTiltakstypekodeverkJobb: SynkroniserTiltakstypekodeverkJobb by lazy {
-        SynkroniserTiltakstypekodeverkJobb(statistikkService = statistikkService)
+        SynkroniserTiltakstypekodeverkJobb(statistikkRepo = statistikkRepo)
     }
 }

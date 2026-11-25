@@ -137,6 +137,7 @@ open class MeldekortContext(
             oppgaveKlient = oppgaveKlient,
             statistikkService = statistikkService,
             korrelasjon = MdcKorrelasjon(),
+            clock = clock,
         )
     }
 

@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.statistikk.kodeverk
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.jobber.TaskResultat
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
@@ -21,10 +22,10 @@ class StatistikkKodeverkTiltakstypeTest {
     @IsolatedDatabaseTest
     fun `synkroniseringen fyller kodeverket fra koden én gang per pod`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val service = tac.statistikkContext.statistikkService
+            val jobb = tac.statistikkContext.synkroniserTiltakstypekodeverkJobb
 
-            service.synkroniserTiltakstypekodeverk() shouldBe true
-            service.synkroniserTiltakstypekodeverk() shouldBe false
+            jobb.synkroniser() shouldBe TaskResultat.Ferdig
+            jobb.synkroniser() shouldBe TaskResultat.IngenArbeid
 
             val rader = tac.hentTiltakstypekodeverk()
             rader.map { it.rad } shouldContainExactlyInAnyOrder gjeldendeTiltakstypekodeverk()

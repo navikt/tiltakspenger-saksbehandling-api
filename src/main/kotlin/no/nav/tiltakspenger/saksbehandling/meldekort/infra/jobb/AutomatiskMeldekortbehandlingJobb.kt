@@ -60,6 +60,7 @@ class AutomatiskMeldekortbehandlingJobb(
     private val oppgaveKlient: OppgaveKlient,
     private val statistikkService: StatistikkService,
     private val korrelasjon: Korrelasjon,
+    private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger { }
 
@@ -70,6 +71,9 @@ class AutomatiskMeldekortbehandlingJobb(
     @Volatile
     private var pauseTil: LocalDateTime? = null
 
+    suspend fun behandleBrukersMeldekort() = behandleBrukersMeldekort(clock)
+
+    /** Tar egen [clock] for tester som må hoppe fram og tilbake i tid. */
     suspend fun behandleBrukersMeldekort(clock: Clock) {
         if (pauseTil?.let { nå(clock) < it } == true) {
             return
@@ -397,12 +401,12 @@ class AutomatiskMeldekortbehandlingJobb(
     }
 }
 
-fun (() -> AutomatiskMeldekortbehandlingJobb).tasks(clock: Clock): List<Task> {
+fun (() -> AutomatiskMeldekortbehandlingJobb).tasks(): List<Task> {
     return listOf(
         Task(
             navn = "saksbehandling-jobb-automatisk-meldekortbehandling",
             utfør = { _ ->
-                this().behandleBrukersMeldekort(clock)
+                this().behandleBrukersMeldekort()
                 TaskResultat.Ferdig
             },
         ),

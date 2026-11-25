@@ -39,7 +39,7 @@ fun ApplicationContext.jobber(isNais: Boolean): List<Task> {
         { klagebehandlingContext.oversendKlageTilKlageinstansJobb }.tasks(),
         { klagebehandlingContext.knyttKlageinstansHendelseTilKlagebehandlingJobb }.tasks(),
         { meldekortContext.sendTilMeldekortApiJobb }.tasks(),
-        { meldekortContext.automatiskMeldekortbehandlingJobb }.tasks(clock),
+        { meldekortContext.automatiskMeldekortbehandlingJobb }.tasks(),
         { behandlingContext.oppdatertTiltaksdeltakelseJobb }.tasks(),
         { behandlingContext.delautomatiskRevurderingJobb }.tasks(),
         { statistikkContext.synkroniserTiltakstypekodeverkJobb }.tasks(),
