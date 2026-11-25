@@ -14,8 +14,10 @@ import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaSisteDagMedRettEtter
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaStatistikkForMåned
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaUtbetalingerForMåned
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
@@ -654,6 +656,16 @@ sealed class TestApplicationContext(
     /** Registrerer statistikken [TiltakspengerArenaFakeClient] skal svare med for [år]. */
     fun leggTilStatistikkFraArena(år: Int, statistikk: List<ArenaStatistikkForMåned>) {
         tiltakspengerArenaFakeClient.leggTilStatistikk(år = år, statistikk = statistikk)
+    }
+
+    /** Setter fordelingen på siste dag med rett [TiltakspengerArenaFakeClient] skal svare med. */
+    fun settSisteDagMedRettFraArena(fordeling: ArenaSisteDagMedRettEtter) {
+        tiltakspengerArenaFakeClient.settSisteDagMedRett(fordeling)
+    }
+
+    /** Registrerer utbetalingene [TiltakspengerArenaFakeClient] skal svare med for [år]. */
+    fun leggTilUtbetalingerFraArena(år: Int, utbetalinger: List<ArenaUtbetalingerForMåned>) {
+        tiltakspengerArenaFakeClient.leggTilUtbetalinger(år = år, utbetalinger = utbetalinger)
     }
 
     /** Registrerer ytelsene [SokosUtbetaldataFakeClient] skal svare med for [fnr]. */

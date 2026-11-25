@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling
 
 import no.nav.tiltakspenger.libs.jobber.TaskGruppe
 import no.nav.tiltakspenger.libs.ktor.common.oppstart.Task
-import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.jobb.tasks
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.jobb.taskGruppe
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.jobb.tasks
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.jobb.tasks
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
@@ -51,13 +51,16 @@ fun ApplicationContext.jobber(isNais: Boolean): List<Task> {
         { personhendelseContext.personhendelseJobb }.tasks(),
         { identhendelseContext.identhendelseJobb }.tasks(),
         { tilbakekrevingContext.behandleTilbakekrevingHendelserJobb }.tasks(),
-        { hentArenaStatistikkJobb }.tasks(),
     )
     return (alltid + if (isNais) bareINais else emptyList()).flatten()
 }
 
-fun ApplicationContext.taskGrupper(): List<TaskGruppe> {
-    return listOf(
+fun ApplicationContext.taskGrupper(isNais: Boolean): List<TaskGruppe> {
+    val alltid = listOf(
         { utbetalingContext.oppdaterUtbetalingsoversiktJobb }.taskGruppe(),
     )
+    val bareINais = listOf(
+        { hentArenaStatistikkJobb }.taskGruppe(),
+    )
+    return alltid + if (isNais) bareINais else emptyList()
 }

@@ -26,8 +26,10 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakstype
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testdeltakelse
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaSisteDagMedRettEtter
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaStatistikkForMåned
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaUtbetalingerForMåned
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelseDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
@@ -123,6 +125,10 @@ class HentSaksopplysingerServiceTest {
                 ) = emptyList<ArenaTPVedtak>().right()
 
                 override suspend fun hentStatistikkPerMåned(år: Int) = emptyList<ArenaStatistikkForMåned>().right()
+
+                override suspend fun hentSisteDagMedRettEtter(etter: LocalDate) = ArenaSisteDagMedRettEtter(etter, emptyList()).right()
+
+                override suspend fun hentUtbetalingerPerMåned(år: Int) = emptyList<ArenaUtbetalingerForMåned>().right()
             }
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
@@ -276,6 +282,10 @@ class HentSaksopplysingerServiceTest {
                 ) = emptyList<ArenaTPVedtak>().right()
 
                 override suspend fun hentStatistikkPerMåned(år: Int) = emptyList<ArenaStatistikkForMåned>().right()
+
+                override suspend fun hentSisteDagMedRettEtter(etter: LocalDate) = ArenaSisteDagMedRettEtter(etter, emptyList()).right()
+
+                override suspend fun hentUtbetalingerPerMåned(år: Int) = emptyList<ArenaUtbetalingerForMåned>().right()
             }
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
@@ -429,6 +439,10 @@ class HentSaksopplysingerServiceTest {
                 ).right()
 
                 override suspend fun hentStatistikkPerMåned(år: Int) = emptyList<ArenaStatistikkForMåned>().right()
+
+                override suspend fun hentSisteDagMedRettEtter(etter: LocalDate) = ArenaSisteDagMedRettEtter(etter, emptyList()).right()
+
+                override suspend fun hentUtbetalingerPerMåned(år: Int) = emptyList<ArenaUtbetalingerForMåned>().right()
             }
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
@@ -597,6 +611,10 @@ class HentSaksopplysingerServiceTest {
                 ) = emptyList<ArenaTPVedtak>().right()
 
                 override suspend fun hentStatistikkPerMåned(år: Int) = emptyList<ArenaStatistikkForMåned>().right()
+
+                override suspend fun hentSisteDagMedRettEtter(etter: LocalDate) = ArenaSisteDagMedRettEtter(etter, emptyList()).right()
+
+                override suspend fun hentUtbetalingerPerMåned(år: Int) = emptyList<ArenaUtbetalingerForMåned>().right()
             }
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
@@ -783,6 +801,10 @@ class HentSaksopplysingerServiceTest {
                 ) = emptyList<ArenaTPVedtak>().right()
 
                 override suspend fun hentStatistikkPerMåned(år: Int) = emptyList<ArenaStatistikkForMåned>().right()
+
+                override suspend fun hentSisteDagMedRettEtter(etter: LocalDate) = ArenaSisteDagMedRettEtter(etter, emptyList()).right()
+
+                override suspend fun hentUtbetalingerPerMåned(år: Int) = emptyList<ArenaUtbetalingerForMåned>().right()
             }
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
@@ -1054,6 +1076,10 @@ class HentSaksopplysingerServiceTest {
                 ) = arenavedtak
 
                 override suspend fun hentStatistikkPerMåned(år: Int) = emptyList<ArenaStatistikkForMåned>().right()
+
+                override suspend fun hentSisteDagMedRettEtter(etter: LocalDate) = ArenaSisteDagMedRettEtter(etter, emptyList()).right()
+
+                override suspend fun hentUtbetalingerPerMåned(år: Int) = emptyList<ArenaUtbetalingerForMåned>().right()
             },
             clock = Clock.fixed(1.februar(2023).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC),
             tiltaksdeltakerRepo = tiltaksdeltakerRepo,

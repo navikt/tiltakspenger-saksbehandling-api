@@ -75,7 +75,7 @@ fun bakgrunnsprosessoppsett(applicationContext: ApplicationContext, isNais: Bool
         clock = applicationContext.clock,
         meterRegistry = applicationContext.meterRegistry,
         tasks = applicationContext.jobber(isNais = isNais),
-        taskGrupper = applicationContext.taskGrupper(),
+        taskGrupper = applicationContext.taskGrupper(isNais = isNais),
     ),
     kafkaConsumers = kafkaConsumers(isNais = isNais, applicationContext = applicationContext),
 )

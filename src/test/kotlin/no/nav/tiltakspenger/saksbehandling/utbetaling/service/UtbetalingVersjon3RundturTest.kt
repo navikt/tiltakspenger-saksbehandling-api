@@ -13,9 +13,12 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.Utbetalingsmålinger
 import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.migrerTilOppdragsversjon3
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeBehandleUtbetalingskvittering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingskobling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingskvitteringId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingskvitteringRepo
@@ -37,17 +40,29 @@ class UtbetalingVersjon3RundturTest {
 
     @Test
     @IsolatedDatabaseTest
-    fun `utbetalingen produseres på kafka, statusen fra Hel Ved lagres, og neste utbetaling tar med forrige meldeperiode`() {
-        withTestApplicationContextAndPostgres(
-            runIsolated = true,
-            oppdragsversjonForNyeSaker = Oppdragsversjon.V3,
-        ) { tac ->
+    fun `migrert sak kobler V3-statuser til utbetalingen uten V2-statuspolling`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak) = iverksettSøknadsbehandling(tac = tac, jobber = JobberEtterIverksettelse.ingen)
             val jobber = JobberEtterIverksettelse(oppdaterUtbetalingsstatus = false)
-            val (_, førsteVedtak) = opprettOgIverksettMeldekortbehandling(
+            val (_, v2Vedtak) = opprettOgIverksettMeldekortbehandling(
                 tac = tac,
                 sakId = sak.id,
                 kjedeId = sak.meldeperiodeKjeder[0].kjedeId,
+                jobber = jobber,
+            )!!
+            tac.utbetalingContext.meldekortvedtakRepo.hentForVedtakId(v2Vedtak.id)!!.utbetaling.status shouldBe null
+            tac.utbetalingContext.oppdaterUtbetalingsstatusJobb.oppdaterUtbetalingsstatus()
+            tac.utbetalingContext.meldekortvedtakRepo.hentForVedtakId(v2Vedtak.id)!!.utbetaling.status shouldBe Utbetalingsstatus.Ok
+
+            migrerTilOppdragsversjon3(tac, sak.id)!!.contains(""""oppdragsversjon":"V3"""") shouldBe true
+            tac.utbetalingFakeKlient.simulering = SimuleringMedMetadata(Simulering.IngenEndring(nå(tac.clock)), "{}")
+            tac.utbetalingContext.opphevUtbetalingssperrerJobb.opphevUtbetalingssperre(sak.id)
+            tac.utbetalingContext.utbetalingRepo.hentOppdragstilstand(sak.id).sperrerUtbetalinger shouldBe false
+
+            val (_, førsteVedtak) = opprettOgIverksettMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
                 jobber = jobber,
             )!!
             val repo = tac.utbetalingContext.meldekortvedtakRepo
@@ -58,7 +73,10 @@ class UtbetalingVersjon3RundturTest {
 
             val førsteMelding = tac.utbetalingFakeProducer.produserteUtbetalinger.getValue(utbetalingId)
             deserialize<HelvedUtbetalingDTO>(førsteMelding).sakId shouldBe sak.saksnummer.toString()
-            meldeperioder(førsteMelding) shouldBe listOf(sak.meldeperiodeKjeder[0].kjedeId.toString())
+            meldeperioder(førsteMelding) shouldBe sak.meldeperiodeKjeder.take(2).map { it.kjedeId.toString() }
+
+            tac.utbetalingContext.oppdaterUtbetalingsstatusJobb.oppdaterUtbetalingsstatus()
+            repo.hentForVedtakId(førsteVedtak.id)!!.utbetaling.status shouldBe null
 
             var offset = 0L
 
@@ -110,12 +128,12 @@ class UtbetalingVersjon3RundturTest {
             val (_, andreVedtak) = opprettOgIverksettMeldekortbehandling(
                 tac = tac,
                 sakId = sak.id,
-                kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
+                kjedeId = sak.meldeperiodeKjeder[2].kjedeId,
                 jobber = jobber,
             )!!
 
             val andreMelding = tac.utbetalingFakeProducer.produserteUtbetalinger.getValue(andreVedtak.utbetaling.id)
-            meldeperioder(andreMelding) shouldBe sak.meldeperiodeKjeder.take(2).map { it.kjedeId.toString() }
+            meldeperioder(andreMelding) shouldBe sak.meldeperiodeKjeder.take(3).map { it.kjedeId.toString() }
         }
     }
 
