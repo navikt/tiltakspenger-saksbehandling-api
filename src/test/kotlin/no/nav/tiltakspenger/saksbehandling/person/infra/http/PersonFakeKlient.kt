@@ -8,7 +8,6 @@ import arrow.core.right
 import io.github.serpro69.kfaker.faker
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
-import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.EndringsMetadata
 import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.ForelderBarnRelasjon
 import no.nav.tiltakspenger.libs.personklient.infra.pdl.dto.ForelderBarnRelasjonRolle
@@ -22,20 +21,35 @@ import no.nav.tiltakspenger.saksbehandling.person.Personident
 import java.time.Clock
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.random.Random
 
 class PersonFakeKlient(private val clock: Clock) : PersonKlient {
     private val data = Atomic(mutableMapOf<Fnr, EnkelPerson>())
+
+    /** Barna som er gitt ut som barn av en forelder, slik at [hentEnkelPerson] kan gi dem barnealder. */
+    private val kjenteBarn = ConcurrentHashMap.newKeySet<Fnr>()
 
     private val kall = Atomic(mutableListOf<Fnr>())
     val antallKall: Int get() = kall.get().size
     val alleKall: List<Fnr> get() = kall.get().toList()
 
     override suspend fun hentEnkelPerson(fnr: Fnr): EnkelPerson =
-        data.get()[fnr] ?: personopplysningerSøkerFake(fnr)
+        data.get()[fnr] ?: if (fnr in kjenteBarn) enkelPersonFake(fnr) else personopplysningerSøkerFake(fnr)
 
     override suspend fun hentPersonSineForelderBarnRelasjoner(fnr: Fnr): List<ForelderBarnRelasjon> {
-        return forelderBarnRelasjonFake()
+        return barnAv(fnr).map { forelderBarnRelasjonFake(it) }
+    }
+
+    /**
+     * Barna til en forelder er de samme for hvert kall, også etter omstart, siden de utledes av forelderens fnr.
+     * Prefiksene gir barna adressebeskyttelse via [enkelPersonFake]: 1 ugradert, 2 fortrolig og 3 strengt fortrolig.
+     */
+    fun barnAv(forelder: Fnr): List<Fnr> {
+        val random = Random(forelder.verdi.toLong())
+        return listOf('1', '2', '3')
+            .map { prefiks -> Fnr.fromString("$prefiks${random.nextLong(10_000_000_000L).toString().padStart(10, '0')}") }
+            .also { kjenteBarn.addAll(it) }
     }
 
     override suspend fun hentPersonBolk(fnrs: List<Fnr>): List<EnkelPerson> =
@@ -92,32 +106,14 @@ class PersonFakeKlient(private val clock: Clock) : PersonKlient {
         )
     }
 
-    private fun forelderBarnRelasjonFake(): List<ForelderBarnRelasjon> {
-        return listOf(
-            ForelderBarnRelasjon(
-                relatertPersonsIdent = Fnr.random().verdi.replaceFirstChar { "1" }, // Ingen adressebeskyttelse, basert på [enkelPersonFake]
-                relatertPersonsRolle = ForelderBarnRelasjonRolle.BARN,
-                minRolleForPerson = ForelderBarnRelasjonRolle.MOR,
-                relatertPersonUtenFolkeregisteridentifikator = null,
-                folkeregistermetadata = null,
-                metadata = EndringsMetadata(emptyList(), "Jungeltelegrafen"),
-            ),
-            ForelderBarnRelasjon(
-                relatertPersonsIdent = Fnr.random().verdi.replaceFirstChar { "2" }, // Fortrolig, basert på [enkelPersonFake]
-                relatertPersonsRolle = ForelderBarnRelasjonRolle.BARN,
-                minRolleForPerson = ForelderBarnRelasjonRolle.MOR,
-                relatertPersonUtenFolkeregisteridentifikator = null,
-                folkeregistermetadata = null,
-                metadata = EndringsMetadata(emptyList(), "Jungeltelegrafen"),
-            ),
-            ForelderBarnRelasjon(
-                relatertPersonsIdent = Fnr.random().verdi.replaceFirstChar { "3" }, // Strengt fortrolig, basert på [enkelPersonFake]
-                relatertPersonsRolle = ForelderBarnRelasjonRolle.BARN,
-                minRolleForPerson = ForelderBarnRelasjonRolle.MOR,
-                relatertPersonUtenFolkeregisteridentifikator = null,
-                folkeregistermetadata = null,
-                metadata = EndringsMetadata(emptyList(), "Jungeltelegrafen"),
-            ),
+    private fun forelderBarnRelasjonFake(barn: Fnr): ForelderBarnRelasjon {
+        return ForelderBarnRelasjon(
+            relatertPersonsIdent = barn.verdi,
+            relatertPersonsRolle = ForelderBarnRelasjonRolle.BARN,
+            minRolleForPerson = ForelderBarnRelasjonRolle.MOR,
+            relatertPersonUtenFolkeregisteridentifikator = null,
+            folkeregistermetadata = null,
+            metadata = EndringsMetadata(emptyList(), "Jungeltelegrafen"),
         )
     }
 
