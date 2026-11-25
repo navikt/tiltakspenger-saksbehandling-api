@@ -17,9 +17,11 @@ import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonHttpklient
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.EntraProxyClient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.RolleForStrengtFortroligAdresseService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.infra.EntraProxyHttpClient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.infra.MicrosoftGraphApiClient
 import java.time.Clock
+import java.util.UUID
 
 @Suppress("unused")
 open class PersonContext(
@@ -66,6 +68,12 @@ open class PersonContext(
                 audienceTarget = Configuration.entraProxyScope,
             ),
             clock = clock,
+        )
+    }
+    val rolleForStrengtFortroligAdresseService by lazy {
+        RolleForStrengtFortroligAdresseService(
+            entraProxyClient = entraProxyClient,
+            gruppeIdForStrengtFortroligAdresse = UUID.fromString(Configuration.roleStrengtFortroligAdresse),
         )
     }
     open val personRepo: PersonRepo by lazy {

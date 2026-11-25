@@ -13,8 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkB
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkBehandlingType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkFormat
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.maskerHvisStrengtFortrolig
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.maskerHvisStrengtFortroligStrict
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.ansvar
 import java.time.LocalDateTime
 
 /**
@@ -37,8 +36,8 @@ fun Sak.genererSaksstatistikk(
         meldekortbehandling.meldeperioder.first().meldeperiode.rammevedtak.verdier.first(),
     ).rammebehandling.id.toString()
 
-    return GenererSaksstatistikk { gjelderKode6, versjon ->
-        val gjelderKode6 = gjelderKode6(meldekortbehandling.fnr)
+    return GenererSaksstatistikk { skjermingsoppslag, versjon ->
+        val ansvar = skjermingsoppslag.ansvar(fnr = meldekortbehandling.fnr, saksbehandler = meldekortbehandling.saksbehandler, ansvarligBeslutter = meldekortbehandling.beslutter)
         SaksstatistikkDTO(
             sakId = meldekortbehandling.sakId.toString(),
             saksnummer = meldekortbehandling.saksnummer.toString(),
@@ -61,11 +60,10 @@ fun Sak.genererSaksstatistikk(
                 else -> null
             },
             resultatBegrunnelse = null,
-            // skal være -5 for kode 6
-            opprettetAv = maskerHvisStrengtFortroligStrict(gjelderKode6, "system"),
-            saksbehandler = maskerHvisStrengtFortrolig(gjelderKode6, meldekortbehandling.saksbehandler),
-            ansvarligBeslutter = maskerHvisStrengtFortrolig(gjelderKode6, meldekortbehandling.beslutter),
-            ansvarligenhet = maskerHvisStrengtFortroligStrict(gjelderKode6, "0387"),
+            opprettetAv = ansvar.opprettetAv,
+            saksbehandler = ansvar.saksbehandler,
+            ansvarligBeslutter = ansvar.ansvarligBeslutter,
+            ansvarligenhet = ansvar.ansvarligenhet,
             tilbakekrevingsbeløp = null,
             funksjonellPeriodeFom = null,
             funksjonellPeriodeTom = null,

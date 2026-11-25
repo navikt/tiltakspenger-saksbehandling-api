@@ -298,6 +298,7 @@ open class ApplicationContext(
         StatistikkContext(
             sessionFactory,
             personContext.personKlient,
+            personContext.rolleForStrengtFortroligAdresseService,
             gitHash,
             clock,
         )

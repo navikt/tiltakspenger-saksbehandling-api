@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.statistikk
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.RolleForStrengtFortroligAdresseService
 import no.nav.tiltakspenger.saksbehandling.statistikk.infra.jobb.SynkroniserTiltakstypekodeverkJobb
 import no.nav.tiltakspenger.saksbehandling.statistikk.infra.repo.StatistikkPostgresRepo
 import java.time.Clock
@@ -10,6 +11,7 @@ import java.time.Clock
 open class StatistikkContext(
     sessionFactory: SessionFactory,
     personKlient: PersonKlient,
+    rolleForStrengtFortroligAdresseService: RolleForStrengtFortroligAdresseService,
     gitHash: String,
     clock: Clock,
 ) {
@@ -23,6 +25,7 @@ open class StatistikkContext(
     val statistikkService: StatistikkService by lazy {
         StatistikkService(
             personKlient = personKlient,
+            rolleForStrengtFortroligAdresseService = rolleForStrengtFortroligAdresseService,
             gitHash = gitHash,
             clock = clock,
             statistikkRepo = statistikkRepo,

@@ -5,7 +5,9 @@ import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SKJERMET
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkDTO
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.VIKAFOSSEN
 import org.intellij.lang.annotations.Language
 
 /**
@@ -35,14 +37,20 @@ object SaksstatistikkPostgresRepo {
         )
     }
 
+    /**
+     * Skjermer radene saken fikk før brukeren fikk strengt fortrolig adresse.
+     * Rader skrevet mens behandlingen lå hos Vikafossen er allerede skjermet, og beholder enhet og fiktiv ident.
+     */
     fun oppdaterAdressebeskyttelse(sakId: SakId, session: Session) {
         session.run(
             queryOf(
                 """
-                        update statistikk_sak set opprettetAv = :verdi, saksbehandler = :verdi, ansvarligbeslutter = :verdi, ansvarligenhet = :verdi where sak_id = :sak_id
+                        update statistikk_sak set opprettetAv = :verdi, saksbehandler = :verdi, ansvarligbeslutter = :verdi, ansvarligenhet = :verdi
+                        where sak_id = :sak_id and ansvarligenhet is distinct from :vikafossen
                 """.trimIndent(),
                 mapOf(
-                    "verdi" to "-5",
+                    "verdi" to SKJERMET,
+                    "vikafossen" to VIKAFOSSEN,
                     "sak_id" to sakId.toString(),
                 ),
             ).asUpdate,

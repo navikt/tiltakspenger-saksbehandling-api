@@ -72,6 +72,8 @@ import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
 import no.nav.tiltakspenger.saksbehandling.sak.delteSaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.EntraProxyClient
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.EntraProxyFakeClient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkRepo
@@ -182,6 +184,7 @@ sealed class TestApplicationContext(
     protected open val meldekortApiFakeKlient by lazy { MeldekortApiFakeKlient() }
     protected open val fellesFakeSkjermingsklient by lazy { FellesFakeSkjermingsklient() }
     protected open val fakeNavIdentClient by lazy { FakeNavIdentClient() }
+    open val entraProxyFakeClient by lazy { EntraProxyFakeClient() }
     protected open val tiltaksdeltakelseFakeKlient: TiltaksdeltakelseFakeTestKlient by lazy {
         TiltaksdeltakelseFakeTestKlient()
     }
@@ -291,13 +294,20 @@ sealed class TestApplicationContext(
             override val personKlient = personFakeKlient
             override val fellesSkjermingsklient = fellesFakeSkjermingsklient
             override val navIdentClient = fakeNavIdentClient
+            override val entraProxyClient: EntraProxyClient = entraProxyFakeClient
             override val personRepo: PersonRepo get() = personRepoOverride ?: super.personRepo
         }
     }
 
     override val statistikkContext by lazy {
 
-        object : StatistikkContext(sessionFactory, personFakeKlient, gitHash, clock) {
+        object : StatistikkContext(
+            sessionFactory,
+            personFakeKlient,
+            personContext.rolleForStrengtFortroligAdresseService,
+            gitHash,
+            clock,
+        ) {
             override val statistikkRepo: StatistikkRepo
                 get() = statistikkRepoOverride ?: super.statistikkRepo
         }
