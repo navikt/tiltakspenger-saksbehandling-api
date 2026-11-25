@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetilleggForBarnISøknaden
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetilleggMedIdent
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetilleggUtenIdent
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -31,7 +32,7 @@ class BarnetilleggKandidaterTest {
     private val nils = barnMedBarnetillegg(fornavn = "Nils", fødselsdato = 1.januar(2021))
     private val kari = barnetilleggMedIdent(fornavn = "Kari", mellomnavn = null, fødselsdato = 1.januar(2015))
     private val per = barnetilleggMedIdent(fornavn = "Per", mellomnavn = null, fødselsdato = 1.januar(2017), oppholderSegIEØS = Søknad.JaNeiSpm.Nei)
-    private val lise = barnetilleggMedIdent(fornavn = "Lise", mellomnavn = null, fødselsdato = 1.januar(2019))
+    private val lise = barnetilleggUtenIdent(fornavn = "Lise", mellomnavn = null, fødselsdato = 1.januar(2019))
 
     @Test
     fun `søknadsbehandling har barna fra søknaden, men ikke barn lagt til av saksbehandler`() {
@@ -93,6 +94,9 @@ class BarnetilleggKandidaterTest {
                 BarnetilleggKandidat(lise.tilBarnMedBarnetillegg(søknad2.id), lise, setOf(deltakelse2.internDeltakelseId), fraGjeldendeVedtak = false),
             )
 
+            // Kari var hentet fra folkeregisteret i søknaden, mens søkeren la til Lise selv.
+            revurderingJson.getJSONArray("barnetilleggKandidater").getJSONObject(1)
+                .getJSONObject("søknadsopplysninger").getString("kilde") shouldBe "PDL"
             revurderingJson.getJSONArray("barnetilleggKandidater").getJSONObject(3).toString().shouldEqualJson(
                 """
                 {
@@ -103,7 +107,7 @@ class BarnetilleggKandidaterTest {
                   "fødselsdato": {"verdi": "2019-01-01", "erSladdet": false},
                   "kilde": "SØKNAD",
                   "søknadId": "${søknad2.id}",
-                  "søknadsopplysninger": {"oppholderSegIEØSSpm": {"svar": "JA"}, "oppholdssted": null},
+                  "søknadsopplysninger": {"oppholderSegIEØSSpm": {"svar": "JA"}, "oppholdssted": null, "kilde": "Manuell"},
                   "internDeltakelseIder": ["${deltakelse2.internDeltakelseId}"],
                   "fraGjeldendeVedtak": false
                 }

@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggKandidat
 import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.toDTO
 import java.time.LocalDate
@@ -30,10 +31,14 @@ data class BarnetilleggKandidatDTO(
     val internDeltakelseIder: List<String>?,
     val fraGjeldendeVedtak: Boolean,
 ) {
-    /** @param oppholdssted null for søknader fra før søknaden spurte om oppholdssted. */
+    /**
+     * @param oppholdssted null for søknader fra før søknaden spurte om oppholdssted.
+     * @param kilde Om barnet var hentet fra folkeregisteret i søknaden, eller lagt til manuelt av søkeren.
+     */
     data class SøknadsopplysningerDTO(
         val oppholderSegIEØSSpm: SøknadDTO.JaNeiSpmDTO,
         val oppholdssted: SøknadDTO.OppholdsstedDTO?,
+        val kilde: SøknadDTO.BarnetilleggFraSøknadKilde,
     )
 }
 
@@ -54,6 +59,10 @@ fun List<BarnetilleggKandidat>.tilBarnetilleggKandidaterDTO(): List<Barnetillegg
             BarnetilleggKandidatDTO.SøknadsopplysningerDTO(
                 oppholderSegIEØSSpm = it.oppholderSegIEØS.toDTO(),
                 oppholdssted = it.oppholdssted?.toDTO(),
+                kilde = when (it) {
+                    is BarnetilleggFraSøknad.FraPdl -> SøknadDTO.BarnetilleggFraSøknadKilde.PDL
+                    is BarnetilleggFraSøknad.Manuell -> SøknadDTO.BarnetilleggFraSøknadKilde.Manuell
+                },
             )
         },
         internDeltakelseIder = kandidat.tiltaksdeltakerIder?.map { it.toString() }?.sorted(),
@@ -64,7 +73,7 @@ fun List<BarnetilleggKandidat>.tilBarnetilleggKandidaterDTO(): List<Barnetillegg
 /**
  * Sladding av [BarnetilleggKandidatDTO].
  * Personopplysningene om barnet sladdes som i søknaden.
- * Svarene fra søknaden om opphold er ikke identifiserende og beholdes.
+ * Svarene fra søknaden om opphold, og om barnet var hentet fra folkeregisteret, er ikke identifiserende og beholdes.
  */
 fun BarnetilleggKandidatDTO.sladdet(): BarnetilleggKandidatDTO = this.copy(
     fnr = SladdetVerdi,
