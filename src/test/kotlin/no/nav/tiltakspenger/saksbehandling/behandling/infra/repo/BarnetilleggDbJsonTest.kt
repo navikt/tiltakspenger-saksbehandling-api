@@ -83,6 +83,7 @@ class BarnetilleggDbJsonTest {
     fun `V2 lagres med versjon og barna, og leses tilbake likt`() {
         val søknadId = SøknadId.fromString("soknad_01KAAAAAAAAAAAAAAAAAAAAAAA")
         val fnr = ObjectMother.gyldigFnr()
+        val folkeregisterFnr = ObjectMother.gyldigFnr()
         val barnetillegg = BarnetilleggV2(
             barn = listOf(
                 BarnMedBarnetillegg(
@@ -103,6 +104,16 @@ class BarnetilleggDbJsonTest {
                     kilde = BarnMedBarnetillegg.Kilde.Saksbehandler,
                     perioder = nonEmptyListOf(6 til 10.januar(2025), 13 til 17.januar(2025)),
                 ),
+                // Adressebeskyttet barn fra folkeregisteret lagres uten navn.
+                BarnMedBarnetillegg(
+                    fnr = folkeregisterFnr,
+                    fornavn = null,
+                    mellomnavn = null,
+                    etternavn = null,
+                    fødselsdato = 1.januar(2022),
+                    kilde = BarnMedBarnetillegg.Kilde.Folkeregister,
+                    perioder = null,
+                ),
             ),
             begrunnelse = Begrunnelse.createOrThrow("To barn"),
         )
@@ -111,7 +122,8 @@ class BarnetilleggDbJsonTest {
 
         json shouldBe
             """{"barn":[{"fnr":"${fnr.verdi}","fornavn":"Ola","mellomnavn":null,"etternavn":"Nordmann","fødselsdato":"2020-01-01","kilde":"SØKNAD","søknadId":"soknad_01KAAAAAAAAAAAAAAAAAAAAAAA","perioder":null},""" +
-            """{"fnr":null,"fornavn":"Kari","mellomnavn":"Mellom","etternavn":"Nordmann","fødselsdato":"2021-01-01","kilde":"SAKSBEHANDLER","søknadId":null,"perioder":[{"fraOgMed":"2025-01-06","tilOgMed":"2025-01-10"},{"fraOgMed":"2025-01-13","tilOgMed":"2025-01-17"}]}],""" +
+            """{"fnr":null,"fornavn":"Kari","mellomnavn":"Mellom","etternavn":"Nordmann","fødselsdato":"2021-01-01","kilde":"SAKSBEHANDLER","søknadId":null,"perioder":[{"fraOgMed":"2025-01-06","tilOgMed":"2025-01-10"},{"fraOgMed":"2025-01-13","tilOgMed":"2025-01-17"}]},""" +
+            """{"fnr":"${folkeregisterFnr.verdi}","fornavn":null,"mellomnavn":null,"etternavn":null,"fødselsdato":"2022-01-01","kilde":"FOLKEREGISTER","søknadId":null,"perioder":null}],""" +
             """"begrunnelse":"To barn","versjon":"V2"}"""
         json.toBarnetillegg().shouldBeInstanceOf<BarnetilleggV2>() shouldBe barnetillegg
     }
