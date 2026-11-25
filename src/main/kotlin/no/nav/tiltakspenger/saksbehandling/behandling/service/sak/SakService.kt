@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.sak
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
@@ -115,6 +116,25 @@ class SakService(
     suspend fun hentBarnForSakId(
         sakId: SakId,
         correlationId: CorrelationId,
+    ): Either<KunneIkkeHenteEnkelPerson, List<BarnMedSkjerming>> = hentBarn(sakId, correlationId) { true }
+
+    /**
+     * Henter barnet med [barnFnr] fra folkeregisteret, bare hvis det er registrert som barn av søkeren i saken.
+     * Relasjonen sjekkes før barnet slås opp, så vi slår aldri opp personer som ikke er søkers barn.
+     */
+    suspend fun hentBarnFraFolkeregister(
+        sakId: SakId,
+        barnFnr: Fnr,
+        correlationId: CorrelationId,
+    ): Either<KunneIkkeHenteBarnFraFolkeregister, BarnMedSkjerming> =
+        hentBarn(sakId, correlationId) { it == barnFnr }
+            .mapLeft { KunneIkkeHenteBarnFraFolkeregister.FeilVedOppslag(it) }
+            .flatMap { it.singleOrNull()?.right() ?: KunneIkkeHenteBarnFraFolkeregister.IkkeBarnAvSøker.left() }
+
+    private suspend fun hentBarn(
+        sakId: SakId,
+        correlationId: CorrelationId,
+        filter: (Fnr) -> Boolean,
     ): Either<KunneIkkeHenteEnkelPerson, List<BarnMedSkjerming>> {
         val fnr = hentFnrForSakId(sakId)
         val forelderBarnRelasjoner = personService.hentForeldrerBarnRelasjoner(fnr)
@@ -125,6 +145,7 @@ class SakService(
             .filter { it.relatertPersonsRolle == ForelderBarnRelasjonRolle.BARN }
             .mapNotNull { it.relatertPersonsIdent?.let { ident -> Fnr.fromString(ident) } }
             .distinct()
+            .filter(filter)
             .toNonEmptyListOrNull()
 
         if (barnasFnrs.isNullOrEmpty()) {

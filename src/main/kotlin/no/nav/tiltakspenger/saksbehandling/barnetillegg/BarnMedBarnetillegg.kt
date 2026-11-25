@@ -11,6 +11,7 @@ import java.time.LocalDate
  * Et barn saksbehandler har valgt å gi barnetillegg for, se [BarnetilleggV2].
  *
  * @param fnr Kan mangle for barn som er lagt til av saksbehandler, eller som er oppgitt uten fnr i søknaden.
+ *   Finnes alltid for barn fra folkeregisteret.
  * @param kilde Hvor saksbehandler fant barnet.
  * @param perioder Periodene saksbehandler har valgt å gi barnetillegg for barnet, eller null for hele innvilgelsesperioden.
  * Sortert og uten overlapp, se [BarnetilleggV2.create].
@@ -49,6 +50,9 @@ data class BarnMedBarnetillegg(
         data class Søknad(val søknadId: SøknadId) : Kilde
 
         data object Saksbehandler : Kilde
+
+        /** Saksbehandler har hentet barnet fra folkeregisteret, og det er verifisert som søkers barn. */
+        data object Folkeregister : Kilde
     }
 }
 

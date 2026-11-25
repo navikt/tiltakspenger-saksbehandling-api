@@ -576,6 +576,14 @@ sealed class TestApplicationContext(
         status = status,
     )
 
+    /** Søkers barn i folkeregisteret, se [PersonFakeKlient.barnAv]. */
+    fun barnAv(fnr: Fnr): List<Fnr> = personFakeKlient.barnAv(fnr)
+
+    /** Overskriver personopplysningene i [PersonFakeKlient], f.eks. for å gi et barn kjent navn og fødselsdato. */
+    fun leggTilPersonopplysning(person: EnkelPerson) {
+        personFakeKlient.leggTilPersonopplysning(fnr = person.fnr, personopplysninger = person)
+    }
+
     /**
      * Registrerer en person i alle nødvendige fake-klienter for at en test skal kunne behandle vedkommende:
      * - Personopplysninger ([PersonFakeKlient])

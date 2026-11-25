@@ -49,7 +49,7 @@ data class BarnMedBarnetilleggDTO(
     val perioderMedBarnetillegg: List<PeriodeDTO>,
 )
 
-enum class BarnKildeDTO { SØKNAD, SAKSBEHANDLER }
+enum class BarnKildeDTO { SØKNAD, SAKSBEHANDLER, FOLKEREGISTER }
 
 data class BarnetilleggPeriodeDTO(
     val antallBarn: Int,
@@ -85,6 +85,7 @@ private fun BarnMedBarnetillegg.toDTO(perioderMedBarnetillegg: List<Periode>): B
     kilde = when (kilde) {
         is BarnMedBarnetillegg.Kilde.Søknad -> BarnKildeDTO.SØKNAD
         BarnMedBarnetillegg.Kilde.Saksbehandler -> BarnKildeDTO.SAKSBEHANDLER
+        BarnMedBarnetillegg.Kilde.Folkeregister -> BarnKildeDTO.FOLKEREGISTER
     },
     søknadId = (kilde as? BarnMedBarnetillegg.Kilde.Søknad)?.søknadId?.toString(),
     perioder = perioder?.map { it.toDTO() },

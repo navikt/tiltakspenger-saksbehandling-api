@@ -8,8 +8,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.trekkFra
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnMedBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggV2
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.UgyldigBarnetilleggException
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.validerFolkeregister
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.validerSøknader
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -97,6 +99,14 @@ class OppdaterRammebehandlingService(
         }.orEmpty()
         valgteBarn.validerSøknader(sak.søknader.map { it.id }.toSet()).onLeft {
             throw UgyldigBarnetilleggException(it)
+        }
+        if (valgteBarn.any { it.kilde is BarnMedBarnetillegg.Kilde.Folkeregister }) {
+            val søkersBarn = sakService.hentBarnForSakId(sak.id, kommando.correlationId).getOrElse {
+                throw IllegalStateException("Kunne ikke hente søkers barn for å verifisere barnetillegget på behandling ${behandling.id} i sak ${behandling.sakId}: $it")
+            }
+            valgteBarn.validerFolkeregister(søkersBarn).onLeft {
+                throw UgyldigBarnetilleggException(it)
+            }
         }
 
         val utledetForlengelse = (kommando as? OppdaterRevurderingKommando.Forlengelse)?.let {

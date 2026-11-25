@@ -69,7 +69,7 @@ private data class BarnDbJson(
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     val periode: PeriodeDbJson? = null,
 ) {
-    enum class KildeDbJson { SØKNAD, SAKSBEHANDLER }
+    enum class KildeDbJson { SØKNAD, SAKSBEHANDLER, FOLKEREGISTER }
 
     fun toDomain(): BarnMedBarnetillegg = BarnMedBarnetillegg(
         fnr = fnr?.let { Fnr.fromString(it) },
@@ -80,6 +80,7 @@ private data class BarnDbJson(
         kilde = when (kilde) {
             KildeDbJson.SØKNAD -> BarnMedBarnetillegg.Kilde.Søknad(SøknadId.fromString(søknadId!!))
             KildeDbJson.SAKSBEHANDLER -> BarnMedBarnetillegg.Kilde.Saksbehandler
+            KildeDbJson.FOLKEREGISTER -> BarnMedBarnetillegg.Kilde.Folkeregister
         },
         perioder = (perioder ?: listOfNotNull(periode)).map { it.toDomain() }.toNonEmptyListOrNull(),
     )
@@ -136,6 +137,7 @@ private fun BarnMedBarnetillegg.toDbJson(): BarnDbJson = BarnDbJson(
     kilde = when (kilde) {
         is BarnMedBarnetillegg.Kilde.Søknad -> BarnDbJson.KildeDbJson.SØKNAD
         BarnMedBarnetillegg.Kilde.Saksbehandler -> BarnDbJson.KildeDbJson.SAKSBEHANDLER
+        BarnMedBarnetillegg.Kilde.Folkeregister -> BarnDbJson.KildeDbJson.FOLKEREGISTER
     },
     søknadId = (kilde as? BarnMedBarnetillegg.Kilde.Søknad)?.let { it.søknadId.toString() },
     perioder = perioder?.map { it.toDbJson() },

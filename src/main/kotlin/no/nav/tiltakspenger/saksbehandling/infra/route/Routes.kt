@@ -6,6 +6,7 @@ import io.ktor.server.routing.Route
 import no.nav.tiltakspenger.libs.ktor.common.oppstart.Readiness
 import no.nav.tiltakspenger.libs.ktor.common.oppstart.healthRoutes
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.hentBarnFraFolkeregisterRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.rammebehandlingRoutes
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.hentBenkRoute
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
@@ -87,6 +88,11 @@ fun Route.routes(
         hentPersonopplysningerBarnRoute(
             applicationContext.sakContext.sakService,
             applicationContext.personContext.auditService,
+        )
+        hentBarnFraFolkeregisterRoute(
+            sakService = applicationContext.sakContext.sakService,
+            auditService = applicationContext.personContext.auditService,
+            tilgangskontrollService = applicationContext.tilgangskontrollService,
         )
         sakRoutes(
             sakService = applicationContext.sakContext.sakService,

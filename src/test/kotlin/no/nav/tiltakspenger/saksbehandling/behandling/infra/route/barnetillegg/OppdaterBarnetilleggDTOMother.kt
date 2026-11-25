@@ -33,6 +33,7 @@ fun BarnMedBarnetillegg.tilOppdaterDTO(): OppdaterBarnMedBarnetilleggDTO {
         kilde = when (kilde) {
             is BarnMedBarnetillegg.Kilde.Søknad -> BarnKildeDTO.SØKNAD
             BarnMedBarnetillegg.Kilde.Saksbehandler -> BarnKildeDTO.SAKSBEHANDLER
+            BarnMedBarnetillegg.Kilde.Folkeregister -> BarnKildeDTO.FOLKEREGISTER
         },
         søknadId = (kilde as? BarnMedBarnetillegg.Kilde.Søknad)?.søknadId?.toString(),
         perioder = perioder?.map { it.toDTO() },

@@ -47,6 +47,7 @@ fun List<BarnetilleggKandidat>.tilBarnetilleggKandidaterDTO(): List<Barnetillegg
         kilde = when (kandidat.barn.kilde) {
             is BarnMedBarnetillegg.Kilde.Søknad -> BarnKildeDTO.SØKNAD
             BarnMedBarnetillegg.Kilde.Saksbehandler -> BarnKildeDTO.SAKSBEHANDLER
+            BarnMedBarnetillegg.Kilde.Folkeregister -> BarnKildeDTO.FOLKEREGISTER
         },
         søknadId = (kandidat.barn.kilde as? BarnMedBarnetillegg.Kilde.Søknad)?.søknadId?.toString(),
         søknadsopplysninger = kandidat.søknadsopplysninger?.let {

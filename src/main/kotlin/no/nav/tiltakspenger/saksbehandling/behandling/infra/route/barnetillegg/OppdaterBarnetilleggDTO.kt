@@ -66,6 +66,8 @@ data class OppdaterBarnMedBarnetilleggDTO(
                     ?.let { BarnMedBarnetillegg.Kilde.Søknad(it) }
 
             BarnKildeDTO.SAKSBEHANDLER -> BarnMedBarnetillegg.Kilde.Saksbehandler.takeIf { søknadId == null }
+
+            BarnKildeDTO.FOLKEREGISTER -> BarnMedBarnetillegg.Kilde.Folkeregister.takeIf { søknadId == null && fnr != null }
         } ?: throw UgyldigBarnetilleggException(UgyldigBarnetillegg.UgyldigKilde(fødselsdato)),
         perioder = perioder?.map { it.toDomain() }?.toNonEmptyListOrNull(),
     ).also {

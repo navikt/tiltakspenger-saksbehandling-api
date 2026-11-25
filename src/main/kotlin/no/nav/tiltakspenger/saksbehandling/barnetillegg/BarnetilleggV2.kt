@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.person.BarnMedSkjerming
 import java.time.LocalDate
 
 /**
@@ -179,9 +180,34 @@ sealed interface UgyldigBarnetillegg {
             "til og med dagen før barnet fyller 16 år (${barn.periodeMedRett.tilOgMed.format(norskDatoFormatter)})."
     }
 
+    /** Barnet finnes ikke blant søkers barn i folkeregisteret, eller opplysningene stemmer ikke med folkeregisteret lenger. */
+    data class IkkeLiktFolkeregisteret(val barn: BarnMedBarnetillegg) : UgyldigBarnetillegg {
+        override val melding = "Barnet født ${barn.fødselsdato.format(norskDatoFormatter)} stemmer ikke med søkers barn i folkeregisteret. " +
+            "Fjern barnet og legg det til på nytt."
+    }
+
     data class IngenDagerMedBarnetillegg(val barn: BarnMedBarnetillegg) : UgyldigBarnetillegg {
         override val melding = "Barnet født ${barn.fødselsdato.format(norskDatoFormatter)} gir ikke rett til barnetillegg i innvilgelsesperioden."
     }
+}
+
+/**
+ * Barn fra folkeregisteret må være blant [søkersBarn], med samme navn og fødselsdato.
+ * Navnet til barn med adressebeskyttelse er fjernet i [BarnMedSkjerming], og skal derfor heller ikke være lagret.
+ */
+fun List<BarnMedBarnetillegg>.validerFolkeregister(søkersBarn: List<BarnMedSkjerming>): Either<UgyldigBarnetillegg, Unit> {
+    this.filter { it.kilde is BarnMedBarnetillegg.Kilde.Folkeregister }.forEach { barn ->
+        val fraFolkeregisteret = søkersBarn.find { it.fnr == barn.fnr }
+        val erLike = fraFolkeregisteret != null &&
+            fraFolkeregisteret.fødselsdato == barn.fødselsdato &&
+            fraFolkeregisteret.fornavn == barn.fornavn &&
+            fraFolkeregisteret.mellomnavn == barn.mellomnavn &&
+            fraFolkeregisteret.etternavn == barn.etternavn
+        if (!erLike) {
+            return UgyldigBarnetillegg.IkkeLiktFolkeregisteret(barn).left()
+        }
+    }
+    return Unit.right()
 }
 
 /**
