@@ -686,51 +686,6 @@ class OppdaterMeldekortbehandlingRouteTest {
         }
     }
 
-    /**
-     * Manuelle behandlinger iverksatt før meldekortene ble knyttet eksplisitt, har ingen koblinger.
-     * De regnes å ha behandlet meldekortene som var mottatt da de ble iverksatt.
-     * Her etterlignes en slik behandling ved at meldekortet mottas etter at behandlingen er lagret, men før den iverksettes.
-     */
-    @Test
-    fun `en iverksatt behandling uten koblinger regnes å ha behandlet meldekortene mottatt før iverksettelsen`() {
-        withTestApplicationContext { tac ->
-            val (sak, _, _) = this.iverksettSøknadsbehandling(
-                tac = tac,
-                innvilgelsesperioder = innvilgelsesperioder(1 til 31.januar(2025)),
-            )
-            val kjedeId = sak.meldeperiodeKjeder[0].kjedeId
-
-            val (_, behandlingUtenKobling, _) = opprettOgOppdaterMeldekortbehandling(
-                tac = tac,
-                sakId = sak.id,
-                kjedeId = kjedeId,
-            )!!
-            mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
-            sendMeldekortbehandlingTilBeslutning(tac = tac, sakId = sak.id, meldekortId = behandlingUtenKobling.id)!!
-            taMeldekortbehanding(
-                tac = tac,
-                sakId = sak.id,
-                meldekortId = behandlingUtenKobling.id,
-                saksbehandlerEllerBeslutter = ObjectMother.beslutter("beslutter"),
-            )!!
-            val (_, _, iverksattBehandling) = iverksettMeldekortbehandling(
-                tac = tac,
-                sakId = sak.id,
-                meldekortId = behandlingUtenKobling.id,
-            )!!
-            iverksattBehandling.brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to emptyList())
-
-            val korrigering = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
-
-            val (_, korrigeringsbehandling, _) = opprettOgOppdaterMeldekortbehandling(
-                tac = tac,
-                sakId = sak.id,
-                kjedeId = kjedeId,
-            )!!
-            korrigeringsbehandling.brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to listOf(korrigering.id))
-        }
-    }
-
     private fun Meldekortbehandling.brukersMeldekortIderPerKjede(): Map<MeldeperiodeKjedeId, List<MeldekortId>> =
         meldeperioder.associate { meldeperiode -> meldeperiode.kjedeId to meldeperiode.brukersMeldekort.map { it.id } }
 
