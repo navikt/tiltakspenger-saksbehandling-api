@@ -48,6 +48,7 @@ enum class MeldekortBehandletAutomatiskStatusDTO {
 
 data class BrukersMeldekortDTO(
     val id: String,
+    val meldeperiodeId: String,
     val mottatt: LocalDateTime,
     val dager: List<DagDTO>,
     val behandletAutomatiskStatus: MeldekortBehandletAutomatiskStatusDTO,
@@ -62,6 +63,7 @@ data class BrukersMeldekortDTO(
 fun BrukersMeldekort.toBrukersMeldekortDTO(): BrukersMeldekortDTO {
     return BrukersMeldekortDTO(
         id = id.toString(),
+        meldeperiodeId = meldeperiode.id.toString(),
         mottatt = mottatt,
         dager = dager.map {
             BrukersMeldekortDTO.DagDTO(
