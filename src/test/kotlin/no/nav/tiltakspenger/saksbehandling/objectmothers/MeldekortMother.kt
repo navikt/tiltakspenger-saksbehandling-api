@@ -156,6 +156,7 @@ interface MeldekortMother : MotherOfAllMothers {
             skalJournalføreNotat = skalJournalføreNotat,
             beslutterEndringer = MeldekortbehandlingBeslutterEndringer(
                 skalJournalføreNotat = null,
+                skalJournalføreVedtaksbrev = null,
                 skalDistribuereVedtaksbrev = null,
             ),
             prioritering = prioritering,
@@ -229,6 +230,7 @@ interface MeldekortMother : MotherOfAllMothers {
             skalJournalføreNotat = skalJournalføreNotat,
             beslutterEndringer = MeldekortbehandlingBeslutterEndringer(
                 skalJournalføreNotat = null,
+                skalJournalføreVedtaksbrev = null,
                 skalDistribuereVedtaksbrev = null,
             ),
             prioritering = prioritering,
@@ -312,6 +314,7 @@ interface MeldekortMother : MotherOfAllMothers {
             skalJournalføreNotat = skalJournalføreNotat,
             beslutterEndringer = MeldekortbehandlingBeslutterEndringer(
                 skalJournalføreNotat = null,
+                skalJournalføreVedtaksbrev = null,
                 skalDistribuereVedtaksbrev = null,
             ),
             prioritering = prioritering,
@@ -753,6 +756,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     skalJournalføreNotat = skalJournalføreNotat,
                     beslutterEndringer = MeldekortbehandlingBeslutterEndringer(
                         skalJournalføreNotat = null,
+                        skalJournalføreVedtaksbrev = null,
                         skalDistribuereVedtaksbrev = null,
                     ),
                     prioritering = prioritering,
@@ -897,6 +901,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 skalJournalføreNotat = skalJournalføreNotat,
                 beslutterEndringer = MeldekortbehandlingBeslutterEndringer(
                     skalJournalføreNotat = null,
+                    skalJournalføreVedtaksbrev = null,
                     skalDistribuereVedtaksbrev = null,
                 ),
                 prioritering = prioritering,

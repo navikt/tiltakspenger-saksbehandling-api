@@ -157,6 +157,7 @@ data class MeldekortUnderBehandling(
             // Ved å sende til beslutning på nytt har saksbehandler akseptert beslutters endringer.
             beslutterEndringer = MeldekortbehandlingBeslutterEndringer(
                 skalJournalføreNotat = null,
+                skalJournalføreVedtaksbrev = null,
                 skalDistribuereVedtaksbrev = null,
             ),
             prioritering = prioritering,
@@ -328,6 +329,7 @@ fun Sak.opprettManuellMeldekortbehandling(
         skalJournalføreNotat = false,
         beslutterEndringer = MeldekortbehandlingBeslutterEndringer(
             skalJournalføreNotat = null,
+            skalJournalføreVedtaksbrev = null,
             skalDistribuereVedtaksbrev = null,
         ),
         prioritering = prioriteringFraKorrigeringSomVenterPåBehandling(kjedeIder),

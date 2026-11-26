@@ -10,10 +10,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import java.time.Clock
 
-/**
- * Frontend lar saksbehandler og beslutter velge journalføring og utsending av vedtaksbrevet samlet.
- * Beslutters endring av det samlede valget spores derfor kun som en endring av utsendingen.
- */
 fun MeldekortbehandlingManuell.oppdaterForBeslutter(
     kommando: OppdaterMeldekortbehandlingForBeslutterKommando,
     clock: Clock,
@@ -37,6 +33,11 @@ fun MeldekortbehandlingManuell.oppdaterForBeslutter(
             .oppdaterSkalJournalføreNotat(
                 gjeldendeValg = skalJournalføreNotat,
                 besluttersValg = kommando.skalJournalføreNotat,
+                tidspunkt = tidspunkt,
+            )
+            .oppdaterSkalJournalføreVedtaksbrev(
+                gjeldendeValg = skalJournalføreVedtaksbrev,
+                besluttersValg = nyttJournalføringsvalg,
                 tidspunkt = tidspunkt,
             )
             .oppdaterSkalDistribuereVedtaksbrev(

@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.distribuereVedtaksbrev.MeldekortbehandlingSkalDistribuereVedtaksbrevEndring
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.journalføreNotat.MeldekortbehandlingSkalJournalføreNotatEndring
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.journalføreVedtaksbrev.MeldekortbehandlingSkalJournalføreVedtaksbrevEndring
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -32,7 +33,7 @@ import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 /**
- * Beslutter kan endre saksbehandlers valg om begrunnelsen skal journalføres som notat, og om vedtaksbrevet skal sendes til bruker.
+ * Beslutter kan endre saksbehandlers valg om begrunnelsen skal journalføres som notat, om vedtaksbrevet skal journalføres, og om det skal sendes til bruker.
  * Saksbehandlers opprinnelige valg tas vare på, slik at det alltid går an å se at beslutter har endret valget.
  */
 class OppdaterMeldekortbehandlingForBeslutterRouteTest {
@@ -65,7 +66,10 @@ class OppdaterMeldekortbehandlingForBeslutterRouteTest {
                 }
             """.trimIndent()
             behandlingJson.getJSONObject("beslutterEndringer").getJSONObject("skalJournalføreNotat").toString().shouldEqualJson(forventetJson)
-            hentBeslutterEndringerFraDb(tac, meldekortId).shouldEqualJson("""{"skalJournalføreNotat": $forventetJson, "skalDistribuereVedtaksbrev": null}""")
+            hentBeslutterEndringerFraDb(
+                tac,
+                meldekortId,
+            ).shouldEqualJson("""{"skalJournalføreNotat": $forventetJson, "skalJournalføreVedtaksbrev": null, "skalDistribuereVedtaksbrev": null}""")
 
             val (_, vedtak) = iverksettMeldekortbehandling(tac, sakId, meldekortId, beslutter = beslutter)!!
             vedtak.skalJournalføreNotat shouldBe false
@@ -112,7 +116,10 @@ class OppdaterMeldekortbehandlingForBeslutterRouteTest {
                 it.skalJournalføreNotat shouldBe true
                 it.beslutterEndringer.skalJournalføreNotat shouldBe null
             }
-            hentBeslutterEndringerFraDb(tac, meldekortId).shouldEqualJson("""{"skalJournalføreNotat": null, "skalDistribuereVedtaksbrev": null}""")
+            hentBeslutterEndringerFraDb(
+                tac,
+                meldekortId,
+            ).shouldEqualJson("""{"skalJournalføreNotat": null, "skalJournalføreVedtaksbrev": null, "skalDistribuereVedtaksbrev": null}""")
         }
     }
 
@@ -185,7 +192,10 @@ class OppdaterMeldekortbehandlingForBeslutterRouteTest {
                 }
             """.trimIndent()
             behandlingJson.getJSONObject("beslutterEndringer").getJSONObject("skalDistribuereVedtaksbrev").toString().shouldEqualJson(forventetJson)
-            hentBeslutterEndringerFraDb(tac, meldekortId).shouldEqualJson("""{"skalJournalføreNotat": null, "skalDistribuereVedtaksbrev": $forventetJson}""")
+            hentBeslutterEndringerFraDb(
+                tac,
+                meldekortId,
+            ).shouldEqualJson("""{"skalJournalføreNotat": null, "skalJournalføreVedtaksbrev": null, "skalDistribuereVedtaksbrev": $forventetJson}""")
 
             val (_, vedtak) = iverksettMeldekortbehandling(tac, sakId, meldekortId, beslutter = beslutter)!!
             vedtak.skalDistribuereVedtaksbrev shouldBe true
@@ -259,6 +269,8 @@ class OppdaterMeldekortbehandlingForBeslutterRouteTest {
                 it.harKorrigering shouldBe false
                 it.skalJournalføreVedtaksbrev shouldBe true
                 it.skalDistribuereVedtaksbrev shouldBe true
+                it.beslutterEndringer.skalJournalføreVedtaksbrev!!.saksbehandler shouldBe false
+                it.beslutterEndringer.skalJournalføreVedtaksbrev!!.beslutter shouldBe true
                 it.beslutterEndringer.skalDistribuereVedtaksbrev!!.saksbehandler shouldBe false
                 it.beslutterEndringer.skalDistribuereVedtaksbrev!!.beslutter shouldBe true
             }
@@ -275,8 +287,60 @@ class OppdaterMeldekortbehandlingForBeslutterRouteTest {
             tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId)!!.also {
                 it.skalJournalføreVedtaksbrev shouldBe false
                 it.skalDistribuereVedtaksbrev shouldBe false
+                it.beslutterEndringer.skalJournalføreVedtaksbrev shouldBe null
                 it.beslutterEndringer.skalDistribuereVedtaksbrev shouldBe null
             }
+        }
+    }
+
+    @Test
+    fun `beslutter velger bort journalføring av vedtaksbrevet uten å endre utsendingen`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sakId, meldekortId) = korrigeringUnderBeslutning(
+                tac,
+                skalDistribuereVedtaksbrev = false,
+                skalJournalføreVedtaksbrev = true,
+            )
+
+            val json = oppdaterMeldekortbehandlingForBeslutter(
+                tac = tac,
+                sakId = sakId,
+                meldekortId = meldekortId,
+                skalJournalføreNotat = false,
+                skalJournalføreVedtaksbrev = false,
+                skalDistribuereVedtaksbrev = false,
+                beslutter = beslutter,
+            )!!
+            val behandlingJson =
+                JSONObject(json).getJSONObject("meldekortbehandlinger").getJSONObject(meldekortId.toString())
+            behandlingJson.getBoolean("skalJournalføreVedtaksbrev") shouldBe false
+            val behandling = tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId)!!
+            behandling.skalJournalføreVedtaksbrev shouldBe false
+            behandling.beslutterEndringer.skalDistribuereVedtaksbrev shouldBe null
+            val endring = behandling.beslutterEndringer.skalJournalføreVedtaksbrev
+            endring shouldBe MeldekortbehandlingSkalJournalføreVedtaksbrevEndring(
+                tidspunkt = behandling.sistEndret,
+                saksbehandler = true,
+                beslutter = false,
+            )
+            val forventetJson = """
+                {
+                  "tidspunkt": "${behandling.sistEndret}",
+                  "saksbehandler": true,
+                  "beslutter": false
+                }
+            """.trimIndent()
+            behandlingJson.getJSONObject("beslutterEndringer").getJSONObject("skalJournalføreVedtaksbrev").toString()
+                .shouldEqualJson(forventetJson)
+            hentBeslutterEndringerFraDb(
+                tac,
+                meldekortId,
+            ).shouldEqualJson("""{"skalJournalføreNotat": null, "skalJournalføreVedtaksbrev": $forventetJson, "skalDistribuereVedtaksbrev": null}""")
+
+            val (_, vedtak) = iverksettMeldekortbehandling(tac, sakId, meldekortId, beslutter = beslutter)!!
+            vedtak.skalJournalføreVedtaksbrev shouldBe false
+            vedtak.skalDistribuereVedtaksbrev shouldBe false
+            tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId)!!.beslutterEndringer.skalJournalføreVedtaksbrev shouldBe endring
         }
     }
 

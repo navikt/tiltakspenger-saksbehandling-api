@@ -2,10 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.felles
 
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.distribuereVedtaksbrev.MeldekortbehandlingSkalDistribuereVedtaksbrevEndring
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.journalføreNotat.MeldekortbehandlingSkalJournalføreNotatEndring
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.journalføreVedtaksbrev.MeldekortbehandlingSkalJournalføreVedtaksbrevEndring
 import java.time.LocalDateTime
 
 data class MeldekortbehandlingBeslutterEndringer(
     val skalJournalføreNotat: MeldekortbehandlingSkalJournalføreNotatEndring?,
+    val skalJournalføreVedtaksbrev: MeldekortbehandlingSkalJournalføreVedtaksbrevEndring?,
     val skalDistribuereVedtaksbrev: MeldekortbehandlingSkalDistribuereVedtaksbrevEndring?,
 ) {
     fun oppdaterSkalJournalføreNotat(
@@ -20,6 +22,22 @@ data class MeldekortbehandlingBeslutterEndringer(
                 null
             } else {
                 MeldekortbehandlingSkalJournalføreNotatEndring(tidspunkt, saksbehandlersValg, besluttersValg)
+            },
+        )
+    }
+
+    fun oppdaterSkalJournalføreVedtaksbrev(
+        gjeldendeValg: Boolean,
+        besluttersValg: Boolean,
+        tidspunkt: LocalDateTime,
+    ): MeldekortbehandlingBeslutterEndringer {
+        if (besluttersValg == gjeldendeValg) return this
+        val saksbehandlersValg = skalJournalføreVedtaksbrev?.saksbehandler ?: gjeldendeValg
+        return copy(
+            skalJournalføreVedtaksbrev = if (besluttersValg == saksbehandlersValg) {
+                null
+            } else {
+                MeldekortbehandlingSkalJournalføreVedtaksbrevEndring(tidspunkt, saksbehandlersValg, besluttersValg)
             },
         )
     }

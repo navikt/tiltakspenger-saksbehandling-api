@@ -66,6 +66,7 @@ data class MeldekortBehandletAutomatisk(
     override val skalJournalføreNotat: Boolean = false
     override val beslutterEndringer: MeldekortbehandlingBeslutterEndringer = MeldekortbehandlingBeslutterEndringer(
         skalJournalføreNotat = null,
+        skalJournalføreVedtaksbrev = null,
         skalDistribuereVedtaksbrev = null,
     )
     override val prioritering: Prioritering? = null
