@@ -29,10 +29,7 @@ class FellesArkitekturKonsistTest {
         IngenJackson2.assert(Konsist.scopeFromProduction())
     }
 
-    /**
-     * `internal` avgrenser til kompileringsmodulen, og dette er et enmodul-repo som ikke publiseres.
-     * Modifikatoren ville derfor sett ut som en tilgangsgrense uten å være en; `private` er den eneste grensen vi faktisk har her.
-     */
+    /** Synlighetsregelen gjelder både rotmodulen og utviklingsmodulen. */
     @Test
     fun `ingen internal-modifikator`() {
         IngenInternalModifier.assert(Konsist.scopeFromProject())
@@ -126,6 +123,6 @@ class FellesArkitekturKonsistTest {
         IngenHardkodedeFnr.assert(repoRot())
     }
 
-    /** Enmodul-repo: testens arbeidskatalog er repo-rota. */
+    /** Testene ligger i rotmodulen, så arbeidskatalogen er repo-rota. */
     private fun repoRot(): Path = Path.of(System.getProperty("user.dir"))
 }

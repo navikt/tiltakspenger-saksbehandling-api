@@ -11,6 +11,14 @@ Les disse først.
   Gjelder også fler-setnings `//`-kommentarer.
   Se den utfyllende regelen i AGENTS-backend.md i metarepoet `tiltakspenger` (seksjonen «Språk og stil») — den gjentas her fordi agenter glipper på den gang på gang.
 
+## Modulgrense
+
+- **Rota er produksjonsappen, og `dev` er modulen for utviklingsimaget.**
+  `dev` har bare `implementation(project(":"))` som prosjektavhengighet, og rota skal aldri avhenge av `dev`.
+  Dev-spesifikk kode hører hjemme i `dev`, aldri i rota.
+  `:dev:verifiserDevDistribusjon` kjører i `check` og kontrollerer at utviklingsdistribusjonen inneholder de samme JAR-filene som produksjon pluss én egen JAR.
+  Kontrollen feiler hvis produksjon inneholder dev-pakken eller hvis JAR-fila fra `dev` overlapper med klasser og ressurser fra produksjon.
+
 ## Pakkestruktur
 
 - **Databaserelaterte filer ligger under `<domene>/infra/repo/`.**

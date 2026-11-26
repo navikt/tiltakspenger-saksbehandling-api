@@ -53,9 +53,19 @@ Eventuelt med [Cloud SQL Studio](https://console.cloud.google.com/sql/instances/
 ---
 # Konvensjoner
 
+## Moduler
+
+Rota er produksjonsappen, og produksjonsimaget bygges fra `Dockerfile` i rota.
+`dev` er en egen Gradle-modul for utviklingsimaget, med eget inngangspunkt i `no.nav.tiltakspenger.saksbehandling.dev`, `dev/Dockerfile` og `dev/.dockerignore`.
+`dev` avhenger av rota, men rota avhenger aldri av `dev`.
+`./gradlew installDist` bygger begge distribusjonene, under `build/install/` og `dev/build/install/`.
+Fra rota velger `./gradlew :run` produksjonsappen og `./gradlew :dev:run` appen for utviklingsimaget.
+`./gradlew check` verifiserer at utviklingsdistribusjonen har samme JAR-filer som produksjon og én egen JAR med inngangspunktet.
+Kontrollen feiler hvis produksjon inneholder dev-pakken eller hvis JAR-fila fra `dev` overlapper med klasser og ressurser fra produksjon.
+
 ## Synlighet
 
-Dette er et enmodulrepo, så vi bruker ikke `internal` på Kotlin-deklarasjoner.
+Synlighetsregelen for Kotlin gjelder både rotmodulen og utviklingsmodulen.
 Standardvalgene er:
 
 - `private` for hjelpere som kun brukes innenfor en fil/klasse

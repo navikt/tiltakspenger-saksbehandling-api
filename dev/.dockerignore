@@ -1,0 +1,5 @@
+# Ignorer alt
+**
+
+# Unntatt den installerte dev-distribusjonen
+!build/install/tiltakspenger-saksbehandling-api-dev
