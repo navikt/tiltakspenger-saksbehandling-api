@@ -106,7 +106,7 @@ class BrukersMeldekortKoblingMigreringTest {
 
     @Test
     @IsolatedDatabaseTest
-    fun `beholder eksisterende koblinger, hopper over automatiske og avbrutte behandlinger, og knytter åpne behandlinger til alle ukoblede meldekort`() {
+    fun `beholder eksisterende koblinger, hopper over automatiske behandlinger, og knytter avbrutte og åpne behandlinger til meldekortene de ikke har fått behandlet`() {
         // Automatisk behandling krever en hverdag innenfor økonomisystemets åpningstider.
         withTestApplicationContextAndPostgres(
             clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0))),
@@ -131,11 +131,49 @@ class BrukersMeldekortKoblingMigreringTest {
             )!!
             val mottattEtterLagring = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
 
+            tac.fjernKoblinger(avbruttBehandling.id)
             tac.kjørMigrering()
 
             tac.hentKoblinger(automatiskBehandling.id) shouldBe mapOf(kjedeId to listOf(automatiskBehandletMeldekort.id))
             tac.hentKoblinger(avbruttBehandling.id) shouldBe mapOf(kjedeId to listOf(korrigertMeldekort.id))
             tac.hentKoblinger(åpenBehandling.id) shouldBe mapOf(kjedeId to listOf(korrigertMeldekort.id, mottattEtterLagring.id))
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `knytter en avbrutt behandling til meldekortene mottatt før den ble avbrutt, som ikke er behandlet tidligere`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, _, _) = this.iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(1 til 31.januar(2025)),
+            )
+            val kjedeId = sak.meldeperiodeKjeder[0].kjedeId
+            val førsteMeldekort = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
+            val (_, _, førsteBehandling) = opprettOgIverksettMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = kjedeId,
+            )!!
+
+            val korrigertMeldekort = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
+            val (_, avbruttBehandling, _) = opprettOgOppdaterMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = kjedeId,
+            )!!
+            sendMeldekortbehandlingTilBeslutning(tac = tac, sakId = sak.id, meldekortId = avbruttBehandling.id)!!
+            // Appen nuller tidspunktet for sendingen ved avbrytelse, så migreringen kan bare bruke avbrytelsestidspunktet.
+            val mottattEtterSending = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
+            avbrytMeldekortbehandling(tac = tac, sakId = sak.id, meldekortId = avbruttBehandling.id)!!
+            mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
+
+            tac.fjernKoblinger(førsteBehandling.id)
+            tac.fjernKoblinger(avbruttBehandling.id)
+            tac.kjørMigrering()
+
+            tac.hentKoblinger(førsteBehandling.id) shouldBe mapOf(kjedeId to listOf(førsteMeldekort.id))
+            tac.hentKoblinger(avbruttBehandling.id) shouldBe mapOf(kjedeId to listOf(korrigertMeldekort.id, mottattEtterSending.id))
         }
     }
 

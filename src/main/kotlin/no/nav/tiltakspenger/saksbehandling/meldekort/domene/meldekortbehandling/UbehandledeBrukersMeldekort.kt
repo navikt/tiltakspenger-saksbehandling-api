@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 /**
  * Meldekortene fra bruker på kjeden som ikke er behandlet av en annen meldekortbehandling, sortert eldst først.
  * Et meldekort er behandlet når det er knyttet til en annen behandling av kjeden som ikke er avbrutt.
+ * En avbrutt behandling beholder koblingene sine, men meldekortene regnes fortsatt som ubehandlede.
  * Meldekort knyttet til [meldekortbehandlingId] regnes som ubehandlede, slik at behandlingen beholder dem når den lagres på nytt.
  * Manuelle behandlinger fra før koblingene ble innført, er knyttet til meldekortene sine av migreringen V287.
  */

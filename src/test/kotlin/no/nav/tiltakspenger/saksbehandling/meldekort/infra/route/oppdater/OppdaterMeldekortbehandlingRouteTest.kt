@@ -647,7 +647,7 @@ class OppdaterMeldekortbehandlingRouteTest {
     }
 
     @Test
-    fun `knytter ikke meldekort som er behandlet av en tidligere behandling, men frigjør meldekortene til en avbrutt behandling`() {
+    fun `knytter ikke meldekort som er behandlet av en tidligere behandling, og en avbrutt behandling beholder meldekortene uten å anses å ha behandlet dem`() {
         withTestApplicationContext { tac ->
             val (sak, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
@@ -671,11 +671,12 @@ class OppdaterMeldekortbehandlingRouteTest {
                 kjedeId = kjedeId,
             )!!
             avbruttBehandling.brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to listOf(korrigering.id))
-            avbrytMeldekortbehandling(
+            val (_, avbrutt, _) = avbrytMeldekortbehandling(
                 tac = tac,
                 sakId = sak.id,
                 meldekortId = avbruttBehandling.id,
             )!!
+            avbrutt.brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to listOf(korrigering.id))
 
             val (_, nyBehandling, _) = opprettOgOppdaterMeldekortbehandling(
                 tac = tac,
@@ -683,6 +684,8 @@ class OppdaterMeldekortbehandlingRouteTest {
                 kjedeId = kjedeId,
             )!!
             nyBehandling.brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to listOf(korrigering.id))
+            tac.meldekortContext.meldekortbehandlingRepo.hent(avbruttBehandling.id)!!
+                .brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to listOf(korrigering.id))
         }
     }
 
