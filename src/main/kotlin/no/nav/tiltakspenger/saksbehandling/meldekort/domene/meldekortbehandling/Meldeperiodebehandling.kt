@@ -51,10 +51,11 @@ data class Meldeperiodebehandling(
 fun Meldeperiode.tilMeldeperiodebehandling(
     type: MeldeperiodebehandlingType,
     meldekortbehandlingId: MeldekortId,
+    brukersMeldekort: List<BrukersMeldekort>,
 ): Meldeperiodebehandling {
     return Meldeperiodebehandling(
         dager = this.tilUtfyltMeldeperiode(),
-        brukersMeldekort = emptyList(),
+        brukersMeldekort = brukersMeldekort,
         type = type,
         meldekortbehandlingId = meldekortbehandlingId,
     )

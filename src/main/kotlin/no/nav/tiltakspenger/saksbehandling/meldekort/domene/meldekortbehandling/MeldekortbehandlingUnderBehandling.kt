@@ -299,8 +299,11 @@ fun Sak.opprettManuellMeldekortbehandling(
             if (behandlingerForKjede.isEmpty()) MeldeperiodebehandlingType.FØRSTE_BEHANDLING else MeldeperiodebehandlingType.KORRIGERING
 
         this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
-            .tilMeldeperiodebehandling(type, meldekortId)
-            .copy(brukersMeldekort = this.ubehandledeBrukersMeldekort(kjedeId, meldekortId))
+            .tilMeldeperiodebehandling(
+                type = type,
+                meldekortbehandlingId = meldekortId,
+                brukersMeldekort = this.ubehandledeBrukersMeldekort(kjedeId, meldekortId),
+            )
     }.sortedBy { it.periode.fraOgMed }.toNonEmptyListOrThrow()
 
     val nå = nå(clock)

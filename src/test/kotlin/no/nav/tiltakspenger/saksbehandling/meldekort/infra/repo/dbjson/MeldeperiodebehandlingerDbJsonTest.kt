@@ -41,6 +41,7 @@ class MeldeperiodebehandlingerDbJsonTest {
             meldeperiode = meldeperiode.tilMeldeperiodebehandling(
                 type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
                 meldekortbehandlingId = meldekortbehandlingId,
+                brukersMeldekort = emptyList(),
             ),
             beregning = null,
         )
