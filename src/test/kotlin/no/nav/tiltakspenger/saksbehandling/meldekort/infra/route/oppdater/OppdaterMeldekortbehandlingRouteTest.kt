@@ -40,6 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.mottaMeldekortRequest
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgBesluttertarMeldekortbehanding
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgOppdaterMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendMeldekortbehandlingTilBeslutning
@@ -688,6 +689,54 @@ class OppdaterMeldekortbehandlingRouteTest {
                 .brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to listOf(korrigering.id))
         }
     }
+
+    @Test
+    fun `markerer meldekortene som behandlet når behandlingen iverksettes, men ikke meldekort mottatt etter at den sist ble lagret eller knyttet til en avbrutt behandling`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _, _) = this.iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(1 til 31.januar(2025)),
+            )
+            val kjedeId = sak.meldeperiodeKjeder[0].kjedeId
+            val behandletMeldekort = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
+            val (_, behandlingUnderBeslutning) = opprettOgBesluttertarMeldekortbehanding(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = kjedeId,
+            )!!
+            val mottattEtterLagring = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
+
+            val (_, _, iverksatt) = iverksettMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                meldekortId = behandlingUnderBeslutning.id,
+            )!!
+
+            iverksatt.meldeperioder.brukersMeldekort.map { it.id to it.behandletAv } shouldBe listOf(behandletMeldekort.id to iverksatt.id)
+            tac.behandletAv(mottattEtterLagring.id) shouldBe null
+
+            val (_, avbruttBehandling, _) = opprettOgOppdaterMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = kjedeId,
+            )!!
+            avbruttBehandling.brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to listOf(mottattEtterLagring.id))
+            avbrytMeldekortbehandling(tac = tac, sakId = sak.id, meldekortId = avbruttBehandling.id)!!
+            tac.behandletAv(mottattEtterLagring.id) shouldBe null
+
+            val (_, _, korrigering) = opprettOgIverksettMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = kjedeId,
+            )!!
+            korrigering.brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to listOf(mottattEtterLagring.id))
+            tac.behandletAv(mottattEtterLagring.id) shouldBe korrigering.id
+            tac.behandletAv(behandletMeldekort.id) shouldBe iverksatt.id
+        }
+    }
+
+    private fun TestApplicationContext.behandletAv(meldekortId: MeldekortId): MeldekortId? =
+        meldekortContext.brukersMeldekortRepo.hentForMeldekortId(meldekortId)!!.behandletAv
 
     private fun Meldekortbehandling.brukersMeldekortIderPerKjede(): Map<MeldeperiodeKjedeId, List<MeldekortId>> =
         meldeperioder.associate { meldeperiode -> meldeperiode.kjedeId to meldeperiode.brukersMeldekort.map { it.id } }

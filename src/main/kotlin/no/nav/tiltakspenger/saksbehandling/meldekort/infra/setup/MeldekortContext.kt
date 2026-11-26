@@ -98,6 +98,7 @@ open class MeldekortContext(
         IverksettMeldekortbehandlingService(
             oppdaterBeregningOgSimuleringMeldekortService = oppdaterBeregningOgSimuleringMeldekortService,
             meldekortbehandlingRepo = meldekortbehandlingRepo,
+            brukersMeldekortRepo = brukersMeldekortRepo,
             meldeperiodeRepo = meldeperiodeRepo,
             sessionFactory = sessionFactory,
             sakService = sakService,

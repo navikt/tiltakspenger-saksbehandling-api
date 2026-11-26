@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilMeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.toDbJson
@@ -155,6 +156,29 @@ class BrukersMeldekortPostgresRepo(
         }
     }
 
+    override fun markerSomBehandlet(
+        meldekortbehandling: Meldekortbehandling,
+        sessionContext: SessionContext?,
+    ) {
+        val meldekortIder = meldekortbehandling.meldeperioder.brukersMeldekort.map { it.id.toString() }
+        sessionFactory.withSession(sessionContext) { session ->
+            val antallMarkert = session.run(
+                sqlQuery(
+                    """
+                    update meldekort_bruker set
+                        behandlet_av = :behandlet_av
+                    where id = any(:ider) and behandlet_av is null
+                    """,
+                    "behandlet_av" to meldekortbehandling.id.toString(),
+                    "ider" to meldekortIder.toTypedArray(),
+                ).asUpdate,
+            )
+            check(antallMarkert == meldekortIder.size) {
+                "Kunne ikke markere brukers meldekort som behandlet av ${meldekortbehandling.id}, siden bare $antallMarkert av ${meldekortIder.size} var ubehandlet. sakId: ${meldekortbehandling.sakId}, meldekort: $meldekortIder"
+            }
+        }
+    }
+
     companion object {
         fun hentForSakId(
             sakId: SakId,
@@ -208,6 +232,7 @@ class BrukersMeldekortPostgresRepo(
                 behandletAutomatiskForsøkshistorikk = row.string("behandlet_automatisk_metadata")
                     .toForsøkshistorikk(),
                 prioritering = row.stringOrNull("prioritering_begrunnelse")?.let { Prioritering.create(it) },
+                behandletAv = row.stringOrNull("behandlet_av")?.let { MeldekortId.fromString(it) },
             )
         }
     }

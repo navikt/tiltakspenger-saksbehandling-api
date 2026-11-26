@@ -302,7 +302,7 @@ fun Sak.opprettManuellMeldekortbehandling(
             .tilMeldeperiodebehandling(
                 type = type,
                 meldekortbehandlingId = meldekortId,
-                brukersMeldekort = this.ubehandledeBrukersMeldekort(kjedeId, meldekortId),
+                brukersMeldekort = this.ubehandledeBrukersMeldekort(kjedeId),
             )
     }.sortedBy { it.periode.fraOgMed }.toNonEmptyListOrThrow()
 

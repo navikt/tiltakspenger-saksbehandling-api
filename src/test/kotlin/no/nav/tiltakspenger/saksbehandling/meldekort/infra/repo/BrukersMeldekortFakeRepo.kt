@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 
 class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) : BrukersMeldekortRepo {
     private val data = arrow.atomic.Atomic(mutableMapOf<MeldekortId, BrukersMeldekort>())
@@ -29,6 +30,7 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
             behandletAutomatiskStatus = brukersMeldekort.behandletAutomatiskStatus,
             behandletAutomatiskForsøkshistorikk = brukersMeldekort.behandletAutomatiskForsøkshistorikk,
             prioritering = null,
+            behandletAv = null,
         )
     }
 
@@ -75,5 +77,14 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
             behandletAutomatiskStatus = MeldekortBehandletAutomatiskStatus.BEHANDLET,
             behandletAutomatiskForsøkshistorikk = metadata,
         )
+    }
+
+    override fun markerSomBehandlet(
+        meldekortbehandling: Meldekortbehandling,
+        sessionContext: SessionContext?,
+    ) {
+        meldekortbehandling.meldeperioder.brukersMeldekort.forEach {
+            data.get()[it.id] = data.get()[it.id]!!.markerSomBehandlet(meldekortbehandling.id)
+        }
     }
 }

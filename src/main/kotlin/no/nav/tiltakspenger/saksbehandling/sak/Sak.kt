@@ -227,7 +227,10 @@ data class Sak(
     }
 
     fun leggTilMeldekortbehandling(behandling: MeldekortBehandletAutomatisk): Sak {
-        return this.copy(behandlinger = this.behandlinger.leggTilMeldekortBehandletAutomatisk(behandling))
+        return this.copy(
+            behandlinger = this.behandlinger.leggTilMeldekortBehandletAutomatisk(behandling),
+            brukersMeldekort = this.brukersMeldekort.oppdaterMed(behandling),
+        )
     }
 
     // TODO jah: Bør kun oppdatere den behandlingen som er endret, ikke hele settet
@@ -235,8 +238,17 @@ data class Sak(
         return this.copy(behandlinger = this.behandlinger.copy(meldekortbehandlinger = behandlinger))
     }
 
+    /** Sakens meldekort fra bruker oppdateres med behandlingens versjon, slik at markeringen fra en iverksettelse også gjelder saken. */
     fun oppdaterMeldekortbehandling(behandling: Meldekortbehandling): Sak {
-        return this.copy(behandlinger = this.behandlinger.oppdaterMeldekortbehandling(behandling))
+        return this.copy(
+            behandlinger = this.behandlinger.oppdaterMeldekortbehandling(behandling),
+            brukersMeldekort = this.brukersMeldekort.oppdaterMed(behandling),
+        )
+    }
+
+    private fun List<BrukersMeldekort>.oppdaterMed(behandling: Meldekortbehandling): List<BrukersMeldekort> {
+        val behandlingensMeldekort = behandling.meldeperioder.brukersMeldekort.associateBy { it.id }
+        return this.map { behandlingensMeldekort[it.id] ?: it }
     }
 
     /**

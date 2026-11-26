@@ -9,6 +9,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
@@ -33,6 +34,7 @@ class IverksettMeldekortbehandlingService(
     val sakService: SakService,
     val oppdaterBeregningOgSimuleringMeldekortService: OppdaterBeregningOgSimuleringMeldekortService,
     val meldekortbehandlingRepo: MeldekortbehandlingRepo,
+    private val brukersMeldekortRepo: BrukersMeldekortRepo,
     val utbetalingRepo: UtbetalingRepo,
     val meldeperiodeRepo: MeldeperiodeRepo,
     val sessionFactory: SessionFactory,
@@ -123,6 +125,7 @@ class IverksettMeldekortbehandlingService(
                 val oppdatert = meldekortbehandlingRepo.oppdaterHvisFortsattUnderBeslutning(meldekortbehandling = iverksattMeldekortbehandling, utøvendeBeslutter = kommando.beslutter, transactionContext = tx)
 
                 if (oppdatert) {
+                    brukersMeldekortRepo.markerSomBehandlet(iverksattMeldekortbehandling, tx)
                     meldekortvedtakRepo.lagre(meldekortvedtak, tx)
                     statistikkService.lagre(statistikkDTO, tx)
                     sakService.markerSkalSendesTilMeldekortApi(sakId = sakId, sessionContext = tx)

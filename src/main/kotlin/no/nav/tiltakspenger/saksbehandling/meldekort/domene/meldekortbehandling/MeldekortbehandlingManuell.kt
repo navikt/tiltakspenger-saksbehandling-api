@@ -195,6 +195,7 @@ data class MeldekortbehandlingManuell(
                 attesteringer = attesteringer,
                 sistEndret = iverksattTidspunkt,
                 klagebehandling = oppdatertKlagebehandling ?: klagebehandling,
+                meldeperioder = meldeperioder.markerBrukersMeldekortSomBehandlet(),
             ) to klagestatistikk
             ).right()
     }

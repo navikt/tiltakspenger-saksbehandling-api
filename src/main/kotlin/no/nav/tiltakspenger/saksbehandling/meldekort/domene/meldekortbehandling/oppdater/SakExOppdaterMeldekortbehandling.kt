@@ -59,7 +59,7 @@ suspend fun Sak.oppdaterMeldekort(
 
                 Meldeperiodebehandling(
                     dager = utfylt,
-                    brukersMeldekort = this.ubehandledeBrukersMeldekort(kjedeId, meldekortbehandling.id),
+                    brukersMeldekort = this.ubehandledeBrukersMeldekort(kjedeId),
                     type = if (tidligereBehandlingerForKjede.isEmpty()) {
                         MeldeperiodebehandlingType.FØRSTE_BEHANDLING
                     } else {

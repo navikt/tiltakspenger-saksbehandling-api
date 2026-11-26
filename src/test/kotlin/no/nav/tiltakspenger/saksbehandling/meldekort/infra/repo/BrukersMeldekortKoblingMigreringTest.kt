@@ -36,8 +36,9 @@ import org.junit.jupiter.api.Test
 
 /**
  * Tester V287, som knytter manuelle meldekortbehandlingene fra før koblingene ble innført til meldekortene fra bruker de behandlet.
- * Tilstanden bygges gjennom prodstiene, og koblingene fjernes etterpå med SQL for å etterligne behandlinger fra før koblingene ble innført.
- * Migreringen oppdaterer hele tabellen, så testene kjører isolert.
+ * Tester også V288, som markerer meldekortene som behandlet av de iverksatte behandlingene de er knyttet til.
+ * Tilstanden bygges gjennom prodstiene, og koblingene og markeringene fjernes etterpå med SQL for å etterligne data fra før de ble innført.
+ * Migreringene oppdaterer hele tabeller, så testene kjører isolert.
  */
 class BrukersMeldekortKoblingMigreringTest {
 
@@ -83,10 +84,11 @@ class BrukersMeldekortKoblingMigreringTest {
                 sakId = sak.id,
                 kjedeId = førsteKjede,
             )!!
-            mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
+            val ubehandlet = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
 
             tac.fjernKoblinger(førsteBehandling.id)
             tac.fjernKoblinger(korrigering.id)
+            tac.fjernMarkeringer()
             tac.kjørMigrering()
 
             val forventetFørste = mapOf(
@@ -94,13 +96,22 @@ class BrukersMeldekortKoblingMigreringTest {
                 andreKjede to listOf(andreMeldekort.id),
             )
             val forventetKorrigering = mapOf(førsteKjede to listOf(mottattFørIverksettelse.id))
+            val forventetBehandletAv = mapOf(
+                førsteMeldekort.id to førsteBehandling.id,
+                andreMeldekort.id to førsteBehandling.id,
+                mottattFørSendingTilBeslutning.id to førsteBehandling.id,
+                mottattFørIverksettelse.id to korrigering.id,
+                ubehandlet.id to null,
+            )
             tac.hentKoblinger(førsteBehandling.id) shouldBe forventetFørste
             tac.hentKoblinger(korrigering.id) shouldBe forventetKorrigering
+            tac.hentBehandletAv(forventetBehandletAv.keys) shouldBe forventetBehandletAv
 
-            // Meldekortet mottatt etter korrigeringen er ikke behandlet, og migreringen endrer ingenting når den kjøres på nytt.
+            // Meldekortet mottatt etter korrigeringen er ikke behandlet, og migreringene endrer ingenting når de kjøres på nytt.
             tac.kjørMigrering()
             tac.hentKoblinger(førsteBehandling.id) shouldBe forventetFørste
             tac.hentKoblinger(korrigering.id) shouldBe forventetKorrigering
+            tac.hentBehandletAv(forventetBehandletAv.keys) shouldBe forventetBehandletAv
         }
     }
 
@@ -132,11 +143,18 @@ class BrukersMeldekortKoblingMigreringTest {
             val mottattEtterLagring = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
 
             tac.fjernKoblinger(avbruttBehandling.id)
+            tac.fjernMarkeringer()
             tac.kjørMigrering()
 
             tac.hentKoblinger(automatiskBehandling.id) shouldBe mapOf(kjedeId to listOf(automatiskBehandletMeldekort.id))
             tac.hentKoblinger(avbruttBehandling.id) shouldBe mapOf(kjedeId to listOf(korrigertMeldekort.id))
             tac.hentKoblinger(åpenBehandling.id) shouldBe mapOf(kjedeId to listOf(korrigertMeldekort.id, mottattEtterLagring.id))
+            // Avbrutte og åpne behandlinger markerer ikke meldekortene som behandlet.
+            tac.hentBehandletAv(listOf(automatiskBehandletMeldekort.id, korrigertMeldekort.id, mottattEtterLagring.id)) shouldBe mapOf(
+                automatiskBehandletMeldekort.id to automatiskBehandling.id,
+                korrigertMeldekort.id to null,
+                mottattEtterLagring.id to null,
+            )
         }
     }
 
@@ -170,19 +188,39 @@ class BrukersMeldekortKoblingMigreringTest {
 
             tac.fjernKoblinger(førsteBehandling.id)
             tac.fjernKoblinger(avbruttBehandling.id)
+            tac.fjernMarkeringer()
             tac.kjørMigrering()
 
             tac.hentKoblinger(førsteBehandling.id) shouldBe mapOf(kjedeId to listOf(førsteMeldekort.id))
             tac.hentKoblinger(avbruttBehandling.id) shouldBe mapOf(kjedeId to listOf(korrigertMeldekort.id, mottattEtterSending.id))
+            tac.hentBehandletAv(listOf(førsteMeldekort.id, korrigertMeldekort.id, mottattEtterSending.id)) shouldBe mapOf(
+                førsteMeldekort.id to førsteBehandling.id,
+                korrigertMeldekort.id to null,
+                mottattEtterSending.id to null,
+            )
         }
     }
 
     private fun TestApplicationContextMedPostgres.kjørMigrering() {
-        val sql = javaClass.getResource("/db/migration/V287__meldekortbehandling_knytt_brukers_meldekort.sql")!!.readText()
-        (sessionFactory as PostgresSessionFactory).withSession { session ->
-            session.run(queryOf(sql).asUpdate)
+        listOf(
+            "/db/migration/V287__meldekortbehandling_knytt_brukers_meldekort.sql",
+            "/db/migration/V288__meldekort_bruker_behandlet_av.sql",
+        ).forEach { migrering ->
+            val sql = javaClass.getResource(migrering)!!.readText()
+            (sessionFactory as PostgresSessionFactory).withSession { session ->
+                session.run(queryOf(sql).asExecute)
+            }
         }
     }
+
+    private fun TestApplicationContextMedPostgres.fjernMarkeringer() {
+        (sessionFactory as PostgresSessionFactory).withSession { session ->
+            session.run(queryOf("update meldekort_bruker set behandlet_av = null").asUpdate)
+        }
+    }
+
+    private fun TestApplicationContext.hentBehandletAv(meldekortIder: Collection<MeldekortId>): Map<MeldekortId, MeldekortId?> =
+        meldekortIder.associateWith { meldekortContext.brukersMeldekortRepo.hentForMeldekortId(it)!!.behandletAv }
 
     private fun TestApplicationContextMedPostgres.fjernKoblinger(meldekortbehandlingId: MeldekortId) {
         (sessionFactory as PostgresSessionFactory).withSession { session ->

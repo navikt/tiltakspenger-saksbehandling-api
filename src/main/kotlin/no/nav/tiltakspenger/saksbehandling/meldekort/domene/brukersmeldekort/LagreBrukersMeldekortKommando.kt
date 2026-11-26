@@ -50,6 +50,7 @@ data class LagreBrukersMeldekortKommando(
             behandletAutomatiskStatus = MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
             behandletAutomatiskForsøkshistorikk = Forsøkshistorikk.opprett(clock = clock),
             prioritering = null,
+            behandletAv = null,
         )
     }
 
