@@ -101,6 +101,7 @@ fun Route.routes(
             clock = applicationContext.clock,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
             personService = applicationContext.personContext.personService,
+            utbetalingRepo = applicationContext.utbetalingContext.utbetalingRepo,
             erProd = applicationContext.erProd,
             migrerTilOppdragsversjon3Service = applicationContext.utbetalingContext.migrerTilOppdragsversjon3Service,
         )

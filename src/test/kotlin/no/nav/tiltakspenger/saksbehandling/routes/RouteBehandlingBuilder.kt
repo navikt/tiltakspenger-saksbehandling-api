@@ -68,6 +68,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.sendTilBeslutni
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.settPåVent.SettMeldekortbehandlingPåVentBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.ta.TaMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.underkjenn.UnderkjennMeldekortbehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.HentOppdragstilstandRouteBuilder
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.HentSakRouteBuilder
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.MigrerTilOppdragsversjon3RouteBuilder
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.OpprettSakRouteBuilder
@@ -79,6 +80,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.Tilbakekre
 object RouteBehandlingBuilder :
     OpprettSakRouteBuilder,
     HentSakRouteBuilder,
+    HentOppdragstilstandRouteBuilder,
     ToggleKanSendeHelgForMeldekortSakRouteBuilder,
     MigrerTilOppdragsversjon3RouteBuilder,
     MottaSøknadRouteBuilder,

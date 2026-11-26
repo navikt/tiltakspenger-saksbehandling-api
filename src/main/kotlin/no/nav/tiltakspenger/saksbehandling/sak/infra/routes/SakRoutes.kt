@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.MigrerTilOppdragsversjon3Service
 import java.time.Clock
 
@@ -18,11 +19,15 @@ fun Route.sakRoutes(
     clock: Clock,
     tilgangskontrollService: TilgangskontrollService,
     personService: PersonService,
+    utbetalingRepo: UtbetalingRepo,
     erProd: Boolean,
     migrerTilOppdragsversjon3Service: MigrerTilOppdragsversjon3Service,
 ) {
     søkFnrSaksnummerOgSakIdRoute(sakService, auditService, clock, tilgangskontrollService)
     hentSakForSaksnummerRoute(sakService, auditService, clock, tilgangskontrollService)
+    if (!erProd) {
+        hentOppdragstilstandRoute(sakService, utbetalingRepo, auditService, tilgangskontrollService)
+    }
     hentEllerOpprettSakSystembrukerRoute(sakService)
     hentEllerOpprettSakRoute(sakService, auditService, tilgangskontrollService, personService, erProd)
     toggleKanSendeHelgForMeldekortSakRoute(sakService, auditService, clock, tilgangskontrollService)
