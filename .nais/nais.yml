@@ -11,6 +11,10 @@ spec:
   replicas:
     min: {{ replicas }}
     max: {{ replicas }}
+  # Midlertidig: V287 knytter eldre manuelle meldekortbehandlinger til brukers meldekort, og gamle pods må ikke lagre tomme koblinger etter migreringen.
+  # Fjernes etter utrullingen.
+  strategy:
+    type: Recreate
   resources:
     limits:
       memory: 3000Mi
