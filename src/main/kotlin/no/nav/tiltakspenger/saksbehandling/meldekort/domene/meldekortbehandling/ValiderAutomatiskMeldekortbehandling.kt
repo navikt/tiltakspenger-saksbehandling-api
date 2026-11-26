@@ -60,6 +60,11 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
         return MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT.left()
     }
 
+    // Et meldekort behandlet av en iverksatt behandling fanges av sjekkene over, så det som gjenstår er meldekort knyttet til en avbrutt behandling.
+    if (brukersMeldekort.behandletAv != null) {
+        return MeldekortBehandletAutomatiskStatus.BEHANDLET_I_AVBRUTT_BEHANDLING.left()
+    }
+
     return Unit.right()
 }
 

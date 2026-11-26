@@ -15,8 +15,7 @@ data class Meldeperiodebehandling(
     /**
      * Meldekortene fra bruker som denne meldeperiodebehandlingen behandler, sortert eldst først.
      * En manuell behandling knyttes til de ubehandlede meldekortene på kjeden når den opprettes og lagres, se [ubehandledeBrukersMeldekort].
-     * En avbrutt behandling beholder koblingene den hadde da den ble avbrutt.
-     * Når behandlingen iverksettes, markeres meldekortene som behandlet av den, se [BrukersMeldekort.behandletAv].
+     * Når behandlingen iverksettes eller avbrytes, markeres meldekortene som behandlet av den, se [BrukersMeldekort.behandletAv].
      * Tom liste betyr at behandlingen ikke er knyttet til noe meldekort fra bruker.
      */
     val brukersMeldekort: List<BrukersMeldekort>,

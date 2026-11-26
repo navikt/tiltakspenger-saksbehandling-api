@@ -46,6 +46,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonServi
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.infra.setup.MdcKorrelasjon
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
@@ -63,6 +64,7 @@ import java.time.Clock
 open class BehandlingOgVedtakContext(
     sessionFactory: SessionFactory,
     meldekortbehandlingRepo: MeldekortbehandlingRepo,
+    brukersMeldekortRepo: BrukersMeldekortRepo,
     meldeperiodeRepo: MeldeperiodeRepo,
     statistikkService: StatistikkService,
     journalførRammevedtaksbrevKlient: JournalførRammevedtaksbrevKlient,
@@ -198,6 +200,7 @@ open class BehandlingOgVedtakContext(
             rammebehandlingRepo = rammebehandlingRepo,
             rammevedtakRepo = rammevedtakRepo,
             meldekortbehandlingRepo = meldekortbehandlingRepo,
+            brukersMeldekortRepo = brukersMeldekortRepo,
             meldeperiodeRepo = meldeperiodeRepo,
             sessionFactory = sessionFactory,
             sakService = sakService,

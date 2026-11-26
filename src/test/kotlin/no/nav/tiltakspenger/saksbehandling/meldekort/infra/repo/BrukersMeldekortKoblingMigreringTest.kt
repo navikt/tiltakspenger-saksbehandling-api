@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgels
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilOppdatertMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgBehandleMeldekortAutomatisk
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.mottaMeldekortRequest
@@ -36,7 +37,7 @@ import org.junit.jupiter.api.Test
 
 /**
  * Tester V287, som knytter manuelle meldekortbehandlingene fra før koblingene ble innført til meldekortene fra bruker de behandlet.
- * Tester også V288, som markerer meldekortene som behandlet av de iverksatte behandlingene de er knyttet til.
+ * Tester også V288, som markerer meldekortene som behandlet av de iverksatte og avbrutte behandlingene de er knyttet til.
  * Tilstanden bygges gjennom prodstiene, og koblingene og markeringene fjernes etterpå med SQL for å etterligne data fra før de ble innført.
  * Migreringene oppdaterer hele tabeller, så testene kjører isolert.
  */
@@ -117,7 +118,7 @@ class BrukersMeldekortKoblingMigreringTest {
 
     @Test
     @IsolatedDatabaseTest
-    fun `beholder eksisterende koblinger, hopper over automatiske behandlinger, og knytter avbrutte og åpne behandlinger til meldekortene de ikke har fått behandlet`() {
+    fun `beholder eksisterende koblinger, hopper over automatiske behandlinger, og knytter avbrutte og åpne behandlinger til meldekortene som ikke er behandlet tidligere`() {
         // Automatisk behandling krever en hverdag innenfor økonomisystemets åpningstider.
         withTestApplicationContextAndPostgres(
             clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0))),
@@ -143,16 +144,17 @@ class BrukersMeldekortKoblingMigreringTest {
             val mottattEtterLagring = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
 
             tac.fjernKoblinger(avbruttBehandling.id)
+            tac.fjernKoblinger(åpenBehandling.id)
             tac.fjernMarkeringer()
             tac.kjørMigrering()
 
             tac.hentKoblinger(automatiskBehandling.id) shouldBe mapOf(kjedeId to listOf(automatiskBehandletMeldekort.id))
             tac.hentKoblinger(avbruttBehandling.id) shouldBe mapOf(kjedeId to listOf(korrigertMeldekort.id))
-            tac.hentKoblinger(åpenBehandling.id) shouldBe mapOf(kjedeId to listOf(korrigertMeldekort.id, mottattEtterLagring.id))
-            // Avbrutte og åpne behandlinger markerer ikke meldekortene som behandlet.
+            tac.hentKoblinger(åpenBehandling.id) shouldBe mapOf(kjedeId to listOf(mottattEtterLagring.id))
+            // Den avbrutte behandlingen markerer meldekortene sine som behandlet, mens den åpne ikke gjør det.
             tac.hentBehandletAv(listOf(automatiskBehandletMeldekort.id, korrigertMeldekort.id, mottattEtterLagring.id)) shouldBe mapOf(
                 automatiskBehandletMeldekort.id to automatiskBehandling.id,
-                korrigertMeldekort.id to null,
+                korrigertMeldekort.id to avbruttBehandling.id,
                 mottattEtterLagring.id to null,
             )
         }
@@ -184,7 +186,7 @@ class BrukersMeldekortKoblingMigreringTest {
             // Appen nuller tidspunktet for sendingen ved avbrytelse, så migreringen kan bare bruke avbrytelsestidspunktet.
             val mottattEtterSending = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
             avbrytMeldekortbehandling(tac = tac, sakId = sak.id, meldekortId = avbruttBehandling.id)!!
-            mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
+            val mottattEtterAvbrytelse = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
 
             tac.fjernKoblinger(førsteBehandling.id)
             tac.fjernKoblinger(avbruttBehandling.id)
@@ -193,11 +195,36 @@ class BrukersMeldekortKoblingMigreringTest {
 
             tac.hentKoblinger(førsteBehandling.id) shouldBe mapOf(kjedeId to listOf(førsteMeldekort.id))
             tac.hentKoblinger(avbruttBehandling.id) shouldBe mapOf(kjedeId to listOf(korrigertMeldekort.id, mottattEtterSending.id))
-            tac.hentBehandletAv(listOf(førsteMeldekort.id, korrigertMeldekort.id, mottattEtterSending.id)) shouldBe mapOf(
+            tac.hentBehandletAv(listOf(førsteMeldekort.id, korrigertMeldekort.id, mottattEtterSending.id, mottattEtterAvbrytelse.id)) shouldBe mapOf(
                 førsteMeldekort.id to førsteBehandling.id,
-                korrigertMeldekort.id to null,
-                mottattEtterSending.id to null,
+                korrigertMeldekort.id to avbruttBehandling.id,
+                mottattEtterSending.id to avbruttBehandling.id,
+                mottattEtterAvbrytelse.id to null,
             )
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `knytter en behandling som ble avbrutt av en stans før avbrytelsen ble lagret, til meldekortene mottatt før den sist ble endret`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, _, _) = this.iverksettSøknadsbehandling(tac = tac)
+            val kjedeId = sak.meldeperiodeKjeder[0].kjedeId
+            val brukersMeldekort = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
+            val (_, avbruttBehandling, _) = opprettMeldekortbehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = kjedeId,
+            )!!
+            iverksettRevurderingStans(tac = tac, sakId = sak.id)
+
+            tac.fjernKoblinger(avbruttBehandling.id)
+            tac.fjernAvbrutt(avbruttBehandling.id)
+            tac.fjernMarkeringer()
+            tac.kjørMigrering()
+
+            tac.hentKoblinger(avbruttBehandling.id) shouldBe mapOf(kjedeId to listOf(brukersMeldekort.id))
+            tac.hentBehandletAv(listOf(brukersMeldekort.id)) shouldBe mapOf(brukersMeldekort.id to avbruttBehandling.id)
         }
     }
 
@@ -216,6 +243,20 @@ class BrukersMeldekortKoblingMigreringTest {
     private fun TestApplicationContextMedPostgres.fjernMarkeringer() {
         (sessionFactory as PostgresSessionFactory).withSession { session ->
             session.run(queryOf("update meldekort_bruker set behandlet_av = null").asUpdate)
+        }
+    }
+
+    /**
+     * Rammeiverksettelsen lagret tidligere ikke avbrytelsen når en stans avbrøt en åpen meldekortbehandling.
+     */
+    private fun TestApplicationContextMedPostgres.fjernAvbrutt(meldekortbehandlingId: MeldekortId) {
+        (sessionFactory as PostgresSessionFactory).withSession { session ->
+            session.run(
+                queryOf(
+                    "update meldekortbehandling set avbrutt = null where id = :id",
+                    mapOf("id" to meldekortbehandlingId.toString()),
+                ).asUpdate,
+            )
         }
     }
 

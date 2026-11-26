@@ -34,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.tilOppdatertMeldeperiod
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingInnvilgelse
@@ -648,7 +649,7 @@ class OppdaterMeldekortbehandlingRouteTest {
     }
 
     @Test
-    fun `knytter ikke meldekort som er behandlet av en tidligere behandling, og en avbrutt behandling beholder meldekortene uten å anses å ha behandlet dem`() {
+    fun `knytter ikke meldekort som er behandlet av en tidligere behandling, heller ikke når den ble avbrutt`() {
         withTestApplicationContext { tac ->
             val (sak, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
@@ -677,21 +678,22 @@ class OppdaterMeldekortbehandlingRouteTest {
                 sakId = sak.id,
                 meldekortId = avbruttBehandling.id,
             )!!
-            avbrutt.brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to listOf(korrigering.id))
+            avbrutt.meldeperioder.brukersMeldekort.map { it.id to it.behandletAv } shouldBe listOf(korrigering.id to avbruttBehandling.id)
 
+            val mottattEtterAvbrytelse = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
             val (_, nyBehandling, _) = opprettOgOppdaterMeldekortbehandling(
                 tac = tac,
                 sakId = sak.id,
                 kjedeId = kjedeId,
             )!!
-            nyBehandling.brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to listOf(korrigering.id))
+            nyBehandling.brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to listOf(mottattEtterAvbrytelse.id))
             tac.meldekortContext.meldekortbehandlingRepo.hent(avbruttBehandling.id)!!
                 .brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to listOf(korrigering.id))
         }
     }
 
     @Test
-    fun `markerer meldekortene som behandlet når behandlingen iverksettes, men ikke meldekort mottatt etter at den sist ble lagret eller knyttet til en avbrutt behandling`() {
+    fun `markerer meldekortene som behandlet når behandlingen iverksettes eller avbrytes, men ikke meldekort mottatt etter at den sist ble lagret`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
@@ -721,17 +723,40 @@ class OppdaterMeldekortbehandlingRouteTest {
                 kjedeId = kjedeId,
             )!!
             avbruttBehandling.brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to listOf(mottattEtterLagring.id))
+            val mottattEtterAvbruttLagring = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
             avbrytMeldekortbehandling(tac = tac, sakId = sak.id, meldekortId = avbruttBehandling.id)!!
-            tac.behandletAv(mottattEtterLagring.id) shouldBe null
+            tac.behandletAv(mottattEtterLagring.id) shouldBe avbruttBehandling.id
+            tac.behandletAv(mottattEtterAvbruttLagring.id) shouldBe null
 
             val (_, _, korrigering) = opprettOgIverksettMeldekortbehandling(
                 tac = tac,
                 sakId = sak.id,
                 kjedeId = kjedeId,
             )!!
-            korrigering.brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to listOf(mottattEtterLagring.id))
-            tac.behandletAv(mottattEtterLagring.id) shouldBe korrigering.id
+            korrigering.brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to listOf(mottattEtterAvbruttLagring.id))
+            tac.behandletAv(mottattEtterAvbruttLagring.id) shouldBe korrigering.id
+            tac.behandletAv(mottattEtterLagring.id) shouldBe avbruttBehandling.id
             tac.behandletAv(behandletMeldekort.id) shouldBe iverksatt.id
+        }
+    }
+
+    @Test
+    fun `markerer meldekortene som behandlet når en stans som fjerner all rett avbryter behandlingen`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _, _) = this.iverksettSøknadsbehandling(tac = tac)
+            val kjedeId = sak.meldeperiodeKjeder[0].kjedeId
+            val brukersMeldekort = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
+            val (_, behandling, _) = opprettMeldekortbehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = kjedeId,
+            )!!
+            behandling.brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to listOf(brukersMeldekort.id))
+
+            iverksettRevurderingStans(tac = tac, sakId = sak.id)
+
+            tac.meldekortContext.meldekortbehandlingRepo.hent(behandling.id)!!.erAvbrutt shouldBe true
+            tac.behandletAv(brukersMeldekort.id) shouldBe behandling.id
         }
     }
 

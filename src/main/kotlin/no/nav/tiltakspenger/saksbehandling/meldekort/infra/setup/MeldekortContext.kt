@@ -221,6 +221,7 @@ open class MeldekortContext(
     val avbrytMeldekortbehandlingService by lazy {
         AvbrytMeldekortbehandlingService(
             meldekortbehandlingRepo = meldekortbehandlingRepo,
+            brukersMeldekortRepo = brukersMeldekortRepo,
             sakService = sakService,
             clock = clock,
             sessionFactory = sessionFactory,

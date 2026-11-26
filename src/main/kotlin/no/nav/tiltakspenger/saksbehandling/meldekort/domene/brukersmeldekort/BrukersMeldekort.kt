@@ -31,8 +31,8 @@ import java.time.LocalDateTime
  * Settes av jobben for automatisk behandling når den gir opp meldekortet, og er alltid null for et nytt meldekort.
  * Se [no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.utledPrioriteringAvKorrigering].
  * @param behandletAv Meldekortbehandlingen som behandlet meldekortet.
- * Settes når behandlingen iverksettes, enten den er manuell eller automatisk, og er null fram til da.
- * En avbrutt behandling setter den aldri, selv om den er knyttet til meldekortet.
+ * Settes når behandlingen iverksettes eller avbrytes, og er null fram til da.
+ * En avbrutt behandling regnes altså som at meldekortene den er knyttet til er behandlet, slik at de ikke tas med i neste behandling.
  * Siden en kjede bare kan ha én åpen behandling om gangen, er meldekortene på kjeden som mangler den, de ubehandlede.
  */
 data class BrukersMeldekort(
@@ -98,7 +98,7 @@ data class BrukersMeldekort(
         const val MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER = 2
     }
 
-    /** Kalles når [meldekortbehandlingId] iverksettes. */
+    /** Kalles når [meldekortbehandlingId] iverksettes eller avbrytes. */
     fun markerSomBehandlet(meldekortbehandlingId: MeldekortId): BrukersMeldekort {
         require(behandletAv == null) {
             "Brukers meldekort $id er allerede behandlet av $behandletAv, og kan ikke også behandles av $meldekortbehandlingId"

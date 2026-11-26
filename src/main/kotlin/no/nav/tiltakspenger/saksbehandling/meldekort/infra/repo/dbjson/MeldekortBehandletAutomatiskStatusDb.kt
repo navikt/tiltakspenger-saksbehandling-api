@@ -15,6 +15,7 @@ private enum class MeldekortBehandletAutomatiskStatusDb {
     TIDLIGERE_BEHANDLET_MANUELT,
     NYERE_INNSENDING_ER_BEHANDLET,
     UTDATERT_MELDEPERIODE,
+    BEHANDLET_I_AVBRUTT_BEHANDLING,
     ER_UNDER_REVURDERING,
     FOR_MANGE_DAGER_REGISTRERT,
     KAN_IKKE_MELDE_HELG,
@@ -42,6 +43,7 @@ fun MeldekortBehandletAutomatiskStatus.tilDb(): String = when (this) {
     MeldekortBehandletAutomatiskStatus.TIDLIGERE_BEHANDLET_MANUELT -> MeldekortBehandletAutomatiskStatusDb.TIDLIGERE_BEHANDLET_MANUELT
     MeldekortBehandletAutomatiskStatus.NYERE_INNSENDING_ER_BEHANDLET -> MeldekortBehandletAutomatiskStatusDb.NYERE_INNSENDING_ER_BEHANDLET
     MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE -> MeldekortBehandletAutomatiskStatusDb.UTDATERT_MELDEPERIODE
+    MeldekortBehandletAutomatiskStatus.BEHANDLET_I_AVBRUTT_BEHANDLING -> MeldekortBehandletAutomatiskStatusDb.BEHANDLET_I_AVBRUTT_BEHANDLING
     MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING -> MeldekortBehandletAutomatiskStatusDb.ER_UNDER_REVURDERING
     MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatusDb.FOR_MANGE_DAGER_REGISTRERT
     MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG -> MeldekortBehandletAutomatiskStatusDb.KAN_IKKE_MELDE_HELG
@@ -70,6 +72,7 @@ fun String.tilMeldekortBehandletAutomatiskStatus(): MeldekortBehandletAutomatisk
         MeldekortBehandletAutomatiskStatusDb.TIDLIGERE_BEHANDLET_MANUELT -> MeldekortBehandletAutomatiskStatus.TIDLIGERE_BEHANDLET_MANUELT
         MeldekortBehandletAutomatiskStatusDb.NYERE_INNSENDING_ER_BEHANDLET -> MeldekortBehandletAutomatiskStatus.NYERE_INNSENDING_ER_BEHANDLET
         MeldekortBehandletAutomatiskStatusDb.UTDATERT_MELDEPERIODE -> MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE
+        MeldekortBehandletAutomatiskStatusDb.BEHANDLET_I_AVBRUTT_BEHANDLING -> MeldekortBehandletAutomatiskStatus.BEHANDLET_I_AVBRUTT_BEHANDLING
         MeldekortBehandletAutomatiskStatusDb.ER_UNDER_REVURDERING -> MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING
         MeldekortBehandletAutomatiskStatusDb.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT
         MeldekortBehandletAutomatiskStatusDb.KAN_IKKE_MELDE_HELG -> MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG

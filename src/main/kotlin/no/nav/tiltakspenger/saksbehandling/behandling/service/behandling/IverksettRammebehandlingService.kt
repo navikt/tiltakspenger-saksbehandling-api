@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.varsleHvisReversertOpphørErIverksatt
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.meldeperioderErGyldigeForHelg
@@ -49,6 +50,7 @@ class IverksettRammebehandlingService(
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val rammevedtakRepo: RammevedtakRepo,
     private val meldekortbehandlingRepo: MeldekortbehandlingRepo,
+    private val brukersMeldekortRepo: BrukersMeldekortRepo,
     private val meldeperiodeRepo: MeldeperiodeRepo,
     private val sessionFactory: SessionFactory,
     private val sakService: SakService,
@@ -246,12 +248,14 @@ class IverksettRammebehandlingService(
             return KanIkkeIverksetteBehandling.UgyldigeMeldeperioderHelg.left()
         }
 
-        val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) = this.meldekortbehandlinger.oppdaterMedNyeKjeder(
+        val (_, oppdaterteMeldekort) = this.meldekortbehandlinger.oppdaterMedNyeKjeder(
             oppdaterteKjeder = sakOppdatertMedMeldeperioder.meldeperiodeKjeder,
             clock = clock,
         )
-        val sakOppdatertMedMeldekortbehandlinger =
-            sakOppdatertMedMeldeperioder.oppdaterMeldekortbehandlinger(oppdaterteMeldekortbehandlinger)
+        // Avbrutte behandlinger har markert meldekortene fra bruker som behandlet, så saken oppdateres med hver behandling for å få med markeringen.
+        val sakOppdatertMedMeldekortbehandlinger = oppdaterteMeldekort.fold(sakOppdatertMedMeldeperioder) { sak, oppdatert ->
+            sak.oppdaterMeldekortbehandling(oppdatert)
+        }
 
         // Åpne meldekortbehandlinger som avbrytes eller sendes tilbake fra beslutter, gir saksstatistikk; bare oppdaterte meldeperioder gir det ikke.
         val meldekortstatistikk = oppdaterteMeldekort.mapNotNull { oppdatert ->
@@ -276,9 +280,16 @@ class IverksettRammebehandlingService(
                     sessionContext = tx,
                 )
                 meldeperiodeRepo.lagre(oppdaterteMeldeperioder, tx)
-                // Merk at simuleringen vil nulles ut her.
-                // Gjelder kun åpne meldekortbehandlinger.
-                oppdaterteMeldekort.forEach { meldekortbehandlingRepo.oppdater(it, null, tx) }
+                // Avbrytelsen lagres bare av oppdateringsvarianten uten simulering.
+                // For behandlinger som fortsatt er åpne, nulles simuleringen ut.
+                oppdaterteMeldekort.forEach {
+                    if (it.erAvbrutt) {
+                        meldekortbehandlingRepo.oppdater(it, tx)
+                        brukersMeldekortRepo.markerSomBehandlet(it, tx)
+                    } else {
+                        meldekortbehandlingRepo.oppdater(it, null, tx)
+                    }
+                }
 
                 tidligereVedtak.forEach {
                     rammevedtakRepo.oppdaterOmgjortAv(
