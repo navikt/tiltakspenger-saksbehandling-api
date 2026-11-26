@@ -14,6 +14,7 @@ data class Meldeperiodebehandling(
     val dager: UtfyltMeldeperiode,
     /**
      * Meldekortene fra bruker som denne meldeperiodebehandlingen behandler, sortert eldst først.
+     * En manuell behandling knyttes til de ubehandlede meldekortene på kjeden når den opprettes og lagres, se [ubehandledeBrukersMeldekort].
      * Tom liste betyr at behandlingen ikke er knyttet til noe meldekort fra bruker.
      */
     val brukersMeldekort: List<BrukersMeldekort>,

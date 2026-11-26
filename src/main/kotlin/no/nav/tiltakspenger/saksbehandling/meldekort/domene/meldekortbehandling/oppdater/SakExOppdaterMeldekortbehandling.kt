@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ubehandledeBrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
@@ -58,7 +59,7 @@ suspend fun Sak.oppdaterMeldekort(
 
                 Meldeperiodebehandling(
                     dager = utfylt,
-                    brukersMeldekort = emptyList(),
+                    brukersMeldekort = this.ubehandledeBrukersMeldekort(kjedeId, meldekortbehandling.id),
                     type = if (tidligereBehandlingerForKjede.isEmpty()) {
                         MeldeperiodebehandlingType.FØRSTE_BEHANDLING
                     } else {
