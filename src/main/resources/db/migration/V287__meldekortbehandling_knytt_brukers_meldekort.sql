@@ -47,27 +47,44 @@ ny_kobling AS (
     WHERE b.status <> 'AUTOMATISK_BEHANDLET'
       AND NOT EXISTS (SELECT 1 FROM koblet WHERE koblet.brukers_meldekort_id = mb.id)
     ORDER BY mb.id, b.frist, b.opprettet, b.id
+),
+-- Bygger de nye listene med joins framfor korrelerte underspørringer per meldeperiode.
+-- Med `OR` mellom to korrelerte `IN` skannet Postgres hele meldekort_bruker for hver meldeperiode, og migreringen tok 7,5 minutter mot 35k manuelle behandlinger.
+-- Listene for meldeperiodene uten nye koblinger bygges på samme måte, slik at alle meldeperiodene i en oppdatert behandling sorteres likt.
+kobling AS (
+    SELECT b.id AS meldekortbehandling_id,
+           b.kjede_id,
+           k.brukers_meldekort_id
+    FROM behandling_av_kjede b
+    CROSS JOIN jsonb_array_elements_text(b.brukers_meldekort_ider) AS k(brukers_meldekort_id)
+    WHERE b.id IN (SELECT meldekortbehandling_id FROM ny_kobling)
+    UNION
+    SELECT meldekortbehandling_id, kjede_id, brukers_meldekort_id
+    FROM ny_kobling
+),
+ny_liste AS (
+    SELECT k.meldekortbehandling_id,
+           k.kjede_id,
+           jsonb_agg(mb.id ORDER BY mb.mottatt, mb.id) AS brukers_meldekort_ider
+    FROM kobling k
+    JOIN meldekort_bruker mb ON mb.id = k.brukers_meldekort_id
+    GROUP BY k.meldekortbehandling_id, k.kjede_id
+),
+nye_meldeperioder AS (
+    SELECT m.id,
+           jsonb_agg(
+               jsonb_set(t.meldeperiode, '{brukersMeldekortIder}', coalesce(n.brukers_meldekort_ider, '[]'::jsonb))
+               ORDER BY t.ordinalitet
+           ) AS meldeperioder
+    FROM meldekortbehandling m
+    CROSS JOIN jsonb_array_elements(m.meldeperioder) WITH ORDINALITY AS t(meldeperiode, ordinalitet)
+    LEFT JOIN ny_liste n
+        ON n.meldekortbehandling_id = m.id
+        AND n.kjede_id = t.meldeperiode ->> 'kjedeId'
+    WHERE m.id IN (SELECT meldekortbehandling_id FROM ny_kobling)
+    GROUP BY m.id
 )
 UPDATE meldekortbehandling m
-SET meldeperioder = (
-    SELECT jsonb_agg(
-        jsonb_set(
-            meldeperiode,
-            '{brukersMeldekortIder}',
-            (
-                SELECT coalesce(jsonb_agg(mb.id ORDER BY mb.mottatt, mb.id), '[]'::jsonb)
-                FROM meldekort_bruker mb
-                WHERE mb.id IN (SELECT jsonb_array_elements_text(meldeperiode -> 'brukersMeldekortIder'))
-                   OR mb.id IN (
-                       SELECT n.brukers_meldekort_id
-                       FROM ny_kobling n
-                       WHERE n.meldekortbehandling_id = m.id
-                         AND n.kjede_id = meldeperiode ->> 'kjedeId'
-                   )
-            )
-        )
-        ORDER BY ordinalitet
-    )
-    FROM jsonb_array_elements(m.meldeperioder) WITH ORDINALITY AS t(meldeperiode, ordinalitet)
-)
-WHERE m.id IN (SELECT meldekortbehandling_id FROM ny_kobling);
+SET meldeperioder = n.meldeperioder
+FROM nye_meldeperioder n
+WHERE m.id = n.id;
