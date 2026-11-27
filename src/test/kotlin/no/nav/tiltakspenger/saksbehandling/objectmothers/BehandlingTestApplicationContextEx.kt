@@ -1,0 +1,503 @@
+package no.nav.tiltakspenger.saksbehandling.objectmothers
+
+import arrow.core.NonEmptySet
+import arrow.core.nonEmptyListOf
+import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.common.fixedClock
+import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
+import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdater
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter.SendBehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingerKommando
+import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
+import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.IverksettMeldekortbehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyInnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterSøknadsbehandlingAvslagKommando
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterSøknadsbehandlingInnvilgelseKommando
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.personSøknad
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
+import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import java.time.Clock
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.UUID
+
+fun TestApplicationContext.nyInnvilgbarSøknad(
+    periode: Periode = ObjectMother.vedtaksperiode(),
+    fnr: Fnr = Fnr.random(),
+    fornavn: String = "Fornavn",
+    etternavn: String = "Etternavn",
+    personopplysningerFraSøknad: Søknad.Personopplysninger = personSøknad(
+        fnr = fnr,
+        fornavn = fornavn,
+        etternavn = etternavn,
+    ),
+    personopplysningerForBrukerFraPdl: EnkelPerson = ObjectMother.personopplysningKjedeligFyr(
+        fnr = fnr,
+    ),
+    deltarPåIntroduksjonsprogram: Boolean = false,
+    deltarPåKvp: Boolean = false,
+    mottatt: LocalDateTime = 1.januarDateTime(2022),
+    tiltaksdeltakelse: TiltaksdeltakelseIntern? = null,
+    søknadstiltak: Søknadstiltak? = tiltaksdeltakelse?.toSøknadstiltak(),
+    sak: Sak = ObjectMother.nySak(fnr = fnr),
+    søknadId: SøknadId = SøknadId.random(),
+    søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(
+        fnr = fnr,
+        personopplysninger = personopplysningerFraSøknad,
+        mottatt = mottatt,
+        søknadstiltak = søknadstiltak ?: ObjectMother.søknadstiltak(
+            deltakelseFom = periode.fraOgMed,
+            deltakelseTom = periode.tilOgMed,
+        ),
+        intro = if (deltarPåIntroduksjonsprogram) {
+            Søknad.PeriodeSpm.Ja(
+                fraOgMed = periode.fraOgMed,
+                tilOgMed = periode.tilOgMed,
+            )
+        } else {
+            Søknad.PeriodeSpm.Nei
+        },
+        kvp = if (deltarPåKvp) {
+            Søknad.PeriodeSpm.Ja(
+                fraOgMed = periode.fraOgMed,
+                tilOgMed = periode.tilOgMed,
+            )
+        } else {
+            Søknad.PeriodeSpm.Nei
+        },
+        sakId = sak.id,
+        saksnummer = sak.saksnummer,
+        id = søknadId,
+    ),
+): Søknad {
+    this.søknadContext.søknadService.nySøknad(søknad)
+    this.leggTilPerson(fnr, personopplysningerForBrukerFraPdl, tiltaksdeltakelse ?: søknad.tiltak.toTiltak())
+    return søknad
+}
+
+/**
+ * Oppretter sak, sender inn søknad og starter behandling.
+ * @param søknad Dersom du sender inn denne, bør du og sende inn tiltak+fnr for at de skal henge sammen.
+ */
+suspend fun TestApplicationContext.startSøknadsbehandling(
+    periode: Periode = ObjectMother.vedtaksperiode(),
+    fnr: Fnr = Fnr.random(),
+    saksbehandler: Saksbehandler = saksbehandler(),
+    fødselsdato: LocalDate = 1.januar(2000),
+    personopplysningerForBrukerFraPdl: EnkelPerson = ObjectMother.personopplysningKjedeligFyr(
+        fnr = fnr,
+        fødselsdato = fødselsdato,
+    ),
+    deltarPåIntroduksjonsprogram: Boolean = false,
+    deltarPåKvp: Boolean = false,
+    fornavn: String = "Fornavn",
+    etternavn: String = "Etternavn",
+    personopplysningerFraSøknad: Søknad.Personopplysninger = personSøknad(
+        fnr = fnr,
+        fornavn = fornavn,
+        etternavn = etternavn,
+    ),
+    mottatt: LocalDateTime = 1.januarDateTime(2022),
+    tiltaksdeltakelseId: String = UUID.randomUUID().toString(),
+    internTiltaksdeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
+    sak: Sak = ObjectMother.nySak(fnr = fnr),
+    søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(
+        fnr = fnr,
+        personopplysninger = personopplysningerFraSøknad,
+        mottatt = mottatt,
+        søknadstiltak = ObjectMother.søknadstiltak(
+            id = tiltaksdeltakelseId,
+            deltakelseFom = periode.fraOgMed,
+            deltakelseTom = periode.tilOgMed,
+            tiltaksdeltakerId = internTiltaksdeltakelseId,
+        ),
+        intro = if (deltarPåIntroduksjonsprogram) {
+            Søknad.PeriodeSpm.Ja(
+                fraOgMed = periode.fraOgMed,
+                tilOgMed = periode.tilOgMed,
+            )
+        } else {
+            Søknad.PeriodeSpm.Nei
+        },
+        kvp = if (deltarPåKvp) {
+            Søknad.PeriodeSpm.Ja(
+                fraOgMed = periode.fraOgMed,
+                tilOgMed = periode.tilOgMed,
+            )
+        } else {
+            Søknad.PeriodeSpm.Nei
+        },
+        sakId = sak.id,
+        saksnummer = sak.saksnummer,
+    ),
+    correlationId: CorrelationId = CorrelationId.generate(),
+): Pair<Sak, Søknadsbehandling> {
+    this.sakContext.sakRepo.opprettSak(sak, this.sakContext.oppdragsversjonForNyeSaker)
+    this.nyInnvilgbarSøknad(
+        periode = periode,
+        fnr = fnr,
+        fornavn = fornavn,
+        etternavn = etternavn,
+        søknad = søknad,
+        personopplysningerFraSøknad = personopplysningerFraSøknad,
+        personopplysningerForBrukerFraPdl = personopplysningerForBrukerFraPdl,
+        tiltaksdeltakelse = søknad.tiltak.toTiltak(),
+        sak = sak,
+    )
+    val behandling = this.behandlingContext.startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(
+        søknad,
+        correlationId = correlationId,
+    ).getOrFail()
+    val behandlingUnderBehandling = behandling.copy(
+        status = Rammebehandlingsstatus.UNDER_BEHANDLING,
+        saksbehandler = saksbehandler.navIdent,
+    ).also {
+        this.behandlingContext.rammebehandlingRepo.lagre(it)
+    }
+    return sak.leggTilSøknadsbehandling(behandlingUnderBehandling) to behandlingUnderBehandling
+}
+
+suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
+    periode: Periode = ObjectMother.vedtaksperiode(),
+    fnr: Fnr = Fnr.random(),
+    saksbehandler: Saksbehandler = saksbehandler(),
+    correlationId: CorrelationId = CorrelationId.generate(),
+    fritekstTilVedtaksbrev: String = "Fritekst",
+    begrunnelseVilkårsvurdering: String = "Begrunnelse",
+    avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
+    innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(innvilgelsesperiodeKommando(innvilgelsesperiode = periode)),
+    barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
+    resultat: SøknadsbehandlingsresultatType,
+): Sak {
+    val (sakMedSøknadsbehandling) = startSøknadsbehandling(
+        periode = periode,
+        fnr = fnr,
+        internTiltaksdeltakelseId = innvilgelsesperioder.first().internDeltakelseIder.first(),
+    )
+    val behandling = sakMedSøknadsbehandling.rammebehandlinger.singleOrNullOrThrow()!! as Søknadsbehandling
+
+    this.behandlingContext.oppdaterRammebehandlingService.oppdater(
+        when (resultat) {
+            SøknadsbehandlingsresultatType.INNVILGELSE -> oppdaterSøknadsbehandlingInnvilgelseKommando(
+                sakId = sakMedSøknadsbehandling.id,
+                behandlingId = behandling.id,
+                saksbehandler = saksbehandler,
+                correlationId = correlationId,
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+                innvilgelsesperioder = innvilgelsesperioder,
+                barnetillegg = barnetillegg,
+            )
+
+            SøknadsbehandlingsresultatType.AVSLAG -> oppdaterSøknadsbehandlingAvslagKommando(
+                sakId = sakMedSøknadsbehandling.id,
+                behandlingId = behandling.id,
+                saksbehandler = saksbehandler,
+                correlationId = correlationId,
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+                avslagsgrunner = avslagsgrunner!!,
+            )
+
+            SøknadsbehandlingsresultatType.IKKE_VALGT -> throw IllegalArgumentException("Støtter ikke resultat $resultat")
+        },
+    ).getOrFail()
+
+    this.behandlingContext.sendRammebehandlingTilBeslutningService.sendTilBeslutning(
+        kommando = SendBehandlingTilBeslutningKommando(
+            sakId = sakMedSøknadsbehandling.id,
+            behandlingId = behandling.id,
+            saksbehandler = saksbehandler,
+            correlationId = correlationId,
+        ),
+    )
+
+    return this.sakContext.sakService.hentForSakId(
+        sakMedSøknadsbehandling.id,
+    )
+}
+
+suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
+    periode: Periode = ObjectMother.vedtaksperiode(),
+    fnr: Fnr = Fnr.random(),
+    saksbehandler: Saksbehandler = saksbehandler(),
+    beslutter: Saksbehandler = beslutter(),
+    resultat: SøknadsbehandlingsresultatType,
+    barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
+    avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
+    innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
+        innvilgelsesperiodeKommando(
+            innvilgelsesperiode = periode,
+        ),
+    ),
+): Sak {
+    val vilkårsvurdert = søknadsbehandlingTilBeslutter(
+        periode = periode,
+        fnr = fnr,
+        saksbehandler = saksbehandler,
+        resultat = resultat,
+        innvilgelsesperioder = innvilgelsesperioder,
+        barnetillegg = barnetillegg,
+        avslagsgrunner = avslagsgrunner,
+    )
+    this.behandlingContext.taRammebehandlingService.taRammebehandlinger(
+        kommando = TaRammebehandlingerKommando(
+            saksbehandler = beslutter,
+            behandlinger = nonEmptyListOf(
+                TaRammebehandlingerKommando.RammebehandlingMedSakId(
+                    behandlingId = vilkårsvurdert.rammebehandlinger.singleOrNullOrThrow()!!.id,
+                    sakId = vilkårsvurdert.id,
+                ),
+            ),
+        ),
+    )
+    return this.sakContext.sakService.hentForSakId(
+        vilkårsvurdert.id,
+    )
+}
+
+suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
+    periode: Periode = ObjectMother.vedtaksperiode(),
+    fnr: Fnr = Fnr.random(),
+    saksbehandler: Saksbehandler = saksbehandler(),
+    beslutter: Saksbehandler = beslutter(),
+    resultat: SøknadsbehandlingsresultatType,
+    innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
+        innvilgelsesperiodeKommando(
+            innvilgelsesperiode = periode,
+        ),
+    ),
+    barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
+    avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
+    correlationId: CorrelationId = CorrelationId.generate(),
+): Pair<Sak, Søknadsbehandling> {
+    val tac = this
+    val underBeslutning = søknadsbehandlingUnderBeslutning(
+        periode = periode,
+        fnr = fnr,
+        saksbehandler = saksbehandler,
+        beslutter = beslutter,
+        resultat = resultat,
+        innvilgelsesperioder = innvilgelsesperioder,
+        barnetillegg = barnetillegg,
+        avslagsgrunner = avslagsgrunner,
+    )
+    val behandling = tac.behandlingContext.iverksettRammebehandlingService.iverksettRammebehandling(
+        rammebehandlingId = underBeslutning.rammebehandlinger.singleOrNullOrThrow()!!.id,
+        beslutter = beslutter,
+        correlationId = correlationId,
+        sakId = underBeslutning.id,
+    ).getOrFail().second
+
+    return this.sakContext.sakService.hentForSakId(behandling.sakId) to behandling as Søknadsbehandling
+}
+
+suspend fun TestApplicationContext.søknadsbehandlingIverksattMedMeldeperioder(
+    periode: Periode = ObjectMother.vedtaksperiode(),
+    fnr: Fnr = Fnr.random(),
+    saksbehandler: Saksbehandler = saksbehandler(),
+    beslutter: Saksbehandler = beslutter(),
+    clock: Clock = fixedClock,
+    resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
+    innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
+        innvilgelsesperiodeKommando(
+            innvilgelsesperiode = periode,
+        ),
+    ),
+    barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(),
+): Sak {
+    val (sak, meldeperioder) = søknadssbehandlingIverksatt(
+        periode = periode,
+        fnr = fnr,
+        saksbehandler = saksbehandler,
+        beslutter = beslutter,
+        resultat = resultat,
+        innvilgelsesperioder = innvilgelsesperioder,
+        barnetillegg = barnetillegg,
+    ).first.genererMeldeperioder(clock)
+
+    this.meldekortContext.meldeperiodeRepo.lagre(meldeperioder)
+
+    return sak
+}
+
+/**
+ * Oppretter sak, søknad, iverksetter søknadsbehandling og oppretter meldekortbehandling
+ */
+suspend fun TestApplicationContext.meldekortbehandlingOpprettet(
+    innvilgelsesperiode: Periode = ObjectMother.vedtaksperiode(),
+    fnr: Fnr = Fnr.random(),
+    saksbehandler: Saksbehandler = saksbehandler(),
+    beslutter: Saksbehandler = beslutter(),
+): Sak {
+    val tac = this
+    val (sak) = søknadssbehandlingIverksatt(
+        periode = innvilgelsesperiode,
+        fnr = fnr,
+        saksbehandler = saksbehandler,
+        beslutter = beslutter,
+        resultat = SøknadsbehandlingsresultatType.INNVILGELSE,
+    )
+    tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
+        no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+            sakId = sak.id,
+            kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+            saksbehandler = saksbehandler,
+            klagebehandlingId = null,
+        ),
+    )
+    return this.sakContext.sakService.hentForSakId(
+        sak.id,
+    )
+}
+
+/**
+ * Oppretter sak, søknad, iverksetter søknadsbehandling og oppretter meldekortbehandling
+ */
+suspend fun TestApplicationContext.meldekortbehandlingOppdatert(
+    innvilgelsesperiode: Periode = ObjectMother.vedtaksperiode(),
+    fnr: Fnr = Fnr.random(),
+    saksbehandler: Saksbehandler = saksbehandler(),
+    beslutter: Saksbehandler = beslutter(),
+    clock: Clock = this.clock,
+): Sak {
+    val tac = this
+    val sak = meldekortbehandlingOpprettet(
+        innvilgelsesperiode = innvilgelsesperiode,
+        fnr = fnr,
+        saksbehandler = saksbehandler,
+        beslutter = beslutter,
+    )
+    tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
+        sak.meldekortbehandlinger.first().tilOppdaterMeldekortKommando(
+            saksbehandler,
+        ),
+        clock,
+    )
+    return this.sakContext.sakService.hentForSakId(
+        sak.id,
+    )
+}
+
+/**
+ * Oppretter sak, søknad, iverksetter søknadsbehandling, oppretter meldekortbehandling og sender den til beslutter
+ */
+suspend fun TestApplicationContext.meldekortTilBeslutter(
+    innvilgelsesperiode: Periode = ObjectMother.vedtaksperiode(),
+    fnr: Fnr = Fnr.random(),
+    saksbehandler: Saksbehandler = saksbehandler(),
+    beslutter: Saksbehandler = beslutter(),
+    clock: Clock = this.clock,
+): Sak {
+    val tac = this
+    val sak = meldekortbehandlingOppdatert(
+        innvilgelsesperiode = innvilgelsesperiode,
+        fnr = fnr,
+        saksbehandler = saksbehandler,
+        beslutter = beslutter,
+        clock = clock,
+    )
+    tac.meldekortContext.sendMeldekortbehandlingTilBeslutterService.sendMeldekortTilBeslutter(
+        sak.meldekortbehandlinger.first().tilSendMeldekortTilBeslutterKommando(
+            saksbehandler,
+        ),
+        clock,
+    ).getOrFail()
+    return this.sakContext.sakService.hentForSakId(sak.id)
+}
+
+/**
+ * Oppretter sak, søknad, iverksetter søknadsbehandling, oppretter og iverksetter første meldekortbehandling.
+ *
+ * Genererer og sender også utbetaling for meldekortet
+ */
+suspend fun TestApplicationContext.førsteMeldekortIverksatt(
+    innvilgelsesperiode: Periode = ObjectMother.vedtaksperiode(),
+    fnr: Fnr = Fnr.random(),
+    saksbehandler: Saksbehandler = saksbehandler(),
+    beslutter: Saksbehandler = beslutter(),
+    correlationId: CorrelationId = CorrelationId.generate(),
+    clock: Clock = this.clock,
+): Sak {
+    val tac = this
+    val sak = meldekortTilBeslutter(
+        innvilgelsesperiode = innvilgelsesperiode,
+        fnr = fnr,
+        saksbehandler = saksbehandler,
+        beslutter = beslutter,
+        clock = clock,
+    )
+    val meldekortId = sak.meldekortbehandlinger.first().id
+    tac.meldekortContext.taMeldekortbehandlingService.taMeldekortbehandling(
+        sakId = sak.id,
+        meldekortId = meldekortId,
+        saksbehandler = beslutter,
+    )
+    tac.meldekortContext.iverksettMeldekortbehandlingService.iverksettMeldekort(
+        IverksettMeldekortbehandlingKommando(
+            meldekortId = meldekortId,
+            sakId = sak.id,
+            beslutter = beslutter,
+            correlationId = correlationId,
+        ),
+    )
+    // Emulerer at jobben kjører
+    tac.utbetalingContext.sendUtbetalingerJobb.sendUtbetalingerTilHelved()
+    return this.sakContext.sakService.hentForSakId(sak.id)
+}
+
+suspend fun TestApplicationContext.andreMeldekortOpprettet(
+    periode: Periode = ObjectMother.vedtaksperiode(),
+    fnr: Fnr = Fnr.random(),
+    saksbehandler: Saksbehandler = saksbehandler(),
+    beslutter: Saksbehandler = beslutter(),
+    clock: Clock = this.clock,
+): Sak {
+    val tac = this
+    val sak = førsteMeldekortIverksatt(
+        clock = clock,
+        innvilgelsesperiode = periode,
+        fnr = fnr,
+        saksbehandler = saksbehandler,
+        beslutter = beslutter,
+    )
+
+    val (_, meldekortbehandling) = tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
+        no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+            sakId = sak.id,
+            kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
+            saksbehandler = saksbehandler,
+            klagebehandlingId = null,
+        ),
+    ).getOrFail()
+
+    tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
+        kommando = meldekortbehandling.tilOppdaterMeldekortKommando(saksbehandler),
+        clock = clock,
+    )
+
+    return this.sakContext.sakService.hentForSakId(sak.id)
+}

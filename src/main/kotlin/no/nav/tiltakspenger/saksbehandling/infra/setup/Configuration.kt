@@ -10,33 +10,37 @@ const val AUTOMATISK_SAKSBEHANDLER_ID = "tp-sak"
 
 /**
  * Velger konfigurasjon ut fra Nais-klyngen.
- * Uten klynge eller med klynge `lokal` kjører appen lokalt med [LocalConfig].
  * `prod-gcp` bruker [ProdConfig] uten å lete etter leverandører.
- * Alle andre klynger krever nøyaktig én [Miljøkonfigurasjonsleverandør] på classpath for den aktuelle klyngen.
+ * Uten klynge brukes leverandøren for klyngen [LOKAL_KLYNGE], som bare finnes i lokalmodulen.
+ * Produksjons- og utviklingsimaget har den ikke, så de feiler ved oppstart uten `NAIS_CLUSTER_NAME`.
+ * Alle andre klynger, også [LOKAL_KLYNGE], krever nøyaktig én [Miljøkonfigurasjonsleverandør] på classpath for den aktuelle klyngen.
  *
- * [leverandører] kalles bare for andre navngitte klynger enn prod og lokal.
+ * [leverandører] kalles ikke for prod.
  */
 fun miljøkonfigurasjonFor(
     klynge: String?,
     leverandører: () -> Iterable<Miljøkonfigurasjonsleverandør> = { ServiceLoader.load(Miljøkonfigurasjonsleverandør::class.java) },
-): EnvironmentConfig =
-    when (klynge) {
-        null, "lokal" -> LocalConfig
-
-        "prod-gcp" -> ProdConfig
-
-        else -> {
-            val treff = leverandører().filter { it.klynge == klynge }
-            val leverandør = checkNotNull(treff.singleOrNull()) {
-                "NAIS_CLUSTER_NAME er $klynge, og det krever nøyaktig én Miljøkonfigurasjonsleverandør for klyngen, men fant ${treff.size}."
-            }
-            leverandør.hentKonfigurasjon().also {
-                check(it.environmentProfile == EnvironmentProfile.ANNEN_NAIS_KLYNGE) {
-                    "Konfigurasjonen for klyngen $klynge må ha profilen ANNEN_NAIS_KLYNGE, men har ${it.environmentProfile}."
-                }
-            }
+): EnvironmentConfig {
+    if (klynge == "prod-gcp") return ProdConfig
+    val ønsketKlynge = klynge ?: LOKAL_KLYNGE
+    val treff = leverandører().filter { it.klynge == ønsketKlynge }
+    val leverandør = checkNotNull(treff.singleOrNull()) {
+        if (klynge == null) {
+            "NAIS_CLUSTER_NAME mangler, og lokal kjøring krever nøyaktig én Miljøkonfigurasjonsleverandør for $LOKAL_KLYNGE fra lokalmodulen, men fant ${treff.size}."
+        } else {
+            "NAIS_CLUSTER_NAME er $klynge, og det krever nøyaktig én Miljøkonfigurasjonsleverandør for klyngen, men fant ${treff.size}."
         }
     }
+    val forventetProfil = if (ønsketKlynge == LOKAL_KLYNGE) EnvironmentProfile.LOCAL else EnvironmentProfile.ANNEN_NAIS_KLYNGE
+    return leverandør.hentKonfigurasjon().also {
+        check(it.environmentProfile == forventetProfil) {
+            "Konfigurasjonen for klyngen $ønsketKlynge må ha profilen $forventetProfil, men har ${it.environmentProfile}."
+        }
+    }
+}
+
+/** Klyngenavnet lokal kjøring bruker, og som leverandøren i lokalmodulen registrerer seg for. */
+const val LOKAL_KLYNGE = "lokal"
 
 object Configuration : EnvironmentConfig by miljøkonfigurasjonFor(System.getenv("NAIS_CLUSTER_NAME")) {
     val alleAdRoller: List<AdRolle> by lazy {

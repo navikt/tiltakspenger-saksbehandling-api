@@ -17,8 +17,10 @@ val avroVersion = "1.12.2"
 val prometeusVersion = "1.17.1"
 val jackson2Version = "2.22.4"
 val lz4Version = "1.12.0"
-// Samme versjon som `kafka` i tiltakspenger-libs sin versjonskatalog; se constraint-blokka for hvorfor den må være strict.
+// Se constraint-blokka for hvorfor vi låser Apache Kafka-klienten.
 val kafkaVersion = "4.3.2"
+// Lokalmodulen bruker den samme låsen.
+extra["kafkaVersion"] = kafkaVersion
 
 // Avro-pluginen drar inn `avro-tools` på buildscript-classpathen, og derfra kommer
 // `avro-mapred` → `avro-ipc-jetty` → Jetty 9.4, som er EOL og ikke får sikkerhetsfikser.
@@ -74,7 +76,7 @@ dependencies {
 
     constraints {
         // Confluent publiserer sin egen fork av kafka-clients som `8.3.2-ccs`.
-        // Den taper ikke konfliktoppløsningen mot Apache 4.3.2 fra libs:kafka - Gradle leser "8.3.2-ccs" som høyere enn "4.3.2" - så uten `strictly` er det Confluent-forken som havner i imaget.
+        // Gradle leser Confluent-versjonen som høyere enn Apache-versjonen, så uten `strictly` havner Confluent-forken i imaget.
         // Pinnet kom av at forken på 8.1-linja dro inn den avviklede `org.lz4:lz4-java` 1.8.0, med både out-of-bounds-lesing (GHSA-vqf4-7m7x-wgfc) og en informasjonslekkasje i den trygge dekomprimereren (GHSA-cmp6-m4wj-q63q) - sistnevnte uten fiks på de koordinatene.
         // Forken på 8.3.2 er bygd på Kafka 4.3 og bruker `at.yawk.lz4:lz4-java` som Apache, så lz4-hullet er borte.
         // `strictly` blir stående fordi versjonsvalget ellers faller tilbake på forken uten at noen har bestemt det.
@@ -166,6 +168,8 @@ dependencies {
     // Lokal kjøring og tester bruker dev-rutene.
     // Avhengigheten er ikke-transitiv, ellers kommer rotas egen JAR også på testclasspathen, og Flyway finner hver migrering to ganger.
     testImplementation(project(":dev")) { isTransitive = false }
+    // Testene trenger LocalConfig når de kjører, men kompilerer ikke mot lokalmodulen.
+    testRuntimeOnly(project(":lokal")) { isTransitive = false }
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.4.20")
     testImplementation(platform("org.junit:junit-bom:6.1.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -191,7 +195,15 @@ dependencies {
     testImplementation(testFixtures("no.nav.tiltakspenger.libs:httpklient-infrastruktur:$felleslibVersion"))
     testImplementation(testFixtures("no.nav.tiltakspenger.libs:tiltaksdeltakelse-domene:$felleslibVersion"))
     testImplementation("no.nav.tiltakspenger.libs:persistering-test-common:$felleslibVersion")
+
+    // Fakes og testdata i src/testFixtures deles mellom testene og lokalmodulen.
+    // Bruk hjelpefunksjonene fra test-common uten testrammeverkene som biblioteket ellers trekker inn.
+    testFixturesImplementation("no.nav.tiltakspenger.libs:test-common:$felleslibVersion") { isTransitive = false }
+    testFixturesImplementation(testFixtures("no.nav.tiltakspenger.libs:tiltaksdeltakelse-domene:$felleslibVersion"))
+    testFixturesImplementation("io.github.serpro69:kotlin-faker:1.16.2")
 }
+
+configurations.testFixturesImplementation { extendsFrom(configurations.implementation.get()) }
 
 fun isNonStable(version: String): Boolean {
     val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.uppercase().contains(it) }
@@ -208,6 +220,7 @@ plugins {
     id("io.github.ben-manes.versions") version "0.61.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.9"
     application
+    `java-test-fixtures`
 }
 application {
     mainClass.set("no.nav.tiltakspenger.saksbehandling.AppKt")
@@ -412,6 +425,9 @@ val klasserMedFullDekningskrav = httpklientKlasserMedDekningskrav.map { "$it*" }
 
 kover {
     currentProject {
+        sources {
+            includedSourceSets.add("main")
+        }
         instrumentation {
             // Instrumenter kun klassene dekningsgaten måler.
             // Agent på hele klassestien koster ellers rundt ti prosent av testtiden.

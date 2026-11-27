@@ -100,6 +100,7 @@ val verifiserDevDistribusjon = tasks.register("verifiserDevDistribusjon") {
     val devJarNavn = tasks.jar.get().archiveFileName.get()
     val devKlasse = application.mainClass.get().replace('.', '/') + ".class"
     val spiFil = "META-INF/services/no.nav.tiltakspenger.saksbehandling.infra.setup.Miljøkonfigurasjonsleverandør"
+    val fixturesJarNavn = rootProject.tasks.named<Jar>("testFixturesJar").get().archiveFileName.get()
     doLast {
         fun oppføringer(jar: File): Set<String> =
             ZipFile(jar).use { zip -> zip.entries().asSequence().filterNot { it.isDirectory }.map { it.name }.toSet() }
@@ -117,7 +118,17 @@ val verifiserDevDistribusjon = tasks.register("verifiserDevDistribusjon") {
         prodJarer.forEach { prod ->
             check(Files.mismatch(prod.toPath(), devJarer.getValue(prod.name).toPath()) == -1L) { "${prod.name} er ulik i dev- og produksjonsdistribusjonen." }
         }
+        // De andre JAR-filene i dev er identiske med produksjon, så kontrollen under dekker begge distribusjonene.
+        check(fixturesJarNavn !in prodNavn && fixturesJarNavn !in devJarer) { "En distribusjon inneholder $fixturesJarNavn." }
+        fun kontrollerUtenLokal(jarNavn: String, innhold: Set<String>) {
+            val lokale = innhold.filter {
+                it.startsWith("no/nav/tiltakspenger/saksbehandling/lokal/") || it.startsWith("db/lokal/") || it == "logback.local.xml"
+            }
+            check(lokale.isEmpty()) { "$jarNavn inneholder filer for lokal kjøring: $lokale" }
+        }
+
         val devOppføringer = oppføringer(devJar) - "META-INF/MANIFEST.MF"
+        kontrollerUtenLokal(devJarNavn, devOppføringer)
         check(devKlasse in devOppføringer) { "$devJarNavn mangler inngangspunktet $devKlasse." }
         val devPakke = devKlasse.substringBeforeLast('/') + "/"
         check(spiFil in devOppføringer) { "$devJarNavn mangler $spiFil." }
@@ -131,6 +142,7 @@ val verifiserDevDistribusjon = tasks.register("verifiserDevDistribusjon") {
         }
         prodJarer.forEach { prod ->
             val prodOppføringer = oppføringer(prod)
+            kontrollerUtenLokal(prod.name, prodOppføringer)
             check(prodOppføringer.none { it.startsWith(devPakke) }) { "${prod.name} inneholder dev-pakken $devPakke." }
             check(spiFil !in prodOppføringer) { "${prod.name} har en leverandør i $spiFil, og det skal bare dev ha." }
             val overlapp = devOppføringer intersect prodOppføringer

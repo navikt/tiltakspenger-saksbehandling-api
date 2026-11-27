@@ -7,10 +7,6 @@ import org.junit.jupiter.api.Test
 class HelvedSimuleringEnvironmentConfigTest {
     @Test
     fun `V3-simulering har miljøspesifikt endepunkt og Texas-mål`() {
-        HelvedSimuleringKonfigurasjon.Lokal shouldBe HelvedSimuleringKonfigurasjon(
-            url = "http://host.docker.internal:8091",
-            scope = "localhost",
-        )
         HelvedSimuleringKonfigurasjon.Prod shouldBe HelvedSimuleringKonfigurasjon(
             url = "http://simulering.helved",
             scope = "prod-gcp:helved:simulering",

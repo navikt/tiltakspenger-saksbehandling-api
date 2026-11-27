@@ -15,12 +15,13 @@ Les disse først.
 
 - **Rota er produksjonsappen, og `dev` er modulen for utviklingsimaget.**
   `dev` har bare `implementation(project(":"))` som prosjektavhengighet, og produksjonskoden i rota skal aldri avhenge av `dev`.
-  Rota har bare en ikke-transitiv `testImplementation` på `dev`, slik at tester og `LokalMain` kan bruke dev-rutene.
+  Rota har bare en ikke-transitiv `testImplementation` på `dev`, slik at testene kan bruke dev-rutene.
   Dev-spesifikk kode hører hjemme i `dev`, aldri i rotas hovedkildekode.
-  Hovedkildekoden har konfigurasjonene `ProdConfig` og `LocalConfig`, og grensesnittet `Miljøkonfigurasjonsleverandør` for andre klynger.
-  Uten `NAIS_CLUSTER_NAME` eller med `NAIS_CLUSTER_NAME=lokal` brukes `LocalConfig` uten oppslag av leverandører.
+  Hovedkildekoden har konfigurasjonen `ProdConfig`, og grensesnittet `Miljøkonfigurasjonsleverandør` for alt annet.
   I `prod-gcp` brukes `ProdConfig` uten oppslag av leverandører.
   Alle andre klynger krever nøyaktig én leverandør for klyngen, lastet med `ServiceLoader`, ellers feiler oppstarten.
+  Uten `NAIS_CLUSTER_NAME` brukes leverandøren for klyngen `lokal`.
+  `LocalConfig`, leverandøren for `lokal` og `META-INF/services`-fila for den ligger bare i `lokal`, så verken prod- eller utviklingsimaget kan starte lokalt.
   `DevConfig`, leverandøren og `META-INF/services`-fila ligger bare i `dev`, så produksjonsimaget kan ikke starte i dev-gcp.
   `DevApp` avviser alle andre klynger enn dev-gcp, også prod.
   Diagnostikkruter for dev og lokal kjøring ligger i `devRoutes` i `dev`.
@@ -28,6 +29,7 @@ Les disse først.
   `:dev:verifiserDevDistribusjon` kjører i `check` og kontrollerer at utviklingsdistribusjonen inneholder de samme JAR-filene som produksjon pluss én egen JAR.
   Kontrollen feiler hvis produksjon inneholder dev-pakken eller hvis JAR-fila fra `dev` overlapper med klasser og ressurser fra produksjon.
   Den feiler også hvis en produksjons-JAR har `META-INF/services`-fila for `Miljøkonfigurasjonsleverandør`, eller hvis JAR-fila fra `dev` ikke registrerer nøyaktig én leverandør fra dev-pakken.
+  Distribusjonskontrollen feiler dessuten hvis en JAR i produksjons- eller utviklingsdistribusjonen har lokalpakken, `db/lokal` eller `logback.local.xml`, eller hvis en av distribusjonene har rotas testfixtures-JAR.
 
 ## Pakkestruktur
 
@@ -43,11 +45,17 @@ Les disse først.
   De to pakkene ligger side om side rett under `no.nav.tiltakspenger.saksbehandling`, og `felles` skal verken ha en `infra`-underpakke eller importere infrastruktur.
   Mapping av en felles domenetype er infrastruktur selv om typen den mapper er felles, og hører derfor hjemme under `infra` — ikke ved siden av typen.
   Håndheves av `FellesErDomenepakkeKonsistTest`, som har en whitelist-ratchet for det som gjenstår.
-- **Kode som kun brukes ved lokal kjøring ligger i `lokal`-pakka i testkildene.**
-  Det gjelder `LokalMain`, `LocalApplicationContext`, lokale fakes og dev-endepunktene.
+- **Kode som kun brukes ved lokal kjøring ligger i `lokal`-pakka i modulen `lokal`.**
+  Det gjelder `LokalMain`, `LokalComposeMain`, `LocalConfig`, `LocalApplicationContext`, lokale fakes og lokale dev-endepunkter.
   Under `lokal` speiles prodstrukturen (`lokal/<domene>/infra/route/` osv.), og hvert dev-endepunkt ligger i sin egen fil.
-  Testene skal ikke bruke noe fra `lokal`; avhengigheten går bare fra `lokal` til testinfrastrukturen.
+  `lokal` avhenger av rota, `dev` og rotas testfixtures, og verken rotas hovedkode eller `dev` skal avhenge av `lokal`.
+  Fakes og testdata som deles mellom testene og `lokal`, ligger i `src/testFixtures`.
+  Rota har `lokal` bare som ikke-transitiv `testRuntimeOnly`, slik at testene kan laste `LocalConfig` uten å kompilere mot modulen.
+  Testene og testfixtures skal ikke referere til noe i `lokal`.
   Håndheves av `LokalKodeKonsistTest`.
+  `./gradlew :lokal:run` starter `LokalMain` med fakes.
+  Compose bygger imaget fra `lokal/Dockerfile` etter `./gradlew :lokal:installDist`, og imaget har eget inngangspunkt i `LokalComposeMain` med ekte klienter mot tjenestene i Compose.
+  Endrer du modulens plassering, distribusjon eller oppstartskrav, må `docker-compose.yml` i metarepoet oppdateres sammen med API-et.
 
 ## Sladding av personopplysninger
 

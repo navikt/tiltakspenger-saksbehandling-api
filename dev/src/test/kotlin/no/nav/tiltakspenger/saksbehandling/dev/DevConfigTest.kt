@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.dev
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.infra.setup.EnvironmentProfile
-import no.nav.tiltakspenger.saksbehandling.infra.setup.LocalConfig
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ProdConfig
 import no.nav.tiltakspenger.saksbehandling.infra.setup.miljøkonfigurasjonFor
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.TilbakekrevingshendelsePolicy
@@ -30,12 +30,9 @@ class DevConfigTest {
     }
 
     @Test
-    fun `lokal kjøring bruker LocalConfig selv om dev-leverandøren er på classpath`() {
-        val konfigurasjon = miljøkonfigurasjonFor(null)
-
-        konfigurasjon shouldBe LocalConfig
-        konfigurasjon.tilbakekrevingshendelsePolicy shouldBe TilbakekrevingshendelsePolicy.BeholdAlle
-        konfigurasjon.saksnummerGenerator.generer(LocalDate.of(2021, 1, 1)).verdi shouldBe "202101011001"
+    fun `utviklingsimaget kan ikke starte uten klyngenavn fordi lokalmodulen mangler`() {
+        shouldThrow<IllegalStateException> { miljøkonfigurasjonFor(null) }.message shouldBe
+            "NAIS_CLUSTER_NAME mangler, og lokal kjøring krever nøyaktig én Miljøkonfigurasjonsleverandør for lokal fra lokalmodulen, men fant 0."
     }
 
     @Test

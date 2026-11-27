@@ -15,6 +15,7 @@ import java.time.Clock
  * Dette er et alternativ til å starte opp serveren med docker-compose (som bruker wiremock for eksterne tjenester).
  */
 fun main() {
+    krevLokalKlynge(System.getenv("NAIS_CLUSTER_NAME"))
     System.setProperty("logback.configurationFile", Configuration.logbackConfigurationFile)
     System.setProperty("org.apache.avro.SERIALIZABLE_PACKAGES", Configuration.avroSerializablePackages)
 

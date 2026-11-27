@@ -8,28 +8,26 @@ import org.junit.jupiter.api.Test
 import java.nio.file.Path
 
 /**
- * Håndhever at koden for lokal kjøring i `lokal`-pakka ikke brukes av testene.
+ * Håndhever at koden for lokal kjøring i `lokal`-pakka ikke brukes av testene eller testfixtures.
  *
- * `lokal` inneholder `LokalMain`, fakes, dev-endepunkter og tabeller som kun finnes ved lokal kjøring, og ligger i testkildene fordi den aldri skal havne i prod-artefaktet.
- * Testene skal gå mot prodstien og testfakene, ikke mot den lokale infrastrukturen.
+ * Modulen `lokal` inneholder `LokalMain`, fakes, dev-endepunkter og tabeller som kun finnes ved lokal kjøring, og holdes utenfor prod- og dev-distribusjonen.
+ * Testene skal gå mot produksjonskoden og testfakene, ikke mot den lokale infrastrukturen.
  * Uten en regel er det fristende å gjenbruke en lokal fake eller hjelper i en test, og da blir lokal kjøring plutselig en del av det testene verifiserer.
- * Avhengigheten går bare én vei: `lokal` kan bruke testinfrastrukturen, men testene kan ikke bruke `lokal`.
+ * Avhengigheten går bare én vei: `lokal` kan bruke testfixtures, men testene og testfixtures kan ikke bruke `lokal`.
+ * Testene har `lokal` på classpath bare ved kjøring, slik at `LocalConfig` kan lastes.
  */
 class LokalKodeKonsistTest {
 
     @Test
-    fun `tester refererer ikke til lokal`() {
+    fun `tester og testfixtures refererer ikke til lokal`() {
         assertIngenBrudd(
             testfiler()
-                .filterNot { it.iLokal }
                 .flatMap { fil -> fil.lokalreferanser().map { "${fil.file.path}: refererer til $it" } },
-            "`$LOKALPAKKE` er kode for lokal kjøring og skal ikke brukes av testene. Bruk testfakene og prodstien, eller flytt det som deles ut av `lokal`.",
+            "`$LOKALPAKKE` er kode for lokal kjøring og skal ikke brukes av testene eller testfixtures. Bruk testfakene og produksjonskoden, eller flytt det som deles ut av `lokal`.",
         )
     }
 
-    private data class Testfil(val file: KoFileDeclaration, val pakke: String) {
-        val iLokal: Boolean = pakke == LOKALPAKKE || pakke.startsWith("$LOKALPAKKE.")
-
+    private data class Testfil(val file: KoFileDeclaration) {
         /**
          * Importer fra `lokal`, og fullt kvalifiserte referanser til `lokal` i koden.
          * Kommentarer tas ikke med, slik at KDoc fortsatt kan lenke til den lokale motparten til en testfake.
@@ -47,26 +45,22 @@ class LokalKodeKonsistTest {
         }
     }
 
-    private fun testfiler(): List<Testfil> =
-        Konsist.scopeFromTest().kildefiler()
-            .filterNot { it.path.iEtArbeidstre() }
-            .map { Testfil(file = it, pakke = it.packagee?.name.orEmpty()) }
-
     /**
-     * Et git-arbeidstre som ligger under repo-rota er en egen utsjekk av det samme repoet.
-     * Konsist walker inn i det, og regelen ville da rapportert brudd på filer som ikke hører til utsjekken vi kjører i.
-     *
-     * Sjekken er relativ til arbeidskatalogen, ikke absolutt.
-     * Kjører du bygget *inne* i et arbeidstre, er arbeidskatalogen selve arbeidstreet, og da skal regelen kjøre som vanlig — det er kun arbeidstrær under oss som skal utelates.
+     * Bare `src/test` og `src/testFixtures` rett under arbeidskatalogen tas med.
+     * Det holder lokalmodulen, andre moduler og arbeidstrær under repo-rota utenfor.
+     * Begge katalogene må gi treff, slik at regelen ikke blir grønn uten å ha sjekket noe.
      */
-    private fun String.iEtArbeidstre(): Boolean {
-        val relativ = runCatching { arbeidskatalog.relativize(Path.of(this)) }.getOrNull() ?: return false
-        return relativ.any { segment -> segment.toString() in arbeidstrekataloger }
+    private fun testfiler(): List<Testfil> {
+        val arbeidskatalog = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize()
+        val alleFiler = Konsist.scopeFromProject().kildefiler()
+        return listOf("src/test", "src/testFixtures").flatMap { katalog ->
+            val rot = arbeidskatalog.resolve(katalog)
+            alleFiler
+                .filter { Path.of(it.path).startsWith(rot) }
+                .also { check(it.isNotEmpty()) { "Fant ingen kildefiler under $rot." } }
+                .map { Testfil(it) }
+        }
     }
-
-    private val arbeidskatalog: Path = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize()
-
-    private val arbeidstrekataloger = setOf(".worktrees", ".worktree")
 
     private companion object {
         const val LOKALPAKKE = "no.nav.tiltakspenger.saksbehandling.lokal"
