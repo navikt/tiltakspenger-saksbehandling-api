@@ -120,8 +120,6 @@ class IverksettMeldekortbehandlingService(
             val oppdatertSak = sakMedKontroll.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
                 .leggTilMeldekortvedtak(meldekortvedtak)
             val vellykket = sessionFactory.withTransactionContext { tx ->
-                // meldekortbehandlingRepo.oppdater(iverksattMeldekortbehandling, tx)
-
                 val oppdatert = meldekortbehandlingRepo.oppdaterHvisFortsattUnderBeslutning(meldekortbehandling = iverksattMeldekortbehandling, utøvendeBeslutter = kommando.beslutter, transactionContext = tx)
 
                 if (oppdatert) {
