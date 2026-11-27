@@ -48,6 +48,8 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    with:
+      dev-image: true
     secrets:
       SLACK_VARSEL_WEBHOOK_URL: ${{ secrets.SLACK_VARSEL_WEBHOOK_URL }}
       GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
@@ -61,7 +63,7 @@ jobs:
       id-token: write
     with:
       NAIS_ENV: dev
-      IMAGE: ${{ needs.build.outputs.IMAGE }}
+      IMAGE: ${{ needs.build.outputs.DEV_IMAGE }}
 
   deploy-prod:
     name: Deploy to NAIS (prod)
