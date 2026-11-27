@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test
 /**
  * Tester V287, som knytter manuelle meldekortbehandlingene fra før koblingene ble innført til meldekortene fra bruker de behandlet.
  * Tester også V288, som markerer meldekortene som behandlet av de iverksatte og avbrutte behandlingene de er knyttet til.
+ * Og V289, som markerer korrigeringene den gamle benk-regelen feilaktig regnet som behandlet, til etterkontroll.
  * Tilstanden bygges gjennom prodstiene, og koblingene og markeringene fjernes etterpå med SQL for å etterligne data fra før de ble innført.
  * Migreringene oppdaterer hele tabeller, så testene kjører isolert.
  */
@@ -278,10 +279,60 @@ class BrukersMeldekortKoblingMigreringTest {
         }
     }
 
+    @Test
+    @IsolatedDatabaseTest
+    fun `markerer korrigeringen mottatt før den automatiske behandlingen av en tidligere innsending ble iverksatt, til etterkontroll`() {
+        // Automatisk behandling krever en hverdag innenfor økonomisystemets åpningstider.
+        withTestApplicationContextAndPostgres(
+            clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0))),
+            runIsolated = true,
+        ) { tac ->
+            val (sak, automatiskBehandletMeldekort) = this.iverksettSøknadsbehandlingOgBehandleMeldekortAutomatisk(tac)
+            val automatiskBehandling = tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!.single()
+            val korrigering = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
+            val mottattEtterIverksettelse = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
+            // Etterligner feilen: korrigeringen kom inn mens jobben var stengt, og den automatiske behandlingen ble iverksatt etterpå.
+            tac.settIverksattTidspunktMellom(automatiskBehandling.id, korrigering.id, mottattEtterIverksettelse.id)
+
+            tac.kjørMigrering()
+
+            val forventet = mapOf(
+                automatiskBehandletMeldekort.id to false,
+                korrigering.id to true,
+                mottattEtterIverksettelse.id to false,
+            )
+            tac.hentTilEtterkontroll(forventet.keys) shouldBe forventet
+
+            tac.kjørMigrering()
+            tac.hentTilEtterkontroll(forventet.keys) shouldBe forventet
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `markerer ikke korrigeringen til etterkontroll når den er knyttet til en åpen behandling`() {
+        withTestApplicationContextAndPostgres(
+            clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0))),
+            runIsolated = true,
+        ) { tac ->
+            val (sak, _) = this.iverksettSøknadsbehandlingOgBehandleMeldekortAutomatisk(tac)
+            val automatiskBehandling = tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!.single()
+            val korrigering = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
+            opprettMeldekortbehandlingForSakId(tac = tac, sakId = sak.id, kjedeId = sak.meldeperiodeKjeder[0].kjedeId)!!
+            val mottattEtterOpprettelse = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
+            tac.settIverksattTidspunktMellom(automatiskBehandling.id, korrigering.id, mottattEtterOpprettelse.id)
+
+            tac.kjørMigrering()
+
+            tac.hentTilEtterkontroll(listOf(korrigering.id)) shouldBe mapOf(korrigering.id to false)
+        }
+    }
+
     private fun TestApplicationContextMedPostgres.kjørMigrering() {
         listOf(
             "/db/migration/V287__meldekortbehandling_knytt_brukers_meldekort.sql",
             "/db/migration/V288__meldekort_bruker_behandling_id.sql",
+            "/db/migration/V289__meldekort_bruker_til_etterkontroll.sql",
         ).forEach { migrering ->
             val sql = javaClass.getResource(migrering)!!.readText()
             (sessionFactory as PostgresSessionFactory).withSession { session ->
@@ -289,6 +340,44 @@ class BrukersMeldekortKoblingMigreringTest {
             }
         }
     }
+
+    /**
+     * Setter iverksettelsestidspunktet midt mellom når de to meldekortene ble mottatt.
+     */
+    private fun TestApplicationContextMedPostgres.settIverksattTidspunktMellom(
+        meldekortbehandlingId: MeldekortId,
+        før: MeldekortId,
+        etter: MeldekortId,
+    ) {
+        (sessionFactory as PostgresSessionFactory).withSession { session ->
+            session.run(
+                queryOf(
+                    """
+                    update meldekortbehandling
+                    set iverksatt_tidspunkt = (
+                        select min(mottatt) + (max(mottatt) - min(mottatt)) / 2
+                        from meldekort_bruker
+                        where id in (:for, :etter)
+                    )
+                    where id = :id
+                    """,
+                    mapOf("id" to meldekortbehandlingId.toString(), "for" to før.toString(), "etter" to etter.toString()),
+                ).asUpdate,
+            )
+        }
+    }
+
+    private fun TestApplicationContextMedPostgres.hentTilEtterkontroll(meldekortIder: Collection<MeldekortId>): Map<MeldekortId, Boolean> =
+        (sessionFactory as PostgresSessionFactory).withSession { session ->
+            meldekortIder.associateWith { meldekortId ->
+                session.run(
+                    queryOf(
+                        "select til_etterkontroll from meldekort_bruker where id = :id",
+                        mapOf("id" to meldekortId.toString()),
+                    ).map { it.boolean("til_etterkontroll") }.asSingle,
+                )!!
+            }
+        }
 
     private fun TestApplicationContextMedPostgres.fjernMarkeringer() {
         (sessionFactory as PostgresSessionFactory).withSession { session ->

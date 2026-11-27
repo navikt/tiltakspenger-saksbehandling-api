@@ -19,6 +19,7 @@ enum class BenkMeldekortTypeDTO {
     MELDEKORTBEHANDLING,
     INNSENDT_MELDEKORT,
     KORRIGERT_MELDEKORT,
+    MELDEKORT_TIL_ETTERKONTROLL,
 }
 
 data class BenkMeldekortDTO(
@@ -72,10 +73,12 @@ private fun BenkMeldekortType.toDTO(): BenkBehandlingstypeDTO = when (this) {
     BenkMeldekortType.MELDEKORTBEHANDLING -> BenkBehandlingstypeDTO.MELDEKORTBEHANDLING
     BenkMeldekortType.INNSENDT_MELDEKORT -> BenkBehandlingstypeDTO.INNSENDT_MELDEKORT
     BenkMeldekortType.KORRIGERT_MELDEKORT -> BenkBehandlingstypeDTO.KORRIGERT_MELDEKORT
+    BenkMeldekortType.MELDEKORT_TIL_ETTERKONTROLL -> BenkBehandlingstypeDTO.MELDEKORT_TIL_ETTERKONTROLL
 }
 
 fun BenkMeldekortTypeDTO.tilDomene(): BenkMeldekortType = when (this) {
     BenkMeldekortTypeDTO.MELDEKORTBEHANDLING -> BenkMeldekortType.MELDEKORTBEHANDLING
     BenkMeldekortTypeDTO.INNSENDT_MELDEKORT -> BenkMeldekortType.INNSENDT_MELDEKORT
     BenkMeldekortTypeDTO.KORRIGERT_MELDEKORT -> BenkMeldekortType.KORRIGERT_MELDEKORT
+    BenkMeldekortTypeDTO.MELDEKORT_TIL_ETTERKONTROLL -> BenkMeldekortType.MELDEKORT_TIL_ETTERKONTROLL
 }

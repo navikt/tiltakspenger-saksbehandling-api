@@ -52,6 +52,13 @@ enum class BenkMeldekortType {
     MELDEKORTBEHANDLING,
     INNSENDT_MELDEKORT,
     KORRIGERT_MELDEKORT,
+
+    /**
+     * Midlertidig kategori for korrigeringer den gamle benk-regelen feilaktig regnet som behandlet.
+     * Se V289, som markerer dem.
+     * TODO: Fjernes når alle de markerte meldekortene er kontrollert.
+     */
+    MELDEKORT_TIL_ETTERKONTROLL,
 }
 
 /**

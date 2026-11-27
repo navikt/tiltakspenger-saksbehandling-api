@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.ApplicationTestBuilder
+import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
@@ -18,6 +19,7 @@ import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnGyldigeKommandoer
@@ -1231,6 +1233,38 @@ class BenkAggregatTest {
             // En automatisk behandling behandler bare sitt eget meldekort, så det eldste står uten behandling, men er erstattet av det nyere.
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.brukersMeldekort.associate { it.id to (it.behandlingId != null) } shouldBe
                 mapOf(nyere!!.id to true, eldre.id to false)
+            repo.hentMeldekort(meldekortCommand()).totalAntall shouldBe 0
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `meldekortfanen viser meldekort markert til etterkontroll i en egen kategori inntil de er behandlet`() {
+        withTestApplicationContextAndPostgres(
+            clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0))),
+            runIsolated = true,
+        ) { tac ->
+            val (sak) = iverksettSøknadsbehandling(tac = tac)
+            val (_, innsendt) = mottaManueltMeldekortForKjede(tac, sak, kjedeIndeks = 0)
+            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+            val repo = tac.benkContext.benkRepo
+
+            // Markeringen settes bare av V289, så testen setter den direkte.
+            (tac.sessionFactory as PostgresSessionFactory).withSession { session ->
+                session.run(
+                    queryOf(
+                        "update meldekort_bruker set til_etterkontroll = true where id = :id",
+                        mapOf("id" to innsendt.id.toString()),
+                    ).asUpdate,
+                )
+            }
+
+            repo.hentMeldekort(meldekortCommand()).behandlinger.single().type shouldBe BenkMeldekortType.MELDEKORT_TIL_ETTERKONTROLL
+            repo.hentMeldekort(meldekortCommand(type = BenkMeldekortType.MELDEKORT_TIL_ETTERKONTROLL)).totalAntall shouldBe 1
+            repo.hentMeldekort(meldekortCommand(type = BenkMeldekortType.INNSENDT_MELDEKORT)).totalAntall shouldBe 0
+
+            opprettOgIverksettMeldekortbehandling(tac = tac, sakId = sak.id, kjedeId = innsendt.kjedeId)!!
+
             repo.hentMeldekort(meldekortCommand()).totalAntall shouldBe 0
         }
     }

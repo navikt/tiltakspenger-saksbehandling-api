@@ -494,7 +494,9 @@ class BenkPostgresRepo(
                 null::date,
                 null::timestamptz,
                 'KLAR_TIL_BEHANDLING'::text,
-                case when exists (
+                /* TODO: Fjern MELDEKORT_TIL_ETTERKONTROLL og kolonnen til_etterkontroll når alle meldekortene V289 markerte, er kontrollert. */
+                case when siste.til_etterkontroll then 'MELDEKORT_TIL_ETTERKONTROLL'::text
+                when exists (
                     select 1 from meldekort_bruker tidligere
                     where tidligere.sak_id = siste.sak_id
                       and tidligere.meldeperiode_kjede_id = siste.meldeperiode_kjede_id
@@ -508,7 +510,7 @@ class BenkPostgresRepo(
                 select apne.*
                 from (
                     select distinct on (sak_id, meldeperiode_kjede_id)
-                        id, sak_id, meldeperiode_id, meldeperiode_kjede_id, mottatt, prioritering_begrunnelse, behandling_id
+                        id, sak_id, meldeperiode_id, meldeperiode_kjede_id, mottatt, prioritering_begrunnelse, behandling_id, til_etterkontroll
                     from meldekort_bruker
                     where behandlet_automatisk_status != 'BEHANDLET' and behandles_automatisk = false
                     order by sak_id, meldeperiode_kjede_id, mottatt desc
