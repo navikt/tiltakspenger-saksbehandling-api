@@ -161,7 +161,7 @@ dependencies {
     implementation("io.arrow-kt:arrow-fx-coroutines:2.2.3")
 
     // Caffeine
-    implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.3.1")
 
     // Lokal kjøring og tester bruker dev-rutene.
     // Avhengigheten er ikke-transitiv, ellers kommer rotas egen JAR også på testclasspathen, og Flyway finner hver migrering to ganger.
