@@ -518,7 +518,7 @@ class BenkPostgresRepo(
                     select distinct on (sak_id, meldeperiode_kjede_id)
                         id, sak_id, meldeperiode_id, meldeperiode_kjede_id, mottatt, prioritering_begrunnelse, til_etterkontroll
                     from meldekort_bruker
-                    where behandling_id is null and behandlet_automatisk_status != 'BEHANDLET' and behandles_automatisk = false
+                    where behandling_id is null and behandles_automatisk = false
                     order by sak_id, meldeperiode_kjede_id, mottatt desc
                 ) apne
                     /*
