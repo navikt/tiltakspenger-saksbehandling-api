@@ -507,57 +507,45 @@ class BenkPostgresRepo(
                 siste.prioritering_begrunnelse,
                 siste.id
             from (
-                select apne.*
-                from (
-                    /*
-                     * Siste ubehandlede innsending per kjede.
-                     * Er en nyere innsending behandlet, fanges det av erstattet-sjekken under.
-                     * Filteret på behandling_id ligger her, og ikke etter distinct on, slik at idx_meldekort_bruker_ubehandlet_kjede_mottatt kan brukes.
-                     * Den indeksen inneholder bare ubehandlede meldekort, og vokser derfor ikke med historikken.
-                     */
-                    select distinct on (sak_id, meldeperiode_kjede_id)
-                        id, sak_id, meldeperiode_id, meldeperiode_kjede_id, mottatt, prioritering_begrunnelse, til_etterkontroll
-                    from meldekort_bruker
-                    where behandling_id is null and behandles_automatisk = false
-                    order by sak_id, meldeperiode_kjede_id, mottatt desc
-                ) apne
-                    /*
-                     * Samme regel som venterPåBehandling i domenet.
-                     * Meldekortet venter så lenge ingen iverksatt eller avbrutt behandling har behandlet det (behandling_id), ingen nyere innsending for kjeden er behandlet, og den åpne behandlingen av kjeden ikke er knyttet til det.
-                     *
-                     * Skrevet som laterals framfor `not exists` for å tvinge ett indeksoppslag per meldekort.
-                     * Som anti-join la planleggeren en hash over hele tabellen — inkludert all historikk — fordi `@>` ikke kan være en hash-condition.
-                     * Målt mot Postgres 17 ved 50k meldekortbehandlinger: 21ms som anti-join, 7ms som lateral.
-                     * sak_id-betingelsene er bærende: kjedeId er bare datointervallet, og er ikke unik på tvers av saker.
-                     * Det telles framfor `limit 1` + null-sjekk fordi IDE-analysen feilaktig flagger null-sjekken som alltid false — den modellerer ikke null-paddingen fra left join.
-                     */
-                    left join lateral (
-                        select count(*) as antall
-                        from meldekort_bruker nyere
-                        where nyere.sak_id = apne.sak_id
-                          and nyere.meldeperiode_kjede_id = apne.meldeperiode_kjede_id
-                          and nyere.mottatt > apne.mottatt
-                          and nyere.behandling_id is not null
-                    ) erstattet on true
-                    left join lateral (
-                        select count(*) as antall
-                        from meldekortbehandling mb
-                        where mb.sak_id = apne.sak_id
-                          and mb.avbrutt is null
-                          and mb.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING')
-                          and mb.meldeperioder @> jsonb_build_array(
-                              jsonb_build_object('kjedeId', apne.meldeperiode_kjede_id, 'brukersMeldekortIder', jsonb_build_array(apne.id))
-                          )
-                    ) under_behandling on true
-                where erstattet.antall = 0 and under_behandling.antall = 0
                 /*
-                 * Sperre mot at planleggeren trekker underspørringen opp og kobler mot sak og meldeperiode før filteret.
-                 * Filteret fjerner nesten alle radene: i prod 30.09.2026 gjensto 45 av 5532 åpne meldekort, og koblingene før filteret sto for rundt en firedel av tiden.
+                 * Siste ubehandlede innsending per kjede.
+                 * Er en nyere innsending behandlet, fanges det av den første not exists-sjekken under.
+                 * Filteret på behandling_id ligger her, og ikke etter distinct on, slik at idx_meldekort_bruker_ubehandlet_kjede_mottatt kan brukes.
+                 * Den indeksen inneholder bare ubehandlede meldekort, og vokser derfor ikke med historikken.
                  */
-                offset 0
+                select distinct on (sak_id, meldeperiode_kjede_id)
+                    id, sak_id, meldeperiode_id, meldeperiode_kjede_id, mottatt, prioritering_begrunnelse, til_etterkontroll
+                from meldekort_bruker
+                where behandling_id is null and behandles_automatisk = false
+                order by sak_id, meldeperiode_kjede_id, mottatt desc
             ) siste
                 join sak s on s.id = siste.sak_id
                 join meldeperiode mp on mp.id = siste.meldeperiode_id
+            /*
+             * Samme regel som venterPåBehandling i domenet.
+             * Meldekortet venter så lenge ingen iverksatt eller avbrutt behandling har behandlet det (behandling_id), ingen nyere innsending for kjeden er behandlet, og den åpne behandlingen av kjeden ikke er knyttet til det.
+             * Statusfilteret er logisk overflødig, siden et meldekort som er knyttet til en avsluttet behandling, har behandling_id.
+             * Det står likevel, fordi det lar planleggeren bruke idx_meldekortbehandling_benk_apen i stedet for å lese meldeperiodene til alle behandlingene i saken.
+             * sak_id-betingelsene er bærende: kjedeId er bare datointervallet, og er ikke unik på tvers av saker.
+             */
+            where not exists (
+                select 1
+                from meldekort_bruker nyere
+                where nyere.sak_id = siste.sak_id
+                  and nyere.meldeperiode_kjede_id = siste.meldeperiode_kjede_id
+                  and nyere.mottatt > siste.mottatt
+                  and nyere.behandling_id is not null
+            )
+            and not exists (
+                select 1
+                from meldekortbehandling mb
+                where mb.sak_id = siste.sak_id
+                  and mb.avbrutt is null
+                  and mb.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING')
+                  and mb.meldeperioder @> jsonb_build_array(
+                      jsonb_build_object('kjedeId', siste.meldeperiode_kjede_id, 'brukersMeldekortIder', jsonb_build_array(siste.id))
+                  )
+            )
         """
 
         /** Meldekortfanen samler meldekortbehandlingene og meldekortene fra bruker. */
