@@ -62,7 +62,7 @@ open class UtbetalingContext(
     navkontorService: NavkontorService,
     statistikkService: StatistikkService,
     meterRegistry: MeterRegistry,
-    erDev: Boolean,
+    utbetalingerFølgesOppFra: LocalDateTime?,
     erProd: Boolean,
 ) {
     open val utbetalingsklient: Utbetalingsklient by lazy {
@@ -121,8 +121,7 @@ open class UtbetalingContext(
     open val utbetalingsoversiktRepo: UtbetalingsoversiktRepo by lazy {
         UtbetalingsoversiktPostgresRepo(
             sessionFactory as PostgresSessionFactory,
-            // De to testsakene i dev ble opprettet 25.09.2026; prod følger opp alle saker.
-            oppfølgesFra = if (erDev) LocalDateTime.of(2026, 9, 25, 0, 0) else null,
+            oppfølgesFra = utbetalingerFølgesOppFra,
         )
     }
     open val simulerService: SimulerService by lazy {

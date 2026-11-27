@@ -33,6 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilba
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tilBehandlingIdFraTilbakekreving
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.TilbakekrevingshendelsePolicy
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingProducer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO.TilbakekrevingMottaker
@@ -51,7 +52,7 @@ class BehandleTilbakekrevingHendelserJobb(
     private val tilbakekrevingProducer: TilbakekrevingProducer,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
-    private val erDev: Boolean,
+    private val hendelsePolicy: TilbakekrevingshendelsePolicy,
     private val frontendUrl: String,
 ) {
     private val logger = KotlinLogging.logger {}
@@ -91,7 +92,7 @@ class BehandleTilbakekrevingHendelserJobb(
 
         val sak = this.eksternFagsakId?.let { saksnummerStr ->
             val saksnummer = Either.catch { Saksnummer(saksnummerStr) }.getOrElse {
-                if (erFakeSak(saksnummerStr)) {
+                if (erTestsak(saksnummerStr)) {
                     logger.info { "Sletter tilbakekreving-hendelse ${this.id} med fake-saksnummer $saksnummerStr" }
                     tilbakekrevingHendelseRepo.slett(this.id)
                     return Unit.right()
@@ -102,7 +103,7 @@ class BehandleTilbakekrevingHendelserJobb(
 
             val sak = sakRepo.hentForSaksnummer(saksnummer)
 
-            if (sak == null && erDev) {
+            if (sak == null && hendelsePolicy.slettHendelserMedUkjentSaksnummer) {
                 logger.info { "Sletter tilbakekreving-hendelse ${this.id} med ukjent saksnummer $saksnummerStr" }
                 tilbakekrevingHendelseRepo.slett(this.id)
                 return Unit.right()
@@ -123,13 +124,12 @@ class BehandleTilbakekrevingHendelserJobb(
      */
     private fun TilbakekrevingUkjentHendelse.håndter(): Either<Pair<TilbakekrevinghendelseFeil, SakId?>, Unit> {
         val hendelseId = this.id
-        val oppdatertHendelse = this.value.tilNyTilbakekrevingshendelse(clock, erDev, hendelseId)
+        val oppdatertHendelse = this.value.tilNyTilbakekrevingshendelse(clock, hendelsePolicy.loggDeserialiseringsfeilSomError, hendelseId)
 
         if (oppdatertHendelse !is KjentTilbakekrevingshendelse) {
             // Hendelsen blir aldri markert som behandlet, så den plukkes opp av hver eneste jobbkjøring.
-            // I dev er dette bogusdata fra team tilbakekreving som aldri kommer til å la seg lese, og vi sletter den for å slippe å logge den i evig tid.
-            // I prod beholder vi raden ubehandlet, slik at hendelsen kan behandles etter en retting av DTO-en.
-            if (erDev) {
+            // Beholder vi raden ubehandlet, kan hendelsen behandles etter en retting av DTO-en.
+            if (hendelsePolicy.slettUleseligeHendelser) {
                 logger.info { "Sletter ukjent tilbakekreving-hendelse $hendelseId som fortsatt ikke kan deserialiseres" }
                 tilbakekrevingHendelseRepo.slett(hendelseId)
                 return Unit.right()
@@ -314,15 +314,13 @@ class BehandleTilbakekrevingHendelserJobb(
         )
     }
 
-    // Team tilbake sender noen ganger saker de har generert selv for å teste i dev
-    private fun erFakeSak(eksternSakId: String): Boolean {
-        return erDev && eksternSakId.startsWith(FAKE_SAK_PREFIX)
+    private fun erTestsak(eksternSakId: String): Boolean {
+        val prefiks = hendelsePolicy.testsaksnummerPrefiks ?: return false
+        return eksternSakId.startsWith(prefiks)
     }
 
     companion object {
         private const val NAV_TILTAK_OSLO_ENHET = "0387"
-
-        private const val FAKE_SAK_PREFIX = "BF"
     }
 }
 

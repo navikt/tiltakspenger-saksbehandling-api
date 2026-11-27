@@ -32,7 +32,7 @@ private const val NAV_CALL_ID_HEADER = "Nav-Call-Id"
 fun Application.ktorSetup(
     applicationContext: ApplicationContext,
     readiness: Readiness,
-    devRoutes: Route.(applicationContext: ApplicationContext) -> Unit = {},
+    tilleggsruter: Route.(applicationContext: ApplicationContext) -> Unit = {},
 ) {
     // Gjenbruker Nav-Call-Id fra kalleren, slik at én forespørsel har samme call-id i loggene og i kallene videre.
     install(CallId) {
@@ -54,7 +54,7 @@ fun Application.ktorSetup(
     }
     configureExceptions()
     setupAuthentication(applicationContext.texasClient)
-    routing { routes(applicationContext, readiness = readiness, devRoutes = devRoutes) }
+    routing { routes(applicationContext, readiness = readiness, tilleggsruter = tilleggsruter) }
 }
 
 /**

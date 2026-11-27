@@ -18,6 +18,7 @@ import io.ktor.server.testing.testApplication
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.saksbehandling.felles.Loggbar
 import no.nav.tiltakspenger.saksbehandling.felles.Loggkontekst
+import no.nav.tiltakspenger.saksbehandling.infra.setup.LocalConfig
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 
@@ -54,6 +55,13 @@ class LoggOgSvarFeilTest {
                 )
             }
         }
+    }
+
+    @Test
+    fun `henvisningen til sikkerlogg har lenke bare når appen har et prosjekt`() {
+        seSikkerlogg("tpts-prod-b5ff") shouldBe "Se sikkerlogg for mer kontekst: " +
+            "https://console.cloud.google.com/logs/query;query=resource.labels.container_name%3D%22tiltakspenger-saksbehandling-api%22?project=tpts-prod-b5ff"
+        seSikkerlogg(LocalConfig.gcpProsjektId) shouldBe "Se sikkerlogg for mer kontekst."
     }
 
     @Test
@@ -110,7 +118,7 @@ class LoggOgSvarFeilTest {
             vanligLogg.list.single().also {
                 it.level shouldBe Level.WARN
                 it.formattedMessage shouldContain "Testoperasjon feilet: kall mot baksystem feilet"
-                it.formattedMessage shouldContain "Se sikkerlogg for mer kontekst: https://console.cloud.google.com"
+                it.formattedMessage shouldContain "Se sikkerlogg for mer kontekst."
                 it.formattedMessage shouldNotContain "12845678901"
             }
             sikkerlogg.list.single { it.formattedMessage.contains("Testoperasjon") }.also {

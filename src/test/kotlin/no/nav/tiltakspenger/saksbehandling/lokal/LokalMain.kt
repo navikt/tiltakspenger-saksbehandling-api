@@ -33,6 +33,6 @@ fun main() {
         isNais = false,
         clock = clock,
         applicationContext = localApplicationContext,
-        devRoutes = Route::localDevRoutes,
+        tilleggsruter = Route::localDevRoutes,
     )
 }

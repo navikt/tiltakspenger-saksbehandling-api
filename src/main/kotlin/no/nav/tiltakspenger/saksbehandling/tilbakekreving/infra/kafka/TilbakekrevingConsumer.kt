@@ -18,7 +18,7 @@ private val logger = KotlinLogging.logger { }
 class TilbakekrevingConsumer(
     private val tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,
     private val clock: Clock,
-    private val erDev: Boolean,
+    private val loggDeserialiseringsfeilSomError: Boolean,
     topic: String,
     groupId: String = "$KAFKA_CONSUMER_GROUP_ID-v4",
     kafkaConfig: KafkaConfig,
@@ -41,7 +41,7 @@ class TilbakekrevingConsumer(
     )
 
     override suspend fun consume(key: String, value: String?) {
-        consume(key, value, tilbakekrevingHendelseRepo, clock, erDev)
+        consume(key, value, tilbakekrevingHendelseRepo, clock, loggDeserialiseringsfeilSomError)
     }
 
     override fun run() = consumer.run()
@@ -49,7 +49,7 @@ class TilbakekrevingConsumer(
     companion object {
 
         /**
-         * @param erDev styrer kun loggnivået ved deserialiseringsfeil, og injiseres fra komposisjonsroten.
+         * @param loggDeserialiseringsfeilSomError styrer kun loggingen ved deserialiseringsfeil, og injiseres fra komposisjonsroten.
          *
          * @return id-en til hendelsen dersom den ble lagret, ellers null.
          */
@@ -58,7 +58,7 @@ class TilbakekrevingConsumer(
             value: String?,
             tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,
             clock: Clock,
-            erDev: Boolean,
+            loggDeserialiseringsfeilSomError: Boolean,
         ): TilbakekrevinghendelseId? {
             // OBS: Merk at key er fødselsnummer, så det skal ikke logges.
             if (value == null) {
@@ -66,7 +66,7 @@ class TilbakekrevingConsumer(
                 return null
             }
 
-            val hendelse = value.tilNyTilbakekrevingshendelse(clock, erDev)
+            val hendelse = value.tilNyTilbakekrevingshendelse(clock, loggDeserialiseringsfeilSomError)
 
             if (hendelse == null) {
                 logger.debug { "Mottatt tilbakekrevingshendelse som vi tp-sak har produsert, hendelsen forkastes." }

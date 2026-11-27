@@ -4,7 +4,6 @@ import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.tiltakspenger.libs.auth.test.core.JwtGenerator
 import no.nav.tiltakspenger.libs.common.Bruker
-import no.nav.tiltakspenger.libs.common.SaksnummerGenerator
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.januar
@@ -42,7 +41,6 @@ import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
-import no.nav.tiltakspenger.saksbehandling.infra.setup.EnvironmentProfile
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeKlagevedtakKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
@@ -82,6 +80,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.http.SøknadApiFakeKlie
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingHendelseRepo
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.TilbakekrevingshendelsePolicy
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingConsumer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingFakeProducer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingProducer
@@ -149,7 +148,8 @@ sealed class TestApplicationContext(
     gitHash = "fake-git-hash",
     clock = clock,
     meterRegistry = meterRegistry,
-    erDev = false,
+    utbetalingerFølgesOppFra = null,
+    tilbakekrevingshendelsePolicy = TilbakekrevingshendelsePolicy.BeholdAlle,
     erProd = false,
 ) {
     override fun kafkaConfig(autoOffsetReset: String) = KafkaConfig(kafkaBrokers = LOKAL_KAFKA_BROKER)
@@ -351,13 +351,12 @@ sealed class TestApplicationContext(
             sessionFactory = sessionFactory,
             personService = personContext.personService,
             fellesSkjermingsklient = personContext.fellesSkjermingsklient,
-            environmentProfile = EnvironmentProfile.LOCAL,
+            // Dato-baserte saksnummer (SaksnummerGenerator.Local) kolliderer under parallellkjøring, siden alle tester med samme klokkedato får samme startnummer og hentNesteSaksnummer gjør select-max-pluss-én uten lås.
+            // Den delte, atomiske generatoren gir globalt unike saksnummer, og dato-prefiks-spørringen i hentNesteSaksnummer treffer da aldri.
+            saksnummerGenerator = delteSaksnummerGenerator,
             clock = clock,
             oppdragsversjonForNyeSaker = oppdragsversjonForNyeSaker,
         ) {
-            // Dato-baserte saksnummer (SaksnummerGenerator.Local) kolliderer under parallellkjøring, siden alle tester med samme klokkedato får samme startnummer og hentNesteSaksnummer gjør select-max-pluss-én uten lås.
-            // Den delte, atomiske generatoren gir globalt unike saksnummer, og dato-prefiks-spørringen i hentNesteSaksnummer treffer da aldri.
-            override val saksnummerGenerator: SaksnummerGenerator = delteSaksnummerGenerator
             override val sakRepo: SakRepo get() = sakRepoOverride ?: super.sakRepo
         }
     }
@@ -493,7 +492,7 @@ sealed class TestApplicationContext(
             navkontorService = navkontorService,
             statistikkService = statistikkContext.statistikkService,
             meterRegistry = meterRegistry,
-            erDev = false,
+            utbetalingerFølgesOppFra = utbetalingerFølgesOppFra,
             erProd = false,
         ) {
             override val utbetalingsklient = utbetalingFakeKlient
@@ -531,7 +530,7 @@ sealed class TestApplicationContext(
             sakRepo = sakContext.sakRepo,
             sakService = sakContext.sakService,
             clock = clock,
-            erDev = erDev,
+            hendelsePolicy = tilbakekrevingshendelsePolicy,
         ) {
             override val tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo
                 get() = tilbakekrevingHendelseRepoOverride ?: super.tilbakekrevingHendelseRepo
@@ -558,7 +557,7 @@ sealed class TestApplicationContext(
             topic = Configuration.tilbakekrevingTopic,
             tilbakekrevingHendelseRepo = tilbakekrevingContext.tilbakekrevingHendelseRepo,
             clock = clock,
-            erDev = false,
+            loggDeserialiseringsfeilSomError = true,
             kafkaConfig = kafkaConfig(autoOffsetReset = "earliest"),
             meterRegistry = meterRegistry,
             log = null,

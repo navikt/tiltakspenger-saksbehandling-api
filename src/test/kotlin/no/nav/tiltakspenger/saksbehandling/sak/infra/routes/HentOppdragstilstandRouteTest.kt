@@ -2,17 +2,17 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.get
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
-import io.ktor.server.testing.testApplication
-import io.mockk.mockk
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.AvvistMetadata
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurdering
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingAvvistÅrsak
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.fixedClock
+import no.nav.tiltakspenger.saksbehandling.dev.devRoutes
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentOppdragstilstandForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.migrerTilOppdragsversjon3
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
@@ -22,7 +22,7 @@ class HentOppdragstilstandRouteTest {
 
     @Test
     fun `henter oppdragstilstand for sak på oppdragsversjon 2`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContext(tilleggsruter = { devRoutes(it) }) { tac ->
             val (sak) = opprettSakOgSøknad(tac = tac)
 
             val oppdragstilstandJson = hentOppdragstilstandForSaksnummer(
@@ -41,7 +41,7 @@ class HentOppdragstilstandRouteTest {
 
     @Test
     fun `henter oppdragstilstand for sak som er migrert til oppdragsversjon 3`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContext(tilleggsruter = { devRoutes(it) }) { tac ->
             val (sak) = opprettSakOgSøknad(tac = tac)
             migrerTilOppdragsversjon3(tac = tac, sakId = sak.id)
 
@@ -61,7 +61,7 @@ class HentOppdragstilstandRouteTest {
 
     @Test
     fun `ukjent saksnummer gir 404`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContext(tilleggsruter = { devRoutes(it) }) { tac ->
             val ukjentSaksnummer = Saksnummer.genererSaknummer(clock = tac.clock, løpenr = "9999")
 
             hentOppdragstilstandForSaksnummer(
@@ -74,7 +74,7 @@ class HentOppdragstilstandRouteTest {
 
     @Test
     fun `nektet persontilgang gir 403`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContext(tilleggsruter = { devRoutes(it) }) { tac ->
             val (sak) = opprettSakOgSøknad(tac = tac)
             tac.tilgangsmaskinFakeClient.leggTil(
                 sak.fnr,
@@ -94,32 +94,21 @@ class HentOppdragstilstandRouteTest {
     }
 
     @Test
-    fun `oppdragstilstand-ruten registreres ikke i prod`() {
-        routeHarOppdragstilstand(erProd = true) shouldBe false
-        routeHarOppdragstilstand(erProd = false) shouldBe true
+    fun `kall uten token gir 401`() {
+        withTestApplicationContext(tilleggsruter = { devRoutes(it) }) {
+            client.get("/sak/202501011001/oppdragstilstand").status shouldBe HttpStatusCode.Unauthorized
+        }
     }
 
-    private fun routeHarOppdragstilstand(erProd: Boolean): Boolean {
-        var harOppdragstilstand = false
-        testApplication {
-            application {
-                val rootRoute = routing {
-                    sakRoutes(
-                        sakService = mockk(relaxed = true),
-                        auditService = mockk(relaxed = true),
-                        avbrytSøknadOgBehandlingService = mockk(relaxed = true),
-                        clock = fixedClock,
-                        tilgangskontrollService = mockk(relaxed = true),
-                        personService = mockk(relaxed = true),
-                        utbetalingRepo = mockk(relaxed = true),
-                        erProd = erProd,
-                        migrerTilOppdragsversjon3Service = mockk(relaxed = true),
-                    )
-                }
-                harOppdragstilstand = rootRoute.harPathSegment("oppdragstilstand")
-            }
+    @Test
+    fun `produksjonsappen har ikke oppdragstilstand-ruten uten dev-rutene`() {
+        var harOppdragstilstand: Boolean? = null
+        withTestApplicationContext(
+            additionalConfig = { harOppdragstilstand = routing {}.harPathSegment("oppdragstilstand") },
+        ) {
+            startApplication()
         }
-        return harOppdragstilstand
+        harOppdragstilstand shouldBe false
     }
 
     private fun Route.harPathSegment(pathSegment: String): Boolean {

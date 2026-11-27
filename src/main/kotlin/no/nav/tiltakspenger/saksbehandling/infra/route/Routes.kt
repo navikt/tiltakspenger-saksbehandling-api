@@ -23,9 +23,9 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.hentTil
 fun Route.routes(
     applicationContext: ApplicationContext,
     readiness: Readiness,
-    devRoutes: Route.(applicationContext: ApplicationContext) -> Unit = {},
+    tilleggsruter: Route.(applicationContext: ApplicationContext) -> Unit = {},
 ) {
-    devRoutes(applicationContext)
+    tilleggsruter(applicationContext)
     healthRoutes { readiness.erKlar() }
     authenticate(IdentityProvider.AZUREAD.value) {
         meRoute()
@@ -101,7 +101,6 @@ fun Route.routes(
             clock = applicationContext.clock,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
             personService = applicationContext.personContext.personService,
-            utbetalingRepo = applicationContext.utbetalingContext.utbetalingRepo,
             erProd = applicationContext.erProd,
             migrerTilOppdragsversjon3Service = applicationContext.utbetalingContext.migrerTilOppdragsversjon3Service,
         )

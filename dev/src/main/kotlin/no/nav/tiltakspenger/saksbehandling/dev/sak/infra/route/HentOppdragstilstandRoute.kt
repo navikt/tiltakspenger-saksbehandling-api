@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
+package no.nav.tiltakspenger.saksbehandling.dev.sak.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withSaksnummer
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SAK_PATH
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
 
 private const val HENT_OPPDRAGSTILSTAND_PATH = "$SAK_PATH/{saksnummer}/oppdragstilstand"

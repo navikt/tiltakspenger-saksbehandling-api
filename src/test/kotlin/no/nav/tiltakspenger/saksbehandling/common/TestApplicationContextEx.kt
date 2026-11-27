@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.common
 
 import io.ktor.server.application.Application
+import io.ktor.server.routing.Route
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
@@ -14,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeTestClient
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.TestDatabaseManager
+import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ktorSetup
 import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
@@ -83,6 +85,7 @@ fun withTestApplicationContext(
     sessionFactory: TestSessionFactory = TestSessionFactory(),
     tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient = TilgangsmaskinFakeTestClient(),
     readiness: Readiness = Readiness(),
+    tilleggsruter: Route.(applicationContext: ApplicationContext) -> Unit = {},
     testBlock: suspend ApplicationTestBuilder.(TestApplicationContextMedInMemoryDb) -> Unit,
 ) {
     with(
@@ -96,7 +99,7 @@ fun withTestApplicationContext(
         val tac = this
         testApplication {
             application {
-                ktorSetup(tac, readiness)
+                ktorSetup(tac, readiness, tilleggsruter = tilleggsruter)
                 additionalConfig()
             }
             testBlock(this@with)

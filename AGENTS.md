@@ -14,10 +14,20 @@ Les disse først.
 ## Modulgrense
 
 - **Rota er produksjonsappen, og `dev` er modulen for utviklingsimaget.**
-  `dev` har bare `implementation(project(":"))` som prosjektavhengighet, og rota skal aldri avhenge av `dev`.
-  Dev-spesifikk kode hører hjemme i `dev`, aldri i rota.
+  `dev` har bare `implementation(project(":"))` som prosjektavhengighet, og produksjonskoden i rota skal aldri avhenge av `dev`.
+  Rota har bare en ikke-transitiv `testImplementation` på `dev`, slik at tester og `LokalMain` kan bruke dev-rutene.
+  Dev-spesifikk kode hører hjemme i `dev`, aldri i rotas hovedkildekode.
+  Hovedkildekoden har konfigurasjonene `ProdConfig` og `LocalConfig`, og grensesnittet `Miljøkonfigurasjonsleverandør` for andre klynger.
+  Uten `NAIS_CLUSTER_NAME` eller med `NAIS_CLUSTER_NAME=lokal` brukes `LocalConfig` uten oppslag av leverandører.
+  I `prod-gcp` brukes `ProdConfig` uten oppslag av leverandører.
+  Alle andre klynger krever nøyaktig én leverandør for klyngen, lastet med `ServiceLoader`, ellers feiler oppstarten.
+  `DevConfig`, leverandøren og `META-INF/services`-fila ligger bare i `dev`, så produksjonsimaget kan ikke starte i dev-gcp.
+  `DevApp` avviser alle andre klynger enn dev-gcp, også prod.
+  Diagnostikkruter for dev og lokal kjøring ligger i `devRoutes` i `dev`.
+  Appen registrerer tilleggsruter utenfor sin egen autentisering, så `devRoutes` krever innlogging i en egen `authenticate`-blokk.
   `:dev:verifiserDevDistribusjon` kjører i `check` og kontrollerer at utviklingsdistribusjonen inneholder de samme JAR-filene som produksjon pluss én egen JAR.
   Kontrollen feiler hvis produksjon inneholder dev-pakken eller hvis JAR-fila fra `dev` overlapper med klasser og ressurser fra produksjon.
+  Den feiler også hvis en produksjons-JAR har `META-INF/services`-fila for `Miljøkonfigurasjonsleverandør`, eller hvis JAR-fila fra `dev` ikke registrerer nøyaktig én leverandør fra dev-pakken.
 
 ## Pakkestruktur
 

@@ -8,6 +8,10 @@ val felleslibVersion = "0.0.20261116124815"
 val mockkVersion = "1.14.11"
 val ktorVersion = "3.6.0"
 val testContainersVersion = "2.0.5"
+// Modulen dev bruker de samme versjonene.
+extra["felleslibVersion"] = felleslibVersion
+extra["kotestVersion"] = kotestVersion
+extra["ktorVersion"] = ktorVersion
 val confluentVersion = "8.3.2"
 val avroVersion = "1.12.2"
 val prometeusVersion = "1.17.1"
@@ -159,6 +163,9 @@ dependencies {
     // Caffeine
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
 
+    // Lokal kjøring og tester bruker dev-rutene.
+    // Avhengigheten er ikke-transitiv, ellers kommer rotas egen JAR også på testclasspathen, og Flyway finner hver migrering to ganger.
+    testImplementation(project(":dev")) { isTransitive = false }
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.4.20")
     testImplementation(platform("org.junit:junit-bom:6.1.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")

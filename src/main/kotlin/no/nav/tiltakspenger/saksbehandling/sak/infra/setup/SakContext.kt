@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.personklient.infra.skjerming.FellesSkjermingskl
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.infra.setup.EnvironmentProfile
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import java.time.Clock
@@ -16,7 +15,7 @@ open class SakContext(
     sessionFactory: SessionFactory,
     fellesSkjermingsklient: FellesSkjermingsklient,
     personService: PersonService,
-    environmentProfile: EnvironmentProfile,
+    val saksnummerGenerator: SaksnummerGenerator,
     clock: Clock,
     val oppdragsversjonForNyeSaker: Oppdragsversjon,
 ) {
@@ -28,13 +27,6 @@ open class SakContext(
             sessionFactory = sessionFactory,
             oppdragsversjonForNyeSaker = oppdragsversjonForNyeSaker,
         )
-    }
-    open val saksnummerGenerator: SaksnummerGenerator by lazy {
-        when (environmentProfile) {
-            EnvironmentProfile.LOCAL -> SaksnummerGenerator.Local
-            EnvironmentProfile.DEV -> SaksnummerGenerator.Dev
-            EnvironmentProfile.PROD -> SaksnummerGenerator.Prod
-        }
     }
     open val sakRepo: SakRepo by lazy {
         SakPostgresRepo(

@@ -11,15 +11,20 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 
 /**
  * Ferdig setning som legges på slutten av vanlige logglinjer som har en tilhørende sikkerlogg-linje.
- * Lenken går til appens logger i Google Cloud Console for riktig miljø, der sikkerloggen (team-logs) kan leses.
+ * Lenken går til appens logger i Google Cloud Console for miljøets prosjekt, der sikkerloggen (team-logs) kan leses.
  * Samme mønster som `SE_SIKKERLOGG` i tiltakspenger-arena.
  */
+val SE_SIKKERLOGG: String by lazy { seSikkerlogg(Configuration.gcpProsjektId) }
+
+/** Uten [gcpProsjektId] får setningen ingen lenke. */
 // TODO jah: Ved flytt til libs kan container_name og prosjekt utledes fra NAIS_APP_NAME og GCP_TEAM_PROJECT_ID i stedet for å hardkodes per app.
-val SE_SIKKERLOGG: String by lazy {
-    val prosjekt = if (Configuration.isProd()) "tpts-prod-b5ff" else "tpts-dev-6211"
-    "Se sikkerlogg for mer kontekst: " +
-        "https://console.cloud.google.com/logs/query;query=resource.labels.container_name%3D%22tiltakspenger-saksbehandling-api%22?project=$prosjekt"
-}
+fun seSikkerlogg(gcpProsjektId: String?): String =
+    if (gcpProsjektId == null) {
+        "Se sikkerlogg for mer kontekst."
+    } else {
+        "Se sikkerlogg for mer kontekst: " +
+            "https://console.cloud.google.com/logs/query;query=resource.labels.container_name%3D%22tiltakspenger-saksbehandling-api%22?project=$gcpProsjektId"
+    }
 
 /**
  * Logger nøyaktig én warn-linje for en forventet domenefeil og svarer med tilhørende status og feilkropp.

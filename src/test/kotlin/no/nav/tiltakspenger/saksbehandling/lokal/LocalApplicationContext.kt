@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.lokal
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.tiltakspenger.libs.common.SaksnummerGenerator
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
@@ -31,7 +32,6 @@ import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenrsHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
-import no.nav.tiltakspenger.saksbehandling.infra.setup.EnvironmentProfile
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeKlagevedtakKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
@@ -75,6 +75,7 @@ import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.TilbakekrevingshendelsePolicy
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingFakeProducer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingProducer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.setup.TilbakekrevingContext
@@ -103,7 +104,8 @@ class LocalApplicationContext(
     // Eget register, ikke prod-registeret: ingenting under src/test bruker prod-oppsettet for metrikker.
     // Lokalt vises derfor ikke tellerne fra MetricRegister på /metrics.
     meterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
-    erDev = false,
+    utbetalingerFølgesOppFra = null,
+    tilbakekrevingshendelsePolicy = TilbakekrevingshendelsePolicy.BeholdAlle,
     erProd = false,
 ) {
 
@@ -270,14 +272,12 @@ class LocalApplicationContext(
         TiltakspengerArenaFakeClient()
     }
 
-    val environmentProfile by lazy { EnvironmentProfile.LOCAL }
-
     override val sakContext by lazy {
         object : SakContext(
             sessionFactory = sessionFactory,
             personService = personContext.personService,
             fellesSkjermingsklient = personContext.fellesSkjermingsklient,
-            environmentProfile = environmentProfile,
+            saksnummerGenerator = SaksnummerGenerator.Local,
             clock = clock,
             oppdragsversjonForNyeSaker = Oppdragsversjon.V2,
         ) {}
@@ -308,7 +308,7 @@ class LocalApplicationContext(
             sakRepo = sakContext.sakRepo,
             sakService = sakContext.sakService,
             clock = clock,
-            erDev = erDev,
+            hendelsePolicy = tilbakekrevingshendelsePolicy,
         ) {
             override val tilbakekrevingProducer: TilbakekrevingProducer get() = tilbakekrevingFakeProducer
         }
@@ -391,7 +391,7 @@ class LocalApplicationContext(
             navkontorService = navkontorService,
             statistikkService = statistikkContext.statistikkService,
             meterRegistry = meterRegistry,
-            erDev = false,
+            utbetalingerFølgesOppFra = utbetalingerFølgesOppFra,
             erProd = false,
         ) {
             override val utbetalingsklient = utbetalingFakeKlient

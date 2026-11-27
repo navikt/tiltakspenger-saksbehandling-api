@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilba
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseFeil
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseType
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.TilbakekrevingshendelsePolicy
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.konsumerTilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.hentTilbakekrevingshendelserForEksternFagsakId
 import org.intellij.lang.annotations.Language
@@ -902,6 +903,33 @@ class BehandleTilbakekrevingHendelserJobbTest {
         }
     }
 
+    @Test
+    fun `infobehov - sletter hendelser med testsaksnummer og ukjent saksnummer i dev`() {
+        withTestApplicationContext { tac ->
+            val (sak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
+
+            listOf("BF123", "202501011001").forEach { eksternFagsakId ->
+                @Language("JSON")
+                val hendelseJson = """
+                    {
+                        "hendelsestype": "fagsysteminfo_behov",
+                        "versjon": 1,
+                        "eksternFagsakId": "$eksternFagsakId",
+                        "hendelseOpprettet": "${nå(tac.clock)}",
+                        "kravgrunnlagReferanse": "ref-123"
+                    }
+                """.trimIndent()
+
+                tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, hendelseJson)
+                val hendelseId = tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().single().id
+
+                tac.behandleTilbakekrevingHendelserJobbIDev().håndterHendelse(hendelseId)
+
+                tac.tilbakekrevingContext.tilbakekrevingHendelseRepo.hentHendelse(hendelseId) shouldBe null
+            }
+        }
+    }
+
     private fun TestApplicationContext.behandleTilbakekrevingHendelserJobbIDev() =
         BehandleTilbakekrevingHendelserJobb(
             tilbakekrevingHendelseRepo = tilbakekrevingContext.tilbakekrevingHendelseRepo,
@@ -910,7 +938,12 @@ class BehandleTilbakekrevingHendelserJobbTest {
             tilbakekrevingProducer = tilbakekrevingFakeProducer,
             sessionFactory = sessionFactory,
             clock = clock,
-            erDev = true,
+            hendelsePolicy = TilbakekrevingshendelsePolicy(
+                testsaksnummerPrefiks = "BF",
+                slettHendelserMedUkjentSaksnummer = true,
+                slettUleseligeHendelser = true,
+                loggDeserialiseringsfeilSomError = false,
+            ),
             frontendUrl = "https://nav.no",
         )
 }

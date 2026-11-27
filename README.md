@@ -57,9 +57,15 @@ Eventuelt med [Cloud SQL Studio](https://console.cloud.google.com/sql/instances/
 
 Rota er produksjonsappen, og produksjonsimaget bygges fra `Dockerfile` i rota.
 `dev` er en egen Gradle-modul for utviklingsimaget, med eget inngangspunkt i `no.nav.tiltakspenger.saksbehandling.dev`, `dev/Dockerfile` og `dev/.dockerignore`.
-`dev` avhenger av rota, men rota avhenger aldri av `dev`.
+`dev` avhenger av rota, og produksjonskoden i rota avhenger aldri av `dev`.
+Bare testklassestien i rota har `dev` med, slik at tester og `LokalMain` kan bruke dev-rutene.
+Uten `NAIS_CLUSTER_NAME` eller med `NAIS_CLUSTER_NAME=lokal` (som Compose setter) brukes `LocalConfig` uten oppslag av leverandører.
+Konfigurasjonen for dev-gcp (`DevConfig`) ligger i `dev` og lastes med `ServiceLoader` i Java.
+Produksjonsimaget kan derfor ikke starte i dev-gcp, og utviklingsimaget starter bare der.
+Diagnostikkruten `GET /sak/{saksnummer}/oppdragstilstand` finnes bare i utviklingsimaget, i tester og i `LokalMain`.
 `./gradlew installDist` bygger begge distribusjonene, under `build/install/` og `dev/build/install/`.
 Fra rota velger `./gradlew :run` produksjonsappen og `./gradlew :dev:run` appen for utviklingsimaget.
+`:dev:run` krever `NAIS_CLUSTER_NAME=dev-gcp` og miljøvariablene `DevConfig` leser, så bruk `LokalMain` til lokal kjøring.
 `./gradlew check` verifiserer at utviklingsdistribusjonen har samme JAR-filer som produksjon og én egen JAR med inngangspunktet.
 Kontrollen feiler hvis produksjon inneholder dev-pakken eller hvis JAR-fila fra `dev` overlapper med klasser og ressurser fra produksjon.
 

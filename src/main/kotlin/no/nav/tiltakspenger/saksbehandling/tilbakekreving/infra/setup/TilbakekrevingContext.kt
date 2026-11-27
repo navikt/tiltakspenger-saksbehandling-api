@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingHendelseRepo
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.TilbakekrevingshendelsePolicy
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.jobb.BehandleTilbakekrevingHendelserJobb
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingKafkaProducer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingProducer
@@ -22,7 +23,7 @@ open class TilbakekrevingContext(
     sakRepo: SakRepo,
     sakService: SakService,
     clock: Clock,
-    erDev: Boolean,
+    hendelsePolicy: TilbakekrevingshendelsePolicy,
 ) {
     open val tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo by lazy {
         TilbakekrevingHendelsePostgresRepo(
@@ -61,7 +62,7 @@ open class TilbakekrevingContext(
             tilbakekrevingProducer = tilbakekrevingProducer,
             sessionFactory = sessionFactory,
             clock = clock,
-            erDev = erDev,
+            hendelsePolicy = hendelsePolicy,
             frontendUrl = Configuration.saksbehandlingFrontendUrl,
         )
     }

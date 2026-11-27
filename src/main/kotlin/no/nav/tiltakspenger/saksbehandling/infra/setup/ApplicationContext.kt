@@ -48,6 +48,7 @@ import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.LeesahCo
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.TilbakekrevingshendelsePolicy
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingConsumer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.setup.TilbakekrevingContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseRepo
@@ -61,6 +62,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingCont
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.SokosUtbetaldataClient
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataHttpClient
 import java.time.Clock
+import java.time.LocalDateTime
 
 /**
  * Inneholder alle klienter, repoer og servicer.
@@ -80,9 +82,11 @@ open class ApplicationContext(
      * Injiseres fra komposisjonsroten i stedet for å slås opp i [Configuration] her.
      * Konteksten deles med tester og lokal kjøring, og et statisk oppslag ville gjort oppførselen avhengig av prosessglobal tilstand.
      */
-    val erDev: Boolean,
+    val utbetalingerFølgesOppFra: LocalDateTime?,
+    /** Injiseres fra komposisjonsroten av samme grunn som [utbetalingerFølgesOppFra]. */
+    val tilbakekrevingshendelsePolicy: TilbakekrevingshendelsePolicy,
     /**
-     * Injiseres fra komposisjonsroten av samme grunn som [erDev].
+     * Injiseres fra komposisjonsroten av samme grunn som [utbetalingerFølgesOppFra].
      * Brukes til å sperre funksjonalitet som ikke er klar for prod.
      */
     val erProd: Boolean,
@@ -312,13 +316,12 @@ open class ApplicationContext(
             clock = clock,
         )
     }
-    open val profile by lazy { Configuration.environmentProfile }
     open val sakContext by lazy {
         SakContext(
             sessionFactory = sessionFactory,
             fellesSkjermingsklient = personContext.fellesSkjermingsklient,
             personService = personContext.personService,
-            environmentProfile = profile,
+            saksnummerGenerator = Configuration.saksnummerGenerator,
             clock = clock,
             oppdragsversjonForNyeSaker = Configuration.oppdragsversjonForNyeSaker,
         )
@@ -337,7 +340,7 @@ open class ApplicationContext(
             navkontorService = navkontorService,
             statistikkService = statistikkContext.statistikkService,
             meterRegistry = meterRegistry,
-            erDev = erDev,
+            utbetalingerFølgesOppFra = utbetalingerFølgesOppFra,
             erProd = erProd,
         )
     }
@@ -469,7 +472,7 @@ open class ApplicationContext(
             sakRepo = sakContext.sakRepo,
             sakService = sakContext.sakService,
             clock = clock,
-            erDev = erDev,
+            hendelsePolicy = tilbakekrevingshendelsePolicy,
         )
     }
 
@@ -538,7 +541,7 @@ open class ApplicationContext(
             topic = Configuration.tilbakekrevingTopic,
             tilbakekrevingHendelseRepo = tilbakekrevingContext.tilbakekrevingHendelseRepo,
             clock = clock,
-            erDev = erDev,
+            loggDeserialiseringsfeilSomError = tilbakekrevingshendelsePolicy.loggDeserialiseringsfeilSomError,
             kafkaConfig = kafkaConfig(autoOffsetReset = "none"),
             meterRegistry = meterRegistry,
         )

@@ -7,20 +7,18 @@ import java.time.Clock
 /**
  * Testhjelper rundt [TilbakekrevingConsumer.consume].
  *
- * De aller fleste testene bryr seg ikke om [erDev], som kun styrer loggnivået ved deserialiseringsfeil.
- * Defaulten hører hjemme her, i testkoden, og ikke i produksjonssignaturen - se «Ingen defaults i prod for testenes skyld» i AGENTS-backend.md.
- * Testene som faktisk bryr seg, sender inn verdien selv.
+ * Testene bryr seg ikke om loggingen ved deserialiseringsfeil.
+ * Verdien settes derfor her i testkoden, og ikke som default i produksjonssignaturen, se «Ingen defaults i prod for testenes skyld» i AGENTS-backend.md.
  */
 fun konsumerTilbakekrevingshendelse(
     key: String,
     value: String?,
     tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,
     clock: Clock,
-    erDev: Boolean = false,
 ): TilbakekrevinghendelseId? = TilbakekrevingConsumer.consume(
     key = key,
     value = value,
     tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
     clock = clock,
-    erDev = erDev,
+    loggDeserialiseringsfeilSomError = true,
 )

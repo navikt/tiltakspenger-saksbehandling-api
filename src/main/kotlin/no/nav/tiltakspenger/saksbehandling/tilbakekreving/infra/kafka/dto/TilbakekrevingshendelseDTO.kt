@@ -56,29 +56,26 @@ data class TilbakekrevingPeriodeDTO(
 /**
  * Forsøker å deserialisere en Kafka-melding til en [Tilbakekrevingshendelse].
  *
- * @param erDev styrer kun loggnivået, og injiseres fra komposisjonsroten.
- * Team tilbakekreving genererer testdata hos seg selv i dev og sender dem på køen.
- * Saksnumrene er ikke våre, og hendelsene skal forkastes, så en hendelse vi ikke klarer å lese er forventet i dev og ikke verdt en ERROR.
- * I prod er den et ekte problem, og da vil vi ha stacktracen.
+ * @param loggDeserialiseringsfeilSomError styrer kun loggingen, og injiseres fra komposisjonsroten.
+ * True gir ERROR med stacktrace, og false gir INFO uten stacktrace.
  *
  * @return [Tilbakekrevingshendelse] dersom hendelsen skal lagres - en [TilbakekrevingUkjentHendelse] dersom deserialiseringen feilet - eller null dersom hendelsen ikke skal lagres.
  */
 fun String.tilNyTilbakekrevingshendelse(
     clock: Clock,
-    // TODO jah: Den burde heller reflektert loggnivået
-    erDev: Boolean,
+    loggDeserialiseringsfeilSomError: Boolean,
     id: TilbakekrevinghendelseId = TilbakekrevinghendelseId.random(),
 ): Tilbakekrevingshendelse? {
     return Either.catch {
         deserialize<TilbakekrevingshendelseDTO>(this).tilHendelseForLagring(id)
     }.fold(
         ifLeft = { throwable ->
-            if (erDev) {
-                logger.info {
+            if (loggDeserialiseringsfeilSomError) {
+                logger.error(throwable) {
                     "Mottatt tilbakekrevingshendelse som vi ikke klarte å deserialisere - Lagrer som ukjent hendelse $id"
                 }
             } else {
-                logger.error(throwable) {
+                logger.info {
                     "Mottatt tilbakekrevingshendelse som vi ikke klarte å deserialisere - Lagrer som ukjent hendelse $id"
                 }
             }

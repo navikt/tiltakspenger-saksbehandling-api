@@ -25,9 +25,46 @@ repositories {
     }
 }
 
+val felleslibVersion = rootProject.extra["felleslibVersion"] as String
+val kotestVersion = rootProject.extra["kotestVersion"] as String
+val ktorVersion = rootProject.extra["ktorVersion"] as String
+
 dependencies {
-    // Rota skal aldri avhenge av dev.
+    // Produksjonskoden i rota skal aldri avhenge av dev.
     implementation(project(":"))
+    // Alt dev bruker, må allerede ligge i produksjonsdistribusjonen, og verifiserDevDistribusjon kontrollerer det.
+    implementation("no.nav.tiltakspenger.libs:common:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:ktor-common:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:texas:$felleslibVersion")
+    implementation("io.ktor:ktor-server-auth:$ktorVersion")
+    implementation("io.ktor:ktor-server-core:$ktorVersion")
+    implementation("io.github.oshai:kotlin-logging-jvm:8.0.4")
+
+    testImplementation(platform("org.junit:junit-bom:6.1.3"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+}
+
+tasks.test {
+    useJUnitPlatform()
+    // Configuration initialiseres én gang per JVM, så hver testklasse får sin egen.
+    forkEvery = 1
+    environment("NAIS_CLUSTER_NAME", "dev-gcp")
+    // DevConfig leser påkrevde miljøvariabler når den initialiseres.
+    listOf(
+        "ROLE_SAKSBEHANDLER",
+        "ROLE_BESLUTTER",
+        "ROLE_VEILEDER",
+        "ROLE_UTVIKLER",
+        "ROLE_TILBAKEKREVING",
+        "ELECTOR_PATH",
+        "NAIS_APP_IMAGE",
+        "DB_JDBC_URL",
+        "NAIS_TOKEN_ENDPOINT",
+        "NAIS_TOKEN_INTROSPECTION_ENDPOINT",
+        "NAIS_TOKEN_EXCHANGE_ENDPOINT",
+    ).forEach { environment(it, "ubrukt-i-test") }
 }
 
 kotlin {
@@ -62,6 +99,7 @@ val verifiserDevDistribusjon = tasks.register("verifiserDevDistribusjon") {
     val devLib = tasks.installDist.get().destinationDir.resolve("lib")
     val devJarNavn = tasks.jar.get().archiveFileName.get()
     val devKlasse = application.mainClass.get().replace('.', '/') + ".class"
+    val spiFil = "META-INF/services/no.nav.tiltakspenger.saksbehandling.infra.setup.Miljøkonfigurasjonsleverandør"
     doLast {
         fun oppføringer(jar: File): Set<String> =
             ZipFile(jar).use { zip -> zip.entries().asSequence().filterNot { it.isDirectory }.map { it.name }.toSet() }
@@ -82,9 +120,19 @@ val verifiserDevDistribusjon = tasks.register("verifiserDevDistribusjon") {
         val devOppføringer = oppføringer(devJar) - "META-INF/MANIFEST.MF"
         check(devKlasse in devOppføringer) { "$devJarNavn mangler inngangspunktet $devKlasse." }
         val devPakke = devKlasse.substringBeforeLast('/') + "/"
+        check(spiFil in devOppføringer) { "$devJarNavn mangler $spiFil." }
+        val leverandører = ZipFile(devJar).use { zip ->
+            zip.getInputStream(zip.getEntry(spiFil)).bufferedReader().readLines()
+        }.map { it.substringBefore('#').trim() }.filter { it.isNotEmpty() }
+        check(leverandører.size == 1) { "$spiFil må ha nøyaktig én leverandør, men har $leverandører." }
+        val leverandørKlasse = leverandører.single().replace('.', '/') + ".class"
+        check(leverandørKlasse.startsWith(devPakke) && leverandørKlasse in devOppføringer) {
+            "Leverandøren ${leverandører.single()} ligger ikke i dev-pakken i $devJarNavn."
+        }
         prodJarer.forEach { prod ->
             val prodOppføringer = oppføringer(prod)
             check(prodOppføringer.none { it.startsWith(devPakke) }) { "${prod.name} inneholder dev-pakken $devPakke." }
+            check(spiFil !in prodOppføringer) { "${prod.name} har en leverandør i $spiFil, og det skal bare dev ha." }
             val overlapp = devOppføringer intersect prodOppføringer
             check(overlapp.isEmpty()) { "$devJarNavn overlapper med ${prod.name}: $overlapp" }
         }

@@ -15,6 +15,11 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.ktorSetup
 import java.time.Clock
 
 fun main() {
+    startIMiljø()
+}
+
+/** Oppstarten på Nais, der [tilleggsruter] lar et annet inngangspunkt legge til egne ruter. */
+fun startIMiljø(tilleggsruter: Route.(applicationContext: ApplicationContext) -> Unit = {}) {
     System.setProperty("logback.configurationFile", Configuration.logbackConfigurationFile)
     System.setProperty("org.apache.avro.SERIALIZABLE_PACKAGES", Configuration.avroSerializablePackages)
 
@@ -25,7 +30,7 @@ fun main() {
     }
 
     log.info { "starting server" }
-    start(log = log, clock = Clock.system(zoneIdOslo))
+    start(log = log, clock = Clock.system(zoneIdOslo), tilleggsruter = tilleggsruter)
 }
 
 /**
@@ -45,10 +50,11 @@ fun start(
         gitHash = Configuration.gitHash(),
         clock = clock,
         meterRegistry = prometheusMeterRegistry(),
-        erDev = Configuration.isDev(),
+        utbetalingerFølgesOppFra = Configuration.utbetalingerFølgesOppFra,
+        tilbakekrevingshendelsePolicy = Configuration.tilbakekrevingshendelsePolicy,
         erProd = Configuration.isProd(),
     ),
-    devRoutes: Route.(applicationContext: ApplicationContext) -> Unit = {},
+    tilleggsruter: Route.(applicationContext: ApplicationContext) -> Unit = {},
 ) {
     log.info { "App context initialized" }
 
@@ -59,7 +65,7 @@ fun start(
         isNais = isNais,
         oppsett = bakgrunnsprosessoppsett(applicationContext = applicationContext, isNais = isNais),
     ) { readiness ->
-        ktorSetup(applicationContext = applicationContext, readiness = readiness, devRoutes = devRoutes)
+        ktorSetup(applicationContext = applicationContext, readiness = readiness, tilleggsruter = tilleggsruter)
     }
 }
 
