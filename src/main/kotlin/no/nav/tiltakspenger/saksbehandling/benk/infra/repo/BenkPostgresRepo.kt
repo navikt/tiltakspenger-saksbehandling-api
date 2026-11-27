@@ -509,10 +509,16 @@ class BenkPostgresRepo(
             from (
                 select apne.*
                 from (
+                    /*
+                     * Siste ubehandlede innsending per kjede.
+                     * Er en nyere innsending behandlet, fanges det av erstattet-sjekken under.
+                     * Filteret på behandling_id ligger her, og ikke etter distinct on, slik at idx_meldekort_bruker_ubehandlet_kjede_mottatt kan brukes.
+                     * Den indeksen inneholder bare ubehandlede meldekort, og vokser derfor ikke med historikken.
+                     */
                     select distinct on (sak_id, meldeperiode_kjede_id)
-                        id, sak_id, meldeperiode_id, meldeperiode_kjede_id, mottatt, prioritering_begrunnelse, behandling_id, til_etterkontroll
+                        id, sak_id, meldeperiode_id, meldeperiode_kjede_id, mottatt, prioritering_begrunnelse, til_etterkontroll
                     from meldekort_bruker
-                    where behandlet_automatisk_status != 'BEHANDLET' and behandles_automatisk = false
+                    where behandling_id is null and behandlet_automatisk_status != 'BEHANDLET' and behandles_automatisk = false
                     order by sak_id, meldeperiode_kjede_id, mottatt desc
                 ) apne
                     /*
@@ -543,7 +549,7 @@ class BenkPostgresRepo(
                               jsonb_build_object('kjedeId', apne.meldeperiode_kjede_id, 'brukersMeldekortIder', jsonb_build_array(apne.id))
                           )
                     ) under_behandling on true
-                where apne.behandling_id is null and erstattet.antall = 0 and under_behandling.antall = 0
+                where erstattet.antall = 0 and under_behandling.antall = 0
                 /*
                  * Sperre mot at planleggeren trekker underspørringen opp og kobler mot sak og meldeperiode før filteret.
                  * Filteret fjerner nesten alle radene: i prod 30.09.2026 gjensto 45 av 5532 åpne meldekort, og koblingene før filteret sto for rundt en firedel av tiden.
