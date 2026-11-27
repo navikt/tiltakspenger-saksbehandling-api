@@ -737,6 +737,21 @@ class OppdaterMeldekortbehandlingRouteTest {
             tac.behandlingId(mottattEtterAvbruttLagring.id) shouldBe korrigering.id
             tac.behandlingId(mottattEtterLagring.id) shouldBe avbruttBehandling.id
             tac.behandlingId(behandletMeldekort.id) shouldBe iverksatt.id
+
+            val ubehandlet = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
+            hentSakForSaksnummer(tac, sak.saksnummer)!!
+                .getJSONArray("meldeperiodeKjeder")
+                .getJSONObject(0)
+                .getJSONArray("brukersMeldekort")
+                .let { meldekort ->
+                    List(meldekort.length()) { meldekort.getJSONObject(it) }
+                        .associate { it.getString("id") to if (it.isNull("behandlingId")) null else it.getString("behandlingId") }
+                } shouldBe mapOf(
+                behandletMeldekort.id.toString() to iverksatt.id.toString(),
+                mottattEtterLagring.id.toString() to avbruttBehandling.id.toString(),
+                mottattEtterAvbruttLagring.id.toString() to korrigering.id.toString(),
+                ubehandlet.id.toString() to null,
+            )
         }
     }
 
