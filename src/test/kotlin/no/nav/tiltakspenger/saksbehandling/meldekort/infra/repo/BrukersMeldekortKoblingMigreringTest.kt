@@ -228,6 +228,56 @@ class BrukersMeldekortKoblingMigreringTest {
         }
     }
 
+    @Test
+    @IsolatedDatabaseTest
+    fun `knytter meldekortet til behandlingen som avsluttet kjeden først, også når en eldre åpen behandling er utvidet med kjeden`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, _, _) = this.iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(1 til 31.januar(2025)),
+            )
+            val førsteKjede = sak.meldeperiodeKjeder[0].kjedeId
+            val andreKjede = sak.meldeperiodeKjeder[1].kjedeId
+
+            // Den eldste behandlingen er åpen mens en nyere behandling av andre kjede opprettes og iverksettes.
+            val (_, eldsteBehandling, _) = opprettMeldekortbehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = førsteKjede,
+            )!!
+            val behandletAvNyeste = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 1)
+            val (_, _, nyesteBehandling) = opprettOgIverksettMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = andreKjede,
+            )!!
+            val mottattEtterNyeste = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 1)
+            oppdaterMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                meldekortId = eldsteBehandling.id,
+                meldeperioder = sak.meldeperiodeKjeder.take(2).map {
+                    it.hentSisteMeldeperiode().tilOppdatertMeldeperiodeDTO()
+                },
+            )!!
+
+            tac.fjernKoblinger(eldsteBehandling.id)
+            tac.fjernKoblinger(nyesteBehandling.id)
+            tac.fjernMarkeringer()
+            tac.kjørMigrering()
+
+            tac.hentKoblinger(nyesteBehandling.id) shouldBe mapOf(andreKjede to listOf(behandletAvNyeste.id))
+            tac.hentKoblinger(eldsteBehandling.id) shouldBe mapOf(
+                førsteKjede to emptyList(),
+                andreKjede to listOf(mottattEtterNyeste.id),
+            )
+            tac.hentBehandlingId(listOf(behandletAvNyeste.id, mottattEtterNyeste.id)) shouldBe mapOf(
+                behandletAvNyeste.id to nyesteBehandling.id,
+                mottattEtterNyeste.id to null,
+            )
+        }
+    }
+
     private fun TestApplicationContextMedPostgres.kjørMigrering() {
         listOf(
             "/db/migration/V287__meldekortbehandling_knytt_brukers_meldekort.sql",
