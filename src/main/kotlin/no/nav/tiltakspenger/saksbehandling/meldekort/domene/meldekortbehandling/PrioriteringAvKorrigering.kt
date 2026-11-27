@@ -47,7 +47,7 @@ fun Sak.utledPrioriteringAvKorrigering(
  * Brukes for å overføre prioriteringen til meldekortbehandlingen saksbehandler starter, siden raden for meldekortet da forsvinner fra benken.
  * Brukes også for å vise prioriteringen på meldeperiodekjeden i personoversikten.
  *
- * Speiler regelen benken bruker for meldekort fra bruker: det nyeste meldekortet i kjeden som gikk til manuell behandling, venter så lenge ingen meldekortbehandling av kjeden er endret etter at det ble mottatt.
+ * Speiler regelen benken bruker for meldekort fra bruker: det nyeste meldekortet i kjeden som gikk til manuell behandling, vises så lenge det venter på behandling, se [venterPåBehandling].
  */
 fun Sak.prioriteringFraKorrigeringSomVenterPåBehandling(kjedeIder: List<MeldeperiodeKjedeId>): Prioritering? =
     kjedeIder.firstNotNullOfOrNull { kjedeId ->
@@ -55,8 +55,6 @@ fun Sak.prioriteringFraKorrigeringSomVenterPåBehandling(kjedeIder: List<Meldepe
             .filter { it.kjedeId == kjedeId && !it.behandlesAutomatisk && it.behandletAutomatiskStatus != MeldekortBehandletAutomatiskStatus.BEHANDLET }
             .maxByOrNull { it.mottatt }
             ?: return@firstNotNullOfOrNull null
-        val erTattStillingTil =
-            meldekortbehandlinger.any { kjedeId in it.kjedeIder && !it.sistEndret.isBefore(sisteTilManuellBehandling.mottatt) }
 
-        sisteTilManuellBehandling.prioritering.takeUnless { erTattStillingTil }
+        sisteTilManuellBehandling.prioritering.takeIf { venterPåBehandling(sisteTilManuellBehandling) }
     }

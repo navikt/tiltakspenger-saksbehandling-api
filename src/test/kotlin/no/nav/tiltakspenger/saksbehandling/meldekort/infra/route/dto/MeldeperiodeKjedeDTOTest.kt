@@ -16,11 +16,13 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.Companion.MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.mottaMeldekortRequest
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgAvbrytMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgBesluttertarMeldekortbehanding
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tilUtfyltFraBruker
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import org.junit.jupiter.api.Test
@@ -233,6 +235,36 @@ class MeldeperiodeKjedeDTOTest {
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.tilMeldeperiodeKjederDTO(tac.clock)
                 .single { it.id == kjede.kjedeId.toString() }
                 .brukersMeldekortStatus shouldBe BrukersMeldekortStatusDTO.VENTER_BEHANDLING
+        }
+    }
+
+    @Test
+    fun `korrigering mottatt mens behandlingen var til beslutning venter på behandling etter iverksettelsen`() {
+        withTestApplicationContext { tac ->
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 31.mai(2025)),
+            )
+
+            val kjede = sak.meldeperiodeKjeder.first()
+
+            mottaMeldekortFraBruker(tac = tac, sak = sak, kjedeIndeks = 0)
+            val (_, tilBeslutning) = opprettOgBesluttertarMeldekortbehanding(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = kjede.kjedeId,
+            )!!
+            mottaMeldekortFraBruker(tac = tac, sak = sak, kjedeIndeks = 0, journalpostId = "4321")
+
+            val (sakMedIverksattBehandling) = iverksettMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                meldekortId = tilBeslutning.id,
+            )!!
+
+            sakMedIverksattBehandling.tilMeldeperiodeKjederDTO(tac.clock)
+                .single { it.id == kjede.kjedeId.toString() }
+                .brukersMeldekortStatus shouldBe BrukersMeldekortStatusDTO.KORRIGERING_VENTER_BEHANDLING
         }
     }
 

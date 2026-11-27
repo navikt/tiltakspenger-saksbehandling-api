@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.MeldeperiodeBereg
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilMeldeperiodeBeregningDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingAvbrutt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.prioriteringFraKorrigeringSomVenterPåBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.venterPåBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.IKKE_MOTTATT
@@ -67,9 +68,7 @@ private fun Sak.tilMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clo
 
     val sisteBehandling = this.meldekortbehandlinger.hentSisteMeldekortbehandlingForKjede(kjedeId)
 
-    val harBehandletSiste = sisteBehandling
-        ?.let { sisteBrukersMeldekort == null || it.sistEndret > sisteBrukersMeldekort.mottatt }
-        ?: false
+    val sisteVenterPåBehandling = sisteBrukersMeldekort?.let { venterPåBehandling(it) } ?: false
 
     val sisteBehandlingErAvbrutt = sisteBehandling is MeldekortbehandlingAvbrutt
 
@@ -83,7 +82,7 @@ private fun Sak.tilMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clo
         !sisteMeldeperiode.erKlarTilUtfylling(clock) -> KanIkkeBehandlesGrunnDTO.MELDEPERIODEN_HAR_IKKE_STARTET
 
         // Et ubehandlet meldekort fra bruker gjør at saksbehandler må kunne behandle kjeden, også når meldeperioden ikke lengre gir rett.
-        brukersMeldekort.isNotEmpty() && !harBehandletSiste -> null
+        brukersMeldekort.isNotEmpty() && sisteVenterPåBehandling -> null
 
         sisteMeldeperiode.ingenDagerGirRett -> KanIkkeBehandlesGrunnDTO.INGEN_DAGER_GIR_RETT
 
@@ -105,14 +104,14 @@ private fun Sak.tilMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clo
             0 -> IKKE_MOTTATT
 
             1 -> when {
-                !harBehandletSiste -> VENTER_BEHANDLING
+                sisteVenterPåBehandling -> VENTER_BEHANDLING
                 sisteBehandlingErÅpen -> UNDER_BEHANDLING
                 sisteBehandlingErAvbrutt -> AVBRUTT
                 else -> BEHANDLET
             }
 
             else -> when {
-                !harBehandletSiste -> KORRIGERING_VENTER_BEHANDLING
+                sisteVenterPåBehandling -> KORRIGERING_VENTER_BEHANDLING
                 sisteBehandlingErÅpen -> KORRIGERING_UNDER_BEHANDLING
                 sisteBehandlingErAvbrutt -> KORRIGERING_AVBRUTT
                 else -> KORRIGERING_BEHANDLET

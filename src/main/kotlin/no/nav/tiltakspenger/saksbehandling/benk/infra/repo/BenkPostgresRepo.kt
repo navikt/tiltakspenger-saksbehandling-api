@@ -508,29 +508,40 @@ class BenkPostgresRepo(
                 select apne.*
                 from (
                     select distinct on (sak_id, meldeperiode_kjede_id)
-                        id, sak_id, meldeperiode_id, meldeperiode_kjede_id, mottatt, prioritering_begrunnelse
+                        id, sak_id, meldeperiode_id, meldeperiode_kjede_id, mottatt, prioritering_begrunnelse, behandling_id
                     from meldekort_bruker
                     where behandlet_automatisk_status != 'BEHANDLET' and behandles_automatisk = false
                     order by sak_id, meldeperiode_kjede_id, mottatt desc
                 ) apne
                     /*
-                     * Filtrerer bort meldekort der det allerede finnes en meldekortbehandling som er nyere enn eller samtidig med innsendingen.
-                     * Da er meldekortet potensielt allerede tatt stilling til.
+                     * Samme regel som venterPåBehandling i domenet.
+                     * Meldekortet venter så lenge ingen iverksatt eller avbrutt behandling har behandlet det (behandling_id), ingen nyere innsending for kjeden er behandlet, og den åpne behandlingen av kjeden ikke er knyttet til det.
                      *
-                     * Skrevet som en lateral framfor `not exists` for å tvinge ett indeksoppslag per meldekort.
-                     * Som anti-join la planleggeren en hash over hele meldekortbehandling — inkludert all historikk — fordi `@>` ikke kan være en hash-condition.
+                     * Skrevet som laterals framfor `not exists` for å tvinge ett indeksoppslag per meldekort.
+                     * Som anti-join la planleggeren en hash over hele tabellen — inkludert all historikk — fordi `@>` ikke kan være en hash-condition.
                      * Målt mot Postgres 17 ved 50k meldekortbehandlinger: 21ms som anti-join, 7ms som lateral.
-                     * sak_id-betingelsen er bærende: kjedeId er bare datointervallet, og er ikke unik på tvers av saker.
+                     * sak_id-betingelsene er bærende: kjedeId er bare datointervallet, og er ikke unik på tvers av saker.
                      * Det telles framfor `limit 1` + null-sjekk fordi IDE-analysen feilaktig flagger null-sjekken som alltid false — den modellerer ikke null-paddingen fra left join.
                      */
                     left join lateral (
                         select count(*) as antall
+                        from meldekort_bruker nyere
+                        where nyere.sak_id = apne.sak_id
+                          and nyere.meldeperiode_kjede_id = apne.meldeperiode_kjede_id
+                          and nyere.mottatt > apne.mottatt
+                          and nyere.behandling_id is not null
+                    ) erstattet on true
+                    left join lateral (
+                        select count(*) as antall
                         from meldekortbehandling mb
                         where mb.sak_id = apne.sak_id
-                          and mb.meldeperioder @> jsonb_build_array(jsonb_build_object('kjedeId', apne.meldeperiode_kjede_id))
-                          and mb.sist_endret >= apne.mottatt
-                    ) behandlet on true
-                where behandlet.antall = 0
+                          and mb.avbrutt is null
+                          and mb.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING')
+                          and mb.meldeperioder @> jsonb_build_array(
+                              jsonb_build_object('kjedeId', apne.meldeperiode_kjede_id, 'brukersMeldekortIder', jsonb_build_array(apne.id))
+                          )
+                    ) under_behandling on true
+                where apne.behandling_id is null and erstattet.antall = 0 and under_behandling.antall = 0
                 /*
                  * Sperre mot at planleggeren trekker underspørringen opp og kobler mot sak og meldeperiode før filteret.
                  * Filteret fjerner nesten alle radene: i prod 30.09.2026 gjensto 45 av 5532 åpne meldekort, og koblingene før filteret sto for rundt en firedel av tiden.
