@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.lokal
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import no.nav.tiltakspenger.libs.common.SaksnummerGenerator
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
@@ -32,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenrsHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
+import no.nav.tiltakspenger.saksbehandling.infra.setup.LocalConfig
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeKlagevedtakKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
@@ -277,7 +277,7 @@ class LocalApplicationContext(
             sessionFactory = sessionFactory,
             personService = personContext.personService,
             fellesSkjermingsklient = personContext.fellesSkjermingsklient,
-            saksnummerGenerator = SaksnummerGenerator.Local,
+            saksnummerGenerator = LocalConfig.saksnummerGenerator,
             clock = clock,
             oppdragsversjonForNyeSaker = Oppdragsversjon.V2,
         ) {}

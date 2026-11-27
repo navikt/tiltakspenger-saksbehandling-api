@@ -1,8 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.infra.setup
 
+import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.TilbakekrevingshendelsePolicy
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 enum class EnvironmentProfile {
@@ -132,6 +134,10 @@ interface EnvironmentConfig {
     val gcpProsjektId: String?
 }
 
+private data object LokalSaksnummerGenerator : SaksnummerGenerator {
+    override fun generer(dato: LocalDate): Saksnummer = Saksnummer.genererSaknummer(dato = dato, løpenr = "1001")
+}
+
 data object LocalConfig : EnvironmentConfig {
     /**
      *  Benyttes kun dersom appen kjører lokalt med "prod-main" i App.kt.
@@ -229,7 +235,7 @@ data object LocalConfig : EnvironmentConfig {
     override val utbetalingTopic = "tpts.utbetaling-v1"
     override val helvedStatusTopic = "helved.status.v1"
     override val oppdragsversjonForNyeSaker = Oppdragsversjon.V2
-    override val saksnummerGenerator = SaksnummerGenerator.Local
+    override val saksnummerGenerator: SaksnummerGenerator = LokalSaksnummerGenerator
     override val utbetalingerFølgesOppFra: LocalDateTime? = null
     override val tilbakekrevingshendelsePolicy = TilbakekrevingshendelsePolicy.BeholdAlle
 

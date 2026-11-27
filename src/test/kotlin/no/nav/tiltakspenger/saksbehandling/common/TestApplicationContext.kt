@@ -351,7 +351,7 @@ sealed class TestApplicationContext(
             sessionFactory = sessionFactory,
             personService = personContext.personService,
             fellesSkjermingsklient = personContext.fellesSkjermingsklient,
-            // Dato-baserte saksnummer (SaksnummerGenerator.Local) kolliderer under parallellkjøring, siden alle tester med samme klokkedato får samme startnummer og hentNesteSaksnummer gjør select-max-pluss-én uten lås.
+            // Dato-baserte saksnummer (LocalConfig.saksnummerGenerator) kolliderer under parallellkjøring, siden alle tester med samme klokkedato får samme startnummer og hentNesteSaksnummer gjør select-max-pluss-én uten lås.
             // Den delte, atomiske generatoren gir globalt unike saksnummer, og dato-prefiks-spørringen i hentNesteSaksnummer treffer da aldri.
             saksnummerGenerator = delteSaksnummerGenerator,
             clock = clock,

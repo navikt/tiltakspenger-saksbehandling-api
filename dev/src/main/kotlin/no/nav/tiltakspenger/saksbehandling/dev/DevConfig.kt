@@ -1,10 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.dev
 
+import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.infra.setup.EnvironmentConfig
 import no.nav.tiltakspenger.saksbehandling.infra.setup.EnvironmentProfile
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.TilbakekrevingshendelsePolicy
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 data object DevConfig : EnvironmentConfig {
@@ -95,7 +97,7 @@ data object DevConfig : EnvironmentConfig {
     override val utbetalingTopic = "tpts.utbetaling-v1"
     override val helvedStatusTopic = "helved.status.v1"
     override val oppdragsversjonForNyeSaker = Oppdragsversjon.V3
-    override val saksnummerGenerator = SaksnummerGenerator.Dev
+    override val saksnummerGenerator: SaksnummerGenerator = DevSaksnummerGenerator
 
     // De to testsakene i dev ble opprettet 25.09.2026; prod følger opp alle saker.
     override val utbetalingerFølgesOppFra: LocalDateTime = LocalDateTime.of(2026, 9, 25, 0, 0)
@@ -115,4 +117,8 @@ data object DevConfig : EnvironmentConfig {
 
     override val saksbehandlingFrontendUrl = "https://tiltakspenger-saksbehandling.ansatt.dev.nav.no"
     override val gcpProsjektId = "tpts-dev-6211"
+}
+
+private data object DevSaksnummerGenerator : SaksnummerGenerator {
+    override fun generer(dato: LocalDate): Saksnummer = Saksnummer.genererSaknummer(dato = dato, løpenr = "1001")
 }

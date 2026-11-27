@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.dev
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.libs.common.SaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.infra.setup.EnvironmentProfile
 import no.nav.tiltakspenger.saksbehandling.infra.setup.LocalConfig
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ProdConfig
@@ -9,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.miljøkonfigurasjonFor
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.TilbakekrevingshendelsePolicy
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 class DevConfigTest {
@@ -35,6 +35,7 @@ class DevConfigTest {
 
         konfigurasjon shouldBe LocalConfig
         konfigurasjon.tilbakekrevingshendelsePolicy shouldBe TilbakekrevingshendelsePolicy.BeholdAlle
+        konfigurasjon.saksnummerGenerator.generer(LocalDate.of(2021, 1, 1)).verdi shouldBe "202101011001"
     }
 
     @Test
@@ -46,7 +47,7 @@ class DevConfigTest {
     @Test
     fun `dev har egne valg for saker, utbetalinger og tilbakekreving`() {
         DevConfig.oppdragsversjonForNyeSaker shouldBe Oppdragsversjon.V3
-        DevConfig.saksnummerGenerator shouldBe SaksnummerGenerator.Dev
+        DevConfig.saksnummerGenerator.generer(LocalDate.of(2021, 1, 1)).verdi shouldBe "202101011001"
         DevConfig.utbetalingerFølgesOppFra shouldBe LocalDateTime.of(2026, 9, 25, 0, 0)
         DevConfig.tilbakekrevingshendelsePolicy shouldBe TilbakekrevingshendelsePolicy(
             testsaksnummerPrefiks = "BF",
