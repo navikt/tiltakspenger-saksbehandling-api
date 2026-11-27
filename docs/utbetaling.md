@@ -131,6 +131,7 @@ Dermed fortsetter varslingen etter omstart og under lang backoff, og stopper nå
 Varslingen for versjon 2 er uendret.
 
 Bruk `kvitteringId`, `utbetalingId`, `sakId` og `saksnummer` i loggene for å finne avviket.
+Vanlig logg viser kvitterings-ID, topic, partisjon og offset, slik at meldingen kan finnes i Peisen også når koblingen til utbetalingen feiler.
 Rå meldinger og feil som kan inneholde personopplysninger finnes bare i databasen og sikkerloggen.
 Ved manglende kvittering må Hel Ved bekrefte utfallet før eventuell ny sending.
 Rett årsaken før kvitteringen behandles på nytt; ikke merk en feil som ferdig bare for å dempe alarmen.

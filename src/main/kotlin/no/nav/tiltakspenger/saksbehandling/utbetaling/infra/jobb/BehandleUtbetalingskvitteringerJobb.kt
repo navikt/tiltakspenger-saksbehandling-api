@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.Utbetalingsmålinger
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeBehandleUtbetalingskvittering
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeBehandleUtbetalingskvittering.ManglerUtbetalingskobling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KvitteringsstatusLagring
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.RåUtbetalingskvittering
@@ -79,6 +80,8 @@ class BehandleUtbetalingskvitteringerJobb(
                 sessionFactory.withTransactionContext { context ->
                     val råKvittering = utbetalingskvitteringRepo.hent(id, context)
                     kvitteringVedFeil = råKvittering
+                    val kafkaposisjon = råKvittering.kafkaposisjon
+                    kontekst = "$kontekst, topic=${kafkaposisjon.topic}, partisjon=${kafkaposisjon.partisjon}, offset=${kafkaposisjon.offset}"
                     either {
                         if (!råKvittering.skalBehandles(clock)) {
                             return@either Behandlingstransaksjon(råKvittering, kontekst, null)
@@ -111,7 +114,7 @@ class BehandleUtbetalingskvitteringerJobb(
 
                             is Utbetalingskvittering.Status -> {
                                 val funnetUtbetaling = ensureNotNull(utbetaling) {
-                                    KunneIkkeBehandleUtbetalingskvittering.ManglerUtbetalingskobling
+                                    ManglerUtbetalingskobling(ManglerUtbetalingskobling.Årsak.IngenKobletUtbetaling)
                                 }
                                 if (utbetalingRepo.hentOppdragsversjon(funnetUtbetaling.sakId, context) == Oppdragsversjon.V3) {
                                     when (
@@ -159,16 +162,20 @@ class BehandleUtbetalingskvitteringerJobb(
         if (kvittering.referanser.isNotEmpty()) return@either oppslagOgKobling(kvittering.referanser, context).bind()
         if (råKvittering.utbetalingId != null) return@either hentLagretUtbetaling(råKvittering, context).bind()
         if (kvittering is Utbetalingskvittering.Simulering) return@either null
-        raise(KunneIkkeBehandleUtbetalingskvittering.ManglerUtbetalingskobling)
+        raise(ManglerUtbetalingskobling(ManglerUtbetalingskobling.Årsak.ManglerReferanser))
     }
 
     private fun oppslagOgKobling(
         referanser: Set<Utbetalingsreferanse>,
         context: TransactionContext,
     ): Either<KunneIkkeBehandleUtbetalingskvittering, VedtattUtbetaling> = either {
-        if (referanser.isEmpty()) raise(KunneIkkeBehandleUtbetalingskvittering.ManglerUtbetalingskobling)
+        ensure(referanser.isNotEmpty()) {
+            ManglerUtbetalingskobling(ManglerUtbetalingskobling.Årsak.ManglerReferanser)
+        }
         val treff = utbetalingRepo.finnUtbetalingerForKvitteringsreferanser(referanser, context)
-        if (treff.isEmpty()) raise(KunneIkkeBehandleUtbetalingskvittering.ManglerUtbetalingskobling)
+        ensure(treff.isNotEmpty()) {
+            ManglerUtbetalingskobling(ManglerUtbetalingskobling.Årsak.IngenTreffPåReferanser)
+        }
         ensure(
             treff.size == referanser.size &&
                 treff.map { it.referanse }.toSet() == referanser &&
@@ -191,7 +198,7 @@ class BehandleUtbetalingskvitteringerJobb(
         context: TransactionContext,
     ): Either<KunneIkkeBehandleUtbetalingskvittering, VedtattUtbetaling> = either {
         val utbetalingId = ensureNotNull(kvittering.utbetalingId) {
-            KunneIkkeBehandleUtbetalingskvittering.ManglerUtbetalingskobling
+            ManglerUtbetalingskobling(ManglerUtbetalingskobling.Årsak.ManglerLagretUtbetalingId)
         }
         val utbetaling = hentUtbetaling(utbetalingId, context).bind()
         ensure(kvittering.sakId == null || kvittering.sakId == utbetaling.sakId) {
@@ -216,7 +223,12 @@ class BehandleUtbetalingskvitteringerJobb(
                 it.utbetalingskobling,
             )
         }
-        val melding = "Kunne ikke behandle utbetalingskvittering: $feilnavn, forbigående=${feil.forbigående}, $kontekst. Se sikkerlogg for detaljer."
+        val loggårsak = when (feil) {
+            is KunneIkkeBehandleUtbetalingskvittering.UgyldigInnhold -> ", årsak=${feil.årsak.loggmelding}"
+            is ManglerUtbetalingskobling -> ", årsak=${feil.årsak.loggmelding}"
+            else -> ""
+        }
+        val melding = "Kunne ikke behandle utbetalingskvittering: $feilnavn, forbigående=${feil.forbigående}, $kontekst$loggårsak. Se sikkerlogg for detaljer."
         if (feil.forbigående) log.warn { melding } else log.error { melding }
         val årsak = when (feil) {
             is KunneIkkeBehandleUtbetalingskvittering.KunneIkkeTolkeInnhold -> feil.feil
@@ -224,10 +236,10 @@ class BehandleUtbetalingskvitteringerJobb(
             is KunneIkkeBehandleUtbetalingskvittering.UventetFeil -> feil.feil
 
             is KunneIkkeBehandleUtbetalingskvittering.FantIkkeUtbetaling,
-            KunneIkkeBehandleUtbetalingskvittering.UgyldigInnhold,
+            is KunneIkkeBehandleUtbetalingskvittering.UgyldigInnhold,
             KunneIkkeBehandleUtbetalingskvittering.UgyldigNøkkel,
             KunneIkkeBehandleUtbetalingskvittering.ManglerInnhold,
-            KunneIkkeBehandleUtbetalingskvittering.ManglerUtbetalingskobling,
+            is ManglerUtbetalingskobling,
             KunneIkkeBehandleUtbetalingskvittering.TvetydigUtbetalingskobling,
             KunneIkkeBehandleUtbetalingskvittering.LagretUtbetalingskoblingAvviker,
             -> null

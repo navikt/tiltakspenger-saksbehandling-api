@@ -2,6 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.felles
 
 import java.time.Instant
 
+data class Kafkaposisjon(
+    val topic: String,
+    val partisjon: Int,
+    val offset: Long,
+)
+
 // TODO - denne og ConsumerRecord.tilKafkametadata() burde flyttes til libs, slik at alle consumerne kan lagre dem.
 
 /** Hvor en melding lå på Kafka; brukes til deduplisering og offset-rekkefølge. */

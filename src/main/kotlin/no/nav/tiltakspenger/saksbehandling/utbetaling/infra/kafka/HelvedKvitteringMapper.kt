@@ -7,6 +7,7 @@ import arrow.core.raise.ensureNotNull
 import no.nav.tiltakspenger.libs.json.lesTre
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeBehandleUtbetalingskvittering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeBehandleUtbetalingskvittering.UgyldigInnhold
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeBehandleUtbetalingskvittering.UgyldigInnhold.Årsak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingskvittering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsreferanse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
@@ -18,19 +19,19 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 fun tilUtbetalingsstatus(value: String): Either<KunneIkkeBehandleUtbetalingskvittering, Utbetalingskvittering> = either {
     val melding = Either.catch { lesTre(value) }
         .mapLeft { KunneIkkeBehandleUtbetalingskvittering.KunneIkkeTolkeInnhold(it) }.bind()
-    ensure(melding.isObject) { UgyldigInnhold }
+    ensure(melding.isObject) { UgyldigInnhold(Årsak.MeldingErIkkeObjekt) }
     val simulering = melding.path("simulering")
-    ensure(simulering.isMissingNode || simulering.isBoolean) { UgyldigInnhold }
+    ensure(simulering.isMissingNode || simulering.isBoolean) { UgyldigInnhold(Årsak.SimuleringErIkkeBoolsk) }
     val detaljer = melding.path("detaljer")
-    ensure(detaljer.isMissingNode || detaljer.isNull || detaljer.isObject) { UgyldigInnhold }
+    ensure(detaljer.isMissingNode || detaljer.isNull || detaljer.isObject) { UgyldigInnhold(Årsak.DetaljerErIkkeObjekt) }
     val referanser = if (detaljer.isObject) {
         val linjer = detaljer.path("linjer")
-        ensure(linjer.isArray) { UgyldigInnhold }
+        ensure(linjer.isArray) { UgyldigInnhold(Årsak.LinjerErIkkeListe) }
         (0 until linjer.size()).map { index ->
-            val linje = ensureNotNull(linjer.get(index)) { UgyldigInnhold }
-            ensure(linje.isObject) { UgyldigInnhold }
+            val linje = ensureNotNull(linjer.get(index)) { UgyldigInnhold(Årsak.LinjeErIkkeObjekt) }
+            ensure(linje.isObject) { UgyldigInnhold(Årsak.LinjeErIkkeObjekt) }
             val behandlingId = linje.path("behandlingId")
-            ensure(behandlingId.isString && behandlingId.asText().length == 15) { UgyldigInnhold }
+            ensure(behandlingId.isString && behandlingId.asText().length == 15) { UgyldigInnhold(Årsak.UgyldigBehandlingId) }
             Utbetalingsreferanse(behandlingId.asString())
         }.toSet()
     } else {
@@ -38,7 +39,7 @@ fun tilUtbetalingsstatus(value: String): Either<KunneIkkeBehandleUtbetalingskvit
     }
     if (simulering.asBoolean(false)) return@either Utbetalingskvittering.Simulering(referanser)
     val status = melding.path("status")
-    ensure(status.isString) { UgyldigInnhold }
+    ensure(status.isString) { UgyldigInnhold(Årsak.StatusErIkkeStreng) }
     val utbetalingsstatus = when (status.asString()) {
         // MOTTATT: Hel Ved har tatt imot utbetalingen, men ikke sendt den til økonomisystemet ennå.
         "MOTTATT" -> Utbetalingsstatus.IkkePåbegynt
@@ -52,7 +53,7 @@ fun tilUtbetalingsstatus(value: String): Either<KunneIkkeBehandleUtbetalingskvit
 
         "FEILET" -> Utbetalingsstatus.FeiletMotOppdrag
 
-        else -> raise(UgyldigInnhold)
+        else -> raise(UgyldigInnhold(Årsak.UkjentStatus))
     }
     Utbetalingskvittering.Status(utbetalingsstatus, referanser)
 }

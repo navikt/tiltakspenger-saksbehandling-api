@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.migrerTilOppdragsversjon3
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeBehandleUtbetalingskvittering
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeBehandleUtbetalingskvittering.UgyldigInnhold
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
@@ -166,7 +166,7 @@ class UtbetalingVersjon3RundturTest {
             }
 
             tac.utbetalingContext.behandleUtbetalingskvitteringerJobb.behandle(id).leftOrNull() shouldBe
-                KunneIkkeBehandleUtbetalingskvittering.UgyldigInnhold
+                UgyldigInnhold(UgyldigInnhold.Årsak.UkjentStatus)
             val etterFeil = tac.sessionFactory.withTransactionContext { innboks.hent(id, it) }
             etterFeil.sakId shouldBe sak.id
             etterFeil.utbetalingId shouldBe vedtak.utbetaling.id
