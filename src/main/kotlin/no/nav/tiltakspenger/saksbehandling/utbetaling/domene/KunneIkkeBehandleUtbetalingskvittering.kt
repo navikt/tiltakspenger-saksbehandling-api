@@ -21,8 +21,19 @@ sealed interface KunneIkkeBehandleUtbetalingskvittering {
         override val forbigående = false
     }
 
-    data object UgyldigInnhold : KunneIkkeBehandleUtbetalingskvittering {
+    data class UgyldigInnhold(val årsak: Årsak) : KunneIkkeBehandleUtbetalingskvittering {
         override val forbigående = false
+
+        enum class Årsak(val loggmelding: String) {
+            MeldingErIkkeObjekt("Meldingen må være et JSON-objekt"),
+            SimuleringErIkkeBoolsk("simulering må være boolsk når feltet er satt"),
+            DetaljerErIkkeObjekt("detaljer må være et objekt eller null"),
+            LinjerErIkkeListe("detaljer.linjer må være en liste"),
+            LinjeErIkkeObjekt("Hvert element i detaljer.linjer må være et objekt"),
+            UgyldigBehandlingId("detaljer.linjer.behandlingId må være en streng på 15 tegn"),
+            StatusErIkkeStreng("status må være en streng"),
+            UkjentStatus("status har en ukjent verdi"),
+        }
     }
 
     data class FantIkkeUtbetaling(val utbetalingId: UtbetalingId) : KunneIkkeBehandleUtbetalingskvittering {
@@ -30,8 +41,15 @@ sealed interface KunneIkkeBehandleUtbetalingskvittering {
         override val forbigående = true
     }
 
-    data object ManglerUtbetalingskobling : KunneIkkeBehandleUtbetalingskvittering {
+    data class ManglerUtbetalingskobling(val årsak: Årsak) : KunneIkkeBehandleUtbetalingskvittering {
         override val forbigående = true
+
+        enum class Årsak(val loggmelding: String) {
+            ManglerReferanser("Kvitteringen mangler utbetalingsreferanser"),
+            IngenTreffPåReferanser("Ingen utbetaling matcher referansene i kvitteringen"),
+            ManglerLagretUtbetalingId("Kvitteringen mangler lagret utbetalings-ID"),
+            IngenKobletUtbetaling("Ingen utbetaling er koblet til statuskvitteringen"),
+        }
     }
 
     data object TvetydigUtbetalingskobling : KunneIkkeBehandleUtbetalingskvittering {

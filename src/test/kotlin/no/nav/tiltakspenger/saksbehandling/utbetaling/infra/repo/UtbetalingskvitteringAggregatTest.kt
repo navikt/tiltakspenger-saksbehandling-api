@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
+import no.nav.tiltakspenger.saksbehandling.felles.Kafkaposisjon
 import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
@@ -397,6 +398,7 @@ class UtbetalingskvitteringAggregatTest {
                 id = lavereOffsetId,
                 key = "samme",
                 value = """{"simulering":true,"testverdi":"lavere-offset"}""",
+                kafkaposisjon = Kafkaposisjon("helved.status.v1", 1, 2),
                 mottatt = mottatt,
                 behandlet = null,
                 sakId = null,

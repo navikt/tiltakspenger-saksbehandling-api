@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.jobb
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
@@ -15,9 +17,12 @@ import no.nav.tiltakspenger.libs.persistering.test.common.TestSessionFactory
 import no.nav.tiltakspenger.saksbehandling.common.Loggfanger
 import no.nav.tiltakspenger.saksbehandling.common.Sikkerloggfanger
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
+import no.nav.tiltakspenger.saksbehandling.felles.Kafkaposisjon
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.Utbetalingsmålinger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeBehandleUtbetalingskvittering
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeBehandleUtbetalingskvittering.ManglerUtbetalingskobling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeBehandleUtbetalingskvittering.UgyldigInnhold
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KvitteringsstatusLagring
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.RåUtbetalingskvittering
@@ -72,6 +77,7 @@ class BehandleUtbetalingskvitteringerJobbTest {
                 id = kvitteringId,
                 key = key,
                 value = value,
+                kafkaposisjon = Kafkaposisjon("helved.status.v1", 2, 3_000_000_000L),
                 mottatt = nå(fixedClock),
                 behandlet = if (behandlet) nå(fixedClock) else null,
                 sakId = sakId,
@@ -95,7 +101,9 @@ class BehandleUtbetalingskvitteringerJobbTest {
                 TestSessionFactory.transactionContext,
             )
         }
-        oppsett.logg.logglinjer.single().melding!!.contains(oppsett.utbetaling.enkelLoggKontekst) shouldBe true
+        val melding = oppsett.logg.logglinjer.single().melding!!
+        melding shouldContain oppsett.utbetaling.enkelLoggKontekst
+        melding shouldContain "topic=helved.status.v1, partisjon=2, offset=3000000000"
         oppsett.sikkerlogg.sikkerlogglinjer.size shouldBe 1
     }
 
@@ -122,8 +130,33 @@ class BehandleUtbetalingskvitteringerJobbTest {
             oppsett.logg.logglinjer.single().let {
                 it.melding!!.contains("ukjent-personverdi") shouldBe false
                 it.melding.contains("råinnhold") shouldBe false
+                it.melding shouldContain "topic=helved.status.v1, partisjon=2, offset=3000000000"
+                it.melding shouldContain "kvitteringId=${oppsett.kvitteringId}"
+                it.melding shouldNotContain oppsett.utbetaling.enkelLoggKontekst
                 it.feil shouldBe null
             }
+        }
+    }
+
+    @Test
+    fun `ugyldig innhold logges med felt og regel uten råverdier`() {
+        listOf(
+            """["råverdi"]""" to "Meldingen må være et JSON-objekt",
+            """{"simulering":"råverdi"}""" to "simulering må være boolsk",
+            """{"detaljer":"råverdi"}""" to "detaljer må være et objekt eller null",
+            """{"detaljer":{"linjer":"råverdi"}}""" to "detaljer.linjer må være en liste",
+            """{"detaljer":{"linjer":["råverdi"]}}""" to "Hvert element i detaljer.linjer må være et objekt",
+            """{"detaljer":{"linjer":[{"behandlingId":"råverdi"}]}}""" to "detaljer.linjer.behandlingId må være en streng på 15 tegn",
+            """{"status":["råverdi"]}""" to "status må være en streng",
+            """{"status":"råverdi"}""" to "status har en ukjent verdi",
+        ).forEach { (verdi, regel) ->
+            val oppsett = Oppsett()
+            oppsett.kvittering(verdi, key = "rånøkkel")
+            oppsett.jobb.behandle(oppsett.kvitteringId).leftOrNull()!!.forbigående shouldBe false
+            val melding = oppsett.logg.logglinjer.single().melding!!
+            melding shouldContain "årsak=$regel"
+            melding shouldNotContain "råverdi"
+            melding shouldNotContain "rånøkkel"
         }
     }
 
@@ -247,7 +280,7 @@ class BehandleUtbetalingskvitteringerJobbTest {
         val mangler = Oppsett()
         mangler.kvittering("""{"status":"OK"}""", key = "v2-key")
         mangler.jobb.behandle(mangler.kvitteringId).leftOrNull() shouldBe
-            KunneIkkeBehandleUtbetalingskvittering.ManglerUtbetalingskobling
+            ManglerUtbetalingskobling(ManglerUtbetalingskobling.Årsak.ManglerReferanser)
         verify {
             mangler.innboks.lagreFeil(
                 mangler.kvitteringId,
@@ -258,6 +291,7 @@ class BehandleUtbetalingskvitteringerJobbTest {
             )
         }
         verify(exactly = 0) { mangler.innboks.markerBehandlet(any(), any(), any(), any()) }
+        mangler.logg.logglinjer.single().melding!! shouldContain "årsak=Kvitteringen mangler utbetalingsreferanser"
 
         val tvetydig = Oppsett()
         val referanse = Utbetalingsreferanse(tvetydig.utbetaling.id.uuidPart())
@@ -403,11 +437,31 @@ class BehandleUtbetalingskvitteringerJobbTest {
     }
 
     @Test
+    fun `referanser uten treff gir sporbar koblingsfeil uten å logge referansen`() {
+        val oppsett = Oppsett()
+        val referanse = Utbetalingsreferanse(oppsett.utbetaling.id.uuidPart())
+        oppsett.kvittering(
+            """{"status":"HOS_OPPDRAG","detaljer":{"linjer":[{"behandlingId":"${referanse.verdi}"}]}}""",
+            key = "rånøkkel",
+        )
+        every { oppsett.repo.finnUtbetalingerForKvitteringsreferanser(setOf(referanse), any()) } returns emptyList()
+
+        oppsett.jobb.behandle(oppsett.kvitteringId).leftOrNull() shouldBe
+            ManglerUtbetalingskobling(ManglerUtbetalingskobling.Årsak.IngenTreffPåReferanser)
+        val melding = oppsett.logg.logglinjer.single().melding!!
+        melding shouldContain "ManglerUtbetalingskobling, forbigående=true"
+        melding shouldContain "topic=helved.status.v1, partisjon=2, offset=3000000000"
+        melding shouldContain "årsak=Ingen utbetaling matcher referansene i kvitteringen"
+        melding shouldNotContain referanse.verdi
+        melding shouldNotContain "rånøkkel"
+    }
+
+    @Test
     fun `knyttet V3-utbetaling og kontekst bevares ved ugyldig innhold`() {
         val oppsett = Oppsett()
         oppsett.kvittering("""{"status":"UKJENT"}""")
         oppsett.jobb.behandle(oppsett.kvitteringId).leftOrNull() shouldBe
-            KunneIkkeBehandleUtbetalingskvittering.UgyldigInnhold
+            UgyldigInnhold(UgyldigInnhold.Årsak.UkjentStatus)
         verify {
             oppsett.innboks.lagreFeil(
                 oppsett.kvitteringId,
@@ -459,6 +513,7 @@ class BehandleUtbetalingskvitteringerJobbTest {
                 id = UtbetalingskvitteringId.random(),
                 key = null,
                 value = null,
+                kafkaposisjon = Kafkaposisjon("helved.status.v1", 0, 0),
                 mottatt = nå(fixedClock),
                 behandlet = null,
                 sakId = null,

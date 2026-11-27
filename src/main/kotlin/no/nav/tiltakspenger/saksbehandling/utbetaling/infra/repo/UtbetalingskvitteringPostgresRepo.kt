@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infra.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.felles.Kafkametadata
+import no.nav.tiltakspenger.saksbehandling.felles.Kafkaposisjon
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toForsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.RåUtbetalingskvittering
@@ -100,7 +101,10 @@ class UtbetalingskvitteringPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                    select id, key, value, mottatt, behandlet, forsokshistorikk, sak_id, utbetaling_id
+                    select id, key, value, mottatt, behandlet, forsokshistorikk, sak_id, utbetaling_id,
+                           kafka ->> 'topic' as kafka_topic,
+                           (kafka ->> 'partisjon')::int as kafka_partisjon,
+                           (kafka ->> 'offset')::bigint as kafka_offset
                     from utbetalingskvittering
                     where id = :id
                     for update
@@ -201,6 +205,11 @@ class UtbetalingskvitteringPostgresRepo(
         id = UtbetalingskvitteringId.fromString(string("id")),
         key = stringOrNull("key"),
         value = stringOrNull("value"),
+        kafkaposisjon = Kafkaposisjon(
+            topic = string("kafka_topic"),
+            partisjon = int("kafka_partisjon"),
+            offset = long("kafka_offset"),
+        ),
         mottatt = localDateTime("mottatt"),
         behandlet = localDateTimeOrNull("behandlet"),
         forsøkshistorikk = stringOrNull("forsokshistorikk")?.toForsøkshistorikk(),

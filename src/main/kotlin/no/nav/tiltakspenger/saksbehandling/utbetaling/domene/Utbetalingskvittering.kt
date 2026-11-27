@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
+import no.nav.tiltakspenger.saksbehandling.felles.Kafkaposisjon
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -40,6 +41,7 @@ data class RåUtbetalingskvittering(
     val id: UtbetalingskvitteringId,
     val key: String?,
     val value: String?,
+    val kafkaposisjon: Kafkaposisjon,
     val mottatt: LocalDateTime,
     val behandlet: LocalDateTime?,
     val sakId: SakId?,

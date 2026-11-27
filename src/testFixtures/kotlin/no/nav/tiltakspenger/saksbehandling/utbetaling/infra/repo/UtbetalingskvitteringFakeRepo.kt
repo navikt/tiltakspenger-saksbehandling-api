@@ -4,6 +4,7 @@ import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.felles.Kafkametadata
+import no.nav.tiltakspenger.saksbehandling.felles.Kafkaposisjon
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.RåUtbetalingskvittering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingskobling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingskvitteringId
@@ -39,6 +40,7 @@ class UtbetalingskvitteringFakeRepo : UtbetalingskvitteringRepo {
                     id = UtbetalingskvitteringId.random(),
                     key = key,
                     value = value,
+                    kafkaposisjon = Kafkaposisjon(kafkametadata.topic, kafkametadata.partisjon, kafkametadata.offset),
                     mottatt = mottatt,
                     behandlet = null,
                     sakId = null,
