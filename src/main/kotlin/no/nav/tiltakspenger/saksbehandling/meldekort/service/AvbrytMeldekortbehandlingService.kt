@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.AvbrytMeldekortbehandlingKommando
@@ -17,6 +18,7 @@ import java.time.Clock
 
 class AvbrytMeldekortbehandlingService(
     private val meldekortbehandlingRepo: MeldekortbehandlingRepo,
+    private val brukersMeldekortRepo: BrukersMeldekortRepo,
     private val sakService: SakService,
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
@@ -32,6 +34,7 @@ class AvbrytMeldekortbehandlingService(
             )
             sessionFactory.withTransactionContext { tx ->
                 meldekortbehandlingRepo.oppdater(it, tx)
+                brukersMeldekortRepo.markerSomBehandlet(it, tx)
                 statistikkService.lagre(statistikk, tx)
             }
             Pair(sak.oppdaterMeldekortbehandling(it), it)

@@ -15,7 +15,10 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import java.time.LocalDateTime
 
-/** Saksbehandler avbryter en meldekortbehandling */
+/**
+ * Saksbehandler avbryter en meldekortbehandling.
+ * Meldekortene fra bruker som behandlingen er knyttet til, markeres som behandlet av den, se [no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.behandlingId].
+ */
 fun Meldekortbehandling.avbryt(
     kommando: AvbrytMeldekortbehandlingKommando,
     tidspunkt: LocalDateTime,
@@ -85,6 +88,7 @@ fun Meldekortbehandling.kanAvbryte(
 /**
  * Avbryter en meldekortbehandling fordi det ikke lenger er rett til tiltakspenger i perioden.
  * Dette er en automatisk handling.
+ * Meldekortene fra bruker som behandlingen er knyttet til, markeres som behandlet av den, som ved [avbryt].
  */
 fun Meldekortbehandling.avbrytIkkeRettTilTiltakspenger(
     tidspunkt: LocalDateTime,
@@ -132,7 +136,7 @@ private fun Meldekortbehandling.avbryt(
         ),
         sistEndret = tidspunkt,
         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-        meldeperioder = meldeperioder,
+        meldeperioder = meldeperioder.markerBrukersMeldekortSomBehandlet(),
         skalJournalføreVedtaksbrev = skalJournalføreVedtaksbrev,
         skalDistribuereVedtaksbrev = skalDistribuereVedtaksbrev,
         skalJournalføreNotat = skalJournalføreNotat,

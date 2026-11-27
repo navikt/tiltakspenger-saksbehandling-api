@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Prioritering
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 
 interface BrukersMeldekortRepo {
     /** Et nytt meldekort er aldri prioritert, så [BrukersMeldekort.prioritering] lagres ikke. */
@@ -37,6 +38,16 @@ interface BrukersMeldekortRepo {
     fun markerSomAutomatiskBehandlet(
         meldekortId: MeldekortId,
         metadata: Forsøkshistorikk,
+        sessionContext: SessionContext?,
+    )
+
+    /**
+     * Lagrer [BrukersMeldekort.behandlingId] for meldekortene fra bruker som den iverksatte eller avbrutte [meldekortbehandling] behandlet.
+     * Må kalles i samme transaksjon som iverksettelsen eller avbrytelsen.
+     * Kaster dersom et av meldekortene allerede er behandlet, slik at transaksjonen rulles tilbake i stedet for å overskrive markeringen.
+     */
+    fun markerSomBehandlet(
+        meldekortbehandling: Meldekortbehandling,
         sessionContext: SessionContext?,
     )
 }

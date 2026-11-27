@@ -1046,6 +1046,7 @@ interface MeldekortMother : MotherOfAllMothers {
             },
         behandletAutomatiskForsøkshistorikk: Forsøkshistorikk = Forsøkshistorikk.opprett(clock = clock),
         prioritering: Prioritering? = null,
+        behandlingId: MeldekortId? = null,
     ): BrukersMeldekort {
         return BrukersMeldekort(
             id = id,
@@ -1058,6 +1059,7 @@ interface MeldekortMother : MotherOfAllMothers {
             behandletAutomatiskStatus = behandletAutomatiskStatus,
             behandletAutomatiskForsøkshistorikk = behandletAutomatiskForsøkshistorikk,
             prioritering = prioritering,
+            behandlingId = behandlingId,
         )
     }
 

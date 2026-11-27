@@ -58,4 +58,10 @@ enum class MeldekortBehandletAutomatiskStatus(val loggnivå: Level, val kanPrøv
 
     /** Meldeperioden har fått en ny versjon etter at bruker sendte meldekortet, typisk fordi tiltaksdeltakelsen er endret. */
     UTDATERT_MELDEPERIODE(loggnivå = Level.WARN, kanPrøvesPåNytt = false),
+
+    /**
+     * Meldekortet var knyttet til en meldekortbehandling som ble avbrutt, og regnes derfor som behandlet.
+     * Se [no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.behandlingId].
+     */
+    BEHANDLET_I_AVBRUTT_BEHANDLING(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
 }

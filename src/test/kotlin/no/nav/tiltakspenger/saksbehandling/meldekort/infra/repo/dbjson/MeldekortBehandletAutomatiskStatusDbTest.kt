@@ -32,6 +32,7 @@ class MeldekortBehandletAutomatiskStatusDbTest {
             MeldekortBehandletAutomatiskStatus.TIDLIGERE_BEHANDLET_MANUELT to "TIDLIGERE_BEHANDLET_MANUELT",
             MeldekortBehandletAutomatiskStatus.NYERE_INNSENDING_ER_BEHANDLET to "NYERE_INNSENDING_ER_BEHANDLET",
             MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE to "UTDATERT_MELDEPERIODE",
+            MeldekortBehandletAutomatiskStatus.BEHANDLET_I_AVBRUTT_BEHANDLING to "BEHANDLET_I_AVBRUTT_BEHANDLING",
             MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING to "ER_UNDER_REVURDERING",
             MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT to "FOR_MANGE_DAGER_REGISTRERT",
             MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG to "KAN_IKKE_MELDE_HELG",

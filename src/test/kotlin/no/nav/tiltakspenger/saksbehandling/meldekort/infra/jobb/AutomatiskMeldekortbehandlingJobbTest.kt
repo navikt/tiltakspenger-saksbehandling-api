@@ -7,8 +7,11 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.plus
 import no.nav.tiltakspenger.libs.dato.april
@@ -31,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.Bru
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.AvbrytMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandlingIverksatt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.nyOpprettetMeldekortbehandling
@@ -86,6 +90,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
 
             sisteMeldekortbehandling.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
             sisteMeldekortbehandling.brukersMeldekort.id shouldBe brukersMeldekort.id
+            sisteMeldekortbehandling.brukersMeldekort.behandlingId shouldBe sisteMeldekortbehandling.id
             // Team Sak vil bare ha de manuelle meldekortbehandlingene i saksstatistikken.
             tac.sessionFactory.hentSaksstatistikk(sak.id).none { it.behandlingType == StatistikkBehandlingType.MELDEKORT } shouldBe true
 
@@ -1986,6 +1991,57 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING
                     // Statusen kan prøves på nytt, så meldekortet plukkes opp igjen når saksbehandler er ferdig.
                     it.behandlesAutomatisk shouldBe true
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `skal ikke behandle automatisk et meldekort som var knyttet til en avbrutt behandling`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+                val kjede = sak.meldeperiodeKjeder.first()
+
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = kjede.hentSisteMeldeperiode(),
+                    mottatt = nå(clock),
+                )
+                brukersMeldekortRepo.lagre(brukersMeldekort)
+
+                // Saksbehandler tar kjeden før jobben har kjørt, og behandlingen knyttes til meldekortet.
+                val (_, behandling) = tac.nyOpprettetMeldekortbehandling(
+                    sakId = sak.id,
+                    kjedeId = kjede.kjedeId,
+                )
+                service.behandleBrukersMeldekort(clock)
+                brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!
+                    .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING
+
+                tac.meldekortContext.avbrytMeldekortbehandlingService.avbryt(
+                    AvbrytMeldekortbehandlingKommando(
+                        sakId = sak.id,
+                        meldekortId = behandling.id,
+                        begrunnelse = "Behandles ikke".toNonBlankString(),
+                        saksbehandler = ObjectMother.saksbehandler(),
+                        correlationId = CorrelationId.generate(),
+                    ),
+                ).getOrFail()
+
+                service.behandleBrukersMeldekort(clock = fixedClockAt(nå(clock).plusMinutes(2)))
+
+                tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.shouldBeEmpty()
+                brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.let {
+                    it.behandlingId shouldBe behandling.id
+                    it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET_I_AVBRUTT_BEHANDLING
                 }
             }
         }

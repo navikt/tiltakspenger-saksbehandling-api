@@ -30,6 +30,10 @@ import java.time.LocalDateTime
  * @param prioritering Satt når meldekortet er en korrigering som ikke kunne behandles automatisk, og som må behandles raskt for å rekke utbetalingen.
  * Settes av jobben for automatisk behandling når den gir opp meldekortet, og er alltid null for et nytt meldekort.
  * Se [no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.utledPrioriteringAvKorrigering].
+ * @param behandlingId Meldekortbehandlingen som behandlet meldekortet.
+ * Settes når behandlingen iverksettes eller avbrytes, og er null fram til da.
+ * En avbrutt behandling regnes altså som at meldekortene den er knyttet til er behandlet, slik at de ikke tas med i neste behandling.
+ * Siden en kjede bare kan ha én åpen behandling om gangen, er meldekortene på kjeden som mangler den, de ubehandlede.
  */
 data class BrukersMeldekort(
     val id: MeldekortId,
@@ -42,6 +46,7 @@ data class BrukersMeldekort(
     val behandletAutomatiskStatus: MeldekortBehandletAutomatiskStatus,
     val behandletAutomatiskForsøkshistorikk: Forsøkshistorikk,
     val prioritering: Prioritering?,
+    val behandlingId: MeldekortId?,
 ) {
     val kjedeId: MeldeperiodeKjedeId = meldeperiode.kjedeId
     val meldeperiodeId: MeldeperiodeId = meldeperiode.id
@@ -91,6 +96,14 @@ data class BrukersMeldekort(
          *  Dersom antallet er høyere, skal meldekortet sendes til manuell behandling for kontroll.
          *  */
         const val MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER = 2
+    }
+
+    /** Kalles når [meldekortbehandlingId] iverksettes eller avbrytes. */
+    fun markerSomBehandlet(meldekortbehandlingId: MeldekortId): BrukersMeldekort {
+        require(behandlingId == null) {
+            "Brukers meldekort $id er allerede behandlet av $behandlingId, og kan ikke også behandles av $meldekortbehandlingId"
+        }
+        return copy(behandlingId = meldekortbehandlingId)
     }
 
     fun harRegistrertHelg(): Boolean {

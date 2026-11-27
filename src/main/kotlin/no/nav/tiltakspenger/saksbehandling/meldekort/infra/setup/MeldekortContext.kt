@@ -98,6 +98,7 @@ open class MeldekortContext(
         IverksettMeldekortbehandlingService(
             oppdaterBeregningOgSimuleringMeldekortService = oppdaterBeregningOgSimuleringMeldekortService,
             meldekortbehandlingRepo = meldekortbehandlingRepo,
+            brukersMeldekortRepo = brukersMeldekortRepo,
             meldeperiodeRepo = meldeperiodeRepo,
             sessionFactory = sessionFactory,
             sakService = sakService,
@@ -220,6 +221,7 @@ open class MeldekortContext(
     val avbrytMeldekortbehandlingService by lazy {
         AvbrytMeldekortbehandlingService(
             meldekortbehandlingRepo = meldekortbehandlingRepo,
+            brukersMeldekortRepo = brukersMeldekortRepo,
             sakService = sakService,
             clock = clock,
             sessionFactory = sessionFactory,

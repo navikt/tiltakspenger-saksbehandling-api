@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.ApplicationTestBuilder
+import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
@@ -18,6 +19,7 @@ import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnGyldigeKommandoer
@@ -65,6 +67,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.Bru
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandlingTilVurdering
@@ -78,6 +81,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskBehandlingKlarTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskStansKlarTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgBesluttertarMeldekortbehanding
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilOpprettholdelse
@@ -1103,12 +1107,12 @@ class BenkAggregatTest {
 
             repo.hentMeldekort(meldekortCommand()).behandlinger.single().type shouldBe BenkMeldekortType.INNSENDT_MELDEKORT
 
-            // Behandlingen er nyere enn innsendingen, så meldekortet er tatt stilling til og faller bort fra benken.
+            // Behandlingen har behandlet meldekortet, så det faller bort fra benken.
             opprettOgIverksettMeldekortbehandling(tac = tac, sakId = sak.id, kjedeId = innsendt.kjedeId)!!
 
             repo.hentMeldekort(meldekortCommand()).totalAntall shouldBe 0
 
-            // Korrigeringen er mottatt etter iverksettingen, og er derfor ikke dekket av behandlingen.
+            // Korrigeringen er mottatt etter iverksettelsen, og er derfor ikke behandlet.
             mottaManueltMeldekortForKjede(tac, sak, kjedeIndeks = 0)
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
 
@@ -1138,7 +1142,7 @@ class BenkAggregatTest {
 
             repo.hentMeldekort(meldekortCommand()).behandlinger.single().type shouldBe BenkMeldekortType.MELDEKORTBEHANDLING
 
-            // Den avbrutte behandlingen er fortsatt nyere enn innsendingen, så meldekortet kommer ikke tilbake på benken.
+            // Avbrytelsen markerer meldekortet som behandlet, så det kommer ikke tilbake på benken.
             avbrytMeldekortbehandling(tac = tac, sakId = sak.id, meldekortId = behandling.id)!!
 
             repo.hentMeldekort(meldekortCommand()).totalAntall shouldBe 0
@@ -1160,7 +1164,7 @@ class BenkAggregatTest {
 
             repo.hentMeldekort(meldekortCommand()).behandlinger.single().type shouldBe BenkMeldekortType.MELDEKORTBEHANDLING
 
-            // Korrigeringen er mottatt etter at behandlingen sist ble endret, så begge radene vises.
+            // Den åpne behandlingen er ikke knyttet til korrigeringen, så begge radene vises.
             mottaManueltMeldekortForKjede(tac, sak, kjedeIndeks = 0)
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
 
@@ -1171,10 +1175,97 @@ class BenkAggregatTest {
                     setOf(BenkMeldekortType.MELDEKORTBEHANDLING, BenkMeldekortType.KORRIGERT_MELDEKORT)
             }
 
-            // Når behandlingen oppdateres er den nyere enn korrigeringen, og korrigeringen faller bort.
+            // Når behandlingen lagres, knyttes den til korrigeringen, og korrigeringen faller bort.
             oppdaterMeldekortbehandling(tac = tac, sakId = sak.id, meldekortId = behandling.id)!!
 
             repo.hentMeldekort(meldekortCommand()).behandlinger.single().type shouldBe BenkMeldekortType.MELDEKORTBEHANDLING
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `meldekortfanen viser korrigering mottatt mens behandlingen var til beslutning, også etter at behandlingen er iverksatt`() {
+        withTestApplicationContextAndPostgres(
+            clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0))),
+            runIsolated = true,
+        ) { tac ->
+            val (sak) = iverksettSøknadsbehandling(tac = tac)
+            val (_, innsendt) = mottaManueltMeldekortForKjede(tac, sak, kjedeIndeks = 0)
+            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+            val (_, tilBeslutning) = opprettOgBesluttertarMeldekortbehanding(tac = tac, sakId = sak.id, kjedeId = innsendt.kjedeId)!!
+            mottaManueltMeldekortForKjede(tac, sak, kjedeIndeks = 0)
+            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+            val repo = tac.benkContext.benkRepo
+
+            repo.hentMeldekort(meldekortCommand()).totalAntall shouldBe 2
+
+            // Iverksettelsen er nyere enn korrigeringen, men behandlingen ble ikke lagret etter at korrigeringen kom, så korrigeringen er ikke behandlet.
+            iverksettMeldekortbehandling(tac = tac, sakId = sak.id, meldekortId = tilBeslutning.id)!!
+
+            repo.hentMeldekort(meldekortCommand()).behandlinger.single().type shouldBe BenkMeldekortType.KORRIGERT_MELDEKORT
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `meldekortfanen viser ikke meldekort som er erstattet av en nyere innsending som er behandlet automatisk`() {
+        withTestApplicationContextAndPostgres(
+            clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0))),
+            runIsolated = true,
+        ) { tac ->
+            val (sak) = iverksettSøknadsbehandling(tac = tac)
+            val (_, eldre) = mottaManueltMeldekortForKjede(tac, sak, kjedeIndeks = 0)
+            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+            val repo = tac.benkContext.benkRepo
+
+            repo.hentMeldekort(meldekortCommand()).behandlinger.single().type shouldBe BenkMeldekortType.INNSENDT_MELDEKORT
+
+            val meldeperiode = sak.meldeperiodeKjeder[0].hentSisteMeldeperiode()
+            val (_, nyere) = mottaMeldekortRequest(
+                tac = tac,
+                meldeperiodeId = meldeperiode.id,
+                sakId = sak.id,
+                dager = meldeperiode.tilUtfyltFraBruker(kanSendeInnHelgForMeldekort = sak.kanSendeInnHelgForMeldekort),
+                journalpostId = UUID.randomUUID().toString(),
+            )
+            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+
+            // En automatisk behandling behandler bare sitt eget meldekort, så det eldste står uten behandling, men er erstattet av det nyere.
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.brukersMeldekort.associate { it.id to (it.behandlingId != null) } shouldBe
+                mapOf(nyere!!.id to true, eldre.id to false)
+            repo.hentMeldekort(meldekortCommand()).totalAntall shouldBe 0
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `meldekortfanen viser meldekort markert til etterkontroll i en egen kategori inntil de er behandlet`() {
+        withTestApplicationContextAndPostgres(
+            clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0))),
+            runIsolated = true,
+        ) { tac ->
+            val (sak) = iverksettSøknadsbehandling(tac = tac)
+            val (_, innsendt) = mottaManueltMeldekortForKjede(tac, sak, kjedeIndeks = 0)
+            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+            val repo = tac.benkContext.benkRepo
+
+            // Markeringen settes bare av V289, så testen setter den direkte.
+            (tac.sessionFactory as PostgresSessionFactory).withSession { session ->
+                session.run(
+                    queryOf(
+                        "update meldekort_bruker set til_etterkontroll = true where id = :id",
+                        mapOf("id" to innsendt.id.toString()),
+                    ).asUpdate,
+                )
+            }
+
+            repo.hentMeldekort(meldekortCommand()).behandlinger.single().type shouldBe BenkMeldekortType.MELDEKORT_TIL_ETTERKONTROLL
+            repo.hentMeldekort(meldekortCommand(type = BenkMeldekortType.MELDEKORT_TIL_ETTERKONTROLL)).totalAntall shouldBe 1
+            repo.hentMeldekort(meldekortCommand(type = BenkMeldekortType.INNSENDT_MELDEKORT)).totalAntall shouldBe 0
+
+            opprettOgIverksettMeldekortbehandling(tac = tac, sakId = sak.id, kjedeId = innsendt.kjedeId)!!
+
+            repo.hentMeldekort(meldekortCommand()).totalAntall shouldBe 0
         }
     }
 

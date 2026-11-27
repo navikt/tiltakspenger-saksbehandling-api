@@ -58,6 +58,10 @@ data class Meldeperiodebehandlinger(
 
     val brukersMeldekort: List<BrukersMeldekort> by lazy { this.flatMap { it.brukersMeldekort } }
 
+    fun markerBrukersMeldekortSomBehandlet(): Meldeperiodebehandlinger {
+        return copy(meldeperioder = meldeperioder.map { it.markerBrukersMeldekortSomBehandlet() })
+    }
+
     val ingenDagerGirRett: Boolean by lazy { this.all { it.meldeperiode.ingenDagerGirRett } }
 
     /**

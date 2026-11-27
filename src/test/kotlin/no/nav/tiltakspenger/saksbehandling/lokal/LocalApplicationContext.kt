@@ -353,6 +353,7 @@ class LocalApplicationContext(
         object : BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,
             meldekortbehandlingRepo = meldekortContext.meldekortbehandlingRepo,
+            brukersMeldekortRepo = meldekortContext.brukersMeldekortRepo,
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
             statistikkService = statistikkContext.statistikkService,
             journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient,

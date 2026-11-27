@@ -555,6 +555,7 @@ class IverksettRevurderingTest {
                 rammebehandlingRepo = tac.behandlingContext.rammebehandlingRepo,
                 rammevedtakRepo = tac.behandlingContext.rammevedtakRepo,
                 meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo,
+                brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo,
                 meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo,
                 sessionFactory = tac.sessionFactory,
                 sakService = tac.sakContext.sakService,

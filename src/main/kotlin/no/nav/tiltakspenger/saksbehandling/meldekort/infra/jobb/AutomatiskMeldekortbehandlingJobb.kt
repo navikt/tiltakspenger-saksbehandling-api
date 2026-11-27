@@ -315,6 +315,7 @@ class AutomatiskMeldekortbehandlingJobb(
         sessionFactory.withTransactionContext { tx ->
             meldekortbehandlingRepo.lagre(meldekortbehandling, simulering, tx)
             meldekortvedtakRepo.lagre(meldekortvedtak, tx)
+            brukersMeldekortRepo.markerSomBehandlet(meldekortbehandling, tx)
             brukersMeldekortRepo.markerSomAutomatiskBehandlet(
                 meldekortId = meldekortId,
                 metadata = meldekort.behandletAutomatiskForsøkshistorikk.inkrementer(

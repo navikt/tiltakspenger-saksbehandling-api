@@ -14,6 +14,8 @@ data class Meldeperiodebehandling(
     val dager: UtfyltMeldeperiode,
     /**
      * Meldekortene fra bruker som denne meldeperiodebehandlingen behandler, sortert eldst først.
+     * En manuell behandling knyttes til de ubehandlede meldekortene på kjeden når den opprettes og lagres, se [ubehandledeBrukersMeldekort].
+     * Når behandlingen iverksettes eller avbrytes, markeres meldekortene som behandlet av den, se [BrukersMeldekort.behandlingId].
      * Tom liste betyr at behandlingen ikke er knyttet til noe meldekort fra bruker.
      */
     val brukersMeldekort: List<BrukersMeldekort>,
@@ -34,6 +36,10 @@ data class Meldeperiodebehandling(
 
     val erFullstendigUtfylt: Boolean by lazy { dager.erFullstendigUtfylt }
 
+    fun markerBrukersMeldekortSomBehandlet(): Meldeperiodebehandling {
+        return copy(brukersMeldekort = brukersMeldekort.map { it.markerSomBehandlet(meldekortbehandlingId) })
+    }
+
     init {
         brukersMeldekort.forEach {
             require(kjedeId == it.kjedeId) {
@@ -49,10 +55,11 @@ data class Meldeperiodebehandling(
 fun Meldeperiode.tilMeldeperiodebehandling(
     type: MeldeperiodebehandlingType,
     meldekortbehandlingId: MeldekortId,
+    brukersMeldekort: List<BrukersMeldekort>,
 ): Meldeperiodebehandling {
     return Meldeperiodebehandling(
         dager = this.tilUtfyltMeldeperiode(),
-        brukersMeldekort = emptyList(),
+        brukersMeldekort = brukersMeldekort,
         type = type,
         meldekortbehandlingId = meldekortbehandlingId,
     )

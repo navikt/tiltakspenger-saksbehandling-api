@@ -32,6 +32,7 @@ enum class MeldekortBehandletAutomatiskStatusDTO {
     TIDLIGERE_BEHANDLET_MANUELT,
     NYERE_INNSENDING_ER_BEHANDLET,
     UTDATERT_MELDEPERIODE,
+    BEHANDLET_I_AVBRUTT_BEHANDLING,
     ER_UNDER_REVURDERING,
     FOR_MANGE_DAGER_REGISTRERT,
     KAN_IKKE_MELDE_HELG,
@@ -48,10 +49,13 @@ enum class MeldekortBehandletAutomatiskStatusDTO {
 
 data class BrukersMeldekortDTO(
     val id: String,
+    val meldeperiodeId: String,
     val mottatt: LocalDateTime,
     val dager: List<DagDTO>,
     val behandletAutomatiskStatus: MeldekortBehandletAutomatiskStatusDTO,
     val behandlesAutomatiskNesteForsøk: LocalDateTime?,
+    /** Meldekortbehandlingen som behandlet meldekortet, satt når den er iverksatt eller avbrutt. */
+    val behandlingId: String?,
 ) {
     data class DagDTO(
         val status: String,
@@ -62,6 +66,7 @@ data class BrukersMeldekortDTO(
 fun BrukersMeldekort.toBrukersMeldekortDTO(): BrukersMeldekortDTO {
     return BrukersMeldekortDTO(
         id = id.toString(),
+        meldeperiodeId = meldeperiode.id.toString(),
         mottatt = mottatt,
         dager = dager.map {
             BrukersMeldekortDTO.DagDTO(
@@ -71,6 +76,7 @@ fun BrukersMeldekort.toBrukersMeldekortDTO(): BrukersMeldekortDTO {
         },
         behandletAutomatiskStatus = behandletAutomatiskStatus.tilBehandletAutomatiskStatusDTO(),
         behandlesAutomatiskNesteForsøk = if (behandlesAutomatisk) behandletAutomatiskForsøkshistorikk.nesteForsøk else null,
+        behandlingId = behandlingId?.toString(),
     )
 }
 
@@ -88,6 +94,7 @@ private fun MeldekortBehandletAutomatiskStatus.tilBehandletAutomatiskStatusDTO()
         MeldekortBehandletAutomatiskStatus.TIDLIGERE_BEHANDLET_MANUELT -> MeldekortBehandletAutomatiskStatusDTO.TIDLIGERE_BEHANDLET_MANUELT
         MeldekortBehandletAutomatiskStatus.NYERE_INNSENDING_ER_BEHANDLET -> MeldekortBehandletAutomatiskStatusDTO.NYERE_INNSENDING_ER_BEHANDLET
         MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE -> MeldekortBehandletAutomatiskStatusDTO.UTDATERT_MELDEPERIODE
+        MeldekortBehandletAutomatiskStatus.BEHANDLET_I_AVBRUTT_BEHANDLING -> MeldekortBehandletAutomatiskStatusDTO.BEHANDLET_I_AVBRUTT_BEHANDLING
         MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING -> MeldekortBehandletAutomatiskStatusDTO.ER_UNDER_REVURDERING
         MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatusDTO.FOR_MANGE_DAGER_REGISTRERT
         MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG -> MeldekortBehandletAutomatiskStatusDTO.KAN_IKKE_MELDE_HELG

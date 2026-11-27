@@ -268,6 +268,7 @@ fun Sak.opprettManuellMeldekortbehandling(
 /**
  * Oppretter en manuell meldekortbehandling som omfatter én eller flere meldeperiodekjeder.
  * Meldeperiodene sorteres etter periode, og hver kjede får sin egen [MeldeperiodebehandlingType] basert på om kjeden er behandlet fra før.
+ * Hver meldeperiode knyttes til de ubehandlede meldekortene fra bruker på kjeden, se [ubehandledeBrukersMeldekort].
  * Behandlingen arver prioriteringen til en korrigering fra bruker som venter på behandling av en av kjedene, se [prioriteringFraKorrigeringSomVenterPåBehandling].
  * Krever at [saksbehandler] har rollen saksbehandler eller beslutter, og kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
  */
@@ -298,7 +299,12 @@ fun Sak.opprettManuellMeldekortbehandling(
         val type =
             if (behandlingerForKjede.isEmpty()) MeldeperiodebehandlingType.FØRSTE_BEHANDLING else MeldeperiodebehandlingType.KORRIGERING
 
-        this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId).tilMeldeperiodebehandling(type, meldekortId)
+        this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
+            .tilMeldeperiodebehandling(
+                type = type,
+                meldekortbehandlingId = meldekortId,
+                brukersMeldekort = this.ubehandledeBrukersMeldekort(kjedeId),
+            )
     }.sortedBy { it.periode.fraOgMed }.toNonEmptyListOrThrow()
 
     val nå = nå(clock)

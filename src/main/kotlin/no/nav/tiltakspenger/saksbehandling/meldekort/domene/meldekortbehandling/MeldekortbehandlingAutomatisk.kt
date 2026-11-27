@@ -158,7 +158,7 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
         sistEndret = tidspunkt,
         meldeperioder = Meldeperiodebehandlinger(
             meldeperioder = nonEmptyListOf(
-                brukersMeldekort.tilMeldeperiodebehandling(
+                brukersMeldekort.markerSomBehandlet(meldekortbehandlingId).tilMeldeperiodebehandling(
                     type,
                     meldekortbehandlingId,
                 ),

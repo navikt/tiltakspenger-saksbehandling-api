@@ -365,6 +365,7 @@ open class ApplicationContext(
         BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,
             meldekortbehandlingRepo = meldekortContext.meldekortbehandlingRepo,
+            brukersMeldekortRepo = meldekortContext.brukersMeldekortRepo,
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
             statistikkService = statistikkContext.statistikkService,
             journalførRammevedtaksbrevKlient = dokumentContext.journalførRammevedtaksbrevKlient,
