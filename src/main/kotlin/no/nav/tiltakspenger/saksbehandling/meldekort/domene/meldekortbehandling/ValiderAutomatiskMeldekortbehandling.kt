@@ -61,7 +61,7 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(
     }
 
     // Et meldekort behandlet av en iverksatt behandling fanges av sjekkene over, så det som gjenstår er meldekort knyttet til en avbrutt behandling.
-    if (brukersMeldekort.behandletAv != null) {
+    if (brukersMeldekort.behandlingId != null) {
         return MeldekortBehandletAutomatiskStatus.BEHANDLET_I_AVBRUTT_BEHANDLING.left()
     }
 

@@ -97,7 +97,7 @@ class BrukersMeldekortKoblingMigreringTest {
                 andreKjede to listOf(andreMeldekort.id),
             )
             val forventetKorrigering = mapOf(førsteKjede to listOf(mottattFørIverksettelse.id))
-            val forventetBehandletAv = mapOf(
+            val forventetBehandlingId = mapOf(
                 førsteMeldekort.id to førsteBehandling.id,
                 andreMeldekort.id to førsteBehandling.id,
                 mottattFørSendingTilBeslutning.id to førsteBehandling.id,
@@ -106,13 +106,13 @@ class BrukersMeldekortKoblingMigreringTest {
             )
             tac.hentKoblinger(førsteBehandling.id) shouldBe forventetFørste
             tac.hentKoblinger(korrigering.id) shouldBe forventetKorrigering
-            tac.hentBehandletAv(forventetBehandletAv.keys) shouldBe forventetBehandletAv
+            tac.hentBehandlingId(forventetBehandlingId.keys) shouldBe forventetBehandlingId
 
             // Meldekortet mottatt etter korrigeringen er ikke behandlet, og migreringene endrer ingenting når de kjøres på nytt.
             tac.kjørMigrering()
             tac.hentKoblinger(førsteBehandling.id) shouldBe forventetFørste
             tac.hentKoblinger(korrigering.id) shouldBe forventetKorrigering
-            tac.hentBehandletAv(forventetBehandletAv.keys) shouldBe forventetBehandletAv
+            tac.hentBehandlingId(forventetBehandlingId.keys) shouldBe forventetBehandlingId
         }
     }
 
@@ -152,7 +152,7 @@ class BrukersMeldekortKoblingMigreringTest {
             tac.hentKoblinger(avbruttBehandling.id) shouldBe mapOf(kjedeId to listOf(korrigertMeldekort.id))
             tac.hentKoblinger(åpenBehandling.id) shouldBe mapOf(kjedeId to listOf(mottattEtterLagring.id))
             // Den avbrutte behandlingen markerer meldekortene sine som behandlet, mens den åpne ikke gjør det.
-            tac.hentBehandletAv(listOf(automatiskBehandletMeldekort.id, korrigertMeldekort.id, mottattEtterLagring.id)) shouldBe mapOf(
+            tac.hentBehandlingId(listOf(automatiskBehandletMeldekort.id, korrigertMeldekort.id, mottattEtterLagring.id)) shouldBe mapOf(
                 automatiskBehandletMeldekort.id to automatiskBehandling.id,
                 korrigertMeldekort.id to avbruttBehandling.id,
                 mottattEtterLagring.id to null,
@@ -195,7 +195,7 @@ class BrukersMeldekortKoblingMigreringTest {
 
             tac.hentKoblinger(førsteBehandling.id) shouldBe mapOf(kjedeId to listOf(førsteMeldekort.id))
             tac.hentKoblinger(avbruttBehandling.id) shouldBe mapOf(kjedeId to listOf(korrigertMeldekort.id, mottattEtterSending.id))
-            tac.hentBehandletAv(listOf(førsteMeldekort.id, korrigertMeldekort.id, mottattEtterSending.id, mottattEtterAvbrytelse.id)) shouldBe mapOf(
+            tac.hentBehandlingId(listOf(førsteMeldekort.id, korrigertMeldekort.id, mottattEtterSending.id, mottattEtterAvbrytelse.id)) shouldBe mapOf(
                 førsteMeldekort.id to førsteBehandling.id,
                 korrigertMeldekort.id to avbruttBehandling.id,
                 mottattEtterSending.id to avbruttBehandling.id,
@@ -224,14 +224,14 @@ class BrukersMeldekortKoblingMigreringTest {
             tac.kjørMigrering()
 
             tac.hentKoblinger(avbruttBehandling.id) shouldBe mapOf(kjedeId to listOf(brukersMeldekort.id))
-            tac.hentBehandletAv(listOf(brukersMeldekort.id)) shouldBe mapOf(brukersMeldekort.id to avbruttBehandling.id)
+            tac.hentBehandlingId(listOf(brukersMeldekort.id)) shouldBe mapOf(brukersMeldekort.id to avbruttBehandling.id)
         }
     }
 
     private fun TestApplicationContextMedPostgres.kjørMigrering() {
         listOf(
             "/db/migration/V287__meldekortbehandling_knytt_brukers_meldekort.sql",
-            "/db/migration/V288__meldekort_bruker_behandlet_av.sql",
+            "/db/migration/V288__meldekort_bruker_behandling_id.sql",
         ).forEach { migrering ->
             val sql = javaClass.getResource(migrering)!!.readText()
             (sessionFactory as PostgresSessionFactory).withSession { session ->
@@ -242,7 +242,7 @@ class BrukersMeldekortKoblingMigreringTest {
 
     private fun TestApplicationContextMedPostgres.fjernMarkeringer() {
         (sessionFactory as PostgresSessionFactory).withSession { session ->
-            session.run(queryOf("update meldekort_bruker set behandlet_av = null").asUpdate)
+            session.run(queryOf("update meldekort_bruker set behandling_id = null").asUpdate)
         }
     }
 
@@ -260,8 +260,8 @@ class BrukersMeldekortKoblingMigreringTest {
         }
     }
 
-    private fun TestApplicationContext.hentBehandletAv(meldekortIder: Collection<MeldekortId>): Map<MeldekortId, MeldekortId?> =
-        meldekortIder.associateWith { meldekortContext.brukersMeldekortRepo.hentForMeldekortId(it)!!.behandletAv }
+    private fun TestApplicationContext.hentBehandlingId(meldekortIder: Collection<MeldekortId>): Map<MeldekortId, MeldekortId?> =
+        meldekortIder.associateWith { meldekortContext.brukersMeldekortRepo.hentForMeldekortId(it)!!.behandlingId }
 
     private fun TestApplicationContextMedPostgres.fjernKoblinger(meldekortbehandlingId: MeldekortId) {
         (sessionFactory as PostgresSessionFactory).withSession { session ->

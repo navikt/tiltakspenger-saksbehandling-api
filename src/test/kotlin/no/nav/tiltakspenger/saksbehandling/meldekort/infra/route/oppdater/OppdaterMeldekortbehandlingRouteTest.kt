@@ -678,7 +678,7 @@ class OppdaterMeldekortbehandlingRouteTest {
                 sakId = sak.id,
                 meldekortId = avbruttBehandling.id,
             )!!
-            avbrutt.meldeperioder.brukersMeldekort.map { it.id to it.behandletAv } shouldBe listOf(korrigering.id to avbruttBehandling.id)
+            avbrutt.meldeperioder.brukersMeldekort.map { it.id to it.behandlingId } shouldBe listOf(korrigering.id to avbruttBehandling.id)
 
             val mottattEtterAvbrytelse = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
             val (_, nyBehandling, _) = opprettOgOppdaterMeldekortbehandling(
@@ -714,8 +714,8 @@ class OppdaterMeldekortbehandlingRouteTest {
                 meldekortId = behandlingUnderBeslutning.id,
             )!!
 
-            iverksatt.meldeperioder.brukersMeldekort.map { it.id to it.behandletAv } shouldBe listOf(behandletMeldekort.id to iverksatt.id)
-            tac.behandletAv(mottattEtterLagring.id) shouldBe null
+            iverksatt.meldeperioder.brukersMeldekort.map { it.id to it.behandlingId } shouldBe listOf(behandletMeldekort.id to iverksatt.id)
+            tac.behandlingId(mottattEtterLagring.id) shouldBe null
 
             val (_, avbruttBehandling, _) = opprettOgOppdaterMeldekortbehandling(
                 tac = tac,
@@ -725,8 +725,8 @@ class OppdaterMeldekortbehandlingRouteTest {
             avbruttBehandling.brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to listOf(mottattEtterLagring.id))
             val mottattEtterAvbruttLagring = mottaMeldekortFraBruker(tac, sak, kjedeIndeks = 0)
             avbrytMeldekortbehandling(tac = tac, sakId = sak.id, meldekortId = avbruttBehandling.id)!!
-            tac.behandletAv(mottattEtterLagring.id) shouldBe avbruttBehandling.id
-            tac.behandletAv(mottattEtterAvbruttLagring.id) shouldBe null
+            tac.behandlingId(mottattEtterLagring.id) shouldBe avbruttBehandling.id
+            tac.behandlingId(mottattEtterAvbruttLagring.id) shouldBe null
 
             val (_, _, korrigering) = opprettOgIverksettMeldekortbehandling(
                 tac = tac,
@@ -734,9 +734,9 @@ class OppdaterMeldekortbehandlingRouteTest {
                 kjedeId = kjedeId,
             )!!
             korrigering.brukersMeldekortIderPerKjede() shouldBe mapOf(kjedeId to listOf(mottattEtterAvbruttLagring.id))
-            tac.behandletAv(mottattEtterAvbruttLagring.id) shouldBe korrigering.id
-            tac.behandletAv(mottattEtterLagring.id) shouldBe avbruttBehandling.id
-            tac.behandletAv(behandletMeldekort.id) shouldBe iverksatt.id
+            tac.behandlingId(mottattEtterAvbruttLagring.id) shouldBe korrigering.id
+            tac.behandlingId(mottattEtterLagring.id) shouldBe avbruttBehandling.id
+            tac.behandlingId(behandletMeldekort.id) shouldBe iverksatt.id
         }
     }
 
@@ -756,12 +756,12 @@ class OppdaterMeldekortbehandlingRouteTest {
             iverksettRevurderingStans(tac = tac, sakId = sak.id)
 
             tac.meldekortContext.meldekortbehandlingRepo.hent(behandling.id)!!.erAvbrutt shouldBe true
-            tac.behandletAv(brukersMeldekort.id) shouldBe behandling.id
+            tac.behandlingId(brukersMeldekort.id) shouldBe behandling.id
         }
     }
 
-    private fun TestApplicationContext.behandletAv(meldekortId: MeldekortId): MeldekortId? =
-        meldekortContext.brukersMeldekortRepo.hentForMeldekortId(meldekortId)!!.behandletAv
+    private fun TestApplicationContext.behandlingId(meldekortId: MeldekortId): MeldekortId? =
+        meldekortContext.brukersMeldekortRepo.hentForMeldekortId(meldekortId)!!.behandlingId
 
     private fun Meldekortbehandling.brukersMeldekortIderPerKjede(): Map<MeldeperiodeKjedeId, List<MeldekortId>> =
         meldeperioder.associate { meldeperiode -> meldeperiode.kjedeId to meldeperiode.brukersMeldekort.map { it.id } }

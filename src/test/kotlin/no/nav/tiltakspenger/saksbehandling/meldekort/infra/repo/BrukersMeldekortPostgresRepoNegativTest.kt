@@ -48,7 +48,7 @@ class BrukersMeldekortPostgresRepoNegativTest {
             ) {
                 repo.markerSomBehandlet(iverksatt, null)
             }
-            repo.hentForMeldekortId(brukersMeldekort.id)!!.behandletAv shouldBe iverksatt.id
+            repo.hentForMeldekortId(brukersMeldekort.id)!!.behandlingId shouldBe iverksatt.id
         }
     }
 }

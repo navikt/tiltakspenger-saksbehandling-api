@@ -17,7 +17,7 @@ import java.time.LocalDateTime
 
 /**
  * Saksbehandler avbryter en meldekortbehandling.
- * Meldekortene fra bruker som behandlingen er knyttet til, markeres som behandlet av den, se [no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.behandletAv].
+ * Meldekortene fra bruker som behandlingen er knyttet til, markeres som behandlet av den, se [no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.behandlingId].
  */
 fun Meldekortbehandling.avbryt(
     kommando: AvbrytMeldekortbehandlingKommando,

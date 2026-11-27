@@ -12,7 +12,7 @@ spec:
     min: {{ replicas }}
     max: {{ replicas }}
   # Midlertidig: V287 knytter eldre manuelle meldekortbehandlinger til brukers meldekort, og gamle pods må ikke lagre tomme koblinger etter migreringen.
-  # Gamle pods må heller ikke iverksette meldekortbehandlinger uten å sette meldekort_bruker.behandlet_av etter V288.
+  # Gamle pods må heller ikke iverksette meldekortbehandlinger uten å sette meldekort_bruker.behandling_id etter V288.
   # Fjernes etter utrullingen.
   strategy:
     type: Recreate

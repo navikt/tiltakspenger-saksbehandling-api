@@ -2,13 +2,13 @@
 -- Appen setter kolonnen når behandlingen iverksettes eller avbrytes.
 -- Åpne behandlinger setter den ikke, så meldekortene uten verdi er de ubehandlede.
 ALTER TABLE meldekort_bruker
-    ADD COLUMN IF NOT EXISTS behandlet_av varchar NULL REFERENCES meldekortbehandling (id);
+    ADD COLUMN IF NOT EXISTS behandling_id varchar NULL REFERENCES meldekortbehandling (id);
 
 -- Fyller ut kolonnen fra koblingene på de iverksatte og avbrutte behandlingene, inkludert koblingene fra V287.
 -- Et meldekort er knyttet til høyst én slik behandling, men ved flere velges den første, sortert på opprettet, slik at resultatet er entydig.
 -- Eksisterende verdier beholdes, så migreringen kan kjøres flere ganger uten å endre resultatet.
 UPDATE meldekort_bruker mb
-SET behandlet_av = behandlet.meldekortbehandling_id
+SET behandling_id = behandlet.meldekortbehandling_id
 FROM (
     SELECT DISTINCT ON (brukers_meldekort_id.id)
            brukers_meldekort_id.id AS brukers_meldekort_id,
@@ -20,4 +20,4 @@ FROM (
     ORDER BY brukers_meldekort_id.id, m.opprettet, m.id
 ) AS behandlet
 WHERE mb.id = behandlet.brukers_meldekort_id
-  AND mb.behandlet_av IS NULL;
+  AND mb.behandling_id IS NULL;

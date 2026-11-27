@@ -166,10 +166,10 @@ class BrukersMeldekortPostgresRepo(
                 sqlQuery(
                     """
                     update meldekort_bruker set
-                        behandlet_av = :behandlet_av
-                    where id = any(:ider) and behandlet_av is null
+                        behandling_id = :behandling_id
+                    where id = any(:ider) and behandling_id is null
                     """,
-                    "behandlet_av" to meldekortbehandling.id.toString(),
+                    "behandling_id" to meldekortbehandling.id.toString(),
                     "ider" to meldekortIder.toTypedArray(),
                 ).asUpdate,
             )
@@ -232,7 +232,7 @@ class BrukersMeldekortPostgresRepo(
                 behandletAutomatiskForsøkshistorikk = row.string("behandlet_automatisk_metadata")
                     .toForsøkshistorikk(),
                 prioritering = row.stringOrNull("prioritering_begrunnelse")?.let { Prioritering.create(it) },
-                behandletAv = row.stringOrNull("behandlet_av")?.let { MeldekortId.fromString(it) },
+                behandlingId = row.stringOrNull("behandling_id")?.let { MeldekortId.fromString(it) },
             )
         }
     }

@@ -61,7 +61,7 @@ enum class MeldekortBehandletAutomatiskStatus(val loggnivå: Level, val kanPrøv
 
     /**
      * Meldekortet var knyttet til en meldekortbehandling som ble avbrutt, og regnes derfor som behandlet.
-     * Se [no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.behandletAv].
+     * Se [no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.behandlingId].
      */
     BEHANDLET_I_AVBRUTT_BEHANDLING(loggnivå = Level.INFO, kanPrøvesPåNytt = false),
 }

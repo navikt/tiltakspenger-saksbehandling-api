@@ -42,7 +42,7 @@ interface BrukersMeldekortRepo {
     )
 
     /**
-     * Lagrer [BrukersMeldekort.behandletAv] for meldekortene fra bruker som den iverksatte eller avbrutte [meldekortbehandling] behandlet.
+     * Lagrer [BrukersMeldekort.behandlingId] for meldekortene fra bruker som den iverksatte eller avbrutte [meldekortbehandling] behandlet.
      * Må kalles i samme transaksjon som iverksettelsen eller avbrytelsen.
      * Kaster dersom et av meldekortene allerede er behandlet, slik at transaksjonen rulles tilbake i stedet for å overskrive markeringen.
      */

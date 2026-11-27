@@ -90,7 +90,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
 
             sisteMeldekortbehandling.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
             sisteMeldekortbehandling.brukersMeldekort.id shouldBe brukersMeldekort.id
-            sisteMeldekortbehandling.brukersMeldekort.behandletAv shouldBe sisteMeldekortbehandling.id
+            sisteMeldekortbehandling.brukersMeldekort.behandlingId shouldBe sisteMeldekortbehandling.id
             // Team Sak vil bare ha de manuelle meldekortbehandlingene i saksstatistikken.
             tac.sessionFactory.hentSaksstatistikk(sak.id).none { it.behandlingType == StatistikkBehandlingType.MELDEKORT } shouldBe true
 
@@ -2040,7 +2040,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
 
                 tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.shouldBeEmpty()
                 brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.let {
-                    it.behandletAv shouldBe behandling.id
+                    it.behandlingId shouldBe behandling.id
                     it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET_I_AVBRUTT_BEHANDLING
                 }
             }
