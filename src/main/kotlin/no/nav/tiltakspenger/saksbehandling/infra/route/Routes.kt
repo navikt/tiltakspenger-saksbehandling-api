@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.meldekortRoutes
 import no.nav.tiltakspenger.saksbehandling.person.infra.route.hentPersonRoute
 import no.nav.tiltakspenger.saksbehandling.person.infra.route.hentPersonopplysningerBarnRoute
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.sakRoutes
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.saksoppslag.Saksoppslagstilgang
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.route.meRoute
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.søknadRoutes
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.tilbakekrevingRoutes
@@ -23,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.hentTil
 fun Route.routes(
     applicationContext: ApplicationContext,
     readiness: Readiness,
+    saksoppslagstilgang: Saksoppslagstilgang,
     tilleggsruter: Route.(applicationContext: ApplicationContext) -> Unit = {},
 ) {
     tilleggsruter(applicationContext)
@@ -96,6 +98,7 @@ fun Route.routes(
         )
         sakRoutes(
             sakService = applicationContext.sakContext.sakService,
+            saksoppslagstilgang = saksoppslagstilgang,
             auditService = applicationContext.personContext.auditService,
             avbrytSøknadOgBehandlingService = applicationContext.avbrytSøknadOgBehandlingContext.avsluttSøknadOgBehandlingService,
             clock = applicationContext.clock,

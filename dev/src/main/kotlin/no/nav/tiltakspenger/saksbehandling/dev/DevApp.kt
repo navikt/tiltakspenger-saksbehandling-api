@@ -1,10 +1,29 @@
 package no.nav.tiltakspenger.saksbehandling.dev
 
+import io.ktor.server.routing.Route
+import no.nav.tiltakspenger.saksbehandling.dev.sak.infra.route.oppdragstilstand.hentOppdragstilstandRoute
+import no.nav.tiltakspenger.saksbehandling.dev.sak.infra.route.saksoppslag.utviklingstilgangForSaksoppslag
+import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.startIMiljø
+
+val registrerUtviklingsruter: Route.(ApplicationContext) -> Unit = { context ->
+    hentOppdragstilstandRoute(
+        sakService = context.sakContext.sakService,
+        utbetalingRepo = context.utbetalingContext.utbetalingRepo,
+        auditService = context.personContext.auditService,
+        tilgangskontrollService = context.tilgangskontrollService,
+        tillatMaskintoken = true,
+    )
+}
 
 /** Inngangspunkt for utviklingsimaget. */
 fun main() {
-    startDevApp(System.getenv("NAIS_CLUSTER_NAME")) { startIMiljø(tilleggsruter = { devRoutes(it) }) }
+    startDevApp(System.getenv("NAIS_CLUSTER_NAME")) {
+        startIMiljø(
+            opprettSaksoppslagstilgang = ::utviklingstilgangForSaksoppslag,
+            tilleggsruter = registrerUtviklingsruter,
+        )
+    }
 }
 
 /**

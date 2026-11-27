@@ -66,7 +66,10 @@ data class SakDTO(
     val utbetalingstidslinje: List<UtbetalingstidslinjeMeldeperiodeDTO>,
 )
 
-fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
+fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock): SakDTO =
+    tilUsladdetSakDTO(saksbehandler, clock).sladdetFor(saksbehandler)
+
+fun Sak.tilUsladdetSakDTO(saksbehandler: Saksbehandler, clock: Clock): SakDTO = SakDTO(
     sakId = this.id.toString(),
     saksnummer = this.saksnummer.verdi,
     fnr = this.fnr.verdi.ikkeSladdet(),
@@ -104,4 +107,4 @@ fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
     tidslinje = this.rammevedtaksliste.tilRammevedtakTidslinjeDTO(),
     innvilgetTidslinje = this.rammevedtaksliste.tilRammevedtakInnvilgetTidslinjeDTO(),
     utbetalingstidslinje = this.tilUtbetalingstidslinjeMeldeperiodeDTO(),
-).sladdetFor(saksbehandler)
+)

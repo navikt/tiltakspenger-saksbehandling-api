@@ -5,6 +5,7 @@ import java.util.zip.ZipFile
 plugins {
     kotlin("jvm")
     id("com.diffplug.spotless")
+    id("org.jetbrains.kotlinx.kover")
     application
 }
 

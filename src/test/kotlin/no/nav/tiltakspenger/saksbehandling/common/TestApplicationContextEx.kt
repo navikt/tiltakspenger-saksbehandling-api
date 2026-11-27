@@ -18,6 +18,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.TestDatabaseManager
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ktorSetup
 import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.saksoppslag.OpprettSaksoppslagstilgang
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.saksoppslag.saksbehandlertilgangForSaksoppslag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
 import java.time.Clock
 
@@ -65,7 +67,7 @@ fun withTestApplicationContextAndPostgres(
             val tac = this
             testApplication {
                 application {
-                    ktorSetup(tac, readiness)
+                    ktorSetup(applicationContext = tac, readiness = readiness)
                     additionalConfig()
                 }
                 testBlock(this@with)
@@ -85,6 +87,7 @@ fun withTestApplicationContext(
     sessionFactory: TestSessionFactory = TestSessionFactory(),
     tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient = TilgangsmaskinFakeTestClient(),
     readiness: Readiness = Readiness(),
+    opprettSaksoppslagstilgang: OpprettSaksoppslagstilgang = ::saksbehandlertilgangForSaksoppslag,
     tilleggsruter: Route.(applicationContext: ApplicationContext) -> Unit = {},
     testBlock: suspend ApplicationTestBuilder.(TestApplicationContextMedInMemoryDb) -> Unit,
 ) {
@@ -99,7 +102,12 @@ fun withTestApplicationContext(
         val tac = this
         testApplication {
             application {
-                ktorSetup(tac, readiness, tilleggsruter = tilleggsruter)
+                ktorSetup(
+                    applicationContext = tac,
+                    readiness = readiness,
+                    opprettSaksoppslagstilgang = opprettSaksoppslagstilgang,
+                    tilleggsruter = tilleggsruter,
+                )
                 additionalConfig()
             }
             testBlock(this@with)

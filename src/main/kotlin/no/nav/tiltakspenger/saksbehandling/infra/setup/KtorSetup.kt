@@ -24,6 +24,8 @@ import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.TexasAuthenticationProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.saksoppslag.OpprettSaksoppslagstilgang
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.saksoppslag.saksbehandlertilgangForSaksoppslag
 import java.util.UUID
 
 const val CALL_ID_MDC_KEY = "call-id"
@@ -32,6 +34,7 @@ private const val NAV_CALL_ID_HEADER = "Nav-Call-Id"
 fun Application.ktorSetup(
     applicationContext: ApplicationContext,
     readiness: Readiness,
+    opprettSaksoppslagstilgang: OpprettSaksoppslagstilgang = ::saksbehandlertilgangForSaksoppslag,
     tilleggsruter: Route.(applicationContext: ApplicationContext) -> Unit = {},
 ) {
     // Gjenbruker Nav-Call-Id fra kalleren, slik at én forespørsel har samme call-id i loggene og i kallene videre.
@@ -54,7 +57,18 @@ fun Application.ktorSetup(
     }
     configureExceptions()
     setupAuthentication(applicationContext.texasClient)
-    routing { routes(applicationContext, readiness = readiness, tilleggsruter = tilleggsruter) }
+    routing {
+        routes(
+            applicationContext = applicationContext,
+            readiness = readiness,
+            saksoppslagstilgang = opprettSaksoppslagstilgang(
+                applicationContext.tilgangskontrollService,
+                applicationContext.personContext.auditService,
+                applicationContext.clock,
+            ),
+            tilleggsruter = tilleggsruter,
+        )
+    }
 }
 
 /**

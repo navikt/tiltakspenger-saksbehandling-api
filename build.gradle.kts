@@ -168,6 +168,7 @@ dependencies {
     // Lokal kjøring og tester bruker dev-rutene.
     // Avhengigheten er ikke-transitiv, ellers kommer rotas egen JAR også på testclasspathen, og Flyway finner hver migrering to ganger.
     testImplementation(project(":dev")) { isTransitive = false }
+    kover(project(":dev"))
     // Testene trenger LocalConfig når de kjører, men kompilerer ikke mot lokalmodulen.
     testRuntimeOnly(project(":lokal")) { isTransitive = false }
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.4.20")
@@ -420,8 +421,16 @@ val bootstrapUtenforDekningskravet =
         "no.nav.tiltakspenger.saksbehandling.infra.repo.FlywayMigrateKt",
     )
 
-// `*`-suffikset på httpklient-klassene tar med indre klasser og lambdaer; databaselag-mønstrene har det allerede.
-val klasserMedFullDekningskrav = httpklientKlasserMedDekningskrav.map { "$it*" } + databaselagMedDekningskrav
+val rutepakkerMedDekningskrav = listOf(
+    "no.nav.tiltakspenger.saksbehandling.sak.infra.routes.saksoppslag.*",
+    "no.nav.tiltakspenger.saksbehandling.dev.sak.infra.route.saksoppslag.*",
+    "no.nav.tiltakspenger.saksbehandling.dev.sak.infra.route.oppdragstilstand.*",
+    "no.nav.tiltakspenger.saksbehandling.dev.sak.infra.route.maskinoppslag.*",
+)
+
+// `*`-suffikset tar med indre klasser og lambdaer.
+val klasserMedFullDekningskrav =
+    httpklientKlasserMedDekningskrav.map { "$it*" } + rutepakkerMedDekningskrav + databaselagMedDekningskrav
 
 kover {
     currentProject {
@@ -448,14 +457,14 @@ kover {
                 onCheck = true
                 // De to gatene utfyller hverandre og må stå side om side.
                 // Full grendekning sier ingenting om en linje uten grener, og full linjedekning sier ingenting om hvilken vei et vilkår ble tatt.
-                rule("migrerte httpklient-klienter og hele databaselaget har full linjedekning") {
+                rule("utvalgte ruter, migrerte httpklient-klienter og hele databaselaget har full linjedekning") {
                     bound {
                         minValue = 100
                         coverageUnits = CoverageUnit.LINE
                         aggregationForGroup = AggregationType.COVERED_PERCENTAGE
                     }
                 }
-                rule("migrerte httpklient-klienter og hele databaselaget har full grendekning") {
+                rule("utvalgte ruter, migrerte httpklient-klienter og hele databaselaget har full grendekning") {
                     bound {
                         minValue = 100
                         coverageUnits = CoverageUnit.BRANCH
@@ -469,10 +478,15 @@ kover {
 
 tasks.named("koverXmlReport") {
     val xmlReport = layout.buildDirectory.file("reports/kover/report.xml")
+    val påkrevdeRutepakker = rutepakkerMedDekningskrav
+    inputs.property("påkrevdeRutepakker", påkrevdeRutepakker)
     doLast {
-        val xml = xmlReport.get().asFile
-        val classCount = xml.readText().split("<class ").size - 1
-        if (classCount == 0) throw GradleException("Kover report contains no classes — include filters likely stale")
+        val xml = xmlReport.get().asFile.readText()
+        if ("<class " !in xml) throw GradleException("Kover report contains no classes — include filters likely stale")
+        val manglendeRutepakker = påkrevdeRutepakker.filterNot { "<class name=\"${it.removeSuffix("*").replace('.', '/')}" in xml }
+        if (manglendeRutepakker.isNotEmpty()) {
+            throw GradleException("Kover-rapporten mangler klasser i rutepakkene: ${manglendeRutepakker.joinToString()}")
+        }
     }
 }
 

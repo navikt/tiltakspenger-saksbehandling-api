@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.lokal.infra.route
 
 import io.ktor.server.routing.Route
-import no.nav.tiltakspenger.saksbehandling.dev.devRoutes
+import no.nav.tiltakspenger.saksbehandling.dev.sak.infra.route.oppdragstilstand.hentOppdragstilstandRoute
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.lokal.LocalApplicationContext
 import no.nav.tiltakspenger.saksbehandling.lokal.behandling.infra.route.nyUbestemtRevurderingDevRoute
@@ -14,7 +14,12 @@ const val DEV_ROUTE = "/dev"
 fun Route.localDevRoutes(applicationContext: ApplicationContext) {
     val applicationContext = applicationContext as LocalApplicationContext
 
-    devRoutes(applicationContext)
+    hentOppdragstilstandRoute(
+        sakService = applicationContext.sakContext.sakService,
+        utbetalingRepo = applicationContext.utbetalingContext.utbetalingRepo,
+        auditService = applicationContext.personContext.auditService,
+        tilgangskontrollService = applicationContext.tilgangskontrollService,
+    )
     nySøknadDevRoute(applicationContext = applicationContext)
     nyKlagehendelseDevRoute(lokalKabalHendelseService = applicationContext.lokalKabalHendelseService)
     oppdaterTiltaksdeltakelseDevRoute(lokalTiltaksdeltakelseService = applicationContext.lokalTiltaksdeltakelseService)

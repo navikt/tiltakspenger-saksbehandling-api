@@ -12,7 +12,7 @@ import org.json.JSONObject
 
 /**
  * Se [no.nav.tiltakspenger.saksbehandling.sak.infra.routes.søkFnrSaksnummerOgSakIdRoute]
- * Se [no.nav.tiltakspenger.saksbehandling.sak.infra.routes.hentSakForSaksnummerRoute]
+ * Se [no.nav.tiltakspenger.saksbehandling.sak.infra.routes.saksoppslag.hentSakForSaksnummerRoute]
  */
 interface HentSakRouteBuilder {
     /**

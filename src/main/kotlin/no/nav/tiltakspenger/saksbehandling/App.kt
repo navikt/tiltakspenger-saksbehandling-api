@@ -12,6 +12,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.CALL_ID_MDC_KEY
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ktorSetup
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.saksoppslag.OpprettSaksoppslagstilgang
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.saksoppslag.saksbehandlertilgangForSaksoppslag
 import java.time.Clock
 
 fun main() {
@@ -19,7 +21,10 @@ fun main() {
 }
 
 /** Oppstarten på Nais, der [tilleggsruter] lar et annet inngangspunkt legge til egne ruter. */
-fun startIMiljø(tilleggsruter: Route.(applicationContext: ApplicationContext) -> Unit = {}) {
+fun startIMiljø(
+    opprettSaksoppslagstilgang: OpprettSaksoppslagstilgang = ::saksbehandlertilgangForSaksoppslag,
+    tilleggsruter: Route.(applicationContext: ApplicationContext) -> Unit = {},
+) {
     System.setProperty("logback.configurationFile", Configuration.logbackConfigurationFile)
     System.setProperty("org.apache.avro.SERIALIZABLE_PACKAGES", Configuration.avroSerializablePackages)
 
@@ -30,7 +35,12 @@ fun startIMiljø(tilleggsruter: Route.(applicationContext: ApplicationContext) -
     }
 
     log.info { "starting server" }
-    start(log = log, clock = Clock.system(zoneIdOslo), tilleggsruter = tilleggsruter)
+    start(
+        log = log,
+        clock = Clock.system(zoneIdOslo),
+        opprettSaksoppslagstilgang = opprettSaksoppslagstilgang,
+        tilleggsruter = tilleggsruter,
+    )
 }
 
 /**
@@ -54,6 +64,7 @@ fun start(
         tilbakekrevingshendelsePolicy = Configuration.tilbakekrevingshendelsePolicy,
         erProd = Configuration.isProd(),
     ),
+    opprettSaksoppslagstilgang: OpprettSaksoppslagstilgang = ::saksbehandlertilgangForSaksoppslag,
     tilleggsruter: Route.(applicationContext: ApplicationContext) -> Unit = {},
 ) {
     log.info { "App context initialized" }
@@ -65,7 +76,12 @@ fun start(
         isNais = isNais,
         oppsett = bakgrunnsprosessoppsett(applicationContext = applicationContext, isNais = isNais),
     ) { readiness ->
-        ktorSetup(applicationContext = applicationContext, readiness = readiness, tilleggsruter = tilleggsruter)
+        ktorSetup(
+            applicationContext = applicationContext,
+            readiness = readiness,
+            opprettSaksoppslagstilgang = opprettSaksoppslagstilgang,
+            tilleggsruter = tilleggsruter,
+        )
     }
 }
 

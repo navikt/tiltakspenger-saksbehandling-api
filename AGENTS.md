@@ -24,8 +24,20 @@ Les disse først.
   `LocalConfig`, leverandøren for `lokal` og `META-INF/services`-fila for den ligger bare i `lokal`, så verken prod- eller utviklingsimaget kan starte lokalt.
   `DevConfig`, leverandøren og `META-INF/services`-fila ligger bare i `dev`, så produksjonsimaget kan ikke starte i dev-gcp.
   `DevApp` avviser alle andre klynger enn dev-gcp, også prod.
-  Diagnostikkruter for dev og lokal kjøring ligger i `devRoutes` i `dev`.
-  Appen registrerer tilleggsruter utenfor sin egen autentisering, så `devRoutes` krever innlogging i en egen `authenticate`-blokk.
+  Ruteregistreringen for utviklingsimaget ligger i `DevApp.kt`.
+  `GET /sak/{saksnummer}` registreres én gang under Azure AD og bruker samme saksbehandlertilgang i alle miljøer.
+  Bare utviklingsimaget godtar også maskintoken på ruten, med krav om klient-ID og med usladdet svar.
+  Maskinoppslag bruker `TEST-SAKSBEHANDLER` og rollen `SAKSBEHANDLER` som standard.
+  Bruk `testident` én gang for å velge `TEST-SAKSBEHANDLER` eller `TEST-BESLUTTER`, og gjenta `rolle` for hver ønsket `Saksbehandlerrolle`.
+  Parametrene kan overstyres uavhengig av hverandre.
+  Tomme eller ugyldige verdier gir 400.
+  Ved vellykket maskinoppslag skriver appen operasjonen, klient-ID, testident og roller på INFO-nivå i vanlig applogg, uten saks- eller personopplysninger.
+  Saksoppslagets felles rute ligger i `sak/infra/routes/saksoppslag/`, og utviklingstilgangen ligger i `dev/sak/infra/route/saksoppslag/`.
+  Ved oppstart henter `ktorSetup` `TilgangskontrollService`, `AuditService` og `Clock` fra `ApplicationContext` og gir dem som eksplisitte avhengigheter til `opprettSaksoppslagstilgang`.
+  Oppdragstilstandsruten ligger i `dev/sak/infra/route/oppdragstilstand/`.
+  Oppdragstilstandsruten registreres i dev og lokalt, men bare `registrerUtviklingsruter` aktiverer maskintilgang.
+  Saksbehandleroppslag krever Texas-rolle og persontilgang, mens maskinoppslag bruker verifisert systemidentitet og klient-ID uten å slå opp saksbehandlerens persontilgang.
+  Begge rutene bruker klient-ID i auditloggen for maskinoppslag og deler maskintilgangen i `dev/sak/infra/route/maskinoppslag/`.
   `:dev:verifiserDevDistribusjon` kjører i `check` og kontrollerer at utviklingsdistribusjonen inneholder de samme JAR-filene som produksjon pluss én egen JAR.
   Kontrollen feiler hvis produksjon inneholder dev-pakken eller hvis JAR-fila fra `dev` overlapper med klasser og ressurser fra produksjon.
   Den feiler også hvis en produksjons-JAR har `META-INF/services`-fila for `Miljøkonfigurasjonsleverandør`, eller hvis JAR-fila fra `dev` ikke registrerer nøyaktig én leverandør fra dev-pakken.
@@ -61,6 +73,7 @@ Les disse først.
 
 Sladdelaget ligger i `infra/route/Sladding.kt` med tilhørende `<DTO>Sladding.kt` ved siden av hver DTO.
 Personopplysninger og saksbehandlerfritekst sladdes for alle brukere uten minst én fagrolle i `ROLLER_MED_PERSONINNSYN`.
+Maskinoppslaget i dev gir en usladdet respons.
 Nye DTO-felter med personopplysninger eller fritekst må alltid legges inn i sladdelaget.
 Endepunkter for brev i PDF-format støtter ikke sladding og avviser forespørsler uten fagrolle med 403.
 Laget verifiseres med enhetstester av DTO-utvidelsene og route-tester som kontrollerer fravær av sensitive data i JSON-responsen.
@@ -97,11 +110,13 @@ Slik ser den ut i dette repoet:
 - **Dekningsgaten krever 100 % både linje- og grendekning (`CoverageUnit.LINE` og `CoverageUnit.BRANCH`) på hele databaselaget** — se `databaselagMedDekningskrav` i `build.gradle.kts`.
   Hver gren i et vilkår må altså være truffet begge veier av testene — nullable felter begge veier, `rowsAffected > 0` både med og uten treff, og hver `when`-arm.
   De to gatene står side om side fordi de fanger ulike hull: full grendekning sier ingenting om en linje uten grener, og full linjedekning sier ingenting om hvilken vei et vilkår ble tatt.
-  Gaten er mønsterbasert og består av to mønstre: alt som ligger under en `infra/repo`-pakke uansett dybde (inkludert `*DbJson`-filene), og alt som heter `*Repo` uansett hvor det ligger.
+  De samme gatene krever full dekning for de utvalgte HTTP-klientene og alle klassene i pakkene oppført i `rutepakkerMedDekningskrav` i `build.gradle.kts`.
+  Databaselaget dekkes av to mønstre: alt som ligger under en `infra/repo`-pakke uansett dybde (inkludert `*DbJson`-filene), og alt som heter `*Repo` uansett hvor det ligger.
   Kover matcher på fullt klassenavn, og `*` dekker også punktum — det finnes ingen `**`, og det trengs ikke.
   Ny kode i databaselaget er altså dekket som standard, og skal ikke legges til for hånd.
   Eneste unntak er `DataSourceSetup` og `FlywayMigrate`, som er bootstrap og ikke databaselag; de står i `bootstrapUtenforDekningskravet` med begrunnelse.
   Merk at kover-rapportene ikke lenger genereres av `check`; kjør `./gradlew koverHtmlReport` eksplisitt når du skal lese dem.
+  Kjør `./gradlew koverXmlReport` eksplisitt for å kontrollere at hver pakke har minst én klasse i rapporten.
 - **Testhjelpere som ikke hører i prodkoden ligger i `*TestEx.kt` ved siden av typen de gjelder.**
   `BegrunnelseTestEx.kt` og `BarnetilleggTestEx.kt` er bekvemmelighetskonstruktører som companion-extensions, `StatistikkTestEx.kt` og `TiltaksdeltakerHendelseTestEx.kt` er databaseoppslag kun tester trenger.
   Repoet har null `@TestOnly` i `src/main`, og det skal det fortsette å ha.
