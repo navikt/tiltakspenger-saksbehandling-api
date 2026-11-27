@@ -10,3 +10,8 @@ CREATE INDEX IF NOT EXISTS idx_meldekort_bruker_ubehandlet_kjede_mottatt
 
 -- Benk-spørringen var den eneste som brukte den gamle indeksen.
 DROP INDEX IF EXISTS idx_meldekort_bruker_apent_kjede_mottatt;
+
+-- Indeksen fantes for benkens gamle regel om at en meldekortbehandling som var endret etter innsendingen, hadde tatt stilling til meldekortet.
+-- Benken bruker nå behandling_id og koblingene til åpne behandlinger, så ingen spørringer bruker den lenger.
+-- Oppslag på sak_id dekkes av idx_utfylt_meldekort_sak_id.
+DROP INDEX IF EXISTS idx_meldekortbehandling_kjede_jsonb_sist_endret;
