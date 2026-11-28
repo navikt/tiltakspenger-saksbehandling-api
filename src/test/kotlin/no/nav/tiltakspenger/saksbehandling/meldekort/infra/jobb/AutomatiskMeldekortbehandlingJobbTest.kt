@@ -379,11 +379,14 @@ class AutomatiskMeldekortbehandlingJobbTest {
         }
     }
 
+    /** Lørdag 5. april 2025 er økonomisystemet muligens åpent 07:10-17:50, så det er plass til hele pauserekka. */
     @Test
-    fun `skal sette jobben på pause i 15 minutter uten å lagre forsøket når økonomisystemet muligens er åpent og simuleringen svarer stengt`() {
+    fun `skal sette jobben på stadig lengre pause uten å lagre forsøket når økonomisystemet muligens er åpent og simuleringen svarer stengt`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
+                val jobb = tac.meldekortContext.automatiskMeldekortbehandlingJobb
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
                 val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
                     periode = vedtaksperiode,
                     clock = clock,
@@ -396,14 +399,11 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 )
                 brukersMeldekortRepo.lagre(brukersMeldekort)
 
-                tac.utbetalingFakeKlient.simulerFeil = KunneIkkeSimulere.Stengt(
-                    httpKlientUventetStatus(statusCode = 503, body = "simulering stengt"),
-                )
-                tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(
-                    clock = muligÅpentKlokke(),
-                )
+                var sisteKjøring = 5.april(2025).atTime(7, 10)
+                tac.utbetalingFakeKlient.simulerFeil = stengt
+                jobb.behandleBrukersMeldekort(clock = fixedClockAt(sisteKjøring))
 
-                tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+                meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
                 // Forsøket lagres ikke, slik at det ikke teller mot maksgrensen for nye forsøk.
                 brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.let {
                     it.behandlesAutomatisk shouldBe true
@@ -411,19 +411,68 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     it.behandletAutomatiskForsøkshistorikk shouldBe brukersMeldekort.behandletAutomatiskForsøkshistorikk
                 }
 
-                // Simuleringen virker igjen, men jobben står på pause til 15 minutter etter at den svarte stengt.
-                tac.utbetalingFakeKlient.simulerFeil = null
-                tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(
-                    clock = fixedClockAt(1.april(2025).atTime(18, 14, 59)),
-                )
-                tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+                // Simuleringen virker like før hver pause er over, men jobben står på pause; når pausen er over, svarer den stengt igjen.
+                // Etter fem pauser på rad varer hver pause like lenge som den femte.
+                val pauser = listOf(5L, 15L, 30L, 45L, 60L, 60L)
+                pauser.forEachIndexed { index, minutter ->
+                    val pauseSlutt = sisteKjøring.plusMinutes(minutter)
+                    tac.utbetalingFakeKlient.simulerFeil = null
+                    jobb.behandleBrukersMeldekort(clock = fixedClockAt(pauseSlutt.minusSeconds(1)))
+                    meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
 
-                tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(
-                    clock = fixedClockAt(1.april(2025).atTime(18, 15)),
-                )
-                tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!.sisteGodkjenteMeldekort!!
+                    tac.utbetalingFakeKlient.simulerFeil = if (index == pauser.lastIndex) null else stengt
+                    jobb.behandleBrukersMeldekort(clock = fixedClockAt(pauseSlutt))
+                    sisteKjøring = pauseSlutt
+                }
+
+                meldekortbehandlingRepo.hentForSakId(sak.id)!!.sisteGodkjenteMeldekort!!
                     .shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
                     .brukersMeldekort.id shouldBe brukersMeldekort.id
+            }
+        }
+    }
+
+    @Test
+    fun `skal starte pauserekka på nytt når simuleringen ikke lenger svarer stengt`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val jobb = tac.meldekortContext.automatiskMeldekortbehandlingJobb
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+
+                suspend fun lagreMeldekort(): Sak {
+                    val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                        periode = vedtaksperiode,
+                        clock = clock,
+                    )
+                    tac.meldekortContext.brukersMeldekortRepo.lagre(
+                        ObjectMother.brukersMeldekort(
+                            behandlesAutomatisk = true,
+                            sakId = sak.id,
+                            meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+                            mottatt = nå(clock),
+                        ),
+                    )
+                    return sak
+                }
+
+                // To stengt-svar på rad gir en pause på 15 minutter, til 18:20.
+                val førsteSak = lagreMeldekort()
+                tac.utbetalingFakeKlient.simulerFeil = stengt
+                jobb.behandleBrukersMeldekort(clock = fixedClockAt(1.april(2025).atTime(18, 0)))
+                jobb.behandleBrukersMeldekort(clock = fixedClockAt(1.april(2025).atTime(18, 5)))
+                tac.utbetalingFakeKlient.simulerFeil = null
+                jobb.behandleBrukersMeldekort(clock = fixedClockAt(1.april(2025).atTime(18, 20)))
+                meldekortbehandlingRepo.hentForSakId(førsteSak.id) shouldNotBe null
+
+                // Etter at simuleringen gikk gjennom, gir neste stengt-svar igjen en pause på 5 minutter.
+                val andreSak = lagreMeldekort()
+                tac.utbetalingFakeKlient.simulerFeil = stengt
+                jobb.behandleBrukersMeldekort(clock = fixedClockAt(1.april(2025).atTime(18, 21)))
+                tac.utbetalingFakeKlient.simulerFeil = null
+                jobb.behandleBrukersMeldekort(clock = fixedClockAt(1.april(2025).atTime(18, 25, 59)))
+                meldekortbehandlingRepo.hentForSakId(andreSak.id) shouldBe null
+                jobb.behandleBrukersMeldekort(clock = fixedClockAt(1.april(2025).atTime(18, 26)))
+                meldekortbehandlingRepo.hentForSakId(andreSak.id) shouldNotBe null
             }
         }
     }
@@ -515,6 +564,8 @@ class AutomatiskMeldekortbehandlingJobbTest {
 
     /** Tirsdag kl 18, etter antatt stengetid, men før økonomisystemet senest stenger. */
     private fun muligÅpentKlokke() = fixedClockAt(1.april(2025).atTime(18, 0))
+
+    private val stengt = KunneIkkeSimulere.Stengt(httpKlientUventetStatus(statusCode = 502, body = "simulering stengt"))
 
     @Test
     fun `skal prøve på nytt etter 1 minutt for første forsøk`() {
@@ -1043,7 +1094,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
 
     /**
      * Tirsdag 1. april 2025 kl 14 er økonomisystemet antatt åpent, så et stengt-svar fra simuleringen setter ikke jobben på pause.
-     * Korrigeringen prøves i stedet på nytt etter vanlig ventetid, før pausen på 15 minutter ville vært over.
+     * Korrigeringen prøves i stedet på nytt etter vanlig ventetid, før den første pausen på 5 minutter ville vært over.
      */
     @Test
     fun `skal prøve korrigering på nytt uten pause når simuleringen svarer stengt mens økonomisystemet er antatt åpent`() {
@@ -1054,7 +1105,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 tidspunkt = 1.april(2025).atTime(14, 0),
                 simulerFeil = KunneIkkeSimulere.Stengt(httpKlientUventetStatus(statusCode = 503, body = "simulering stengt")),
             ),
-            Kjøring(1.april(2025).atTime(14, 5)),
+            Kjøring(1.april(2025).atTime(14, 4)),
         ) shouldBe listOf(
             MeldekortBehandletAutomatiskStatus.SIMULERING_FEILET,
             MeldekortBehandletAutomatiskStatus.BEHANDLET,
@@ -1076,16 +1127,16 @@ class AutomatiskMeldekortbehandlingJobbTest {
     }
 
     /**
-     * Fristen er mandag 7. april 2025 kl 20:50, og pausen etter at simuleringen svarte stengt kl 20:40 varer til 20:55.
+     * Fristen er mandag 7. april 2025 kl 20:50, og pausen på 5 minutter etter at simuleringen svarte stengt kl 20:46 varer til 20:51.
      * Da er økonomisystemet stengt, og når det åpner tirsdag, har fristen gått ut.
      */
     @Test
     fun `skal ikke behandle korrigering automatisk når pausen etter stengt simulering varer forbi fristen`() {
         korrigerMeldekortAutomatisk(
             førsteBehandlingstidspunkt = 4.april(2025).atTime(12, 0),
-            korrigeringMottatt = 7.april(2025).atTime(20, 40),
+            korrigeringMottatt = 7.april(2025).atTime(20, 46),
             Kjøring(
-                tidspunkt = 7.april(2025).atTime(20, 40),
+                tidspunkt = 7.april(2025).atTime(20, 46),
                 simulerFeil = KunneIkkeSimulere.Stengt(httpKlientUventetStatus(statusCode = 503, body = "simulering stengt")),
             ),
             Kjøring(7.april(2025).atTime(20, 49, 59)),

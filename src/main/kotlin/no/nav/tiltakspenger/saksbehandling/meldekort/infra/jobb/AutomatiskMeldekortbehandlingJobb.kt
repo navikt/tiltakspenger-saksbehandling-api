@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.felles.Korrelasjon
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.felles.plusVirkedagstid
@@ -42,7 +43,6 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.Åpni
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.økonomisystemetsÅpningsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
-import java.time.LocalDateTime
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
@@ -66,16 +66,18 @@ class AutomatiskMeldekortbehandlingJobb(
 
     /**
      * Settes når simuleringen svarer at økonomisystemet er stengt i mulig åpningstid, slik at vi ikke simulerer på nytt hvert minutt.
-     * Flagget ligger i minnet, så hver pod har sin egen pause, og pausen nullstilles ved omstart.
+     * Pausen blir lengre for hvert stengt-svar på rad, etter [PAUSER_NÅR_ØKONOMISYSTEMET_ER_STENGT].
+     * Den nullstilles når en kjøring går gjennom alle meldekortene uten at simuleringen svarer stengt.
+     * Pausen ligger i minnet, så hver pod har sin egen pause, og den nullstilles ved omstart.
      */
     @Volatile
-    private var pauseTil: LocalDateTime? = null
+    private var pause: Forsøkshistorikk? = null
 
     suspend fun behandleBrukersMeldekort() = behandleBrukersMeldekort(clock)
 
     /** Tar egen [clock] for tester som må hoppe fram og tilbake i tid. */
     suspend fun behandleBrukersMeldekort(clock: Clock) {
-        if (pauseTil?.let { nå(clock) < it } == true) {
+        if (pause?.let { nå(clock) < it.nesteForsøk } == true) {
             return
         }
         val åpningsstatus = økonomisystemetsÅpningsstatus(clock)
@@ -111,9 +113,18 @@ class AutomatiskMeldekortbehandlingJobb(
                         return@catch false
                     }
 
-                    opprettMeldekortbehandling(meldekort, sak.value, pauseVedStengt, clock).fold(
+                    opprettMeldekortbehandling(meldekort, sak.value, clock).fold(
                         ifLeft = { ikkeBehandlet ->
                             when (ikkeBehandlet) {
+                                // Forsøket lagres ikke, slik at det ikke teller mot maksgrensen for nye forsøk.
+                                is IkkeBehandlet.ØkonomisystemetErStengt if pauseVedStengt -> true
+
+                                // I antatt åpningstid regnes stengt-svaret som et vanlig feilet forsøk.
+                                is IkkeBehandlet.ØkonomisystemetErStengt -> {
+                                    håndterOpprettBehandlingFeil(ikkeBehandlet.status, meldekort, sak, clock, correlationId)
+                                    false
+                                }
+
                                 is IkkeBehandlet.Feilet -> {
                                     håndterOpprettBehandlingFeil(
                                         status = ikkeBehandlet.status,
@@ -125,8 +136,6 @@ class AutomatiskMeldekortbehandlingJobb(
                                     )
                                     false
                                 }
-
-                                IkkeBehandlet.ØkonomisystemetErStengt -> true
 
                                 IkkeBehandlet.SakenMigreres -> {
                                     logger.info { "Venter med automatisk behandling av meldekort $id til saken $sakId er migrert til oppdragsversjon 3" }
@@ -147,12 +156,18 @@ class AutomatiskMeldekortbehandlingJobb(
             }
 
             // Simuleringen vil feile for resten av meldekortene også, så vi setter jobben på pause.
-            // Meldekortet oppdateres ikke, slik at forsøket ikke teller mot maksgrensen for nye forsøk.
             if (økonomisystemetErStengt) {
-                pauseTil = nå(clock) + PAUSE_NÅR_ØKONOMISYSTEMET_ER_STENGT
-                logger.info { "Økonomisystemet er stengt utenfor antatt åpningstid - setter automatisk behandling av meldekort på pause til $pauseTil" }
+                val nyPause = (pause ?: Forsøkshistorikk.opprett(clock = clock))
+                    .inkrementer(delays = PAUSER_NÅR_ØKONOMISYSTEMET_ER_STENGT, clock = clock)
+                pause = nyPause
+                logger.info { "Økonomisystemet er stengt utenfor antatt åpningstid - setter automatisk behandling av meldekort på pause til ${nyPause.nesteForsøk} (pause nr. ${nyPause.antallForsøk} på rad)" }
                 return
             }
+        }
+
+        pause?.let {
+            pause = null
+            logger.info { "Simuleringen svarte ikke stengt etter ${it.antallForsøk} pauser på rad - nullstiller pausen for automatisk behandling av meldekort" }
         }
     }
 
@@ -229,7 +244,6 @@ class AutomatiskMeldekortbehandlingJobb(
     private suspend fun opprettMeldekortbehandling(
         meldekort: BrukersMeldekort,
         sak: Sak,
-        pauseVedStengt: Boolean,
         clock: Clock,
     ): Either<IkkeBehandlet, MeldekortBehandletAutomatisk> {
         val meldekortId = meldekort.id
@@ -253,8 +267,8 @@ class AutomatiskMeldekortbehandlingJobb(
                 ) { navkontor }.onLeft { simuleringsfeil = it }
             },
         ).getOrElse { status ->
-            if (pauseVedStengt && simuleringsfeil is KunneIkkeSimulere.Stengt) {
-                return IkkeBehandlet.ØkonomisystemetErStengt.left()
+            if (simuleringsfeil is KunneIkkeSimulere.Stengt) {
+                return IkkeBehandlet.ØkonomisystemetErStengt(status).left()
             }
             if (simuleringsfeil == KunneIkkeSimulere.SakenMigreres) {
                 return IkkeBehandlet.SakenMigreres.left()
@@ -373,8 +387,11 @@ class AutomatiskMeldekortbehandlingJobb(
             val simuleringViserTidligereUtbetaling: Boolean = false,
         ) : IkkeBehandlet
 
-        /** Simuleringen svarte at økonomisystemet er stengt, utenfor tidsrommet der det antas å være åpent. */
-        data object ØkonomisystemetErStengt : IkkeBehandlet
+        /**
+         * Simuleringen svarte at økonomisystemet er stengt.
+         * Kalleren avgjør ut fra åpningsstatusen om det skal gi en pause eller regnes som et feilet forsøk med [status].
+         */
+        data class ØkonomisystemetErStengt(val status: MeldekortBehandletAutomatiskStatus) : IkkeBehandlet
 
         /** Saken migreres til oppdragsversjon 3, så meldekortet prøves på nytt uten at forsøket teller. */
         data object SakenMigreres : IkkeBehandlet
@@ -397,7 +414,14 @@ class AutomatiskMeldekortbehandlingJobb(
         /** Hvor lenge vi prøver på nytt etter at meldekortet ble mottatt, der bare tid på virkedager telles med. */
         val MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING = 2.days.toJavaDuration()
 
-        val PAUSE_NÅR_ØKONOMISYSTEMET_ER_STENGT = 15.minutes.toJavaDuration()
+        /** Pausen etter første, andre osv. stengt-svar på rad; etter det siste varer hver pause like lenge som den siste. */
+        private val PAUSER_NÅR_ØKONOMISYSTEMET_ER_STENGT: List<Duration> = listOf(
+            5.minutes,
+            15.minutes,
+            30.minutes,
+            45.minutes,
+            60.minutes,
+        )
     }
 }
 
