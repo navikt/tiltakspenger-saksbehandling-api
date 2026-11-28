@@ -1,4 +1,5 @@
 import java.nio.file.Files
+import java.util.concurrent.TimeUnit
 import java.util.zip.ZipFile
 
 // Plugin-versjonene kommer fra rotprosjektets classpath.
@@ -91,7 +92,7 @@ spotless {
 
 val verifiserDevDistribusjon = tasks.register("verifiserDevDistribusjon") {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
-    description = "Bygger begge distribusjonene og kontrollerer skillet mellom JAR-filene."
+    description = "Bygger begge distribusjonene og kontrollerer innhold og oppstartssperrer."
     val prodInstall = rootProject.tasks.named<Sync>("installDist")
     dependsOn(prodInstall, tasks.installDist)
     // Løses ved konfigurasjon for å støtte konfigurasjonscachen.
@@ -99,7 +100,10 @@ val verifiserDevDistribusjon = tasks.register("verifiserDevDistribusjon") {
     val prodJarNavn = rootProject.tasks.named<Jar>("jar").get().archiveFileName.get()
     val devLib = tasks.installDist.get().destinationDir.resolve("lib")
     val devJarNavn = tasks.jar.get().archiveFileName.get()
-    val devKlasse = application.mainClass.get().replace('.', '/') + ".class"
+    val prodHovedklasse = rootProject.extensions.getByType<JavaApplication>().mainClass.get()
+    val devHovedklasse = application.mainClass.get()
+    val devKlasse = devHovedklasse.replace('.', '/') + ".class"
+    val java25 = javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(25)) }
     val spiFil = "META-INF/services/no.nav.tiltakspenger.saksbehandling.infra.setup.Miljøkonfigurasjonsleverandør"
     val fixturesJarNavn = rootProject.tasks.named<Jar>("testFixturesJar").get().archiveFileName.get()
     doLast {
@@ -149,6 +153,41 @@ val verifiserDevDistribusjon = tasks.register("verifiserDevDistribusjon") {
             val overlapp = devOppføringer intersect prodOppføringer
             check(overlapp.isEmpty()) { "$devJarNavn overlapper med ${prod.name}: $overlapp" }
         }
+
+        fun kontrollerOppstart(lib: File, hovedklasse: String, klynge: String?, melding: String) {
+            val utdata = temporaryDir.resolve("oppstart.log")
+            val prosess = ProcessBuilder(java25.get().executablePath.asFile.absolutePath, "-cp", "$lib/*", hovedklasse)
+                .redirectErrorStream(true)
+                .redirectOutput(utdata)
+                .apply {
+                    environment().clear()
+                    if (klynge != null) environment()["NAIS_CLUSTER_NAME"] = klynge
+                }.start()
+            try {
+                check(prosess.waitFor(15, TimeUnit.SECONDS)) { "$hovedklasse med klynge $klynge stoppet ikke innen 15 sekunder." }
+                check(prosess.exitValue() != 0 && utdata.useLines { linjer ->
+                    linjer.any {
+                        it == "Exception in thread \"main\" java.lang.IllegalStateException: $melding" ||
+                            it == "Caused by: java.lang.IllegalStateException: $melding"
+                    }
+                }) { "$hovedklasse med klynge $klynge ga exitkode ${prosess.exitValue()} uten forventet oppstartssperre: $melding" }
+            } finally {
+                if (prosess.isAlive) prosess.destroyForcibly().waitFor()
+                utdata.delete()
+            }
+        }
+
+        listOf("prod-gcp", null).forEach { klynge ->
+            kontrollerOppstart(devLib, devHovedklasse, klynge, "Utviklingsimaget kan bare starte i dev-gcp, men NAIS_CLUSTER_NAME er $klynge.")
+        }
+        kontrollerOppstart(
+            prodLib, prodHovedklasse, "dev-gcp",
+            "NAIS_CLUSTER_NAME er dev-gcp, og det krever nøyaktig én Miljøkonfigurasjonsleverandør for klyngen, men fant 0.",
+        )
+        kontrollerOppstart(
+            prodLib, prodHovedklasse, null,
+            "NAIS_CLUSTER_NAME mangler, og lokal kjøring krever nøyaktig én Miljøkonfigurasjonsleverandør for lokal fra lokalmodulen, men fant 0.",
+        )
     }
 }
 

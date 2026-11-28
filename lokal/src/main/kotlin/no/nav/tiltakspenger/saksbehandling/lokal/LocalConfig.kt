@@ -37,11 +37,12 @@ data object LocalConfig : EnvironmentConfig {
 
     // Image-referanse på formen repo/navn:tag — kun git-hashen etter siste kolon brukes (Configuration.gitHash).
     override val appImage = "lokalt-bygg:githubhash"
-    override val dbJdbcUrl = "jdbc:postgresql://host.docker.internal:5433/saksbehandling?user=postgres&password=test"
+    override val dbJdbcUrl = System.getenv("DB_JDBC_URL")
+        ?: "jdbc:postgresql://host.docker.internal:5433/saksbehandling?user=postgres&password=test"
 
-    override val tokenEndpoint = "http://localhost:7165/api/v1/token"
-    override val tokenIntrospectionEndpoint = "http://localhost:7165/api/v1/introspect"
-    override val tokenExchangeEndpoint = "http://localhost:7165/api/v1/token/exchange"
+    override val tokenEndpoint = System.getenv("NAIS_TOKEN_ENDPOINT") ?: "http://localhost:7165/api/v1/token"
+    override val tokenIntrospectionEndpoint = System.getenv("NAIS_TOKEN_INTROSPECTION_ENDPOINT") ?: "http://localhost:7165/api/v1/introspect"
+    override val tokenExchangeEndpoint = System.getenv("NAIS_TOKEN_EXCHANGE_ENDPOINT") ?: "http://localhost:7165/api/v1/token/exchange"
 
     override val pdlScope = "localhost"
     override val pdlUrl = "$WIREMOCK_URL/graphql"

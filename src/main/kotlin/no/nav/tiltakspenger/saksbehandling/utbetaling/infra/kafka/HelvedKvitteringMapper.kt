@@ -57,3 +57,20 @@ fun tilUtbetalingsstatus(value: String): Either<KunneIkkeBehandleUtbetalingskvit
     }
     Utbetalingskvittering.Status(utbetalingsstatus, referanser)
 }
+
+/** Leser bare gyldige linjereferanser for eierskapsoppslag før streng validering av egne kvitteringer. */
+fun lesUtbetalingsreferanser(value: String): Either<KunneIkkeBehandleUtbetalingskvittering, Set<Utbetalingsreferanse>> = either {
+    val melding = Either.catch { lesTre(value) }
+        .mapLeft { KunneIkkeBehandleUtbetalingskvittering.KunneIkkeTolkeInnhold(it) }.bind()
+    ensure(!melding.isNull && !melding.isMissingNode) { UgyldigInnhold(Årsak.MeldingErIkkeObjekt) }
+    val linjer = melding.path("detaljer").path("linjer")
+    if (!linjer.isArray) return@either emptySet()
+    (0 until linjer.size()).mapNotNull { index ->
+        val behandlingId = linjer.get(index).path("behandlingId")
+        if (behandlingId.isString && behandlingId.asString().length == 15) {
+            Utbetalingsreferanse(behandlingId.asString())
+        } else {
+            null
+        }
+    }.toSet()
+}

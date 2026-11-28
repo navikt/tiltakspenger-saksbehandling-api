@@ -21,7 +21,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Kafkaposisjon
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.Utbetalingsmålinger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeBehandleUtbetalingskvittering
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeBehandleUtbetalingskvittering.ManglerUtbetalingskobling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeBehandleUtbetalingskvittering.UgyldigInnhold
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KvitteringsstatusLagring
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Oppdragsversjon
@@ -111,7 +110,7 @@ class BehandleUtbetalingskvitteringerJobbTest {
     fun `permanente feil beholdes med backoff og rådata lekker ikke i vanlig logg`() {
         listOf(
             null to "ukjent-personverdi",
-            """{"status":"NY","hemmelig":"råinnhold"}""" to "ukjent-personverdi",
+            "null" to "ukjent-personverdi",
             "ikke json med råinnhold" to "ukjent-personverdi",
         ).forEach { (value, key) ->
             val oppsett = Oppsett()
@@ -151,7 +150,7 @@ class BehandleUtbetalingskvitteringerJobbTest {
             """{"status":"råverdi"}""" to "status har en ukjent verdi",
         ).forEach { (verdi, regel) ->
             val oppsett = Oppsett()
-            oppsett.kvittering(verdi, key = "rånøkkel")
+            oppsett.kvittering(verdi)
             oppsett.jobb.behandle(oppsett.kvitteringId).leftOrNull()!!.forbigående shouldBe false
             val melding = oppsett.logg.logglinjer.single().melding!!
             melding shouldContain "årsak=$regel"
@@ -260,7 +259,7 @@ class BehandleUtbetalingskvitteringerJobbTest {
 
         oppsett.jobb.behandle(oppsett.kvitteringId).getOrFail()
 
-        verify {
+        verify(exactly = 1) {
             oppsett.repo.finnUtbetalingerForKvitteringsreferanser(setOf(referanse), TestSessionFactory.transactionContext)
         }
         verify(exactly = 0) { oppsett.repo.lagreKvitteringsstatus(any(), any(), any()) }
@@ -276,22 +275,12 @@ class BehandleUtbetalingskvitteringerJobbTest {
     }
 
     @Test
-    fun `manglende og tvetydig V2-kobling prøves på nytt uten ferdigmarkering`() {
+    fun `manglende V2-referanser ignoreres og tvetydig kobling prøves på nytt`() {
         val mangler = Oppsett()
         mangler.kvittering("""{"status":"OK"}""", key = "v2-key")
-        mangler.jobb.behandle(mangler.kvitteringId).leftOrNull() shouldBe
-            ManglerUtbetalingskobling(ManglerUtbetalingskobling.Årsak.ManglerReferanser)
-        verify {
-            mangler.innboks.lagreFeil(
-                mangler.kvitteringId,
-                "ManglerUtbetalingskobling",
-                true,
-                any(),
-                null,
-            )
-        }
-        verify(exactly = 0) { mangler.innboks.markerBehandlet(any(), any(), any(), any()) }
-        mangler.logg.logglinjer.single().melding!! shouldContain "årsak=Kvitteringen mangler utbetalingsreferanser"
+        mangler.jobb.behandle(mangler.kvitteringId).getOrFail()
+        verify { mangler.innboks.markerBehandlet(mangler.kvitteringId, any(), null, any()) }
+        verify(exactly = 0) { mangler.innboks.lagreFeil(any(), any(), any(), any(), any()) }
 
         val tvetydig = Oppsett()
         val referanse = Utbetalingsreferanse(tvetydig.utbetaling.id.uuidPart())
@@ -437,23 +426,107 @@ class BehandleUtbetalingskvitteringerJobbTest {
     }
 
     @Test
-    fun `referanser uten treff gir sporbar koblingsfeil uten å logge referansen`() {
-        val oppsett = Oppsett()
-        val referanse = Utbetalingsreferanse(oppsett.utbetaling.id.uuidPart())
-        oppsett.kvittering(
-            """{"status":"HOS_OPPDRAG","detaljer":{"linjer":[{"behandlingId":"${referanse.verdi}"}]}}""",
-            key = "rånøkkel",
-        )
-        every { oppsett.repo.finnUtbetalingerForKvitteringsreferanser(setOf(referanse), any()) } returns emptyList()
+    fun `kvitteringer uten egne treff ferdigmarkeres uten streng validering eller statusendring`() {
+        listOf(
+            "{}",
+            "[]",
+            """{"status":"UKJENT"}""",
+            """{"detaljer":"ugyldig"}""",
+            """{"detaljer":{"linjer":"ugyldig"}}""",
+            """{"detaljer":{"linjer":[null,7,"ugyldig",{}, {"behandlingId":"kort"}]}}""",
+            """{"status":"HOS_OPPDRAG","detaljer":{"linjer":[{"behandlingId":"0123456789ABCDE"}]}}""",
+        ).forEach { value ->
+            val oppsett = Oppsett()
+            oppsett.kvittering(value, key = null)
+            every { oppsett.repo.finnUtbetalingerForKvitteringsreferanser(any(), any()) } returns emptyList()
 
+            oppsett.jobb.behandle(oppsett.kvitteringId).getOrFail()
+
+            verify { oppsett.innboks.markerBehandlet(oppsett.kvitteringId, nå(fixedClock), null, TestSessionFactory.transactionContext) }
+            verify(exactly = 0) { oppsett.repo.hent(any(), any()) }
+            verify(exactly = 0) { oppsett.repo.lagreKvitteringsstatus(any(), any(), any()) }
+            verify(exactly = 0) { oppsett.innboks.lagreFeil(any(), any(), any(), any(), any()) }
+            oppsett.logg.logglinjer.size shouldBe 0
+        }
+    }
+
+    @Test
+    fun `eget treff krever gyldige linjer og full entydig kobling`() {
+        listOf(
+            "null" to UgyldigInnhold(UgyldigInnhold.Årsak.LinjeErIkkeObjekt),
+            "{}" to UgyldigInnhold(UgyldigInnhold.Årsak.UgyldigBehandlingId),
+            """{"behandlingId":"kort"}""" to UgyldigInnhold(UgyldigInnhold.Årsak.UgyldigBehandlingId),
+            """{"behandlingId":"0123456789ABCDE"}""" to KunneIkkeBehandleUtbetalingskvittering.TvetydigUtbetalingskobling,
+        ).forEach { (ekstraLinje, feil) ->
+            val oppsett = Oppsett()
+            val referanse = Utbetalingsreferanse(oppsett.utbetaling.id.uuidPart())
+            oppsett.kvittering(
+                """{"status":"OK","detaljer":{"linjer":[{"behandlingId":"${referanse.verdi}"},$ekstraLinje]}}""",
+                key = "v2-key",
+            )
+            every { oppsett.repo.finnUtbetalingerForKvitteringsreferanser(any(), any()) } returns listOf(
+                UtbetalingsreferanseTreff(referanse, Utbetalingskobling(oppsett.utbetaling.id, oppsett.utbetaling.sakId)),
+            )
+
+            oppsett.jobb.behandle(oppsett.kvitteringId).leftOrNull() shouldBe feil
+
+            verify(exactly = 1) { oppsett.repo.finnUtbetalingerForKvitteringsreferanser(any(), any()) }
+            verify(exactly = 0) { oppsett.innboks.markerBehandlet(any(), any(), any(), any()) }
+            verify(exactly = 0) { oppsett.repo.lagreKvitteringsstatus(any(), any(), any()) }
+        }
+    }
+
+    @Test
+    fun `lagret kobling hindrer ignorering og valideres mot utbetalingen og referansene`() {
+        val oppsett = Oppsett()
+        oppsett.kvittering(
+            """{"status":"OK"}""",
+            key = "v2-key",
+            utbetalingId = oppsett.utbetaling.id,
+            sakId = oppsett.utbetaling.sakId,
+        )
+        every { oppsett.repo.hentOppdragsversjon(any(), any()) } returns Oppdragsversjon.V2
+        oppsett.jobb.behandle(oppsett.kvitteringId).getOrFail()
+        verify {
+            oppsett.innboks.markerBehandlet(
+                oppsett.kvitteringId,
+                any(),
+                Utbetalingskobling(oppsett.utbetaling.id, oppsett.utbetaling.sakId),
+                any(),
+            )
+        }
+        verify(exactly = 0) { oppsett.repo.lagreKvitteringsstatus(any(), any(), any()) }
+        verify(exactly = 0) { oppsett.repo.finnUtbetalingerForKvitteringsreferanser(any(), any()) }
+
+        oppsett.kvittering("""{"status":"UKJENT"}""", key = "v2-key", utbetalingId = oppsett.utbetaling.id)
+        oppsett.jobb.behandle(oppsett.kvitteringId).leftOrNull() shouldBe UgyldigInnhold(UgyldigInnhold.Årsak.UkjentStatus)
+
+        oppsett.kvittering(key = "v2-key", utbetalingId = oppsett.utbetaling.id, sakId = SakId.random())
+        oppsett.jobb.behandle(oppsett.kvitteringId).leftOrNull() shouldBe KunneIkkeBehandleUtbetalingskvittering.LagretUtbetalingskoblingAvviker
+
+        val referanse = Utbetalingsreferanse("0123456789ABCDE")
+        oppsett.kvittering(
+            """{"status":"OK","detaljer":{"linjer":[{"behandlingId":"${referanse.verdi}"}]}}""",
+            key = "v2-key",
+            utbetalingId = oppsett.utbetaling.id,
+        )
+        every { oppsett.repo.finnUtbetalingerForKvitteringsreferanser(any(), any()) } returns emptyList()
         oppsett.jobb.behandle(oppsett.kvitteringId).leftOrNull() shouldBe
-            ManglerUtbetalingskobling(ManglerUtbetalingskobling.Årsak.IngenTreffPåReferanser)
-        val melding = oppsett.logg.logglinjer.single().melding!!
-        melding shouldContain "ManglerUtbetalingskobling, forbigående=true"
-        melding shouldContain "topic=helved.status.v1, partisjon=2, offset=3000000000"
-        melding shouldContain "årsak=Ingen utbetaling matcher referansene i kvitteringen"
-        melding shouldNotContain referanse.verdi
-        melding shouldNotContain "rånøkkel"
+            KunneIkkeBehandleUtbetalingskvittering.ManglerUtbetalingskobling(
+                KunneIkkeBehandleUtbetalingskvittering.ManglerUtbetalingskobling.Årsak.IngenTreffPåReferanser,
+            )
+
+        val annenUtbetaling = ObjectMother.utbetaling()
+        every { oppsett.repo.hent(annenUtbetaling.id, any()) } returns annenUtbetaling
+        every { oppsett.repo.finnUtbetalingerForKvitteringsreferanser(any(), any()) } returns listOf(
+            UtbetalingsreferanseTreff(referanse, Utbetalingskobling(annenUtbetaling.id, annenUtbetaling.sakId)),
+        )
+        oppsett.jobb.behandle(oppsett.kvitteringId).leftOrNull() shouldBe KunneIkkeBehandleUtbetalingskvittering.LagretUtbetalingskoblingAvviker
+
+        every { oppsett.repo.hent(oppsett.utbetaling.id, any()) } returns null
+        oppsett.jobb.behandle(oppsett.kvitteringId).leftOrNull() shouldBe
+            KunneIkkeBehandleUtbetalingskvittering.FantIkkeUtbetaling(oppsett.utbetaling.id)
+        verify(exactly = 1) { oppsett.innboks.markerBehandlet(any(), any(), any(), any()) }
     }
 
     @Test

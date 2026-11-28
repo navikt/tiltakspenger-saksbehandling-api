@@ -115,8 +115,8 @@ Slik ser den ut i dette repoet:
   Kover matcher på fullt klassenavn, og `*` dekker også punktum — det finnes ingen `**`, og det trengs ikke.
   Ny kode i databaselaget er altså dekket som standard, og skal ikke legges til for hånd.
   Eneste unntak er `DataSourceSetup` og `FlywayMigrate`, som er bootstrap og ikke databaselag; de står i `bootstrapUtenforDekningskravet` med begrunnelse.
-  Merk at kover-rapportene ikke lenger genereres av `check`; kjør `./gradlew koverHtmlReport` eksplisitt når du skal lese dem.
-  Kjør `./gradlew koverXmlReport` eksplisitt for å kontrollere at hver pakke har minst én klasse i rapporten.
+  `check` genererer XML-rapporten og kontrollerer at hver rutepakke har minst én klasse i den.
+  Kjør `./gradlew koverHtmlReport` for å generere HTML-rapporten.
 - **Testhjelpere som ikke hører i prodkoden ligger i `*TestEx.kt` ved siden av typen de gjelder.**
   `BegrunnelseTestEx.kt` og `BarnetilleggTestEx.kt` er bekvemmelighetskonstruktører som companion-extensions, `StatistikkTestEx.kt` og `TiltaksdeltakerHendelseTestEx.kt` er databaseoppslag kun tester trenger.
   Repoet har null `@TestOnly` i `src/main`, og det skal det fortsette å ha.
@@ -130,7 +130,13 @@ Den rå innboksmodellen og den typede domenekvitteringen holdes atskilt.
 Infrastrukturen tolker meldingsformatet, mens én jobb orkestrerer kobling og behandling.
 V2-kvitteringer kobles gjennom linjereferansene til sak og utbetaling uten å endre utbetalingsstatus.
 UUID-formatet brukes ikke som versjonssjekk.
-Kvitteringer med manglende eller tvetydig kobling beholdes for nye forsøk og varsling, ikke som vellykket ferdigbehandling.
+V3-nøkler med prefikset `utbetaling_` beholder direkte kobling før innholdet tolkes, og ugyldig nøkkel eller ukjent utbetaling gir fortsatt feil.
+For andre kvitteringer uten lagret utbetalings-ID leser jobben gyldige linjereferanser før den validerer hele kvitteringen.
+Når ingen referanser treffer en lokal utbetaling, markerer jobben kvitteringen som behandlet uten kobling eller statusendring.
+Jobben beholder rådata og forsøkshistorikk, og gir fortsatt feil ved tomt innhold eller uleselig JSON.
+Når minst én referanse treffer, krever jobben at innholdet er gyldig og at alle referansene peker på samme utbetaling.
+En lagret kobling kontrolleres mot utbetalingen og saken, også når referansene mangler.
+Oppslaget krever at utbetalingen er lagret, uavhengig av om den er markert som sendt.
 Status og ferdigmarkering lagres i samme transaksjon, og en feilende kvittering blokkerer høyere offset for samme nøkkel i samme topic og partisjon.
 Samme utbetalingsnøkkel forutsettes stabilt partisjonert.
 Eksisterende utbetalingsalarmer dekker også permanente kvitteringsfeil, langvarige forbigående feil og manglende kvitteringer.

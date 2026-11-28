@@ -477,12 +477,13 @@ kover {
 }
 
 tasks.named("koverXmlReport") {
-    val xmlReport = layout.buildDirectory.file("reports/kover/report.xml")
     val påkrevdeRutepakker = rutepakkerMedDekningskrav
     inputs.property("påkrevdeRutepakker", påkrevdeRutepakker)
     doLast {
-        val xml = xmlReport.get().asFile.readText()
-        if ("<class " !in xml) throw GradleException("Kover report contains no classes — include filters likely stale")
+        val xmlReport = outputs.files.singleFile
+        check(xmlReport.isFile) { "Kover-rapporten mangler: $xmlReport" }
+        val xml = xmlReport.readText()
+        check("<class " in xml) { "Kover-rapporten inneholder ingen klasser: $xmlReport" }
         val manglendeRutepakker = påkrevdeRutepakker.filterNot { "<class name=\"${it.removeSuffix("*").replace('.', '/')}" in xml }
         if (manglendeRutepakker.isNotEmpty()) {
             throw GradleException("Kover-rapporten mangler klasser i rutepakkene: ${manglendeRutepakker.joinToString()}")
@@ -539,4 +540,4 @@ val verifiserHttpKlienter =
         }
     }
 
-tasks.named("check") { dependsOn(verifiserHttpKlienter) }
+tasks.named("check") { dependsOn(verifiserHttpKlienter, "koverXmlReport", ":dev:verifiserDevDistribusjon") }

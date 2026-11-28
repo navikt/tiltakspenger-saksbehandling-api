@@ -271,7 +271,7 @@ class UtbetalingskvitteringAggregatTest {
             val mottattPerTestverdi = mutableMapOf<String, LocalDateTime>()
 
             fun konsumer(topic: String, partisjon: Int, offset: Long, key: String?, label: String) {
-                val value = """{"simulering":true,"testverdi":"$label"}"""
+                val value = """{"status":"UKJENT","detaljer":{"linjer":"ugyldig"},"testverdi":"$label"}"""
                 val record = ConsumerRecord<String, String?>(topic, partisjon, offset, key, value)
                 record.headers().add("fagsystem", "TILTAKSPENGER".toByteArray())
                 HelvedStatusConsumer.consume(record, tac.clock) { recordKey, recordValue, metadata, tidspunkt ->
@@ -397,7 +397,7 @@ class UtbetalingskvitteringAggregatTest {
             lagret shouldBe RåUtbetalingskvittering(
                 id = lavereOffsetId,
                 key = "samme",
-                value = """{"simulering":true,"testverdi":"lavere-offset"}""",
+                value = """{"status":"UKJENT","detaljer":{"linjer":"ugyldig"},"testverdi":"lavere-offset"}""",
                 kafkaposisjon = Kafkaposisjon("helved.status.v1", 1, 2),
                 mottatt = mottatt,
                 behandlet = null,
@@ -417,7 +417,7 @@ class UtbetalingskvitteringAggregatTest {
             val behandlet = tac.sessionFactory.withTransactionContext { context -> repo.hent(lavereOffsetId, context) }
             val behandletTid = requireNotNull(behandlet.behandlet)
             behandletTid.isBefore(nesteForsøk) shouldBe false
-            behandlet.forsøkshistorikk shouldBe historikk
+            behandlet shouldBe lagret.markerBehandlet(behandletTid)
             verdierPå(nesteForsøk) shouldBe listOf("høyere-offset")
             repo.antallForbigåendeFeil(mottatt) shouldBe 0L
 

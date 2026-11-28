@@ -99,10 +99,17 @@ Når Kafka-nøkkelen peker på en kjent utbetaling, kobles kvitteringen til sake
 Koblingen til sak og utbetaling lagres også ved ugyldig innhold eller når den senere statusbehandlingen rulles tilbake og prøves på nytt.
 Rå lagring fra konsumenten krever ingen sakskobling.
 
-For referanseoppslag må alle referansene finnes og peke entydig på én utbetaling og sak.
-Mangler koblingen, eller er treffene tvetydige, beholdes hendelsen for nye forsøk uten å velge en vilkårlig utbetaling.
+For kvitteringer uten V3-nøkkel eller lagret utbetalings-ID leser jobben gyldige linjereferanser før den validerer hele kvitteringen.
+Når ingen referanser treffer en lokal utbetaling, markerer jobben kvitteringen som behandlet uten kobling eller statusendring.
+Dette gjelder også når referanser mangler eller linjene har feil format.
+Jobben beholder rådata og forsøkshistorikk og fjerner aktive feilmarkeringer.
+Tomt innhold og uleselig JSON gir fortsatt feil.
+Utbetalingen lagres før sending i begge versjoner, så oppslaget kan gjøres før utbetalingen er markert som sendt.
+Når minst én referanse treffer, krever jobben at innholdet er gyldig og at alle referansene peker på samme utbetaling og sak.
+Blandinger av egne og fremmede eller ugyldige referanser gir feil og beholdes for nye forsøk og varsling.
+Jobben kontrollerer en lagret kobling mot utbetalingen og saken og gir feil ved avvik.
 En kjent sak kan bevares selv om utbetalingskoblingen ikke er entydig.
-Disse koblingsfeilene inngår i varslingen etter tre dager; de skjules ikke ved å markere hendelsen ferdig.
+Jobben slår opp V3-nøkler med prefikset `utbetaling_` direkte og gir feil ved ugyldig nøkkel eller ukjent utbetaling.
 
 Ved feil beholdes kvitteringen som ubehandlet med feiltype, klassifisering og `Forsøkshistorikk`.
 Ventetidene er 1, 5, 15 og 30 minutter, deretter 1, 2, 4, 8, 12 og 24 timer.

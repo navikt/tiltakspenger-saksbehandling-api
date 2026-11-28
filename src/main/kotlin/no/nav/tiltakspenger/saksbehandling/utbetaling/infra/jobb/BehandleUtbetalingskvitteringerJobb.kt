@@ -26,8 +26,10 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingskvitteri
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingskvitteringId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingskvitteringRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsreferanse
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingsreferanseTreff
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.kafka.lesUtbetalingsreferanser
 import java.time.Clock
 
 /**
@@ -93,14 +95,35 @@ class BehandleUtbetalingskvitteringerJobb(
                             registrerKobling(råKvittering, v3Utbetaling).bind()
                         }
 
+                        val lagretUtbetaling = if (v3Utbetaling == null && råKvittering.utbetalingId != null) {
+                            hentLagretUtbetaling(råKvittering, context).bind()
+                        } else {
+                            null
+                        }
                         val value = ensureNotNull(råKvittering.value) {
                             KunneIkkeBehandleUtbetalingskvittering.ManglerInnhold
                         }
+                        val referansetreff = if (v3Utbetaling == null && lagretUtbetaling == null) {
+                            val referanser = lesUtbetalingsreferanser(value).bind()
+                            val treff = if (referanser.isEmpty()) {
+                                emptyList()
+                            } else {
+                                utbetalingRepo.finnUtbetalingerForKvitteringsreferanser(referanser, context)
+                            }
+                            if (treff.isEmpty()) {
+                                utbetalingskvitteringRepo.markerBehandlet(id, nå(clock), null, context)
+                                return@either Behandlingstransaksjon(råKvittering, kontekst, null)
+                            }
+                            treff
+                        } else {
+                            null
+                        }
                         val kvittering = tilUtbetalingsstatus(value).bind()
                         val utbetaling = finnUtbetalingForKvittering(
-                            råKvittering = råKvittering,
                             kvittering = kvittering,
                             v3Utbetaling = v3Utbetaling,
+                            lagretUtbetaling = lagretUtbetaling,
+                            referansetreff = referansetreff,
                             context = context,
                         ).bind()
                         val kobling = when {
@@ -153,26 +176,28 @@ class BehandleUtbetalingskvitteringerJobb(
     }
 
     private fun finnUtbetalingForKvittering(
-        råKvittering: RåUtbetalingskvittering,
         kvittering: Utbetalingskvittering,
         v3Utbetaling: VedtattUtbetaling?,
+        lagretUtbetaling: VedtattUtbetaling?,
+        referansetreff: List<UtbetalingsreferanseTreff>?,
         context: TransactionContext,
     ): Either<KunneIkkeBehandleUtbetalingskvittering, VedtattUtbetaling?> = either {
         if (v3Utbetaling != null) return@either v3Utbetaling
-        if (kvittering.referanser.isNotEmpty()) return@either oppslagOgKobling(kvittering.referanser, context).bind()
-        if (råKvittering.utbetalingId != null) return@either hentLagretUtbetaling(råKvittering, context).bind()
+        if (kvittering.referanser.isNotEmpty()) return@either oppslagOgKobling(kvittering.referanser, referansetreff, context).bind()
+        if (lagretUtbetaling != null) return@either lagretUtbetaling
         if (kvittering is Utbetalingskvittering.Simulering) return@either null
         raise(ManglerUtbetalingskobling(ManglerUtbetalingskobling.Årsak.ManglerReferanser))
     }
 
     private fun oppslagOgKobling(
         referanser: Set<Utbetalingsreferanse>,
+        referansetreff: List<UtbetalingsreferanseTreff>?,
         context: TransactionContext,
     ): Either<KunneIkkeBehandleUtbetalingskvittering, VedtattUtbetaling> = either {
         ensure(referanser.isNotEmpty()) {
             ManglerUtbetalingskobling(ManglerUtbetalingskobling.Årsak.ManglerReferanser)
         }
-        val treff = utbetalingRepo.finnUtbetalingerForKvitteringsreferanser(referanser, context)
+        val treff = referansetreff ?: utbetalingRepo.finnUtbetalingerForKvitteringsreferanser(referanser, context)
         ensure(treff.isNotEmpty()) {
             ManglerUtbetalingskobling(ManglerUtbetalingskobling.Årsak.IngenTreffPåReferanser)
         }

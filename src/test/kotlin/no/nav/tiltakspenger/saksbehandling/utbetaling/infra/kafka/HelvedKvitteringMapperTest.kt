@@ -12,6 +12,19 @@ class HelvedKvitteringMapperTest {
     private val detaljer = """{"ytelse":"TILTAKSPENGER","linjer":[]}"""
 
     @Test
+    fun `eierskapsoppslag leser gyldige referanser tolerant uten å validere status eller andre linjer`() {
+        lesUtbetalingsreferanser(
+            """{"status":"UKJENT","simulering":"ugyldig","detaljer":{"linjer":[null,7,"ugyldig",{}, {"behandlingId":7},{"behandlingId":"kort"},{"behandlingId":"${referanse.verdi}"},{"behandlingId":"${referanse.verdi}"}]}}""",
+        ).getOrFail() shouldBe setOf(referanse)
+        listOf("{}", "[]", """{"detaljer":null}""", """{"detaljer":{"linjer":{}}}""").forEach {
+            lesUtbetalingsreferanser(it).getOrFail() shouldBe emptySet()
+        }
+        listOf("null", "ikke json", "", " \t\n").forEach {
+            lesUtbetalingsreferanser(it).leftOrNull()!!.forbigående shouldBe false
+        }
+    }
+
+    @Test
     fun `mapper status referanser og eksplisitte simuleringer`() {
         mapOf(
             """{"status":"MOTTATT","detaljer":$detaljer}""" to
