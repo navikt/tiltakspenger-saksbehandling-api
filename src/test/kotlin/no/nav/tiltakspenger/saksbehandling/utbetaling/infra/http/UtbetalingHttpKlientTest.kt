@@ -262,6 +262,32 @@ class UtbetalingHttpKlientTest {
     }
 
     @Test
+    fun `simuler - 502 med stengt-melding fra helved gir Stengt`() {
+        // Slik helved faktisk svarer når OS er stengt: simulering-appens feil pakkes inn i msg av utsjekk.
+        val body =
+            """{"statusCode":502,"msg":"{\"statusCode\":502,\"msg\":\"simulering stengt, tilgjengelig man-fre kl 6-21\",\"doc\":\"https://helved-docs.ansatt.dev.nav.no/v3/doc/\",\"system\":\"HELVED\"}","doc":"simulering","source":"HELVED"}"""
+        val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 502, body = body) }
+
+        runTest {
+            simuler(transport).leftOrNull()
+                .shouldBeInstanceOf<KunneIkkeSimulere.Stengt>()
+                .feil.shouldBeInstanceOf<HttpKlientError.UventetStatus>().statusCode shouldBe 502
+        }
+    }
+
+    @Test
+    fun `simuler - 502 uten stengt-melding gir UkjentFeil`() {
+        val body = """{"statusCode":502,"msg":"Ukjent svar fra Oppdragssystemet","doc":"simulering","source":"HELVED"}"""
+        val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 502, body = body) }
+
+        runTest {
+            simuler(transport).leftOrNull()
+                .shouldBeInstanceOf<KunneIkkeSimulere.UkjentFeil>()
+                .feil.shouldBeInstanceOf<HttpKlientError.UventetStatus>().statusCode shouldBe 502
+        }
+    }
+
+    @Test
     fun `simuler - timeout gir Timeout`() {
         val transport = FakeHttpTransport().apply { leggIKøKast(java.net.http.HttpTimeoutException("simulert timeout")) }
 

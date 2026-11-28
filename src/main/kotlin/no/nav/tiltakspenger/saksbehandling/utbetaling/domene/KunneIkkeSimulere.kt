@@ -40,8 +40,8 @@ sealed interface KunneIkkeSimulere {
 fun KunneIkkeSimulere.logg(logger: KLogger, kontekst: String) {
     when (this) {
         is KunneIkkeSimulere.Stengt -> {
-            logger.debug { "Simulering mot helved: 503. Kontrakten definerer 503 som «OS/UR er midlertidig stengt» -- typisk utenfor åpningstid, på helligdager eller under vedlikehold hos oppdragssystemet. Se sikkerlogg for mer kontekst. $kontekst - KunneIkkeSimulere.Stengt" }
-            Sikkerlogg.debug { "Simulering mot helved: 503. OS/UR er midlertidig stengt. $kontekst, body: ${feil.rawResponseString}" }
+            logger.debug { "Simulering mot helved: OS/UR er midlertidig stengt -- typisk utenfor åpningstid, på helligdager eller under vedlikehold hos oppdragssystemet. Se sikkerlogg for mer kontekst. $kontekst - KunneIkkeSimulere.Stengt" }
+            Sikkerlogg.debug { "Simulering mot helved: OS/UR er midlertidig stengt. $kontekst, body: ${feil.rawResponseString}" }
         }
 
         is KunneIkkeSimulere.Timeout -> feil.loggFeil(logger, "simulering mot helved (timeout)", kontekst)

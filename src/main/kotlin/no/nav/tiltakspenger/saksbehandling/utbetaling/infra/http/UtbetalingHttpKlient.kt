@@ -236,9 +236,18 @@ class UtbetalingHttpKlient(
     private fun HttpKlientError.tilKunneIkkeSimulere(): KunneIkkeSimulere = when (this) {
         is HttpKlientError.Timeout -> KunneIkkeSimulere.Timeout(this)
 
-        // Kontrakten (openapi.yml i helved-utbetaling) definerer 503 som «OS/UR er midlertidig stengt»; ikke en feil hos oss.
+        // Kontrakten (openapi.yml i helved-utbetaling) definerer 503 som «OS/UR er midlertidig stengt».
+        // Kontrakten stemmer ikke med virkeligheten: helved svarer i praksis 502 når OS er stengt, se neste gren.
+        // Vi beholder 503-mappingen i tilfelle helved retter seg etter kontrakten.
         is HttpKlientError.UventetStatus if statusCode == 503 -> KunneIkkeSimulere.Stengt(this)
+
+        // Når OS er stengt, gjør helved OS sin 502 om til en 502 med meldingen «simulering stengt, tilgjengelig man-fre kl 6-21» (libs/ws/Soap.kt i helved-utbetaling).
+        // Andre feil fra OS gir også 502, så meldingsteksten er det eneste som skiller stengt fra en ukjent feil.
+        is HttpKlientError.UventetStatus if statusCode == 502 && body.contains(SIMULERING_STENGT_MELDING, ignoreCase = true) ->
+            KunneIkkeSimulere.Stengt(this)
 
         else -> KunneIkkeSimulere.UkjentFeil(this)
     }
 }
+
+private const val SIMULERING_STENGT_MELDING = "simulering stengt"
