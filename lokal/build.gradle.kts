@@ -62,7 +62,7 @@ dependencies {
     implementation("io.github.oshai:kotlin-logging-jvm:8.0.4")
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.micrometer:micrometer-registry-prometheus:1.17.1")
-    implementation("org.flywaydb:flyway-database-postgresql:13.5.0")
+    implementation("org.flywaydb:flyway-database-postgresql:13.13.0")
     implementation("com.github.seratch:kotliquery:1.9.1")
     implementation("io.github.serpro69:kotlin-faker:1.16.2")
     implementation("no.nav.tiltakspenger.libs:test-common:$felleslibVersion") { isTransitive = false }
